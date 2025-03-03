@@ -6,7 +6,7 @@ export default function BlockDrawer() {
   const blockTypes = LAYER_TYPES.filter(type => type.type !== 'touchpoint');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {blockTypes.map((layer, index) => (
         <Draggable
           key={layer.type}
@@ -20,7 +20,7 @@ export default function BlockDrawer() {
               {...provided.dragHandleProps}
               style={{
                 ...provided.draggableProps.style,
-                cursor: snapshot.isDragging ? 'grabbing' : 'grab'
+                userSelect: 'none'
               }}
               className={`${layer.color} rounded-lg p-2 hover:shadow-md transition-shadow
                 ${snapshot.isDragging ? 'shadow-lg' : ''}`}

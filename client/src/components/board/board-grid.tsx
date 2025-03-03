@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, ArrowLeft, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
@@ -56,17 +56,25 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     }
 
     // If reordering within or between columns
-    const [movedBlock] = blocks.splice(result.source.index, 1);
-    const [phaseIndex, columnIndex] = result.destination.droppableId.split('-').map(Number);
+    const [sourcePhaseIndex, sourceColumnIndex] = result.source.droppableId.split('-').map(Number);
+    const [destPhaseIndex, destColumnIndex] = result.destination.droppableId.split('-').map(Number);
+
+    const [movedBlock] = blocks.filter(b =>
+      b.phaseIndex === sourcePhaseIndex &&
+      b.columnIndex === sourceColumnIndex
+    ).splice(result.source.index, 1);
 
     const updatedBlock = {
       ...movedBlock,
-      phaseIndex,
-      columnIndex
+      phaseIndex: destPhaseIndex,
+      columnIndex: destColumnIndex
     };
 
-    blocks.splice(result.destination.index, 0, updatedBlock);
-    onBlocksChange(blocks);
+    const remainingBlocks = blocks.filter(b => b.id !== movedBlock.id);
+    const insertIndex = result.destination.index;
+
+    remainingBlocks.splice(insertIndex, 0, updatedBlock);
+    onBlocksChange(remainingBlocks);
   };
 
   const handleBlockChange = (blockId: string, content: string) => {
@@ -112,8 +120,6 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     onPhasesChange(newPhases);
   };
 
-  const dragStyles = `rounded-lg hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing`;
-
   return (
     <div className="flex h-[calc(100vh-theme(spacing.16))]">
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -126,7 +132,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
             <h3 className="font-medium">Block Types</h3>
             <p className="text-sm text-gray-500 mt-1">Drag blocks to add them to your board</p>
           </div>
-          <Droppable droppableId="drawer">
+          <Droppable droppableId="drawer" isDropDisabled={true}>
             {(provided) => (
               <div ref={provided.innerRef} {...provided.droppableProps} className="p-6">
                 <BlockDrawer />
@@ -153,7 +159,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
             <div className="px-8 py-4 border-b bg-white sticky top-0 z-10 flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-4">
                 <Link href="/" className="text-sm font-medium hover:text-primary">
-                  <ArrowLeft className="w-4 h-4 inline-block mr-1" />
+                  <ChevronLeft className="w-4 h-4 inline-block mr-1" />
                   Back to Home
                 </Link>
                 <h1 className="text-2xl font-bold">{board.name}</h1>
@@ -178,8 +184,10 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                     <div className="mb-4 bg-amber-100 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-3">
                         <div
+                          contentEditable
                           onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
                           className="font-medium text-lg focus:outline-none focus:border-b border-primary"
+                          suppressContentEditableWarning={true}
                         >
                           {phase.name}
                         </div>
@@ -212,19 +220,22 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                         <div key={column.id} className="w-[220px]">
                           {/* Column header */}
                           <div
+                            contentEditable
                             onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
                             className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
+                            suppressContentEditableWarning={true}
                           >
                             {column.name}
                           </div>
 
                           {/* Blocks */}
                           <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
-                            {(provided) => (
+                            {(provided, snapshot) => (
                               <div
                                 ref={provided.innerRef}
                                 {...provided.droppableProps}
-                                className="space-y-3 min-h-[100px] p-2 rounded-lg border border-gray-100"
+                                className={`space-y-3 min-h-[100px] p-2 rounded-lg border border-gray-100
+                                  ${snapshot.isDraggingOver ? 'bg-gray-50' : 'bg-white'}`}
                               >
                                 {board.blocks
                                   .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
@@ -243,7 +254,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                             ...provided.draggableProps.style,
                                             cursor: snapshot.isDragging ? 'grabbing' : 'grab'
                                           }}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} ${dragStyles}
+                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} 
+                                            rounded-lg hover:shadow-md transition-shadow
                                             ${snapshot.isDragging ? 'shadow-lg' : ''}`}
                                         >
                                           <ErrorBoundary>

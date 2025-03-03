@@ -44,24 +44,20 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div className="w-[60px] h-[80px]">
+    <div 
+      className="w-[60px] h-[80px]"
+      style={{ pointerEvents: isTemplate ? 'none' : 'auto' }}
+    >
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className={`w-full h-full rounded-md p-2 text-xs
+        className="w-full h-full rounded-md p-2 text-xs
           flex items-center justify-center text-center
-          transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
-        style={{ backgroundColor: 'inherit' }}
-        suppressContentEditableWarning={true}
+          transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
       >
         {isTemplate ? TYPE_LABELS[block.type] : (block.content || "Add text")}
-      </div>
-
-      {/* Type label - shows on hover */}
-      <div className="absolute -bottom-5 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-center text-gray-500">
-        {TYPE_LABELS[block.type]}
       </div>
     </div>
   );
