@@ -37,13 +37,6 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
 
     const blocks = Array.from(board.blocks);
 
-    // If dragging back to drawer, remove the block
-    if (result.destination.droppableId === 'drawer') {
-      const updatedBlocks = blocks.filter(b => b.id !== result.draggableId);
-      onBlocksChange(updatedBlocks);
-      return;
-    }
-
     // If dragging from drawer to column
     if (result.source.droppableId === 'drawer') {
       const blockType = result.draggableId.replace('drawer-', '');
@@ -248,7 +241,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg`}
+                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg flex justify-center items-center`}
                                         >
                                           <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
                                           <ErrorBoundary>

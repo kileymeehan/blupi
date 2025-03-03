@@ -61,9 +61,7 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
         onKeyDown={handleKeyDown}
         className={`w-full h-full rounded-md cursor-pointer p-2 text-xs
           flex items-center justify-center text-center
-          transition-colors focus:outline-none focus:border-primary
-          border-2 border-gray-300 hover:border-gray-400
-          ${isTemplate ? 'pointer-events-none' : ''}`}
+          transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
