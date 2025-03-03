@@ -2,24 +2,19 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Plus, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import Block from "./block";
-import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
-import { ErrorBoundary } from "@/components/error-boundary";
 
 export const LAYER_TYPES = [
-  { type: 'touchpoint', label: 'Touchpoints', color: 'bg-sky-100' },
   { type: 'role', label: 'Roles', color: 'bg-green-100' },
   { type: 'process', label: 'Processes', color: 'bg-pink-100' },
   { type: 'pitfall', label: 'Pitfalls', color: 'bg-red-100' },
   { type: 'policy', label: 'Policy', color: 'bg-orange-100' },
   { type: 'technology', label: 'Technology', color: 'bg-purple-100' },
-  { type: 'rationale', label: 'Rationale', color: 'bg-indigo-100' },
-  { type: 'question', label: 'Questions', color: 'bg-violet-100' },
-  { type: 'note', label: 'Notes', color: 'bg-cyan-100' }
+  { type: 'rationale', label: 'Rationale', color: 'bg-indigo-100' }
 ] as const;
 
 interface BoardGridProps {
@@ -35,30 +30,10 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
-    const blocks = Array.from(board.blocks);
-
-    // If dragging from drawer to column
-    if (result.source.droppableId === 'drawer') {
-      const blockType = result.draggableId.split('-')[1];
-      const [phaseIndex, columnIndex] = result.destination.droppableId.split('-').map(Number);
-
-      const newBlock: BlockType = {
-        id: nanoid(),
-        type: blockType as BlockType['type'],
-        content: '',
-        phaseIndex,
-        columnIndex
-      };
-
-      blocks.push(newBlock);
-      onBlocksChange(blocks);
-      return;
-    }
-
-    // If reordering within or between columns
     const [sourcePhaseIndex, sourceColumnIndex] = result.source.droppableId.split('-').map(Number);
     const [destPhaseIndex, destColumnIndex] = result.destination.droppableId.split('-').map(Number);
 
+    const blocks = Array.from(board.blocks);
     const sourceBlocks = blocks.filter(b => 
       b.phaseIndex === sourcePhaseIndex && 
       b.columnIndex === sourceColumnIndex
@@ -75,6 +50,18 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     const remainingBlocks = blocks.filter(b => b.id !== movedBlock.id);
     remainingBlocks.push(updatedBlock);
     onBlocksChange(remainingBlocks);
+  };
+
+  const handleAddBlock = (phaseIndex: number, columnIndex: number, type: BlockType['type']) => {
+    const newBlock: BlockType = {
+      id: nanoid(),
+      type,
+      content: '',
+      phaseIndex,
+      columnIndex
+    };
+
+    onBlocksChange([...board.blocks, newBlock]);
   };
 
   const handleBlockChange = (blockId: string, content: string) => {
@@ -127,20 +114,19 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
           ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}>
           <div className="p-4 border-b border-gray-200 bg-white">
             <h3 className="font-medium">Block Types</h3>
-            <p className="text-sm text-gray-500 mt-1">Drag blocks to add them to your board</p>
+            <p className="text-sm text-gray-500 mt-1">Click to add blocks to your board</p>
           </div>
-          <Droppable droppableId="drawer" isDropDisabled={false}>
-            {(provided) => (
-              <div 
-                ref={provided.innerRef} 
-                {...provided.droppableProps}
-                className="p-6"
+          <div className="p-4 space-y-2">
+            {LAYER_TYPES.map(type => (
+              <button
+                key={type.type}
+                className={`w-full p-2 rounded-lg ${type.color} hover:shadow-md transition-shadow text-sm font-medium text-left`}
+                onClick={() => handleAddBlock(0, 0, type.type)}
               >
-                <BlockDrawer />
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+                Add {type.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <Button
@@ -243,7 +229,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} rounded-lg`}
+                                          className="cursor-move"
                                         >
                                           <Block block={block} onChange={handleBlockChange} />
                                         </div>

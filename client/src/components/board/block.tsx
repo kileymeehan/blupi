@@ -4,7 +4,6 @@ import type { Block as BlockType } from "@shared/schema";
 interface BlockProps {
   block: BlockType;
   onChange?: (id: string, content: string) => void;
-  isTemplate?: boolean;
 }
 
 const TYPE_LABELS = {
@@ -19,14 +18,14 @@ const TYPE_LABELS = {
   note: 'Note'
 } as const;
 
-export default function Block({ block, onChange, isTemplate = false }: BlockProps) {
+export default function Block({ block, onChange }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (contentRef.current && !isTemplate) {
+    if (contentRef.current) {
       contentRef.current.textContent = block.content || '';
     }
-  }, [block.content, isTemplate]);
+  }, [block.content]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -36,7 +35,7 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   const handleBlur = () => {
-    if (!onChange || isTemplate) return;
+    if (!onChange) return;
     const content = contentRef.current?.textContent || '';
     if (content !== block.content) {
       onChange(block.id, content);
@@ -44,17 +43,19 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div className="w-[60px] h-[80px] pointer-events-auto">
+    <div className="w-28 h-20 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
+      <div className="text-xs font-medium px-2 py-1 bg-gray-100 rounded-t-lg border-b">
+        {TYPE_LABELS[block.type]}
+      </div>
       <div
         ref={contentRef}
-        contentEditable={!isTemplate}
+        contentEditable
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className="w-full h-full rounded-md p-2 text-xs flex items-center justify-center text-center
-          focus:outline-none focus:ring-2 focus:ring-primary"
+        className="p-2 text-xs min-h-[40px] focus:outline-none focus:ring-2 focus:ring-primary rounded-b-lg"
         suppressContentEditableWarning={true}
       >
-        {isTemplate ? TYPE_LABELS[block.type] : (block.content || "Add text")}
+        {block.content || "Add text"}
       </div>
     </div>
   );
