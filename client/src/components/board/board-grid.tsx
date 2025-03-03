@@ -100,7 +100,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
       <div className="min-w-[800px]">
         <div className="grid grid-cols-[200px_1fr] gap-4">
           {/* Layer labels */}
-          <div className="space-y-4 pr-4 border-r border-gray-200">
+          <div className="space-y-6 pr-4 border-r border-gray-200">
             {/* Phases label */}
             <div className="h-[68px] flex items-end pb-4 justify-end pr-4">
               <span className="font-medium text-sm">Phases</span>
@@ -169,7 +169,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                         {/* Layers */}
                         <div className="space-y-6">
                           {LAYER_TYPES.map((layer, rowIndex) => (
-                            <div key={`${phaseIndex}-${columnIndex}-${rowIndex}`} className="bg-gray-50/50 rounded-lg p-1">
+                            <div key={`${phaseIndex}-${columnIndex}-${rowIndex}`} className="bg-white rounded-lg shadow-sm p-2">
                               <Droppable
                                 droppableId={`${phaseIndex}-${columnIndex}-${rowIndex}`}
                               >
