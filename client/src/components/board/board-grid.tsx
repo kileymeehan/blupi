@@ -152,97 +152,95 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
 
         {/* Board content with improved transitions */}
         <div className="flex-1 overflow-x-auto bg-gray-50">
-          <div className="min-w-[800px]">
-            <div className="p-8">
-              <div className="flex gap-8">
-                {board.phases.map((phase, phaseIndex) => (
-                  <div key={phase.id} className="min-w-[225px]">
-                    {/* Phase header */}
-                    <div className="mb-4 bg-amber-100 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-3">
+          <div className="min-w-[800px] p-8">
+            <div className="flex gap-8">
+              {board.phases.map((phase, phaseIndex) => (
+                <div key={phase.id} className="flex-shrink-0 w-[225px]">
+                  {/* Phase header */}
+                  <div className="mb-4 bg-amber-100 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div
+                        contentEditable
+                        onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
+                        className="font-medium text-lg focus:outline-none focus:border-b border-primary"
+                        suppressContentEditableWarning={true}
+                      >
+                        {phase.name}
+                      </div>
+                      {phaseIndex === board.phases.length - 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleAddPhase}
+                          className="h-8 px-2"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add Phase
+                        </Button>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddColumn(phaseIndex)}
+                      className="w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Step
+                    </Button>
+                  </div>
+
+                  {/* Columns with smoother animations */}
+                  <div className="flex gap-8">
+                    {phase.columns.map((column, columnIndex) => (
+                      <div key={column.id} className="flex-shrink-0 w-[225px]">
+                        {/* Column header */}
                         <div
                           contentEditable
-                          onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
-                          className="font-medium text-lg focus:outline-none focus:border-b border-primary"
+                          onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
+                          className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
                           suppressContentEditableWarning={true}
                         >
-                          {phase.name}
+                          {column.name}
                         </div>
-                        {phaseIndex === board.phases.length - 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleAddPhase}
-                            className="h-8 px-2"
-                          >
-                            <Plus className="w-4 h-4 mr-1" />
-                            Add Phase
-                          </Button>
-                        )}
+
+                        {/* Blocks with improved drop animation */}
+                        <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              className="space-y-4 min-h-[100px] p-4 rounded-lg bg-white border border-gray-200 flex flex-col items-center"
+                            >
+                              {board.blocks
+                                .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                .map((block, index) => (
+                                  <Draggable
+                                    key={block.id}
+                                    draggableId={block.id}
+                                    index={index}
+                                  >
+                                    {(provided) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[205px] h-[100px] transform transition-all duration-300 ease-in-out will-change-transform`}
+                                      >
+                                        <Block block={block} onChange={handleBlockChange} />
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddColumn(phaseIndex)}
-                        className="w-full"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Step
-                      </Button>
-                    </div>
-
-                    {/* Columns with smoother animations */}
-                    <div className="flex gap-8"> {/* Increased gap from 4 to 8 */}
-                      {phase.columns.map((column, columnIndex) => (
-                        <div key={column.id} className="w-[225px]">
-                          {/* Column header */}
-                          <div
-                            contentEditable
-                            onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                            className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
-                            suppressContentEditableWarning={true}
-                          >
-                            {column.name}
-                          </div>
-
-                          {/* Blocks with improved drop animation */}
-                          <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                className="space-y-4 min-h-[100px] p-4 rounded-lg bg-white border border-gray-200 flex flex-col items-center"
-                              >
-                                {board.blocks
-                                  .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                                  .map((block, index) => (
-                                    <Draggable
-                                      key={block.id}
-                                      draggableId={block.id}
-                                      index={index}
-                                    >
-                                      {(provided) => (
-                                        <div
-                                          ref={provided.innerRef}
-                                          {...provided.draggableProps}
-                                          {...provided.dragHandleProps}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[205px] h-[100px] transform transition-all duration-300 ease-in-out will-change-transform`}
-                                        >
-                                          <Block block={block} onChange={handleBlockChange} />
-                                        </div>
-                                      )}
-                                    </Draggable>
-                                  ))}
-                                {provided.placeholder}
-                              </div>
-                            )}
-                          </Droppable>
-                        </div>
-                      ))}
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
