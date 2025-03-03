@@ -4,6 +4,7 @@ import type { Block as BlockType } from "@shared/schema";
 interface BlockProps {
   block: BlockType;
   onChange?: (id: string, content: string) => void;
+  isTemplate?: boolean;
 }
 
 const TYPE_LABELS = {
@@ -18,14 +19,14 @@ const TYPE_LABELS = {
   note: 'Note'
 } as const;
 
-export default function Block({ block, onChange }: BlockProps) {
+export default function Block({ block, onChange, isTemplate = false }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (contentRef.current) {
-      contentRef.current.textContent = block.content || '';
+    if (contentRef.current && !isTemplate) {
+      contentRef.current.textContent = block.content;
     }
-  }, [block.content]);
+  }, [block.content, isTemplate]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -43,19 +44,24 @@ export default function Block({ block, onChange }: BlockProps) {
   };
 
   return (
-    <div className="w-28 h-20 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
-      <div className="text-xs font-medium px-2 py-1 bg-gray-100 rounded-t-lg border-b">
-        {TYPE_LABELS[block.type]}
-      </div>
+    <div className="group relative w-[100px] h-[100px]">
       <div
         ref={contentRef}
-        contentEditable
+        contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className="p-2 text-xs min-h-[40px] focus:outline-none focus:ring-2 focus:ring-primary rounded-b-lg"
+        className={`w-full h-full rounded cursor-pointer p-2 text-sm
+          flex items-center justify-center text-center
+          transition-colors focus:outline-none focus:border-primary`}
+        style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
-        {block.content || "Add text"}
+        {isTemplate ? TYPE_LABELS[block.type] : (block.content || "Add New")}
+      </div>
+
+      {/* Type label - shows on hover */}
+      <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-center text-gray-500 pb-1">
+        {TYPE_LABELS[block.type]}
       </div>
     </div>
   );

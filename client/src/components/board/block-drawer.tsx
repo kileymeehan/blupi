@@ -3,38 +3,41 @@ import { Draggable } from "react-beautiful-dnd";
 import Block from "./block";
 
 export default function BlockDrawer() {
+  // Skip the touchpoint type as it's added by default
   const blockTypes = LAYER_TYPES.filter(type => type.type !== 'touchpoint');
 
   return (
-    <div className="space-y-4">
-      {blockTypes.map((layer, index) => (
-        <Draggable
-          key={layer.type}
-          draggableId={`drawer-${layer.type}`}
-          index={index}
-        >
-          {(provided, snapshot) => (
-            <div
-              ref={provided.innerRef}
-              {...provided.draggableProps}
-              {...provided.dragHandleProps}
-              className={`${layer.color} rounded-lg p-2 hover:shadow-md cursor-grab
-                ${snapshot.isDragging ? 'shadow-lg cursor-grabbing' : ''}`}
-            >
-              <Block
-                block={{
-                  id: `drawer-${layer.type}`,
-                  type: layer.type,
-                  content: '',
-                  phaseIndex: -1,
-                  columnIndex: -1
-                }}
-                isTemplate={true}
-              />
-            </div>
-          )}
-        </Draggable>
-      ))}
+    <div className="w-64 bg-white p-4">
+      <h3 className="font-medium text-sm mb-4">Available Blocks</h3>
+      <div className="space-y-4">
+        {blockTypes.map((layer, index) => (
+          <Draggable
+            key={layer.type}
+            draggableId={`drawer-${layer.type}`}
+            index={index}
+          >
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.draggableProps}
+                {...provided.dragHandleProps}
+                className={`${layer.color} rounded-lg`}
+              >
+                <Block
+                  block={{
+                    id: `drawer-${layer.type}`,
+                    type: layer.type,
+                    content: '',
+                    phaseIndex: -1,
+                    columnIndex: -1
+                  }}
+                  isTemplate
+                />
+              </div>
+            )}
+          </Draggable>
+        ))}
+      </div>
     </div>
   );
 }
