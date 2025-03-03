@@ -155,7 +155,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
           <div className="min-w-[800px] p-8">
             <div className="flex gap-8">
               {board.phases.map((phase, phaseIndex) => (
-                <div key={phase.id} className="flex-shrink-0 w-[225px]">
+                <div key={phase.id} className="flex-shrink-0">
                   {/* Phase header */}
                   <div className="mb-4 bg-amber-100 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-3">
