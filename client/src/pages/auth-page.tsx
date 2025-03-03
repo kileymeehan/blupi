@@ -32,7 +32,8 @@ export default function AuthPage() {
     resolver: zodResolver(insertUserSchema),
     defaultValues: {
       username: "",
-      password: ""
+      password: "",
+      createdAt: new Date().toISOString()
     }
   });
 
