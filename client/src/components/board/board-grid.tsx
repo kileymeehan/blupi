@@ -192,7 +192,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                     </div>
 
                     {/* Columns with smoother animations */}
-                    <div className="flex gap-4">
+                    <div className="flex gap-8"> {/* Increased gap from 4 to 8 */}
                       {phase.columns.map((column, columnIndex) => (
                         <div key={column.id} className="w-[225px]">
                           {/* Column header */}
