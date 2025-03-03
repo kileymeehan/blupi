@@ -8,7 +8,6 @@ export default function BlockDrawer() {
 
   return (
     <div className="w-64 bg-white p-4">
-      <h3 className="font-medium text-sm mb-4">Available Blocks</h3>
       <div className="space-y-4">
         {blockTypes.map((layer, index) => (
           <Draggable
