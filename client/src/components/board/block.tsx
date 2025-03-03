@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { useRef, useEffect } from "react";
 import type { Block as BlockType } from "@shared/schema";
 
 interface BlockProps {
@@ -8,32 +7,34 @@ interface BlockProps {
 }
 
 export default function Block({ block, onChange }: BlockProps) {
-  const [editing, setEditing] = useState(false);
-  const [content, setContent] = useState(block.content);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.textContent = block.content;
+    }
+  }, [block.content]);
 
   const handleBlur = () => {
-    setEditing(false);
-    onChange(block.id, content);
+    const content = contentRef.current?.textContent || '';
+    if (content !== block.content) {
+      onChange(block.id, content);
+    }
   };
-
-  if (editing) {
-    return (
-      <Textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        onBlur={handleBlur}
-        className="w-full h-[120px] resize-none text-sm p-2 border-2"
-        autoFocus
-      />
-    );
-  }
 
   return (
     <div
-      className="w-full h-[120px] bg-white rounded shadow-sm cursor-pointer p-2 text-sm overflow-y-auto border border-gray-200 hover:border-gray-300 transition-colors"
-      onClick={() => setEditing(true)}
+      ref={contentRef}
+      contentEditable
+      onBlur={handleBlur}
+      className="w-[120px] h-[120px] rounded shadow-sm cursor-pointer p-2 text-sm overflow-y-auto 
+        border border-transparent hover:border-gray-300 transition-colors
+        focus:outline-none focus:border-primary ring-offset-background
+        placeholder:text-muted-foreground"
+      style={{ backgroundColor: 'inherit' }}
+      suppressContentEditableWarning={true}
     >
-      {content || "Click to add content"}
+      {block.content || "Click to add content"}
     </div>
   );
 }

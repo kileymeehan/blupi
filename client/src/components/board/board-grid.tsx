@@ -6,7 +6,7 @@ import type { Board, Block as BlockType } from "@shared/schema";
 import { nanoid } from "nanoid";
 
 const LAYER_TYPES = [
-  { type: 'touchpoint', label: 'Touchpoints', color: 'bg-blue-100' },
+  { type: 'touchpoint', label: 'Touchpoints', color: 'bg-sky-100' },
   { type: 'role', label: 'Roles', color: 'bg-green-100' },
   { type: 'process', label: 'Processes', color: 'bg-pink-100' },
   { type: 'pitfall', label: 'Pitfalls', color: 'bg-red-100' },
@@ -43,7 +43,7 @@ export default function BoardGrid({ board, onBlocksChange, onAddColumn, onRemove
   };
 
   const handleBlockChange = (blockId: string, content: string) => {
-    const blocks = board.blocks.map(block => 
+    const blocks = board.blocks.map(block =>
       block.id === blockId ? { ...block, content } : block
     );
     onBlocksChange(blocks);
@@ -98,7 +98,7 @@ export default function BoardGrid({ board, onBlocksChange, onAddColumn, onRemove
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={`h-32 ${layer.color} rounded-lg p-2 relative group`}
+                        className={`h-32 ${layer.color} rounded-lg p-2 relative group transition-colors`}
                       >
                         <div className="flex gap-2 flex-wrap">
                           {board.blocks
@@ -114,7 +114,7 @@ export default function BoardGrid({ board, onBlocksChange, onAddColumn, onRemove
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
-                                    className="w-[120px]"
+                                    className={`${layer.color}`}
                                   >
                                     <Block
                                       block={block}
