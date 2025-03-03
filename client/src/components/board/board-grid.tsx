@@ -56,22 +56,30 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
       phaseIndex: block.phaseIndex,
       columnIndex: block.columnIndex
     };
-
-    // Find all blocks in the same column and phase
-    const columnBlocks = board.blocks.filter(
-      b => b.phaseIndex === block.phaseIndex && b.columnIndex === block.columnIndex
-    );
-
     onBlocksChange([...board.blocks, newBlock]);
   };
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
-    newPhases[phaseIndex].columns.push({
+    const newColumn = {
       id: nanoid(),
       name: `Step ${newPhases[phaseIndex].columns.length + 1}`
-    });
+    };
+
+    // Add new column
+    newPhases[phaseIndex].columns.push(newColumn);
     onPhasesChange(newPhases);
+
+    // Add default blocks for the new column
+    const newBlocks = LAYER_TYPES.map(layer => ({
+      id: nanoid(),
+      type: layer.type,
+      content: '',
+      phaseIndex,
+      columnIndex: newPhases[phaseIndex].columns.length - 1
+    }));
+
+    onBlocksChange([...board.blocks, ...newBlocks]);
   };
 
   const handleAddPhase = () => {
@@ -84,7 +92,18 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         name: 'Step 1'
       }]
     });
+
+    // Add default blocks for the new phase
+    const newBlocks = LAYER_TYPES.map(layer => ({
+      id: nanoid(),
+      type: layer.type,
+      content: '',
+      phaseIndex: newPhases.length - 1,
+      columnIndex: 0
+    }));
+
     onPhasesChange(newPhases);
+    onBlocksChange([...board.blocks, ...newBlocks]);
   };
 
   const handlePhaseNameChange = (phaseIndex: number, name: string) => {
@@ -164,31 +183,36 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                             {...provided.droppableProps}
                             className="space-y-4"
                           >
-                            {board.blocks
-                              .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                              .map((block, index) => (
-                                <Draggable
-                                  key={block.id}
-                                  draggableId={block.id}
-                                  index={index}
+                            {LAYER_TYPES.map(layer => {
+                              // Find block of this type for this column
+                              const block = board.blocks.find(b => 
+                                b.phaseIndex === phaseIndex && 
+                                b.columnIndex === columnIndex && 
+                                b.type === layer.type
+                              );
+
+                              // If no block exists, create a default one
+                              const defaultBlock = block || {
+                                id: nanoid(),
+                                type: layer.type,
+                                content: '',
+                                phaseIndex,
+                                columnIndex
+                              };
+
+                              return (
+                                <div
+                                  key={defaultBlock.id}
+                                  className={`${layer.color} group/block relative rounded-lg`}
                                 >
-                                  {(provided) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative`}
-                                    >
-                                      <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
-                                      <Block
-                                        block={block}
-                                        onChange={handleBlockChange}
-                                        onAdd={() => handleAddBlock(block)}
-                                      />
-                                    </div>
-                                  )}
-                                </Draggable>
-                              ))}
+                                  <Block
+                                    block={defaultBlock}
+                                    onChange={handleBlockChange}
+                                    onAdd={() => handleAddBlock(defaultBlock)}
+                                  />
+                                </div>
+                              );
+                            })}
                             {provided.placeholder}
                           </div>
                         )}

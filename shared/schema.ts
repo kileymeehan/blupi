@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -7,8 +7,7 @@ export const blockSchema = z.object({
   type: z.enum(['touchpoint', 'role', 'process', 'pitfall', 'policy', 'technology', 'rationale', 'question', 'note']),
   content: z.string(),
   phaseIndex: z.number(),
-  columnIndex: z.number(),
-  rowIndex: z.number()
+  columnIndex: z.number()
 });
 
 export type Block = z.infer<typeof blockSchema>;
