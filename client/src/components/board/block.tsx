@@ -44,15 +44,16 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div className="group relative w-[220px] h-[100px] transform-gpu">
+    <div className="group relative w-[220px] h-[120px] transform-gpu">
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className={`w-full h-full rounded cursor-pointer p-4 text-sm
+        className={`w-full h-full rounded cursor-pointer px-6 py-4 text-sm
           flex items-center justify-center text-center
-          overflow-hidden break-words
+          overflow-y-auto whitespace-pre-wrap break-words
+          leading-snug max-h-[120px]
           transition-all duration-300 ease-in-out
           focus:outline-none focus:ring-2 focus:ring-primary/20`}
         style={{ backgroundColor: 'inherit' }}
