@@ -44,10 +44,7 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div 
-      className="w-[60px] h-[80px]"
-      style={{ pointerEvents: isTemplate ? 'none' : 'auto' }}
-    >
+    <div className="w-[60px] h-[80px]">
       <div
         ref={contentRef}
         contentEditable={!isTemplate}

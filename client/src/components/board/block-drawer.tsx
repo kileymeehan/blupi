@@ -13,17 +13,12 @@ export default function BlockDrawer() {
           draggableId={`drawer-${layer.type}`}
           index={index}
         >
-          {(provided, snapshot) => (
+          {(provided) => (
             <div
               ref={provided.innerRef}
               {...provided.draggableProps}
               {...provided.dragHandleProps}
-              style={{
-                ...provided.draggableProps.style,
-                userSelect: 'none'
-              }}
-              className={`${layer.color} rounded-lg p-2 hover:shadow-md transition-shadow
-                ${snapshot.isDragging ? 'shadow-lg' : ''}`}
+              className={`${layer.color} rounded-lg p-2`}
             >
               <Block
                 block={{
@@ -34,7 +29,6 @@ export default function BlockDrawer() {
                   columnIndex: -1
                 }}
                 isTemplate={true}
-                onChange={() => {}}
               />
             </div>
           )}

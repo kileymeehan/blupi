@@ -50,7 +50,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         columnIndex
       };
 
-      blocks.splice(result.destination.index, 0, newBlock);
+      blocks.push(newBlock);
       onBlocksChange(blocks);
       return;
     }
@@ -59,10 +59,12 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     const [sourcePhaseIndex, sourceColumnIndex] = result.source.droppableId.split('-').map(Number);
     const [destPhaseIndex, destColumnIndex] = result.destination.droppableId.split('-').map(Number);
 
-    const [movedBlock] = blocks.filter(b =>
-      b.phaseIndex === sourcePhaseIndex &&
+    const sourceBlocks = blocks.filter(b => 
+      b.phaseIndex === sourcePhaseIndex && 
       b.columnIndex === sourceColumnIndex
-    ).splice(result.source.index, 1);
+    );
+
+    const [movedBlock] = sourceBlocks.splice(result.source.index, 1);
 
     const updatedBlock = {
       ...movedBlock,
@@ -71,9 +73,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     };
 
     const remainingBlocks = blocks.filter(b => b.id !== movedBlock.id);
-    const insertIndex = result.destination.index;
-
-    remainingBlocks.splice(insertIndex, 0, updatedBlock);
+    remainingBlocks.splice(result.destination.index, 0, updatedBlock);
     onBlocksChange(remainingBlocks);
   };
 
@@ -121,164 +121,145 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   };
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.16))]">
-      <DragDropContext onDragEnd={handleDragEnd}>
-        {/* Block drawer */}
-        <div
-          className={`relative bg-gray-50 border-r-2 border-gray-200 flex-shrink-0 shadow-lg transition-all duration-300 ease-in-out overflow-hidden
-            ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}
-        >
-          <div className="p-4 border-b border-gray-200 bg-white">
-            <h3 className="font-medium">Block Types</h3>
-            <p className="text-sm text-gray-500 mt-1">Drag blocks to add them to your board</p>
-          </div>
-          <Droppable droppableId="drawer" isDropDisabled={true}>
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps} className="p-6">
-                <BlockDrawer />
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div
+        className={`relative bg-gray-50 border-r-2 border-gray-200 flex-shrink-0 shadow-lg transition-all duration-300 ease-in-out overflow-hidden
+          ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}
+      >
+        <div className="p-4 border-b border-gray-200 bg-white">
+          <h3 className="font-medium">Block Types</h3>
+          <p className="text-sm text-gray-500 mt-1">Drag blocks to add them to your board</p>
         </div>
-
-        {/* Collapse/Expand button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute left-64 top-4 z-20 transform -translate-x-1/2 bg-white shadow-md rounded-full p-2"
-          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        >
-          {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </Button>
-
-        {/* Board content */}
-        <div className="flex-1 overflow-x-auto bg-gray-50">
-          <div className="min-w-[800px]">
-            {/* Board header */}
-            <div className="px-8 py-4 border-b bg-white sticky top-0 z-10 flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-4">
-                <Link href="/" className="text-sm font-medium hover:text-primary">
-                  <ChevronLeft className="w-4 h-4 inline-block mr-1" />
-                  Back to Home
-                </Link>
-                <h1 className="text-2xl font-bold">{board.name}</h1>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => logoutMutation.mutate()}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
+        <Droppable droppableId="drawer" isDropDisabled={true}>
+          {(provided) => (
+            <div ref={provided.innerRef} {...provided.droppableProps} className="p-6">
+              <BlockDrawer />
+              {provided.placeholder}
             </div>
+          )}
+        </Droppable>
+      </div>
 
-            {/* Board content */}
-            <div className="p-8">
-              <div className="flex gap-8">
-                {board.phases.map((phase, phaseIndex) => (
-                  <div key={phase.id} className="min-w-[220px]">
-                    {/* Phase header */}
-                    <div className="mb-4 bg-amber-100 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-3">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute left-64 top-4 z-20 transform -translate-x-1/2 bg-white shadow-md rounded-full p-2"
+        onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      >
+        {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </Button>
+
+      <div className="flex-1 overflow-x-auto bg-gray-50">
+        <div className="min-w-[800px]">
+          <div className="px-8 py-4 border-b bg-white sticky top-0 z-10 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-4">
+              <Link href="/" className="text-sm font-medium hover:text-primary">
+                <ChevronLeft className="w-4 h-4 inline-block mr-1" />
+                Back to Home
+              </Link>
+              <h1 className="text-2xl font-bold">{board.name}</h1>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => logoutMutation.mutate()}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+
+          <div className="p-8">
+            <div className="flex gap-8">
+              {board.phases.map((phase, phaseIndex) => (
+                <div key={phase.id} className="min-w-[220px]">
+                  <div className="mb-4 bg-amber-100 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div
+                        contentEditable
+                        onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
+                        className="font-medium text-lg focus:outline-none focus:border-b border-primary"
+                        suppressContentEditableWarning={true}
+                      >
+                        {phase.name}
+                      </div>
+                      {phaseIndex === board.phases.length - 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleAddPhase}
+                          className="h-8 px-2"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add Phase
+                        </Button>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddColumn(phaseIndex)}
+                      className="w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Step
+                    </Button>
+                  </div>
+
+                  <div className="flex gap-4">
+                    {phase.columns.map((column, columnIndex) => (
+                      <div key={column.id} className="w-[220px]">
                         <div
                           contentEditable
-                          onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
-                          className="font-medium text-lg focus:outline-none focus:border-b border-primary"
+                          onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
+                          className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
                           suppressContentEditableWarning={true}
                         >
-                          {phase.name}
+                          {column.name}
                         </div>
-                        {phaseIndex === board.phases.length - 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleAddPhase}
-                            className="h-8 px-2"
-                          >
-                            <Plus className="w-4 h-4 mr-1" />
-                            Add Phase
-                          </Button>
-                        )}
+
+                        <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              className={`space-y-3 min-h-[100px] p-2 rounded-lg border border-gray-100
+                                ${snapshot.isDraggingOver ? 'bg-gray-50' : 'bg-white'}`}
+                            >
+                              {board.blocks
+                                .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                .map((block, index) => (
+                                  <Draggable
+                                    key={block.id}
+                                    draggableId={block.id}
+                                    index={index}
+                                  >
+                                    {(provided) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} rounded-lg`}
+                                      >
+                                        <Block block={block} onChange={handleBlockChange} />
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddColumn(phaseIndex)}
-                        className="w-full"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Step
-                      </Button>
-                    </div>
-
-                    {/* Columns */}
-                    <div className="flex gap-4">
-                      {phase.columns.map((column, columnIndex) => (
-                        <div key={column.id} className="w-[220px]">
-                          {/* Column header */}
-                          <div
-                            contentEditable
-                            onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                            className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
-                            suppressContentEditableWarning={true}
-                          >
-                            {column.name}
-                          </div>
-
-                          {/* Blocks */}
-                          <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                className={`space-y-3 min-h-[100px] p-2 rounded-lg border border-gray-100
-                                  ${snapshot.isDraggingOver ? 'bg-gray-50' : 'bg-white'}`}
-                              >
-                                {board.blocks
-                                  .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                                  .map((block, index) => (
-                                    <Draggable
-                                      key={block.id}
-                                      draggableId={block.id}
-                                      index={index}
-                                    >
-                                      {(provided, snapshot) => (
-                                        <div
-                                          ref={provided.innerRef}
-                                          {...provided.draggableProps}
-                                          {...provided.dragHandleProps}
-                                          style={{
-                                            ...provided.draggableProps.style,
-                                            cursor: snapshot.isDragging ? 'grabbing' : 'grab'
-                                          }}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                            rounded-lg hover:shadow-md transition-shadow
-                                            ${snapshot.isDragging ? 'shadow-lg' : ''}`}
-                                        >
-                                          <ErrorBoundary>
-                                            <Block block={block} onChange={handleBlockChange} />
-                                          </ErrorBoundary>
-                                        </div>
-                                      )}
-                                    </Draggable>
-                                  ))}
-                                {provided.placeholder}
-                              </div>
-                            )}
-                          </Droppable>
-                        </div>
-                      ))}
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </DragDropContext>
-    </div>
+      </div>
+    </DragDropContext>
   );
 }
