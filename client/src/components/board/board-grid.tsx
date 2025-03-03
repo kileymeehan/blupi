@@ -1,4 +1,4 @@
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Plus, GripVertical } from "lucide-react";
 import Block from "./block";
@@ -25,15 +25,15 @@ interface BoardGridProps {
 }
 
 export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: BoardGridProps) {
-  const handleDragEnd = (result: any) => {
+  const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
     const { source, destination, type } = result;
 
     // Handle column reordering
     if (type === 'COLUMN') {
-      const [sourcePhaseIndex] = source.droppableId.split('-').map(Number);
-      const [destPhaseIndex] = destination.droppableId.split('-').map(Number);
+      const sourcePhaseIndex = Number(source.droppableId.split('-')[1]);
+      const destPhaseIndex = Number(destination.droppableId.split('-')[1]);
 
       const newPhases = Array.from(board.phases);
       const sourcePhase = newPhases[sourcePhaseIndex];
