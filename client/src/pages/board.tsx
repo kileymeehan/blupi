@@ -9,7 +9,7 @@ import { queryClient } from "@/lib/queryClient";
 export default function BoardPage() {
   const { id } = useParams();
   const { toast } = useToast();
-  
+
   const { data: board, isLoading } = useQuery<Board>({
     queryKey: [`/api/boards/${id}`]
   });
@@ -19,17 +19,20 @@ export default function BoardPage() {
       const res = await apiRequest("PATCH", `/api/boards/${id}`, updates);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (_data, _variables, context) => {
       queryClient.invalidateQueries({ queryKey: [`/api/boards/${id}`] });
-      toast({
-        title: "Changes saved",
-        description: "Your blueprint has been updated"
-      });
+      // Only show toast if not silenced
+      if (!context?.silent) {
+        toast({
+          title: "Changes saved",
+          description: "Your blueprint has been updated"
+        });
+      }
     }
   });
 
-  const handleBlocksChange = (blocks: Block[]) => {
-    updateBoardMutation.mutate({ blocks });
+  const handleBlocksChange = (blocks: Block[], options = { silent: false }) => {
+    updateBoardMutation.mutate({ blocks }, { context: options });
   };
 
   const handleAddColumn = () => {

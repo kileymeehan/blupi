@@ -50,6 +50,12 @@ export default function BoardGrid({ board, onBlocksChange, onAddColumn, onRemove
   };
 
   const handleAddBlock = (columnIndex: number, rowIndex: number, type: BlockType['type']) => {
+    // Find existing blocks in this row and column
+    const existingBlocks = board.blocks.filter(
+      b => b.columnIndex === columnIndex && b.rowIndex === rowIndex
+    );
+
+    // Create new block
     const newBlock: BlockType = {
       id: nanoid(),
       type,
@@ -57,13 +63,16 @@ export default function BoardGrid({ board, onBlocksChange, onAddColumn, onRemove
       columnIndex,
       rowIndex
     };
-    onBlocksChange([...board.blocks, newBlock]);
+
+    // Add the new block to the beginning of the row
+    onBlocksChange([newBlock, ...board.blocks]);
   };
 
   const handlePhaseNameChange = (index: number, content: string) => {
     const newPhases = [...(board.phases || [])];
     newPhases[index] = content;
-    onBlocksChange([...board.blocks]); // Trigger an update
+    // Update phases without triggering a toast notification
+    onBlocksChange([...board.blocks], { silent: true });
   };
 
   return (
