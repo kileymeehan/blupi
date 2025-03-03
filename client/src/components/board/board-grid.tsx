@@ -1,12 +1,13 @@
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, ArrowLeft, LogOut } from "lucide-react";
+import { Plus, GripVertical, ArrowLeft, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
 
 export const LAYER_TYPES = [
   { type: 'touchpoint', label: 'Touchpoints', color: 'bg-sky-100' },
@@ -28,6 +29,7 @@ interface BoardGridProps {
 
 export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: BoardGridProps) {
   const { logoutMutation } = useAuth();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -140,20 +142,33 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     <div className="flex h-[calc(100vh-theme(spacing.16))]">
       <DragDropContext onDragEnd={handleDragEnd}>
         {/* Block drawer */}
-        <div className="w-64 bg-gray-50 border-r-2 border-gray-200 flex-shrink-0 shadow-lg">
+        <div
+          className={`relative bg-gray-50 border-r-2 border-gray-200 flex-shrink-0 shadow-lg transition-all duration-300 ease-in-out
+            ${isSidebarCollapsed ? 'w-0 opacity-0' : 'w-64 opacity-100'}`}
+        >
           <div className="p-4 border-b border-gray-200 bg-white">
             <h3 className="font-medium">Block Types</h3>
             <p className="text-sm text-gray-500 mt-1">Drag blocks to add them to your board</p>
           </div>
           <Droppable droppableId="drawer">
             {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps} className="p-4">
+              <div ref={provided.innerRef} {...provided.droppableProps} className="p-6">
                 <BlockDrawer />
                 {provided.placeholder}
               </div>
             )}
           </Droppable>
         </div>
+
+        {/* Collapse/Expand button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute left-64 top-4 z-20 transform -translate-x-1/2 bg-white shadow-md rounded-full p-2"
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        >
+          {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </Button>
 
         {/* Board content */}
         <div className="flex-1 overflow-x-auto bg-gray-50">

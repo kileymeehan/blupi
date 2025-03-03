@@ -44,15 +44,17 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div className="group relative w-[60px] h-[60px]">
+    <div className="group relative w-[60px] h-[80px]">
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className={`w-full h-full rounded cursor-pointer p-2 text-xs
+        className={`w-full h-full rounded-md cursor-pointer p-2 text-xs
           flex items-center justify-center text-center
-          transition-colors focus:outline-none focus:border-primary`}
+          transition-colors focus:outline-none focus:border-primary
+          border-2 border-gray-300 hover:border-gray-400
+          ${isTemplate ? 'pointer-events-none' : ''}`}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
@@ -60,7 +62,7 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
       </div>
 
       {/* Type label - shows on hover */}
-      <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-center text-gray-500 pb-1">
+      <div className="absolute -bottom-5 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-center text-gray-500">
         {TYPE_LABELS[block.type]}
       </div>
     </div>
