@@ -198,21 +198,21 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                     )}
                     <div className="px-4">
                       {/* Phase header */}
-                      <div className="mb-4 bg-gray-50 rounded-lg p-3">
+                      <div className="mb-4 bg-gray-100 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <div
                             contentEditable
                             onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
-                            className="font-medium text-lg focus:outline-none focus:border-b border-primary"
+                            className="font-bold text-lg focus:outline-none focus:border-b border-primary"
                             suppressContentEditableWarning={true}
                           >
                             {phase.name}
                           </div>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => handleAddColumn(phaseIndex)}
-                            className="h-7 px-2"
+                            className="h-7 px-2 border border-gray-300"
                           >
                             <Plus className="w-4 h-4 mr-1" />
                             Add Step
@@ -223,8 +223,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                       {/* Columns */}
                       <Droppable droppableId={`phase-${phaseIndex}`} type="COLUMN" direction="horizontal">
                         {(provided) => (
-                          <div 
-                            ref={provided.innerRef} 
+                          <div
+                            ref={provided.innerRef}
                             {...provided.droppableProps}
                             className="flex gap-8"
                           >

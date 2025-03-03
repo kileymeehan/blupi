@@ -51,7 +51,7 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`w-full h-full rounded cursor-pointer px-4 py-3 text-sm
-          flex items-start text-left
+          ${isTemplate ? 'flex items-center justify-center' : 'flex items-start text-left'}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal max-h-[100px]
           transition-all duration-300 ease-in-out
