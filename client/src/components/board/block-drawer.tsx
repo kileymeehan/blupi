@@ -14,12 +14,13 @@ export default function BlockDrawer() {
           draggableId={`drawer-${layer.type}`}
           index={index}
         >
-          {(provided) => (
+          {(provided, snapshot) => (
             <div
               ref={provided.innerRef}
               {...provided.draggableProps}
               {...provided.dragHandleProps}
-              className={`${layer.color} rounded-lg flex justify-center items-center p-2`}
+              className={`${layer.color} rounded-lg p-2 cursor-grab active:cursor-grabbing
+                ${snapshot.isDragging ? 'shadow-lg' : ''}`}
             >
               <Block
                 block={{
@@ -30,7 +31,7 @@ export default function BlockDrawer() {
                   columnIndex: -1
                 }}
                 isTemplate={true}
-                onChange={() => {}} // Add empty onChange handler for template blocks
+                onChange={() => {}}
               />
             </div>
           )}
