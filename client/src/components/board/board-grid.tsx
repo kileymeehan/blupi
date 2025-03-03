@@ -60,6 +60,12 @@ export default function BoardGrid({ board, onBlocksChange, onAddColumn, onRemove
     onBlocksChange([...board.blocks, newBlock]);
   };
 
+  const handlePhaseNameChange = (index: number, content: string) => {
+    const newPhases = [...(board.phases || [])];
+    newPhases[index] = content;
+    onBlocksChange([...board.blocks]); // Trigger an update
+  };
+
   return (
     <div className="overflow-x-auto">
       <div className="min-w-[800px]">
@@ -67,8 +73,16 @@ export default function BoardGrid({ board, onBlocksChange, onAddColumn, onRemove
           {/* Layer labels */}
           <div className="space-y-4 pr-4 border-r border-gray-200">
             {LAYER_TYPES.map(layer => (
-              <div key={layer.type} className="h-32 flex items-center">
+              <div key={layer.type} className="h-32 flex items-center justify-between">
                 <span className="font-medium text-sm">{layer.label}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => handleAddBlock(0, LAYER_TYPES.indexOf(layer), layer.type)}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
             ))}
           </div>
@@ -78,7 +92,14 @@ export default function BoardGrid({ board, onBlocksChange, onAddColumn, onRemove
             {Array.from({ length: board.numColumns }).map((_, colIndex) => (
               <div key={colIndex} className="space-y-4">
                 <div className="flex justify-between items-center h-8">
-                  <span className="font-medium text-sm">Phase {colIndex + 1}</span>
+                  <div
+                    contentEditable
+                    onBlur={(e) => handlePhaseNameChange(colIndex, e.currentTarget.textContent || '')}
+                    className="font-medium text-sm focus:outline-none focus:border-b border-primary"
+                    suppressContentEditableWarning={true}
+                  >
+                    {board.phases?.[colIndex] || `Phase ${colIndex + 1}`}
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -125,14 +146,6 @@ export default function BoardGrid({ board, onBlocksChange, onAddColumn, onRemove
                               </Draggable>
                             ))}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute bottom-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => handleAddBlock(colIndex, rowIndex, layer.type)}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
                         {provided.placeholder}
                       </div>
                     )}
