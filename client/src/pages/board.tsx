@@ -2,9 +2,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import BoardGrid from "@/components/board/board-grid";
-import type { Board, Block } from "@shared/schema";
+import type { Board, Block, Phase } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { nanoid } from "nanoid";
 
 export default function BoardPage() {
   const { id } = useParams();
@@ -31,31 +32,28 @@ export default function BoardPage() {
     }
   });
 
-  const handleBlocksChange = (blocks: Block[], options = { silent: false }) => {
-    updateBoardMutation.mutate({ blocks }, { context: options });
+  const handleBlocksChange = (blocks: Block[]) => {
+    updateBoardMutation.mutate({ blocks }, { context: { silent: true } });
   };
 
-  const handleAddColumn = () => {
-    if (!board) return;
-    updateBoardMutation.mutate({ 
-      numColumns: board.numColumns + 1,
-      blocks: [...board.blocks]
-    });
-  };
-
-  const handleRemoveColumn = (index: number) => {
-    if (!board) return;
-    updateBoardMutation.mutate({
-      numColumns: board.numColumns - 1,
-      blocks: board.blocks.filter(b => b.columnIndex !== index)
-        .map(b => b.columnIndex > index ? 
-          {...b, columnIndex: b.columnIndex - 1} : b
-        )
-    });
+  const handlePhasesChange = (phases: Phase[]) => {
+    updateBoardMutation.mutate({ phases }, { context: { silent: true } });
   };
 
   if (isLoading || !board) {
     return <div className="p-8">Loading...</div>;
+  }
+
+  // Initialize phases if they don't exist
+  if (!board.phases) {
+    handlePhasesChange([{
+      id: nanoid(),
+      name: 'Phase 1',
+      columns: [{
+        id: nanoid(),
+        name: 'Column 1'
+      }]
+    }]);
   }
 
   return (
@@ -64,8 +62,7 @@ export default function BoardPage() {
       <BoardGrid
         board={board}
         onBlocksChange={handleBlocksChange}
-        onAddColumn={handleAddColumn}
-        onRemoveColumn={handleRemoveColumn}
+        onPhasesChange={handlePhasesChange}
       />
     </div>
   );
