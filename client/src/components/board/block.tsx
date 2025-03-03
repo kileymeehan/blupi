@@ -51,9 +51,10 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`w-full h-full rounded cursor-pointer p-4 text-sm
-          flex items-center justify-center text-center break-words
-          transition-all duration-200 ease-in-out
-          focus:outline-none focus:border-primary`}
+          flex items-center justify-center text-center
+          overflow-hidden break-words
+          transition-all duration-300 ease-in-out
+          focus:outline-none focus:ring-2 focus:ring-primary/20`}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >

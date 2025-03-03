@@ -7,15 +7,15 @@ import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
 
 export const LAYER_TYPES = [
-  { type: 'touchpoint', label: 'Touchpoints', color: 'bg-sky-100' },
-  { type: 'role', label: 'Roles', color: 'bg-green-100' },
-  { type: 'process', label: 'Processes', color: 'bg-pink-100' },
-  { type: 'pitfall', label: 'Pitfalls', color: 'bg-red-100' },
-  { type: 'policy', label: 'Policy', color: 'bg-orange-100' },
-  { type: 'technology', label: 'Technology', color: 'bg-purple-100' },
-  { type: 'rationale', label: 'Rationale', color: 'bg-indigo-100' },
-  { type: 'question', label: 'Questions', color: 'bg-violet-100' },
-  { type: 'note', label: 'Notes', color: 'bg-cyan-100' }
+  { type: 'touchpoint', label: 'Touchpoints', color: 'bg-sky-200' },
+  { type: 'role', label: 'Roles', color: 'bg-green-200' },
+  { type: 'process', label: 'Processes', color: 'bg-pink-200' },
+  { type: 'pitfall', label: 'Pitfalls', color: 'bg-red-200' },
+  { type: 'policy', label: 'Policy', color: 'bg-orange-200' },
+  { type: 'technology', label: 'Technology', color: 'bg-purple-200' },
+  { type: 'rationale', label: 'Rationale', color: 'bg-indigo-200' },
+  { type: 'question', label: 'Questions', color: 'bg-violet-200' },
+  { type: 'note', label: 'Notes', color: 'bg-cyan-200' }
 ] as const;
 
 interface BoardGridProps {
@@ -133,10 +133,10 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   };
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.32))] px-4">
+    <div className="flex h-[calc(100vh-theme(spacing.32))]">
       <DragDropContext onDragEnd={handleDragEnd}>
         {/* Block drawer with enhanced separation */}
-        <div className="w-64 bg-white border-r-2 border-gray-200 flex-shrink-0 shadow-lg mr-8 px-4">
+        <div className="w-64 bg-white border-r border-gray-200 flex-shrink-0 shadow-md">
           <div className="p-4 border-b border-gray-200">
             <h1 className="text-2xl font-bold truncate">{board.name}</h1>
           </div>
@@ -150,10 +150,9 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
           </Droppable>
         </div>
 
-        {/* Board content with improved background and transitions */}
+        {/* Board content with improved transitions */}
         <div className="flex-1 overflow-x-auto bg-gray-50">
           <div className="min-w-[800px]">
-            {/* Board content */}
             <div className="p-8">
               <div className="flex gap-8">
                 {board.phases.map((phase, phaseIndex) => (
@@ -212,7 +211,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                               <div
                                 ref={provided.innerRef}
                                 {...provided.droppableProps}
-                                className="space-y-3 min-h-[100px] p-2 rounded-lg bg-white border border-gray-200"
+                                className="space-y-3 min-h-[100px] p-4 rounded-lg bg-white border border-gray-200 flex flex-col items-center"
                               >
                                 {board.blocks
                                   .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
@@ -227,7 +226,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[220px] h-[100px] transform transition-transform duration-200 ease-in-out`}
+                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[220px] h-[100px] transform transition-all duration-300 ease-in-out will-change-transform`}
                                         >
                                           <Block block={block} onChange={handleBlockChange} />
                                         </div>
