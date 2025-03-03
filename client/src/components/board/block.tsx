@@ -44,22 +44,22 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div className="group relative w-[220px] h-[120px] transform-gpu">
+    <div className="group relative w-[300px] h-[100px] transform-gpu"> {/*Adjusted width and height*/}
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`w-full h-full rounded cursor-pointer px-6 py-4 text-sm
-          flex items-center justify-center text-center
+          flex items-start text-left
           overflow-y-auto whitespace-pre-wrap break-words
-          leading-snug max-h-[120px]
+          leading-normal max-h-[100px]
           transition-all duration-300 ease-in-out
           focus:outline-none focus:ring-2 focus:ring-primary/20`}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
-        {isTemplate ? TYPE_LABELS[block.type] : (block.content || "Add New")}
+        {isTemplate ? TYPE_LABELS[block.type] : (block.content || "Add text")}
       </div>
 
       {/* Type label - shows on hover */}
