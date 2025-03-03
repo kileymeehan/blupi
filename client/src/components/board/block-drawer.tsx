@@ -3,7 +3,6 @@ import { Draggable } from "react-beautiful-dnd";
 import Block from "./block";
 
 export default function BlockDrawer() {
-  // Skip the touchpoint type as it's added by default
   const blockTypes = LAYER_TYPES.filter(type => type.type !== 'touchpoint');
 
   return (
@@ -19,7 +18,11 @@ export default function BlockDrawer() {
               ref={provided.innerRef}
               {...provided.draggableProps}
               {...provided.dragHandleProps}
-              className={`${layer.color} rounded-lg p-2 cursor-move hover:shadow-md transition-shadow
+              style={{
+                ...provided.draggableProps.style,
+                cursor: snapshot.isDragging ? 'grabbing' : 'grab'
+              }}
+              className={`${layer.color} rounded-lg p-2 hover:shadow-md transition-shadow
                 ${snapshot.isDragging ? 'shadow-lg' : ''}`}
             >
               <Block

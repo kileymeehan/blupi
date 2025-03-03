@@ -25,12 +25,10 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
       contentRef.current.textContent = block.content || '';
-      console.log('Block content initialized:', block.content);
     }
   }, [block.content, isTemplate]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    console.log('Key pressed:', e.key);
     if (e.key === 'Enter') {
       e.preventDefault();
       contentRef.current?.blur();
@@ -38,28 +36,21 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   const handleBlur = () => {
-    try {
-      if (!onChange || isTemplate) return;
-
-      const content = contentRef.current?.textContent || '';
-      console.log('Handling blur event, content:', content);
-
-      if (content !== block.content) {
-        onChange(block.id, content);
-      }
-    } catch (error) {
-      console.error('Error in handleBlur:', error);
+    if (!onChange || isTemplate) return;
+    const content = contentRef.current?.textContent || '';
+    if (content !== block.content) {
+      onChange(block.id, content);
     }
   };
 
   return (
-    <div className="group relative w-[60px] h-[80px]">
+    <div className="w-[60px] h-[80px]">
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className={`w-full h-full rounded-md cursor-pointer p-2 text-xs
+        className={`w-full h-full rounded-md p-2 text-xs
           flex items-center justify-center text-center
           transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
         style={{ backgroundColor: 'inherit' }}

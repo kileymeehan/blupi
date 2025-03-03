@@ -112,6 +112,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     onPhasesChange(newPhases);
   };
 
+  const dragStyles = `rounded-lg hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing`;
+
   return (
     <div className="flex h-[calc(100vh-theme(spacing.16))]">
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -176,10 +178,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                     <div className="mb-4 bg-amber-100 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-3">
                         <div
-                          contentEditable
                           onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
                           className="font-medium text-lg focus:outline-none focus:border-b border-primary"
-                          suppressContentEditableWarning={true}
                         >
                           {phase.name}
                         </div>
@@ -212,10 +212,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                         <div key={column.id} className="w-[220px]">
                           {/* Column header */}
                           <div
-                            contentEditable
                             onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
                             className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
-                            suppressContentEditableWarning={true}
                           >
                             {column.name}
                           </div>
@@ -241,10 +239,13 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg cursor-move hover:shadow-md transition-shadow
+                                          style={{
+                                            ...provided.draggableProps.style,
+                                            cursor: snapshot.isDragging ? 'grabbing' : 'grab'
+                                          }}
+                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} ${dragStyles}
                                             ${snapshot.isDragging ? 'shadow-lg' : ''}`}
                                         >
-                                          <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
                                           <ErrorBoundary>
                                             <Block block={block} onChange={handleBlockChange} />
                                           </ErrorBoundary>
