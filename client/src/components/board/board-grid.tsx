@@ -133,11 +133,11 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   };
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.32))]">
+    <div className="flex h-screen">
       <DragDropContext onDragEnd={handleDragEnd}>
         {/* Block drawer with enhanced separation */}
-        <div className="w-64 bg-white border-r border-gray-200 flex-shrink-0 shadow-md">
-          <div className="p-4 border-b border-gray-200">
+        <div className="w-64 bg-white border-r border-gray-300 flex-shrink-0 shadow-md">
+          <div className="p-4 border-b border-gray-300">
             <h1 className="text-2xl font-bold truncate">{board.name}</h1>
           </div>
           <Droppable droppableId="drawer">
@@ -151,14 +151,14 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         </div>
 
         {/* Board content with improved transitions */}
-        <div className="flex-1 overflow-x-auto bg-gray-50">
+        <div className="flex-1 overflow-x-auto">
           <div className="min-w-[800px] p-8">
             <div className="flex gap-8">
               {board.phases.map((phase, phaseIndex) => (
                 <div key={phase.id} className="flex-shrink-0">
                   {/* Phase header */}
                   <div className="mb-4 bg-amber-100 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-1">
                       <div
                         contentEditable
                         onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
@@ -167,27 +167,29 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                       >
                         {phase.name}
                       </div>
-                      {phaseIndex === board.phases.length - 1 && (
+                      <div className="flex gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={handleAddPhase}
-                          className="h-8 px-2"
+                          onClick={() => handleAddColumn(phaseIndex)}
+                          className="h-7 px-2"
                         >
                           <Plus className="w-4 h-4 mr-1" />
-                          Add Phase
+                          Add Step
                         </Button>
-                      )}
+                        {phaseIndex === board.phases.length - 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleAddPhase}
+                            className="h-7 px-2"
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Add Phase
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddColumn(phaseIndex)}
-                      className="w-full"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Step
-                    </Button>
                   </div>
 
                   {/* Columns with smoother animations */}
@@ -210,7 +212,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                             <div
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className="space-y-4 min-h-[100px] p-4 rounded-lg bg-white border border-gray-200 flex flex-col items-center"
+                              className="space-y-4 min-h-[100px] p-4 rounded-lg bg-white border-2 border-gray-200 flex flex-col items-center"
                             >
                               {board.blocks
                                 .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)

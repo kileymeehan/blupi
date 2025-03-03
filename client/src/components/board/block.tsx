@@ -59,7 +59,8 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
-        {isTemplate ? TYPE_LABELS[block.type] : (block.content || "Add text")}
+        {isTemplate && TYPE_LABELS[block.type]}
+        {!isTemplate && (block.content || "Add text")}
       </div>
 
       {/* Type label - shows on hover */}
