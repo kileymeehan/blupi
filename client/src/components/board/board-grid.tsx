@@ -46,6 +46,21 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     const blocks = board.blocks.map(block =>
       block.id === blockId ? { ...block, content } : block
     );
+
+    // If this was a new block that was just edited, create another "Add New" block
+    const editedBlock = blocks.find(b => b.id === blockId);
+    if (editedBlock && content) {
+      const newBlock: BlockType = {
+        id: nanoid(),
+        type: editedBlock.type,
+        content: '',
+        phaseIndex: editedBlock.phaseIndex,
+        columnIndex: editedBlock.columnIndex,
+        rowIndex: editedBlock.rowIndex +1
+      };
+      blocks.push(newBlock);
+    }
+
     onBlocksChange(blocks);
   };
 
@@ -169,7 +184,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                         {/* Layers */}
                         <div className="space-y-6">
                           {LAYER_TYPES.map((layer, rowIndex) => (
-                            <div key={`${phaseIndex}-${columnIndex}-${rowIndex}`} className="bg-white rounded-lg shadow-sm p-2">
+                            <div key={`${phaseIndex}-${columnIndex}-${rowIndex}`} className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
                               <Droppable
                                 droppableId={`${phaseIndex}-${columnIndex}-${rowIndex}`}
                               >
@@ -177,13 +192,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.droppableProps}
-                                    className={`h-32 ${layer.color} rounded-lg p-2 relative group transition-colors
-                                      ${rowIndex === 0 ? 'hover:ring-2 ring-primary ring-opacity-50 cursor-pointer' : ''}`}
-                                    onClick={() => {
-                                      if (rowIndex === 0) {
-                                        handleAddBlock(phaseIndex, columnIndex, rowIndex, layer.type);
-                                      }
-                                    }}
+                                    className={`h-32 ${layer.color} rounded-lg p-2 relative group transition-colors`}
                                   >
                                     <div className="flex gap-2 flex-wrap">
                                       {board.blocks
@@ -205,6 +214,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                                 <Block
                                                   block={block}
                                                   onChange={handleBlockChange}
+                                                  isNew={!block.content}
                                                 />
                                               </div>
                                             )}
