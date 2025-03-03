@@ -73,7 +73,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     };
 
     const remainingBlocks = blocks.filter(b => b.id !== movedBlock.id);
-    remainingBlocks.splice(result.destination.index, 0, updatedBlock);
+    remainingBlocks.push(updatedBlock);
     onBlocksChange(remainingBlocks);
   };
 

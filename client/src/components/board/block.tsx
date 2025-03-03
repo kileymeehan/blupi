@@ -50,9 +50,8 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
         contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className="w-full h-full rounded-md p-2 text-xs
-          flex items-center justify-center text-center
-          transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full h-full rounded-md p-2 text-xs flex items-center justify-center text-center
+          focus:outline-none focus:ring-2 focus:ring-primary"
         suppressContentEditableWarning={true}
       >
         {isTemplate ? TYPE_LABELS[block.type] : (block.content || "Add text")}
