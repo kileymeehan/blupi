@@ -22,8 +22,8 @@ export default function BoardPage() {
     },
     onSuccess: (_data, _variables, context) => {
       queryClient.invalidateQueries({ queryKey: [`/api/boards/${id}`] });
-      // Only show toast if not silenced
-      if (!context?.silent) {
+      // Only show toast if not a drag operation and not silenced
+      if (!context?.silentUpdate) {
         toast({
           title: "Changes saved",
           description: "Your blueprint has been updated"
@@ -33,11 +33,11 @@ export default function BoardPage() {
   });
 
   const handleBlocksChange = (blocks: Block[]) => {
-    updateBoardMutation.mutate({ blocks }, { context: { silent: true } });
+    updateBoardMutation.mutate({ blocks }, { context: { silentUpdate: true } });
   };
 
   const handlePhasesChange = (phases: Phase[]) => {
-    updateBoardMutation.mutate({ phases }, { context: { silent: true } });
+    updateBoardMutation.mutate({ phases }, { context: { silentUpdate: true } });
   };
 
   if (isLoading || !board) {
@@ -48,17 +48,16 @@ export default function BoardPage() {
   if (!board.phases) {
     handlePhasesChange([{
       id: nanoid(),
-      name: 'Phase 1',
+      name: 'Step 1',
       columns: [{
         id: nanoid(),
-        name: 'Column 1'
+        name: 'Step 1'
       }]
     }]);
   }
 
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-4xl font-bold mb-8">{board.name}</h1>
+    <div className="h-screen">
       <BoardGrid
         board={board}
         onBlocksChange={handleBlocksChange}

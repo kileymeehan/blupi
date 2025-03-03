@@ -86,7 +86,6 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     newPhases[phaseIndex].columns.push(newColumn);
     onPhasesChange(newPhases);
 
-    // Add default touchpoint block for the new column
     const newBlock: BlockType = {
       id: nanoid(),
       type: 'touchpoint',
@@ -109,7 +108,6 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
       }]
     });
 
-    // Add default touchpoint block for the new phase
     const newBlock: BlockType = {
       id: nanoid(),
       type: 'touchpoint',
@@ -138,10 +136,14 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     <div className="flex h-[calc(100vh-theme(spacing.32))]">
       <DragDropContext onDragEnd={handleDragEnd}>
         {/* Block drawer */}
-        <div className="w-64 bg-gray-100 border-r-2 border-gray-200 shadow-md">
+        <div className="w-64 bg-gray-100 border-r-2 border-gray-200 flex-shrink-0 shadow-lg">
+          <div className="p-4 border-b border-gray-200 bg-white">
+            <h3 className="font-medium">Available Blocks</h3>
+            <p className="text-sm text-gray-500 mt-1">Drag blocks to add them to your board</p>
+          </div>
           <Droppable droppableId="drawer">
             {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps}>
+              <div ref={provided.innerRef} {...provided.droppableProps} className="p-4">
                 <BlockDrawer />
                 {provided.placeholder}
               </div>
@@ -153,12 +155,12 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         <div className="flex-1 overflow-x-auto bg-white">
           <div className="min-w-[800px]">
             {/* Board header */}
-            <div className="p-8 border-b border-gray-200">
+            <div className="p-8 border-b border-gray-200 bg-white sticky top-0 z-10">
               <h1 className="text-4xl font-bold">{board.name}</h1>
             </div>
 
             {/* Board content */}
-            <div className="p-8 border border-gray-200 m-8 rounded-lg">
+            <div className="p-8">
               <div className="flex gap-8">
                 {board.phases.map((phase, phaseIndex) => (
                   <div key={phase.id} className="min-w-[220px]">
@@ -216,7 +218,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                               <div
                                 ref={provided.innerRef}
                                 {...provided.droppableProps}
-                                className="space-y-4"
+                                className="space-y-3 min-h-[100px] p-2 rounded-lg border border-gray-100"
                               >
                                 {board.blocks
                                   .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
