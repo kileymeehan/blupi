@@ -19,7 +19,7 @@ export default function BlockDrawer() {
               ref={provided.innerRef}
               {...provided.draggableProps}
               {...provided.dragHandleProps}
-              className={`${layer.color} rounded-lg p-2 cursor-grab active:cursor-grabbing
+              className={`${layer.color} rounded-lg p-2 cursor-move 
                 ${snapshot.isDragging ? 'shadow-lg' : ''}`}
             >
               <Block

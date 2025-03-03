@@ -241,7 +241,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg flex justify-center items-center`}
+                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg flex justify-center items-center cursor-move`}
                                         >
                                           <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
                                           <ErrorBoundary>
