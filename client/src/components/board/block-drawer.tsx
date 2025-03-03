@@ -12,13 +12,19 @@ export default function BlockDrawer() {
           key={layer.type}
           draggableId={`drawer-${layer.type}`}
           index={index}
+          isDragDisabled={false}
         >
-          {(provided) => (
+          {(provided, snapshot) => (
             <div
               ref={provided.innerRef}
               {...provided.draggableProps}
               {...provided.dragHandleProps}
-              className={`${layer.color} rounded-lg p-2`}
+              style={{
+                ...provided.draggableProps.style,
+                cursor: snapshot.isDragging ? 'grabbing' : 'grab'
+              }}
+              className={`${layer.color} rounded-lg p-2 hover:shadow-md
+                ${snapshot.isDragging ? 'shadow-lg' : ''}`}
             >
               <Block
                 block={{
