@@ -44,13 +44,13 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div className="group relative w-[300px] h-[100px]"> {/* Full width of column */}
+    <div className="group relative w-[205px] h-[100px]">
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className={`w-full h-full rounded cursor-pointer px-6 py-4 text-sm
+        className={`w-full h-full rounded cursor-pointer px-4 py-3 text-sm
           flex items-start text-left
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal max-h-[100px]

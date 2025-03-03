@@ -20,7 +20,7 @@ export default function BlockDrawer() {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-[300px] h-[100px]`}
+                className={`${layer.color} rounded-lg w-[205px] h-[100px]`}
               >
                 <Block
                   block={{

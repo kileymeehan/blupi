@@ -156,7 +156,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
             <div className="p-8">
               <div className="flex gap-8">
                 {board.phases.map((phase, phaseIndex) => (
-                  <div key={phase.id} className="min-w-[300px]">
+                  <div key={phase.id} className="min-w-[225px]">
                     {/* Phase header */}
                     <div className="mb-4 bg-amber-100 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-3">
@@ -194,7 +194,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                     {/* Columns with smoother animations */}
                     <div className="flex gap-4">
                       {phase.columns.map((column, columnIndex) => (
-                        <div key={column.id} className="w-[300px]">
+                        <div key={column.id} className="w-[225px]">
                           {/* Column header */}
                           <div
                             contentEditable
@@ -211,7 +211,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                               <div
                                 ref={provided.innerRef}
                                 {...provided.droppableProps}
-                                className="space-y-4 min-h-[100px] p-6 rounded-lg bg-white border border-gray-200 flex flex-col items-center"
+                                className="space-y-4 min-h-[100px] p-4 rounded-lg bg-white border border-gray-200 flex flex-col items-center"
                               >
                                 {board.blocks
                                   .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
@@ -226,7 +226,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[300px] h-[100px] transform transition-all duration-300 ease-in-out will-change-transform`}
+                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[205px] h-[100px] transform transition-all duration-300 ease-in-out will-change-transform`}
                                         >
                                           <Block block={block} onChange={handleBlockChange} />
                                         </div>
