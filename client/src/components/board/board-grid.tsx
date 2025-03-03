@@ -56,24 +56,12 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         content: '',
         phaseIndex: editedBlock.phaseIndex,
         columnIndex: editedBlock.columnIndex,
-        rowIndex: editedBlock.rowIndex +1
+        rowIndex: editedBlock.rowIndex
       };
       blocks.push(newBlock);
     }
 
     onBlocksChange(blocks);
-  };
-
-  const handleAddBlock = (phaseIndex: number, columnIndex: number, rowIndex: number, type: BlockType['type']) => {
-    const newBlock: BlockType = {
-      id: nanoid(),
-      type,
-      content: '',
-      phaseIndex,
-      columnIndex,
-      rowIndex
-    };
-    onBlocksChange([newBlock, ...board.blocks]);
   };
 
   const handleAddColumn = (phaseIndex: number) => {
@@ -220,6 +208,24 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                             )}
                                           </Draggable>
                                         ))}
+                                      {board.blocks.filter(b => 
+                                        b.phaseIndex === phaseIndex && 
+                                        b.columnIndex === columnIndex && 
+                                        b.rowIndex === rowIndex
+                                      ).length === 0 && (
+                                        <Block
+                                          block={{
+                                            id: nanoid(),
+                                            type: layer.type,
+                                            content: '',
+                                            phaseIndex,
+                                            columnIndex,
+                                            rowIndex
+                                          }}
+                                          onChange={handleBlockChange}
+                                          isNew={true}
+                                        />
+                                      )}
                                     </div>
                                     {provided.placeholder}
                                   </div>
