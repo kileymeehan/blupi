@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, GripVertical } from "lucide-react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
@@ -28,45 +28,85 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
-    const blocks = Array.from(board.blocks);
+    const { source, destination, type } = result;
 
-    // If dragging back to drawer, remove the block
-    if (result.destination.droppableId === 'drawer') {
-      const updatedBlocks = blocks.filter(b => b.id !== result.draggableId);
-      onBlocksChange(updatedBlocks);
-      return;
-    }
+    // Handle column reordering
+    if (type === 'COLUMN') {
+      const [sourcePhaseIndex] = source.droppableId.split('-').map(Number);
+      const [destPhaseIndex] = destination.droppableId.split('-').map(Number);
 
-    // If dragging from drawer to column
-    if (result.source.droppableId === 'drawer') {
-      const blockType = result.draggableId.replace('drawer-', '');
-      const [phaseIndex, columnIndex] = result.destination.droppableId.split('-').map(Number);
+      const newPhases = Array.from(board.phases);
+      const sourcePhase = newPhases[sourcePhaseIndex];
+      const destPhase = newPhases[destPhaseIndex];
 
-      const newBlock: BlockType = {
-        id: nanoid(),
-        type: blockType as BlockType['type'],
-        content: '',
-        phaseIndex,
-        columnIndex
-      };
+      // Remove column from source phase
+      const [movedColumn] = sourcePhase.columns.splice(source.index, 1);
 
-      blocks.splice(result.destination.index, 0, newBlock);
+      // Add column to destination phase
+      destPhase.columns.splice(destination.index, 0, movedColumn);
+
+      // Update blocks to match new column positions
+      const blocks = Array.from(board.blocks);
+      blocks.forEach(block => {
+        if (block.phaseIndex === sourcePhaseIndex && block.columnIndex >= source.index) {
+          block.columnIndex--;
+        }
+        if (block.phaseIndex === destPhaseIndex && block.columnIndex >= destination.index) {
+          block.columnIndex++;
+        }
+        if (block.phaseIndex === sourcePhaseIndex && block.columnIndex === source.index) {
+          block.phaseIndex = destPhaseIndex;
+          block.columnIndex = destination.index;
+        }
+      });
+
+      onPhasesChange(newPhases);
       onBlocksChange(blocks);
       return;
     }
 
-    // If reordering within or between columns
-    const [movedBlock] = blocks.splice(result.source.index, 1);
-    const [phaseIndex, columnIndex] = result.destination.droppableId.split('-').map(Number);
+    // Handle block drag and drop
+    if (!type || type === 'DEFAULT') {
+      const blocks = Array.from(board.blocks);
 
-    const updatedBlock = {
-      ...movedBlock,
-      phaseIndex,
-      columnIndex
-    };
+      // If dragging back to drawer, remove the block
+      if (destination.droppableId === 'drawer') {
+        const updatedBlocks = blocks.filter(b => b.id !== result.draggableId);
+        onBlocksChange(updatedBlocks);
+        return;
+      }
 
-    blocks.splice(result.destination.index, 0, updatedBlock);
-    onBlocksChange(blocks);
+      // If dragging from drawer to column
+      if (source.droppableId === 'drawer') {
+        const blockType = result.draggableId.replace('drawer-', '');
+        const [phaseIndex, columnIndex] = destination.droppableId.split('-').map(Number);
+
+        const newBlock: BlockType = {
+          id: nanoid(),
+          type: blockType as BlockType['type'],
+          content: '',
+          phaseIndex,
+          columnIndex
+        };
+
+        blocks.splice(destination.index, 0, newBlock);
+        onBlocksChange(blocks);
+        return;
+      }
+
+      // If reordering within or between columns
+      const [movedBlock] = blocks.splice(source.index, 1);
+      const [phaseIndex, columnIndex] = destination.droppableId.split('-').map(Number);
+
+      const updatedBlock = {
+        ...movedBlock,
+        phaseIndex,
+        columnIndex
+      };
+
+      blocks.splice(destination.index, 0, updatedBlock);
+      onBlocksChange(blocks);
+    }
   };
 
   const handleBlockChange = (blockId: string, content: string) => {
@@ -85,16 +125,6 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
 
     newPhases[phaseIndex].columns.push(newColumn);
     onPhasesChange(newPhases);
-
-    const newBlock: BlockType = {
-      id: nanoid(),
-      type: 'touchpoint',
-      content: '',
-      phaseIndex,
-      columnIndex: newPhases[phaseIndex].columns.length - 1
-    };
-
-    onBlocksChange([...board.blocks, newBlock]);
   };
 
   const handleAddPhase = () => {
@@ -108,16 +138,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
       }]
     });
 
-    const newBlock: BlockType = {
-      id: nanoid(),
-      type: 'touchpoint',
-      content: '',
-      phaseIndex: newPhases.length - 1,
-      columnIndex: 0
-    };
-
     onPhasesChange(newPhases);
-    onBlocksChange([...board.blocks, newBlock]);
   };
 
   const handlePhaseNameChange = (phaseIndex: number, name: string) => {
@@ -133,118 +154,159 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   };
 
   return (
-    <div className="flex h-screen">
-      <DragDropContext onDragEnd={handleDragEnd}>
-        {/* Block drawer with enhanced separation */}
-        <div className="w-64 bg-white border-r border-gray-300 flex-shrink-0 shadow-md">
-          <div className="p-4 border-b border-gray-300">
-            <h1 className="text-2xl font-bold truncate">{board.name}</h1>
-          </div>
-          <Droppable droppableId="drawer">
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps} className="p-4">
-                <BlockDrawer />
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+    <div className="flex flex-col h-screen">
+      {/* Header bar */}
+      <div className="h-14 border-b border-gray-300 px-4 flex justify-between items-center bg-white">
+        <h1 className="text-xl font-bold">Product Experience Blueprint</h1>
+        <div className="flex items-center gap-2">
+          {/* Placeholder for future profile/login */}
+          <div className="text-sm text-gray-500">Profile/Login (Coming soon)</div>
         </div>
+      </div>
 
-        {/* Board content with improved transitions */}
-        <div className="flex-1 overflow-x-auto">
-          <div className="min-w-[800px] p-8">
-            <div className="flex gap-8 items-start">
-              {board.phases.map((phase, phaseIndex) => (
-                <div key={phase.id} className="flex-shrink-0">
-                  {/* Phase header */}
-                  <div className="mb-4 bg-amber-100 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <div
-                        contentEditable
-                        onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
-                        className="font-medium text-lg focus:outline-none focus:border-b border-primary"
-                        suppressContentEditableWarning={true}
-                      >
-                        {phase.name}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleAddColumn(phaseIndex)}
-                        className="h-7 px-2"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Add Step
-                      </Button>
-                    </div>
-                  </div>
+      {/* Main content */}
+      <div className="flex flex-1">
+        <DragDropContext onDragEnd={handleDragEnd}>
+          {/* Block drawer with enhanced separation */}
+          <div className="w-64 bg-white border-r border-gray-300 flex-shrink-0 shadow-md">
+            <div className="p-4 border-b border-gray-300">
+              <h1 className="text-2xl font-bold truncate">{board.name}</h1>
+            </div>
+            <Droppable droppableId="drawer">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} className="p-4">
+                  <BlockDrawer />
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </div>
 
-                  {/* Columns with smoother animations */}
-                  <div className="flex gap-8">
-                    {phase.columns.map((column, columnIndex) => (
-                      <div key={column.id} className="flex-shrink-0 w-[225px]">
-                        {/* Column header */}
+          {/* Board content with improved transitions */}
+          <div className="flex-1 overflow-x-auto">
+            <div className="min-w-[800px] p-8">
+              <div className="flex gap-8 items-start">
+                {board.phases.map((phase, phaseIndex) => (
+                  <div key={phase.id} className="flex-shrink-0">
+                    {/* Phase header */}
+                    <div className="mb-4 bg-amber-100 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
                         <div
                           contentEditable
-                          onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                          className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
+                          onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
+                          className="font-medium text-lg focus:outline-none focus:border-b border-primary"
                           suppressContentEditableWarning={true}
                         >
-                          {column.name}
+                          {phase.name}
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAddColumn(phaseIndex)}
+                          className="h-7 px-2"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add Step
+                        </Button>
+                      </div>
+                    </div>
 
-                        {/* Blocks with improved drop animation */}
-                        <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.droppableProps}
-                              className="space-y-4 min-h-[100px] p-4 rounded-lg bg-white border-2 border-gray-200 flex flex-col items-center"
+                    {/* Columns with drag and drop */}
+                    <Droppable droppableId={`phase-${phaseIndex}`} type="COLUMN" direction="horizontal">
+                      {(provided) => (
+                        <div 
+                          ref={provided.innerRef} 
+                          {...provided.droppableProps}
+                          className="flex gap-8"
+                        >
+                          {phase.columns.map((column, columnIndex) => (
+                            <Draggable
+                              key={column.id}
+                              draggableId={`column-${column.id}`}
+                              index={columnIndex}
                             >
-                              {board.blocks
-                                .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                                .map((block, index) => (
-                                  <Draggable
-                                    key={block.id}
-                                    draggableId={block.id}
-                                    index={index}
-                                  >
+                              {(provided) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  className="flex-shrink-0 w-[225px]"
+                                >
+                                  {/* Column header with drag handle */}
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div
+                                      {...provided.dragHandleProps}
+                                      className="cursor-grab hover:text-gray-700 text-gray-400"
+                                    >
+                                      <GripVertical className="w-4 h-4" />
+                                    </div>
+                                    <div
+                                      contentEditable
+                                      onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
+                                      className="font-medium text-sm focus:outline-none focus:border-b border-primary flex-1"
+                                      suppressContentEditableWarning={true}
+                                    >
+                                      {column.name}
+                                    </div>
+                                  </div>
+
+                                  {/* Blocks droppable area */}
+                                  <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
                                     {(provided) => (
                                       <div
                                         ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[205px] h-[100px] transform transition-all duration-300 ease-in-out will-change-transform`}
+                                        {...provided.droppableProps}
+                                        className="space-y-4 min-h-[100px] p-4 rounded-lg bg-white border-2 border-gray-200 flex flex-col items-center"
                                       >
-                                        <Block block={block} onChange={handleBlockChange} />
+                                        {board.blocks
+                                          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                          .map((block, index) => (
+                                            <Draggable
+                                              key={block.id}
+                                              draggableId={block.id}
+                                              index={index}
+                                            >
+                                              {(provided) => (
+                                                <div
+                                                  ref={provided.innerRef}
+                                                  {...provided.draggableProps}
+                                                  {...provided.dragHandleProps}
+                                                  className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[205px] h-[100px] transform transition-all duration-300 ease-in-out will-change-transform`}
+                                                >
+                                                  <Block block={block} onChange={handleBlockChange} />
+                                                </div>
+                                              )}
+                                            </Draggable>
+                                          ))}
+                                        {provided.placeholder}
                                       </div>
                                     )}
-                                  </Draggable>
-                                ))}
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
-                      </div>
-                    ))}
+                                  </Droppable>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {/* Add Phase button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAddPhase}
-                className="mt-3 h-7 px-2"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Phase
-              </Button>
+                {/* Add Phase button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddPhase}
+                  className="mt-3 h-7 px-2"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Phase
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </DragDropContext>
+        </DragDropContext>
+      </div>
     </div>
   );
 }

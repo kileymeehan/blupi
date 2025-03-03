@@ -60,7 +60,6 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
         suppressContentEditableWarning={true}
       >
         {isTemplate && TYPE_LABELS[block.type]}
-        {!isTemplate && (block.content || "Add text")}
       </div>
 
       {/* Type label - shows on hover */}
