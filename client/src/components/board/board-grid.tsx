@@ -30,13 +30,12 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     const blocks = Array.from(board.blocks);
     const [reorderedBlock] = blocks.splice(result.source.index, 1);
 
-    const [phaseIndex, columnIndex, rowIndex] = result.destination.droppableId.split('-').map(Number);
+    const [phaseIndex, columnIndex] = result.destination.droppableId.split('-').map(Number);
 
     blocks.splice(result.destination.index, 0, {
       ...reorderedBlock,
       phaseIndex,
-      columnIndex,
-      rowIndex
+      columnIndex
     });
 
     onBlocksChange(blocks);
@@ -46,22 +45,24 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     const blocks = board.blocks.map(block =>
       block.id === blockId ? { ...block, content } : block
     );
-
-    // If this was a new block that was just edited, create another "Add New" block
-    const editedBlock = blocks.find(b => b.id === blockId);
-    if (editedBlock && content) {
-      const newBlock: BlockType = {
-        id: nanoid(),
-        type: editedBlock.type,
-        content: '',
-        phaseIndex: editedBlock.phaseIndex,
-        columnIndex: editedBlock.columnIndex,
-        rowIndex: editedBlock.rowIndex
-      };
-      blocks.push(newBlock);
-    }
-
     onBlocksChange(blocks);
+  };
+
+  const handleAddBlock = (block: BlockType) => {
+    const newBlock: BlockType = {
+      id: nanoid(),
+      type: block.type,
+      content: '',
+      phaseIndex: block.phaseIndex,
+      columnIndex: block.columnIndex
+    };
+
+    // Find all blocks in the same column and phase
+    const columnBlocks = board.blocks.filter(
+      b => b.phaseIndex === block.phaseIndex && b.columnIndex === block.columnIndex
+    );
+
+    onBlocksChange([...board.blocks, newBlock]);
   };
 
   const handleAddColumn = (phaseIndex: number) => {
@@ -101,147 +102,104 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   return (
     <div className="overflow-x-auto">
       <div className="min-w-[800px]">
-        <div className="grid grid-cols-[200px_1fr] gap-4">
-          {/* Layer labels */}
-          <div className="space-y-6 pr-4 border-r border-gray-200">
-            {/* Phases label */}
-            <div className="h-[68px] flex items-end pb-4 justify-end pr-4">
-              <span className="font-medium text-sm">Phases</span>
-            </div>
-            {/* Layer type labels */}
-            {LAYER_TYPES.map((layer) => (
-              <div key={layer.type} className="h-32 flex items-center justify-end pr-4">
-                <span className="font-medium text-sm">{layer.label}</span>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="flex gap-8">
+            {board.phases.map((phase, phaseIndex) => (
+              <div key={phase.id} className="min-w-[220px]">
+                {/* Phase header */}
+                <div className="mb-4 bg-amber-100 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <div
+                      contentEditable
+                      onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
+                      className="font-medium text-lg focus:outline-none focus:border-b border-primary"
+                      suppressContentEditableWarning={true}
+                    >
+                      {phase.name}
+                    </div>
+                    {phaseIndex === board.phases.length - 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleAddPhase}
+                        className="h-8 px-2"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Phase
+                      </Button>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddColumn(phaseIndex)}
+                    className="w-full"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Step
+                  </Button>
+                </div>
+
+                {/* Columns */}
+                <div className="flex gap-4">
+                  {phase.columns.map((column, columnIndex) => (
+                    <div key={column.id} className="w-[220px]">
+                      {/* Column header */}
+                      <div
+                        contentEditable
+                        onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
+                        className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
+                        suppressContentEditableWarning={true}
+                      >
+                        {column.name}
+                      </div>
+
+                      {/* Blocks */}
+                      <Droppable
+                        droppableId={`${phaseIndex}-${columnIndex}`}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className="space-y-4"
+                          >
+                            {board.blocks
+                              .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                              .map((block, index) => (
+                                <Draggable
+                                  key={block.id}
+                                  draggableId={block.id}
+                                  index={index}
+                                >
+                                  {(provided) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative`}
+                                    >
+                                      <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
+                                      <Block
+                                        block={block}
+                                        onChange={handleBlockChange}
+                                        onAdd={() => handleAddBlock(block)}
+                                      />
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
-
-          {/* Phases and Columns */}
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="flex gap-6">
-              {board.phases.map((phase, phaseIndex) => (
-                <div key={phase.id} className="min-w-[220px]">
-                  {/* Phase header */}
-                  <div className="mb-4 bg-amber-100 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <div
-                        contentEditable
-                        onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
-                        className="font-medium text-lg focus:outline-none focus:border-b border-primary"
-                        suppressContentEditableWarning={true}
-                      >
-                        {phase.name}
-                      </div>
-                      {phaseIndex === board.phases.length - 1 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleAddPhase}
-                          className="h-8 px-2"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Add Phase
-                        </Button>
-                      )}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddColumn(phaseIndex)}
-                      className="w-full"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Step
-                    </Button>
-                  </div>
-
-                  {/* Columns */}
-                  <div className="flex gap-4">
-                    {phase.columns.map((column, columnIndex) => (
-                      <div key={column.id} className="w-[220px]">
-                        {/* Column header */}
-                        <div
-                          contentEditable
-                          onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                          className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
-                          suppressContentEditableWarning={true}
-                        >
-                          {column.name}
-                        </div>
-
-                        {/* Layers */}
-                        <div className="space-y-6">
-                          {LAYER_TYPES.map((layer, rowIndex) => (
-                            <div key={`${phaseIndex}-${columnIndex}-${rowIndex}`} className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
-                              <Droppable
-                                droppableId={`${phaseIndex}-${columnIndex}-${rowIndex}`}
-                              >
-                                {(provided) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.droppableProps}
-                                    className={`h-32 ${layer.color} rounded-lg p-2 relative group transition-colors`}
-                                  >
-                                    <div className="flex gap-2 flex-wrap">
-                                      {board.blocks
-                                        .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex && b.rowIndex === rowIndex)
-                                        .map((block, index) => (
-                                          <Draggable
-                                            key={block.id}
-                                            draggableId={block.id}
-                                            index={index}
-                                          >
-                                            {(provided) => (
-                                              <div
-                                                ref={provided.innerRef}
-                                                {...provided.draggableProps}
-                                                {...provided.dragHandleProps}
-                                                className={`${layer.color} group/block relative`}
-                                              >
-                                                <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
-                                                <Block
-                                                  block={block}
-                                                  onChange={handleBlockChange}
-                                                  isNew={!block.content}
-                                                />
-                                              </div>
-                                            )}
-                                          </Draggable>
-                                        ))}
-                                      {board.blocks.filter(b => 
-                                        b.phaseIndex === phaseIndex && 
-                                        b.columnIndex === columnIndex && 
-                                        b.rowIndex === rowIndex
-                                      ).length === 0 && (
-                                        <Block
-                                          block={{
-                                            id: nanoid(),
-                                            type: layer.type,
-                                            content: '',
-                                            phaseIndex,
-                                            columnIndex,
-                                            rowIndex
-                                          }}
-                                          onChange={handleBlockChange}
-                                          isNew={true}
-                                        />
-                                      )}
-                                    </div>
-                                    {provided.placeholder}
-                                  </div>
-                                )}
-                              </Droppable>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </DragDropContext>
-        </div>
+        </DragDropContext>
       </div>
     </div>
   );
