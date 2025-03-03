@@ -20,24 +20,24 @@ export default function BoardPage() {
       const res = await apiRequest("PATCH", `/api/boards/${id}`, updates);
       return res.json();
     },
-    onSuccess: (_data, _variables, context) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/boards/${id}`] });
-      // Only show toast if not a drag operation and not silenced
-      if (!context?.silentUpdate) {
+    onSuccess: (_data, variables, _context) => {
+      // Only invalidate the query, don't show toast during drag operations
+      if (!variables.blocks && !variables.phases) {
         toast({
           title: "Changes saved",
           description: "Your blueprint has been updated"
         });
       }
+      queryClient.invalidateQueries({ queryKey: [`/api/boards/${id}`] });
     }
   });
 
   const handleBlocksChange = (blocks: Block[]) => {
-    updateBoardMutation.mutate({ blocks }, { context: { silentUpdate: true } });
+    updateBoardMutation.mutate({ blocks });
   };
 
   const handlePhasesChange = (phases: Phase[]) => {
-    updateBoardMutation.mutate({ phases }, { context: { silentUpdate: true } });
+    updateBoardMutation.mutate({ phases });
   };
 
   if (isLoading || !board) {
@@ -48,7 +48,7 @@ export default function BoardPage() {
   if (!board.phases) {
     handlePhasesChange([{
       id: nanoid(),
-      name: 'Step 1',
+      name: 'Phase 1',
       columns: [{
         id: nanoid(),
         name: 'Step 1'

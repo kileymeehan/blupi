@@ -28,10 +28,12 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
+    const blocks = Array.from(board.blocks);
+
     // If dragging back to drawer, remove the block
     if (result.destination.droppableId === 'drawer') {
-      const blocks = board.blocks.filter(b => b.id !== result.draggableId);
-      onBlocksChange(blocks);
+      const updatedBlocks = blocks.filter(b => b.id !== result.draggableId);
+      onBlocksChange(updatedBlocks);
       return;
     }
 
@@ -48,24 +50,22 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         columnIndex
       };
 
-      // Insert the block at the specific index
-      const blocks = Array.from(board.blocks);
       blocks.splice(result.destination.index, 0, newBlock);
       onBlocksChange(blocks);
       return;
     }
 
     // If reordering within or between columns
-    const blocks = Array.from(board.blocks);
-    const [reorderedBlock] = blocks.splice(result.source.index, 1);
+    const [movedBlock] = blocks.splice(result.source.index, 1);
     const [phaseIndex, columnIndex] = result.destination.droppableId.split('-').map(Number);
 
-    blocks.splice(result.destination.index, 0, {
-      ...reorderedBlock,
+    const updatedBlock = {
+      ...movedBlock,
       phaseIndex,
       columnIndex
-    });
+    };
 
+    blocks.splice(result.destination.index, 0, updatedBlock);
     onBlocksChange(blocks);
   };
 
