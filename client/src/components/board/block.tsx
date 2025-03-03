@@ -44,7 +44,7 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div className="group relative w-[120px] h-[120px]">
+    <div className="group relative w-[100px] h-[100px]">
       <div
         ref={contentRef}
         contentEditable={!isTemplate}

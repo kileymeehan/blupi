@@ -48,7 +48,10 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         columnIndex
       };
 
-      onBlocksChange([...board.blocks, newBlock]);
+      // Insert the block at the specific index
+      const blocks = Array.from(board.blocks);
+      blocks.splice(result.destination.index, 0, newBlock);
+      onBlocksChange(blocks);
       return;
     }
 
@@ -135,7 +138,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     <div className="flex h-[calc(100vh-theme(spacing.32))]">
       <DragDropContext onDragEnd={handleDragEnd}>
         {/* Block drawer */}
-        <div className="w-64 bg-gray-50 border-r border-gray-200 shadow-sm">
+        <div className="w-64 bg-gray-100 border-r-2 border-gray-200 shadow-md">
           <Droppable droppableId="drawer">
             {(provided) => (
               <div ref={provided.innerRef} {...provided.droppableProps}>
@@ -148,96 +151,104 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
 
         {/* Board content */}
         <div className="flex-1 overflow-x-auto bg-white">
-          <div className="min-w-[800px] p-8">
-            <div className="flex gap-8">
-              {board.phases.map((phase, phaseIndex) => (
-                <div key={phase.id} className="min-w-[220px]">
-                  {/* Phase header */}
-                  <div className="mb-4 bg-amber-100 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <div
-                        contentEditable
-                        onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
-                        className="font-medium text-lg focus:outline-none focus:border-b border-primary"
-                        suppressContentEditableWarning={true}
-                      >
-                        {phase.name}
-                      </div>
-                      {phaseIndex === board.phases.length - 1 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleAddPhase}
-                          className="h-8 px-2"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Add Phase
-                        </Button>
-                      )}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddColumn(phaseIndex)}
-                      className="w-full"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Step
-                    </Button>
-                  </div>
+          <div className="min-w-[800px]">
+            {/* Board header */}
+            <div className="p-8 border-b border-gray-200">
+              <h1 className="text-4xl font-bold">{board.name}</h1>
+            </div>
 
-                  {/* Columns */}
-                  <div className="flex gap-4">
-                    {phase.columns.map((column, columnIndex) => (
-                      <div key={column.id} className="w-[220px]">
-                        {/* Column header */}
+            {/* Board content */}
+            <div className="p-8 border border-gray-200 m-8 rounded-lg">
+              <div className="flex gap-8">
+                {board.phases.map((phase, phaseIndex) => (
+                  <div key={phase.id} className="min-w-[220px]">
+                    {/* Phase header */}
+                    <div className="mb-4 bg-amber-100 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-3">
                         <div
                           contentEditable
-                          onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                          className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
+                          onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
+                          className="font-medium text-lg focus:outline-none focus:border-b border-primary"
                           suppressContentEditableWarning={true}
                         >
-                          {column.name}
+                          {phase.name}
                         </div>
-
-                        {/* Blocks */}
-                        <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.droppableProps}
-                              className="space-y-4"
-                            >
-                              {board.blocks
-                                .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                                .map((block, index) => (
-                                  <Draggable
-                                    key={block.id}
-                                    draggableId={block.id}
-                                    index={index}
-                                  >
-                                    {(provided) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg`}
-                                      >
-                                        <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
-                                        <Block block={block} onChange={handleBlockChange} />
-                                      </div>
-                                    )}
-                                  </Draggable>
-                                ))}
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
+                        {phaseIndex === board.phases.length - 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleAddPhase}
+                            className="h-8 px-2"
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Add Phase
+                          </Button>
+                        )}
                       </div>
-                    ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddColumn(phaseIndex)}
+                        className="w-full"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Step
+                      </Button>
+                    </div>
+
+                    {/* Columns */}
+                    <div className="flex gap-4">
+                      {phase.columns.map((column, columnIndex) => (
+                        <div key={column.id} className="w-[220px]">
+                          {/* Column header */}
+                          <div
+                            contentEditable
+                            onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
+                            className="font-medium text-sm focus:outline-none focus:border-b border-primary mb-2"
+                            suppressContentEditableWarning={true}
+                          >
+                            {column.name}
+                          </div>
+
+                          {/* Blocks */}
+                          <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                                className="space-y-4"
+                              >
+                                {board.blocks
+                                  .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                  .map((block, index) => (
+                                    <Draggable
+                                      key={block.id}
+                                      draggableId={block.id}
+                                      index={index}
+                                    >
+                                      {(provided) => (
+                                        <div
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          {...provided.dragHandleProps}
+                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg`}
+                                        >
+                                          <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
+                                          <Block block={block} onChange={handleBlockChange} />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  ))}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
