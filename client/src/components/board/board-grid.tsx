@@ -8,6 +8,7 @@ import { nanoid } from "nanoid";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export const LAYER_TYPES = [
   { type: 'touchpoint', label: 'Touchpoints', color: 'bg-sky-100' },
@@ -91,16 +92,6 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
 
     newPhases[phaseIndex].columns.push(newColumn);
     onPhasesChange(newPhases);
-
-    const newBlock: BlockType = {
-      id: nanoid(),
-      type: 'touchpoint',
-      content: '',
-      phaseIndex,
-      columnIndex: newPhases[phaseIndex].columns.length - 1
-    };
-
-    onBlocksChange([...board.blocks, newBlock]);
   };
 
   const handleAddPhase = () => {
@@ -113,17 +104,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         name: 'Step 1'
       }]
     });
-
-    const newBlock: BlockType = {
-      id: nanoid(),
-      type: 'touchpoint',
-      content: '',
-      phaseIndex: newPhases.length - 1,
-      columnIndex: 0
-    };
-
     onPhasesChange(newPhases);
-    onBlocksChange([...board.blocks, newBlock]);
   };
 
   const handlePhaseNameChange = (phaseIndex: number, name: string) => {
@@ -143,8 +124,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
       <DragDropContext onDragEnd={handleDragEnd}>
         {/* Block drawer */}
         <div
-          className={`relative bg-gray-50 border-r-2 border-gray-200 flex-shrink-0 shadow-lg transition-all duration-300 ease-in-out
-            ${isSidebarCollapsed ? 'w-0 opacity-0' : 'w-64 opacity-100'}`}
+          className={`relative bg-gray-50 border-r-2 border-gray-200 flex-shrink-0 shadow-lg transition-all duration-300 ease-in-out overflow-hidden
+            ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}
         >
           <div className="p-4 border-b border-gray-200 bg-white">
             <h3 className="font-medium">Block Types</h3>
@@ -270,7 +251,9 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                           className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg`}
                                         >
                                           <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
-                                          <Block block={block} onChange={handleBlockChange} />
+                                          <ErrorBoundary>
+                                            <Block block={block} onChange={handleBlockChange} />
+                                          </ErrorBoundary>
                                         </div>
                                       )}
                                     </Draggable>

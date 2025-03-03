@@ -24,11 +24,13 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
-      contentRef.current.textContent = block.content;
+      contentRef.current.textContent = block.content || '';
+      console.log('Block content initialized:', block.content);
     }
   }, [block.content, isTemplate]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
+    console.log('Key pressed:', e.key);
     if (e.key === 'Enter') {
       e.preventDefault();
       contentRef.current?.blur();
@@ -36,10 +38,17 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   const handleBlur = () => {
-    if (!onChange) return;
-    const content = contentRef.current?.textContent || '';
-    if (content !== block.content) {
-      onChange(block.id, content);
+    try {
+      if (!onChange || isTemplate) return;
+
+      const content = contentRef.current?.textContent || '';
+      console.log('Handling blur event, content:', content);
+
+      if (content !== block.content) {
+        onChange(block.id, content);
+      }
+    } catch (error) {
+      console.error('Error in handleBlur:', error);
     }
   };
 
@@ -58,7 +67,7 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
-        {isTemplate ? TYPE_LABELS[block.type] : (block.content || "Add New")}
+        {isTemplate ? TYPE_LABELS[block.type] : (block.content || "Add text")}
       </div>
 
       {/* Type label - shows on hover */}
