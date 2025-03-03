@@ -44,18 +44,20 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div className="group relative w-[205px] h-[100px]">
+    <div className="group relative w-full h-full">
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className={`w-full h-full rounded cursor-pointer px-4 py-3 text-sm
+        className={`
+          w-full h-full rounded px-4 py-3 text-sm
           ${isTemplate ? 'flex items-center justify-center' : 'flex items-start text-left'}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal max-h-[100px]
-          transition-all duration-300 ease-in-out
-          focus:outline-none focus:ring-2 focus:ring-primary/20`}
+          transition-all duration-150 ease-out
+          focus:outline-none focus:ring-2 focus:ring-primary/20
+        `}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
@@ -63,7 +65,7 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
       </div>
 
       {/* Type label - shows on hover */}
-      <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-center text-gray-500 pb-1">
+      <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-xs text-center text-gray-500 pb-1">
         {TYPE_LABELS[block.type]}
       </div>
     </div>

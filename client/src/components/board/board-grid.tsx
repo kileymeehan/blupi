@@ -258,13 +258,19 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                       </div>
                                     </div>
 
-                                    {/* Blocks droppable area */}
+                                    {/* Blocks droppable area with improved drop target */}
                                     <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
-                                      {(provided) => (
+                                      {(provided, snapshot) => (
                                         <div
                                           ref={provided.innerRef}
                                           {...provided.droppableProps}
-                                          className="space-y-4 min-h-[100px] p-4 rounded-lg bg-white border-2 border-gray-200 flex flex-col items-center"
+                                          className={`
+                                            space-y-2 min-h-[100px] p-2 
+                                            rounded-lg bg-white border-2 
+                                            border-gray-200 flex flex-col items-center
+                                            transition-colors duration-200
+                                            ${snapshot.isDraggingOver ? 'bg-gray-50' : ''}
+                                          `}
                                         >
                                           {board.blocks
                                             .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
@@ -274,12 +280,24 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                                 draggableId={block.id}
                                                 index={index}
                                               >
-                                                {(provided) => (
+                                                {(provided, snapshot) => (
                                                   <div
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
                                                     {...provided.dragHandleProps}
-                                                    className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[205px] h-[100px] transform transition-all duration-300 ease-in-out will-change-transform`}
+                                                    className={`
+                                                      ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
+                                                      group/block relative rounded-lg 
+                                                      w-[205px] h-[100px]
+                                                      transition-transform duration-150
+                                                      ${snapshot.isDragging ? 'shadow-lg scale-[1.02]' : ''}
+                                                    `}
+                                                    style={{
+                                                      ...provided.draggableProps.style,
+                                                      transition: snapshot.isDropAnimating
+                                                        ? 'all 0.15s cubic-bezier(0.2, 0, 0, 1)'
+                                                        : provided.draggableProps.style?.transition,
+                                                    }}
                                                   >
                                                     <Block block={block} onChange={handleBlockChange} />
                                                   </div>
