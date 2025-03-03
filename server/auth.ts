@@ -49,7 +49,7 @@ export function setupAuth(app: Express) {
       try {
         const user = await storage.getUserByUsername(username);
         if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
+          return done(null, false, { message: "Invalid username or password" });
         }
         return done(null, user);
       } catch (err) {
@@ -65,13 +65,16 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
+      if (!user) {
+        return done(null, false);
+      }
       done(null, user);
     } catch (err) {
       done(err);
     }
   });
 
-  app.post("/api/register", async (req, res, next) => {
+  app.post("/api/register", async (req, res) => {
     try {
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
@@ -81,26 +84,33 @@ export function setupAuth(app: Express) {
       const hashedPassword = await hashPassword(req.body.password);
       const user = await storage.createUser({
         ...req.body,
-        password: hashedPassword
+        password: hashedPassword,
+        createdAt: new Date().toISOString()
       });
 
       req.login(user, (err) => {
-        if (err) return next(err);
-        res.json(user);
+        if (err) {
+          return res.status(500).json({ message: "Error logging in after registration" });
+        }
+        res.status(201).json(user);
       });
     } catch (err) {
-      next(err);
+      res.status(500).json({ message: "Error creating user" });
     }
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: any, user: any) => {
-      if (err) return next(err);
-      if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        return res.status(500).json({ message: "Internal server error" });
       }
-      req.login(user, (loginErr) => {
-        if (loginErr) return next(loginErr);
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Invalid credentials" });
+      }
+      req.login(user, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Error during login" });
+        }
         res.json(user);
       });
     })(req, res, next);
@@ -108,7 +118,7 @@ export function setupAuth(app: Express) {
 
   app.post("/api/logout", (req, res) => {
     req.logout(() => {
-      res.sendStatus(200);
+      res.status(200).json({ message: "Logged out successfully" });
     });
   });
 
