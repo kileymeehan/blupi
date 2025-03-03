@@ -65,7 +65,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     const newPhases = [...board.phases];
     newPhases[phaseIndex].columns.push({
       id: nanoid(),
-      name: `Column ${newPhases[phaseIndex].columns.length + 1}`
+      name: `Step ${newPhases[phaseIndex].columns.length + 1}`
     });
     onPhasesChange(newPhases);
   };
@@ -77,7 +77,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
       name: `Phase ${newPhases.length + 1}`,
       columns: [{
         id: nanoid(),
-        name: 'Column 1'
+        name: 'Step 1'
       }]
     });
     onPhasesChange(newPhases);
@@ -102,7 +102,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
           {/* Layer labels */}
           <div className="space-y-4 pr-4 border-r border-gray-200">
             {LAYER_TYPES.map((layer, rowIndex) => (
-              <div key={layer.type} className="h-32 flex items-center justify-between">
+              <div key={layer.type} className="h-32 flex items-center justify-end pr-4">
                 <span className="font-medium text-sm">{layer.label}</span>
               </div>
             ))}
@@ -114,14 +114,27 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
               {board.phases.map((phase, phaseIndex) => (
                 <div key={phase.id} className="min-w-[220px]">
                   {/* Phase header */}
-                  <div className="mb-4">
-                    <div
-                      contentEditable
-                      onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
-                      className="font-medium text-lg focus:outline-none focus:border-b border-primary mb-2"
-                      suppressContentEditableWarning={true}
-                    >
-                      {phase.name}
+                  <div className="mb-4 bg-amber-100 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div
+                        contentEditable
+                        onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
+                        className="font-medium text-lg focus:outline-none focus:border-b border-primary"
+                        suppressContentEditableWarning={true}
+                      >
+                        {phase.name}
+                      </div>
+                      {phaseIndex === board.phases.length - 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleAddPhase}
+                          className="h-8 px-2"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add Phase
+                        </Button>
+                      )}
                     </div>
                     <Button
                       variant="outline"
@@ -130,7 +143,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                       className="w-full"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Add Column
+                      Add Step
                     </Button>
                   </div>
 
@@ -202,14 +215,6 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                   </div>
                 </div>
               ))}
-
-              {/* Add phase button */}
-              <div className="flex items-start pt-8">
-                <Button variant="outline" onClick={handleAddPhase}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Phase
-                </Button>
-              </div>
             </div>
           </DragDropContext>
         </div>
