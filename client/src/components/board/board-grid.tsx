@@ -135,9 +135,9 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   return (
     <div className="flex h-[calc(100vh-theme(spacing.32))]">
       <DragDropContext onDragEnd={handleDragEnd}>
-        {/* Block drawer */}
-        <div className="w-64 bg-gray-100 border-r-2 border-gray-200 flex-shrink-0 shadow-lg">
-          <div className="p-4 border-b border-gray-200 bg-white">
+        {/* Block drawer with enhanced separation */}
+        <div className="w-64 bg-white border-r-2 border-gray-200 flex-shrink-0 shadow-lg mr-8">
+          <div className="p-4 border-b border-gray-200">
             <h1 className="text-2xl font-bold truncate">{board.name}</h1>
           </div>
           <Droppable droppableId="drawer">
@@ -150,8 +150,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
           </Droppable>
         </div>
 
-        {/* Board content */}
-        <div className="flex-1 overflow-x-auto bg-white">
+        {/* Board content with improved background and transitions */}
+        <div className="flex-1 overflow-x-auto bg-gray-50">
           <div className="min-w-[800px]">
             {/* Board content */}
             <div className="p-8">
@@ -192,7 +192,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                       </Button>
                     </div>
 
-                    {/* Columns */}
+                    {/* Columns with smoother animations */}
                     <div className="flex gap-4">
                       {phase.columns.map((column, columnIndex) => (
                         <div key={column.id} className="w-[220px]">
@@ -206,13 +206,13 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                             {column.name}
                           </div>
 
-                          {/* Blocks */}
+                          {/* Blocks with improved drop animation */}
                           <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
                             {(provided) => (
                               <div
                                 ref={provided.innerRef}
                                 {...provided.droppableProps}
-                                className="space-y-3 min-h-[100px] p-2 rounded-lg border border-gray-100"
+                                className="space-y-3 min-h-[100px] p-2 rounded-lg bg-white border border-gray-200"
                               >
                                 {board.blocks
                                   .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
@@ -227,7 +227,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[220px] h-[100px] transition-none`}
+                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[220px] h-[100px] transform transition-transform duration-200 ease-in-out`}
                                         >
                                           <Block block={block} onChange={handleBlockChange} />
                                         </div>
