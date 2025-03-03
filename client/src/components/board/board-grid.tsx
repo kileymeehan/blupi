@@ -153,7 +153,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         {/* Board content with improved transitions */}
         <div className="flex-1 overflow-x-auto">
           <div className="min-w-[800px] p-8">
-            <div className="flex gap-8">
+            <div className="flex gap-8 items-start">
               {board.phases.map((phase, phaseIndex) => (
                 <div key={phase.id} className="flex-shrink-0">
                   {/* Phase header */}
@@ -167,28 +167,15 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                       >
                         {phase.name}
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleAddColumn(phaseIndex)}
-                          className="h-7 px-2"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Add Step
-                        </Button>
-                        {phaseIndex === board.phases.length - 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleAddPhase}
-                            className="h-7 px-2"
-                          >
-                            <Plus className="w-4 h-4 mr-1" />
-                            Add Phase
-                          </Button>
-                        )}
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAddColumn(phaseIndex)}
+                        className="h-7 px-2"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Step
+                      </Button>
                     </div>
                   </div>
 
@@ -243,6 +230,17 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                   </div>
                 </div>
               ))}
+
+              {/* Add Phase button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddPhase}
+                className="mt-3 h-7 px-2"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Phase
+              </Button>
             </div>
           </div>
         </div>
