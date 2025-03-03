@@ -167,54 +167,57 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                         </div>
 
                         {/* Layers */}
-                        {LAYER_TYPES.map((layer, rowIndex) => (
-                          <Droppable
-                            key={`${phaseIndex}-${columnIndex}-${rowIndex}`}
-                            droppableId={`${phaseIndex}-${columnIndex}-${rowIndex}`}
-                          >
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                className={`h-32 ${layer.color} rounded-lg p-2 mb-4 relative group transition-colors
-                                  ${rowIndex === 0 ? 'hover:ring-2 ring-primary ring-opacity-50 cursor-pointer' : ''}`}
-                                onClick={() => {
-                                  if (rowIndex === 0) {
-                                    handleAddBlock(phaseIndex, columnIndex, rowIndex, layer.type);
-                                  }
-                                }}
+                        <div className="space-y-6">
+                          {LAYER_TYPES.map((layer, rowIndex) => (
+                            <div key={`${phaseIndex}-${columnIndex}-${rowIndex}`} className="bg-gray-50/50 rounded-lg p-1">
+                              <Droppable
+                                droppableId={`${phaseIndex}-${columnIndex}-${rowIndex}`}
                               >
-                                <div className="flex gap-2 flex-wrap">
-                                  {board.blocks
-                                    .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex && b.rowIndex === rowIndex)
-                                    .map((block, index) => (
-                                      <Draggable
-                                        key={block.id}
-                                        draggableId={block.id}
-                                        index={index}
-                                      >
-                                        {(provided) => (
-                                          <div
-                                            ref={provided.innerRef}
-                                            {...provided.draggableProps}
-                                            {...provided.dragHandleProps}
-                                            className={`${layer.color} group/block relative`}
+                                {(provided) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                    className={`h-32 ${layer.color} rounded-lg p-2 relative group transition-colors
+                                      ${rowIndex === 0 ? 'hover:ring-2 ring-primary ring-opacity-50 cursor-pointer' : ''}`}
+                                    onClick={() => {
+                                      if (rowIndex === 0) {
+                                        handleAddBlock(phaseIndex, columnIndex, rowIndex, layer.type);
+                                      }
+                                    }}
+                                  >
+                                    <div className="flex gap-2 flex-wrap">
+                                      {board.blocks
+                                        .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex && b.rowIndex === rowIndex)
+                                        .map((block, index) => (
+                                          <Draggable
+                                            key={block.id}
+                                            draggableId={block.id}
+                                            index={index}
                                           >
-                                            <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
-                                            <Block
-                                              block={block}
-                                              onChange={handleBlockChange}
-                                            />
-                                          </div>
-                                        )}
-                                      </Draggable>
-                                    ))}
-                                </div>
-                                {provided.placeholder}
-                              </div>
-                            )}
-                          </Droppable>
-                        ))}
+                                            {(provided) => (
+                                              <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                                className={`${layer.color} group/block relative`}
+                                              >
+                                                <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
+                                                <Block
+                                                  block={block}
+                                                  onChange={handleBlockChange}
+                                                />
+                                              </div>
+                                            )}
+                                          </Draggable>
+                                        ))}
+                                    </div>
+                                    {provided.placeholder}
+                                  </div>
+                                )}
+                              </Droppable>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
