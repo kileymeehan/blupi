@@ -44,15 +44,15 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div className="group relative">
+    <div className="group relative w-[120px] h-[120px]">
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className={`w-[120px] h-[120px] rounded cursor-pointer p-2 text-sm 
-          ${!block.content ? 'border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500' : 'border border-transparent hover:border-gray-300'} 
-          transition-colors focus:outline-none focus:border-solid focus:border-primary`}
+        className={`w-full h-full rounded cursor-pointer p-2 text-sm
+          flex items-center justify-center text-center
+          transition-colors focus:outline-none focus:border-primary`}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >

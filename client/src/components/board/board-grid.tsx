@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, GripVertical } from "lucide-react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
@@ -27,6 +27,13 @@ interface BoardGridProps {
 export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: BoardGridProps) {
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
+
+    // If dragging back to drawer, remove the block
+    if (result.destination.droppableId === 'drawer') {
+      const blocks = board.blocks.filter(b => b.id !== result.draggableId);
+      onBlocksChange(blocks);
+      return;
+    }
 
     // If dragging from drawer to column
     if (result.source.droppableId === 'drawer') {
@@ -128,17 +135,19 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     <div className="flex h-[calc(100vh-theme(spacing.32))]">
       <DragDropContext onDragEnd={handleDragEnd}>
         {/* Block drawer */}
-        <Droppable droppableId="drawer">
-          {(provided) => (
-            <div ref={provided.innerRef} {...provided.droppableProps}>
-              <BlockDrawer />
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
+        <div className="w-64 bg-gray-50 border-r border-gray-200 shadow-sm">
+          <Droppable droppableId="drawer">
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps}>
+                <BlockDrawer />
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </div>
 
         {/* Board content */}
-        <div className="flex-1 overflow-x-auto">
+        <div className="flex-1 overflow-x-auto bg-white">
           <div className="min-w-[800px] p-8">
             <div className="flex gap-8">
               {board.phases.map((phase, phaseIndex) => (
@@ -214,6 +223,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                         {...provided.dragHandleProps}
                                         className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg`}
                                       >
+                                        <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
                                         <Block block={block} onChange={handleBlockChange} />
                                       </div>
                                     )}
