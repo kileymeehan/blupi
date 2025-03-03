@@ -23,6 +23,7 @@ import { insertBoardSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { nanoid } from "nanoid";
 
 interface CreateBoardDialogProps {
   open: boolean;
@@ -39,8 +40,14 @@ export default function CreateBoardDialog({ open, onOpenChange }: CreateBoardDia
       name: "",
       description: "",
       blocks: [],
-      phases: [],
-      numColumns: 3
+      phases: [{
+        id: nanoid(),
+        name: "Phase 1",
+        columns: [{
+          id: nanoid(),
+          name: "Step 1"
+        }]
+      }]
     }
   });
 
