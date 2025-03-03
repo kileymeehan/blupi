@@ -42,21 +42,27 @@ export default function CreateBoardDialog({ open, onOpenChange }: CreateBoardDia
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Initial block types
-  const initialBlocks = LAYER_TYPES.map((layer) => ({
-    id: nanoid(),
-    type: layer.type,
-    content: '',
-    phaseIndex: 0,
-    columnIndex: 0
-  }));
+  // Initial block types - This section is no longer needed because blocks are now initialized in defaultValues.
+  // const initialBlocks = LAYER_TYPES.map((layer) => ({
+  //   id: nanoid(),
+  //   type: layer.type,
+  //   content: '',
+  //   phaseIndex: 0,
+  //   columnIndex: 0
+  // }));
 
   const form = useForm({
     resolver: zodResolver(insertBoardSchema),
     defaultValues: {
       name: "",
       description: "",
-      blocks: initialBlocks,
+      blocks: [{
+        id: nanoid(),
+        type: 'touchpoint',
+        content: '',
+        phaseIndex: 0,
+        columnIndex: 0
+      }],
       phases: [{
         id: nanoid(),
         name: "Phase 1",

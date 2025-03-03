@@ -1,11 +1,10 @@
 import { useRef, useEffect, KeyboardEvent } from "react";
-import { Plus } from "lucide-react";
 import type { Block as BlockType } from "@shared/schema";
 
 interface BlockProps {
   block: BlockType;
-  onChange: (id: string, content: string) => void;
-  onAdd: () => void;
+  onChange?: (id: string, content: string) => void;
+  isTemplate?: boolean;
 }
 
 const TYPE_LABELS = {
@@ -20,14 +19,14 @@ const TYPE_LABELS = {
   note: 'Note'
 } as const;
 
-export default function Block({ block, onChange, onAdd }: BlockProps) {
+export default function Block({ block, onChange, isTemplate = false }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (contentRef.current) {
+    if (contentRef.current && !isTemplate) {
       contentRef.current.textContent = block.content;
     }
-  }, [block.content]);
+  }, [block.content, isTemplate]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -37,6 +36,7 @@ export default function Block({ block, onChange, onAdd }: BlockProps) {
   };
 
   const handleBlur = () => {
+    if (!onChange) return;
     const content = contentRef.current?.textContent || '';
     if (content !== block.content) {
       onChange(block.id, content);
@@ -47,7 +47,7 @@ export default function Block({ block, onChange, onAdd }: BlockProps) {
     <div className="group relative">
       <div
         ref={contentRef}
-        contentEditable
+        contentEditable={!isTemplate}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`w-[120px] h-[120px] rounded cursor-pointer p-2 text-sm 
@@ -56,23 +56,13 @@ export default function Block({ block, onChange, onAdd }: BlockProps) {
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
-        {block.content || "Add New"}
+        {isTemplate ? TYPE_LABELS[block.type] : (block.content || "Add New")}
       </div>
 
       {/* Type label - shows on hover */}
       <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-center text-gray-500 pb-1">
         {TYPE_LABELS[block.type]}
       </div>
-
-      {/* Add button - shows on hover */}
-      <button
-        onClick={onAdd}
-        className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity
-          w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center
-          hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-      >
-        <Plus className="w-3 h-3" />
-      </button>
     </div>
   );
 }
