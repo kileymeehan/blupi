@@ -101,7 +101,12 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         <div className="grid grid-cols-[200px_1fr] gap-4">
           {/* Layer labels */}
           <div className="space-y-4 pr-4 border-r border-gray-200">
-            {LAYER_TYPES.map((layer, rowIndex) => (
+            {/* Phases label */}
+            <div className="h-[68px] flex items-end pb-4 justify-end pr-4">
+              <span className="font-medium text-sm">Phases</span>
+            </div>
+            {/* Layer type labels */}
+            {LAYER_TYPES.map((layer) => (
               <div key={layer.type} className="h-32 flex items-center justify-end pr-4">
                 <span className="font-medium text-sm">{layer.label}</span>
               </div>
