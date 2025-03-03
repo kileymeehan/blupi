@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical } from "lucide-react";
+import { Plus } from "lucide-react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
@@ -227,9 +227,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
-                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[100px] h-[100px] transition-none`}
+                                          className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group/block relative rounded-lg w-[220px] h-[100px] transition-none`}
                                         >
-                                          <GripVertical className="w-4 h-4 absolute -top-2 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity" />
                                           <Block block={block} onChange={handleBlockChange} />
                                         </div>
                                       )}
