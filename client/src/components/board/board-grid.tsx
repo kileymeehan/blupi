@@ -138,8 +138,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         {/* Block drawer */}
         <div className="w-64 bg-gray-100 border-r-2 border-gray-200 flex-shrink-0 shadow-lg">
           <div className="p-4 border-b border-gray-200 bg-white">
-            <h3 className="font-medium">Available Blocks</h3>
-            <p className="text-sm text-gray-500 mt-1">Drag blocks to add them to your board</p>
+            <h1 className="text-2xl font-bold truncate">{board.name}</h1>
           </div>
           <Droppable droppableId="drawer">
             {(provided) => (
@@ -154,11 +153,6 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         {/* Board content */}
         <div className="flex-1 overflow-x-auto bg-white">
           <div className="min-w-[800px]">
-            {/* Board header */}
-            <div className="p-8 border-b border-gray-200 bg-white sticky top-0 z-10">
-              <h1 className="text-4xl font-bold">{board.name}</h1>
-            </div>
-
             {/* Board content */}
             <div className="p-8">
               <div className="flex gap-8">
