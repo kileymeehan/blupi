@@ -44,7 +44,7 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
   };
 
   return (
-    <div className="group relative w-[300px] h-[100px] transform-gpu"> {/*Adjusted width and height*/}
+    <div className="group relative w-[300px] h-[100px]"> {/* Full width of column */}
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
