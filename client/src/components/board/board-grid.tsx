@@ -1,10 +1,12 @@
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical } from "lucide-react";
+import { Plus, GripVertical, ArrowLeft, LogOut } from "lucide-react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
+import { Link } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 export const LAYER_TYPES = [
   { type: 'touchpoint', label: 'Touchpoints', color: 'bg-sky-100' },
@@ -25,6 +27,8 @@ interface BoardGridProps {
 }
 
 export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: BoardGridProps) {
+  const { logoutMutation } = useAuth();
+
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
@@ -133,12 +137,12 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   };
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.32))]">
+    <div className="flex h-[calc(100vh-theme(spacing.16))]">
       <DragDropContext onDragEnd={handleDragEnd}>
         {/* Block drawer */}
-        <div className="w-64 bg-gray-100 border-r-2 border-gray-200 flex-shrink-0 shadow-lg">
+        <div className="w-64 bg-gray-50 border-r-2 border-gray-200 flex-shrink-0 shadow-lg">
           <div className="p-4 border-b border-gray-200 bg-white">
-            <h3 className="font-medium">Available Blocks</h3>
+            <h3 className="font-medium">Block Types</h3>
             <p className="text-sm text-gray-500 mt-1">Drag blocks to add them to your board</p>
           </div>
           <Droppable droppableId="drawer">
@@ -152,11 +156,26 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
         </div>
 
         {/* Board content */}
-        <div className="flex-1 overflow-x-auto bg-white">
+        <div className="flex-1 overflow-x-auto bg-gray-50">
           <div className="min-w-[800px]">
             {/* Board header */}
-            <div className="p-8 border-b border-gray-200 bg-white sticky top-0 z-10">
-              <h1 className="text-4xl font-bold">{board.name}</h1>
+            <div className="px-8 py-4 border-b bg-white sticky top-0 z-10 flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-4">
+                <Link href="/" className="text-sm font-medium hover:text-primary">
+                  <ArrowLeft className="w-4 h-4 inline-block mr-1" />
+                  Back to Home
+                </Link>
+                <h1 className="text-2xl font-bold">{board.name}</h1>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => logoutMutation.mutate()}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
             </div>
 
             {/* Board content */}
