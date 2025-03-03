@@ -37,12 +37,12 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
 
     // If dragging from drawer to column
     if (result.source.droppableId === 'drawer') {
-      const [type] = result.draggableId.split('-');
+      const blockType = result.draggableId.replace('drawer-', '');
       const [phaseIndex, columnIndex] = result.destination.droppableId.split('-').map(Number);
 
       const newBlock: BlockType = {
         id: nanoid(),
-        type: type.replace('drawer-', ''),
+        type: blockType as BlockType['type'],
         content: '',
         phaseIndex,
         columnIndex
