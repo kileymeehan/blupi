@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical } from "lucide-react";
+import { Plus, GripVertical, Image } from "lucide-react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
@@ -159,8 +159,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Header bar */}
-      <div className="h-14 border-b border-gray-300 px-4 flex justify-between items-center bg-white">
+      {/* Enhanced header bar */}
+      <div className="h-20 border-b border-gray-300 px-4 flex justify-between items-center bg-white shadow-sm">
         <h1 className="text-xl font-bold">Product Experience Blueprint</h1>
         <div className="flex items-center gap-2">
           {/* Placeholder for future profile/login */}
@@ -191,7 +191,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
             <div className="min-w-[800px] p-8">
               <div className="flex items-start">
                 {board.phases.map((phase, phaseIndex) => (
-                  <div key={phase.id} className="flex-shrink-0 relative">
+                  <div key={phase.id} className="flex-shrink-0 relative mr-8">
                     {/* Phase separator */}
                     {phaseIndex > 0 && (
                       <div className="absolute -left-4 top-0 bottom-0 w-[1px] bg-gray-200" />
@@ -215,7 +215,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                             className="h-7 px-2 border border-gray-300"
                           >
                             <Plus className="w-4 h-4 mr-1" />
-                            Add Step
+                            Step
                           </Button>
                         </div>
                       </div>
@@ -256,6 +256,12 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
                                       >
                                         {column.name}
                                       </div>
+                                    </div>
+
+                                    {/* Image upload placeholder */}
+                                    <div className="mb-2 h-12 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer">
+                                      <Image className="w-4 h-4 mr-2" />
+                                      <span className="text-xs">Add image</span>
                                     </div>
 
                                     {/* Blocks droppable area with improved drop target */}
