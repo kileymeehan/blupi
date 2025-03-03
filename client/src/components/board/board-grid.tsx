@@ -133,10 +133,10 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   };
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.32))]">
+    <div className="flex h-[calc(100vh-theme(spacing.32))] px-4">
       <DragDropContext onDragEnd={handleDragEnd}>
         {/* Block drawer with enhanced separation */}
-        <div className="w-64 bg-white border-r-2 border-gray-200 flex-shrink-0 shadow-lg mr-8">
+        <div className="w-64 bg-white border-r-2 border-gray-200 flex-shrink-0 shadow-lg mr-8 px-4">
           <div className="p-4 border-b border-gray-200">
             <h1 className="text-2xl font-bold truncate">{board.name}</h1>
           </div>
