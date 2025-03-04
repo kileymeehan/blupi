@@ -1,16 +1,18 @@
 import { initializeApp } from "@firebase/app";
 import { getAuth } from "@firebase/auth";
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  authDomain: "blueprints-48648.firebaseapp.com", // Use exact Firebase project domain
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-console.log('Initializing Firebase with project:', firebaseConfig.projectId);
+console.log('Firebase Config:', {
+  authDomain: firebaseConfig.authDomain,
+  currentDomain: window.location.hostname
+});
 
 let app;
 let auth;
@@ -19,9 +21,6 @@ try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   auth.useDeviceLanguage();
-
-  // Log successful initialization
-  console.log('Firebase initialized successfully');
 } catch (error) {
   console.error('Firebase initialization error:', error);
   throw error;

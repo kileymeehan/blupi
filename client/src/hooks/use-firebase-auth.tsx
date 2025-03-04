@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { 
   GoogleAuthProvider, 
-  signInWithPopup,
+  signInWithRedirect,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  getRedirectResult,
   type User
 } from '@firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -17,6 +18,22 @@ export function useFirebaseAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Handle redirect result when component mounts
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          console.log('Redirect sign-in successful');
+          toast({
+            title: "Success",
+            description: "Successfully signed in with Google",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('Sign-in error:', error);
+        handleAuthError(error);
+      });
+
     // Set up auth state listener
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -24,23 +41,23 @@ export function useFirebaseAuth() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [toast]);
 
   const handleAuthError = (error: any) => {
     console.error('Authentication error:', {
       code: error.code,
       message: error.message,
-      errorInfo: error
+      currentDomain: window.location.hostname
     });
 
     let errorMessage = "Authentication failed";
 
     switch (error.code) {
+      case 'auth/unauthorized-domain':
+        errorMessage = "Please try again in a moment while we configure the authentication domain";
+        break;
       case 'auth/network-request-failed':
         errorMessage = "Network error. Please check your connection and try again.";
-        break;
-      case 'auth/unauthorized-domain':
-        errorMessage = "Authentication domain error. Please try again in a moment.";
         break;
       default:
         errorMessage = error.message;
@@ -56,24 +73,11 @@ export function useFirebaseAuth() {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-
-      // Add required scopes
       provider.addScope('profile');
       provider.addScope('email');
 
-      // Force account selection
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
-
-      const result = await signInWithPopup(auth, provider);
-
-      toast({
-        title: "Success",
-        description: "Successfully signed in with Google",
-      });
-
-      return result.user;
+      await signInWithRedirect(auth, provider);
+      // Result will be handled in the useEffect hook
     } catch (error: any) {
       handleAuthError(error);
       throw error;
