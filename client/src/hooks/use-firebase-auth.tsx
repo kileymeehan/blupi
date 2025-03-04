@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { 
   GoogleAuthProvider, 
-  signInWithRedirect,
+  signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  getRedirectResult,
   type User
 } from '@firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -18,57 +17,13 @@ export function useFirebaseAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Handle redirect result when component mounts
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          console.log('Redirect sign-in successful');
-          toast({
-            title: "Success",
-            description: "Successfully signed in with Google",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error('Sign-in error:', error);
-        handleAuthError(error);
-      });
-
-    // Set up auth state listener
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [toast]);
-
-  const handleAuthError = (error: any) => {
-    console.error('Authentication error:', {
-      code: error.code,
-      message: error.message,
-      currentDomain: window.location.hostname
-    });
-
-    let errorMessage = "Authentication failed";
-
-    switch (error.code) {
-      case 'auth/unauthorized-domain':
-        errorMessage = "Please try again in a moment while we configure the authentication domain";
-        break;
-      case 'auth/network-request-failed':
-        errorMessage = "Network error. Please check your connection and try again.";
-        break;
-      default:
-        errorMessage = error.message;
-    }
-
-    toast({
-      title: "Error",
-      description: errorMessage,
-      variant: "destructive",
-    });
-  };
+  }, []);
 
   const signInWithGoogle = async () => {
     try {
@@ -76,10 +31,39 @@ export function useFirebaseAuth() {
       provider.addScope('profile');
       provider.addScope('email');
 
-      await signInWithRedirect(auth, provider);
-      // Result will be handled in the useEffect hook
+      // Add origin verification
+      provider.setCustomParameters({
+        prompt: 'select_account',
+        origin: window.location.origin
+      });
+
+      const result = await signInWithPopup(auth, provider);
+
+      toast({
+        title: "Success",
+        description: "Successfully signed in with Google",
+      });
+
+      return result.user;
     } catch (error: any) {
-      handleAuthError(error);
+      console.error('Auth Error:', {
+        code: error.code,
+        message: error.message,
+        domain: window.location.hostname,
+        origin: window.location.origin
+      });
+
+      let errorMessage = "Failed to sign in with Google";
+      if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "Authentication error. Please wait while we verify your domain.";
+      }
+
+      toast({
+        title: "Authentication Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
       throw error;
     }
   };
@@ -93,7 +77,11 @@ export function useFirebaseAuth() {
       });
       return result.user;
     } catch (error: any) {
-      handleAuthError(error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
       throw error;
     }
   };
@@ -107,7 +95,11 @@ export function useFirebaseAuth() {
       });
       return result.user;
     } catch (error: any) {
-      handleAuthError(error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
       throw error;
     }
   };
@@ -120,7 +112,11 @@ export function useFirebaseAuth() {
         description: "Successfully signed out",
       });
     } catch (error: any) {
-      handleAuthError(error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out",
+        variant: "destructive",
+      });
       throw error;
     }
   };

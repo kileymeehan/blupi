@@ -7,11 +7,13 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  // Add explicit domain settings
+  authEmulatorHost: window.location.hostname
 };
 
-console.log('Firebase Config:', {
-  authDomain: firebaseConfig.authDomain,
-  currentDomain: window.location.hostname
+console.log('Firebase initialization:', {
+  currentDomain: window.location.hostname,
+  projectDomain: firebaseConfig.authDomain
 });
 
 let app;
