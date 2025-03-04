@@ -17,6 +17,7 @@ export function useFirebaseAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Set up auth state listener
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -25,18 +26,44 @@ export function useFirebaseAuth() {
     return () => unsubscribe();
   }, []);
 
+  const handleAuthError = (error: any) => {
+    console.error('Authentication error:', {
+      code: error.code,
+      message: error.message,
+      errorInfo: error
+    });
+
+    let errorMessage = "Authentication failed";
+
+    switch (error.code) {
+      case 'auth/network-request-failed':
+        errorMessage = "Network error. Please check your connection and try again.";
+        break;
+      case 'auth/unauthorized-domain':
+        errorMessage = "Authentication domain error. Please try again in a moment.";
+        break;
+      default:
+        errorMessage = error.message;
+    }
+
+    toast({
+      title: "Error",
+      description: errorMessage,
+      variant: "destructive",
+    });
+  };
+
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
 
-      // Configure provider settings
+      // Add required scopes
       provider.addScope('profile');
       provider.addScope('email');
 
-      // Specify custom OAuth parameters
+      // Force account selection
       provider.setCustomParameters({
-        prompt: 'select_account',
-        auth_domain: window.location.hostname
+        prompt: 'select_account'
       });
 
       const result = await signInWithPopup(auth, provider);
@@ -48,29 +75,11 @@ export function useFirebaseAuth() {
 
       return result.user;
     } catch (error: any) {
-      console.error('Google Sign-in Error:', {
-        code: error.code,
-        message: error.message,
-        domain: window.location.hostname
-      });
-
-      let errorMessage = "Failed to sign in with Google";
-
-      if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = `Domain ${window.location.hostname} needs to be authorized. Please check Firebase Console > Authentication > Settings > Authorized domains`;
-      }
-
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-
+      handleAuthError(error);
       throw error;
     }
   };
 
-  // Keep the rest of the methods unchanged
   const signInWithEmail = async (email: string, password: string) => {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
@@ -80,11 +89,7 @@ export function useFirebaseAuth() {
       });
       return result.user;
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      handleAuthError(error);
       throw error;
     }
   };
@@ -98,11 +103,7 @@ export function useFirebaseAuth() {
       });
       return result.user;
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      handleAuthError(error);
       throw error;
     }
   };
@@ -115,11 +116,7 @@ export function useFirebaseAuth() {
         description: "Successfully signed out",
       });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out",
-        variant: "destructive",
-      });
+      handleAuthError(error);
       throw error;
     }
   };

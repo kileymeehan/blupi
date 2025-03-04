@@ -1,18 +1,16 @@
 import { initializeApp } from "@firebase/app";
 import { getAuth } from "@firebase/auth";
 
-// Use exact domain matching for authentication
-const domain = window.location.hostname;
+// Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  // Use the exact current domain for auth
-  authDomain: domain,
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-console.log('Initializing Firebase with domain:', domain);
+console.log('Initializing Firebase with project:', firebaseConfig.projectId);
 
 let app;
 let auth;
@@ -21,7 +19,9 @@ try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   auth.useDeviceLanguage();
-  console.log('Firebase initialized successfully, auth instance created');
+
+  // Log successful initialization
+  console.log('Firebase initialized successfully');
 } catch (error) {
   console.error('Firebase initialization error:', error);
   throw error;
