@@ -160,11 +160,11 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
   return (
     <div className="flex flex-col h-screen">
       {/* Enhanced header bar */}
-      <div className="h-20 border-b border-gray-300 px-4 flex justify-between items-center bg-white shadow-sm">
-        <h1 className="text-xl font-bold">Product Experience Blueprint</h1>
-        <div className="flex items-center gap-2">
+      <div className="h-40 border-b border-gray-300 px-8 flex justify-between items-center bg-white shadow-sm">
+        <h1 className="text-2xl font-bold">Product Experience Blueprint</h1>
+        <div className="flex items-center gap-4">
           {/* Placeholder for future profile/login */}
-          <div className="text-sm text-gray-500">Profile/Login (Coming soon)</div>
+          <div className="text-lg text-gray-500">Profile/Login (Coming soon)</div>
         </div>
       </div>
 
@@ -172,7 +172,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
       <div className="flex flex-1">
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Block drawer */}
-          <div className="w-64 bg-white border-r border-gray-300 flex-shrink-0 shadow-md">
+          <div className="w-72 bg-white border-r border-gray-300 flex-shrink-0 shadow-md">
             <div className="p-4 border-b border-gray-300">
               <h1 className="text-2xl font-bold truncate">{board.name}</h1>
             </div>
