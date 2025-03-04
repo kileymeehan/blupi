@@ -42,6 +42,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Set default content type for API routes
+app.use('/api', (req, res, next) => {
+  res.setHeader('Content-Type', 'application/json');
+  next();
+});
+
 (async () => {
   try {
     // Set up development middleware
@@ -54,12 +60,30 @@ app.use((req, res, next) => {
     // Register API routes after Vite middleware
     const server = await registerRoutes(app);
 
-    // Error handling middleware - must be after all routes
+    // API Error handling middleware
+    app.use('/api', (err: any, _req: Request, res: Response, _next: NextFunction) => {
+      console.error('API Error:', err);
+      res.status(err.status || 500).json({
+        error: true,
+        message: err.message || "Internal Server Error"
+      });
+    });
+
+    // General error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       console.error('Error:', err);
+      if (res.headersSent) return next(err);
+
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
-      res.status(status).json({ error: true, message });
+
+      // Check if the request is for the API
+      if (_req.path.startsWith('/api')) {
+        return res.status(status).json({ error: true, message });
+      }
+
+      // For non-API routes, send the index.html
+      res.status(status).sendFile('index.html', { root: './dist/client' });
     });
 
     // Handle SPA routing - must be after API routes

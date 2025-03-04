@@ -17,6 +17,7 @@ interface CreateProjectDialogProps {
 
 export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogProps) {
   const { toast } = useToast();
+
   const form = useForm<InsertProject>({
     resolver: zodResolver(insertProjectSchema),
     defaultValues: {
@@ -27,18 +28,27 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
 
   const createProject = useMutation({
     mutationFn: async (data: InsertProject) => {
-      console.log('Submitting project data:', data);
-      const response = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      try {
+        const response = await fetch("/api/projects", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(data),
+        });
 
-      const responseData = await response.json();
-      if (!response.ok) {
-        throw new Error(responseData.message || "Failed to create project");
+        const responseData = await response.json();
+        if (!response.ok) {
+          throw new Error(responseData.message || "Failed to create project");
+        }
+        return responseData;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error("An unexpected error occurred");
       }
-      return responseData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
