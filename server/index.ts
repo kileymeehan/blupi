@@ -31,44 +31,42 @@ app.use((req, res, next) => {
   const start = Date.now();
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (req.path.startsWith("/api")) {
-      log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
-    }
+    log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
   });
   next();
 });
 
 (async () => {
-  // Create HTTP server
-  const server = createServer(app);
+  try {
+    // Create HTTP server
+    const server = createServer(app);
 
-  // Set up development middleware
-  if (process.env.NODE_ENV !== "production") {
-    await setupVite(app);
-  } else {
-    serveStatic(app);
+    // Set up development middleware
+    if (process.env.NODE_ENV !== "production") {
+      await setupVite(app);
+    } else {
+      serveStatic(app);
+    }
+
+    // Register API routes after Vite middleware
+    await registerRoutes(app);
+
+    // Handle SPA routing
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) return next();
+      if (process.env.NODE_ENV !== "production") return next();
+      res.sendFile('index.html', { root: './dist/client' });
+    });
+
+    const port = process.env.PORT || 5000;
+    server.listen(port, () => {
+      log(`Server running on port ${port}`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
   }
-
-  // Register API routes after Vite middleware
-  await registerRoutes(app);
-
-  // Handle SPA routing - this should be after all other routes
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
-    // Let Vite handle the request in development
-    if (process.env.NODE_ENV !== "production") return next();
-    // In production, serve the index.html
-    res.sendFile('index.html', { root: './dist/client' });
-  });
-
-  const port = process.env.PORT || 5000;
-  server.listen(port, "0.0.0.0", () => {
-    log(`Server running on port ${port}`);
-  });
-})().catch((err) => {
-  console.error('Failed to start server:', err);
-  process.exit(1);
-});
+})();
 
 // Error handling middleware
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
