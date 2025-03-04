@@ -1,14 +1,13 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil } from "lucide-react";
+import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
-import ImageUpload from './image-upload'; // Assuming ImageUpload component exists
-
+import ImageUpload from './image-upload';
 
 interface ColumnWithImage {
   id: string;
@@ -145,7 +144,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
     const newColumn: ColumnWithImage = {
       id: nanoid(),
       name: `Step ${newPhases[phaseIndex].columns.length + 1}`,
-      image: undefined // Added to handle potential image property
+      image: undefined
     };
 
     newPhases[phaseIndex].columns.push(newColumn);
@@ -160,7 +159,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
       columns: [{
         id: nanoid(),
         name: 'Step 1',
-        image: undefined // Added to handle potential image property
+        image: undefined
       }]
     });
 
@@ -193,11 +192,30 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
     onPhasesChange(newPhases);
   };
 
+  const handleDeleteColumn = (phaseIndex: number, columnIndex: number) => {
+    const newPhases = [...board.phases];
+    newPhases[phaseIndex].columns.splice(columnIndex, 1);
+
+    // Update blocks - remove blocks in the deleted column and adjust indices
+    const newBlocks = board.blocks.filter(block =>
+      !(block.phaseIndex === phaseIndex && block.columnIndex === columnIndex)
+    ).map(block => {
+      if (block.phaseIndex === phaseIndex && block.columnIndex > columnIndex) {
+        return { ...block, columnIndex: block.columnIndex - 1 };
+      }
+      return block;
+    });
+
+    onPhasesChange(newPhases);
+    onBlocksChange(newBlocks);
+  };
+
+
   return (
     <div className="flex flex-col h-screen">
       {/* Fixed header bar */}
       <div className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
-        <div className="flex items-center gap-4 pl-4"> {/* Added padding for alignment */}
+        <div className="flex items-center gap-4 pl-4">
           <Button
             variant="ghost"
             size="sm"
@@ -208,7 +226,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
             Home
           </Button>
 
-          <div className="w-px h-6 bg-gray-200 mx-2" /> {/* Subtle separator */}
+          <div className="w-px h-6 bg-gray-200 mx-2" />
 
           <div className="group flex items-center gap-2">
             <div
@@ -336,6 +354,14 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                       >
                                         {column.name}
                                       </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
+                                        className="h-6 w-6 p-0 hover:text-red-500"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
                                     </div>
 
                                     {/* Image upload */}
@@ -374,7 +400,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
                                                       group/block relative rounded-lg 
-                                                      w-[205px] h-[100px]
+                                                      w-[225px] h-[100px]
                                                       transition-transform duration-150
                                                       ${snapshot.isDragging ? 'shadow-lg scale-[1.02]' : ''}
                                                     `}
