@@ -1,4 +1,5 @@
-import { Link } from "wouter";
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, LogOut, User, LayoutTemplate, Briefcase } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -6,9 +7,12 @@ import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { CreateProjectDialog } from "@/components/create-project-dialog";
 
 export default function Dashboard() {
   const { user, logout } = useFirebaseAuth();
+  const [, navigate] = useLocation();
+  const [createProjectOpen, setCreateProjectOpen] = useState(false);
 
   const { data: projects = [] } = useQuery({
     queryKey: ['/api/projects'],
@@ -18,6 +22,10 @@ export default function Dashboard() {
       return res.json();
     }
   });
+
+  const handleCreateBlueprint = () => {
+    navigate("/board/new");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -60,7 +68,7 @@ export default function Dashboard() {
               <LayoutTemplate className="h-6 w-6" />
               <h2 className="text-2xl font-semibold">Blueprints</h2>
             </div>
-            <Button>
+            <Button onClick={handleCreateBlueprint}>
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
@@ -87,7 +95,7 @@ export default function Dashboard() {
               <Briefcase className="h-6 w-6" />
               <h2 className="text-2xl font-semibold">Projects</h2>
             </div>
-            <Button>
+            <Button onClick={() => setCreateProjectOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create New Project
             </Button>
@@ -125,6 +133,11 @@ export default function Dashboard() {
           </div>
         </section>
       </main>
+
+      <CreateProjectDialog 
+        open={createProjectOpen}
+        onOpenChange={setCreateProjectOpen}
+      />
     </div>
   );
 }
