@@ -336,7 +336,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
-                                    className="flex-shrink-0 w-[225px]"
+                                    className="flex-shrink-0 w-[205px]"
                                   >
                                     {/* Column header with drag handle */}
                                     <div className="flex items-center gap-2 mb-2">
@@ -400,7 +400,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
                                                       group/block relative rounded-lg 
-                                                      w-[225px] h-[100px]
+                                                      w-[205px] h-[100px]
                                                       transition-transform duration-150
                                                       ${snapshot.isDragging ? 'shadow-lg scale-[1.02]' : ''}
                                                     `}
