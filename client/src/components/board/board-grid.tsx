@@ -204,7 +204,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
       <div className="flex flex-1">
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Collapsible block drawer */}
-          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300`}>
+          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-[width] duration-300`}>
             <div className="p-4 border-b border-gray-300 flex justify-between items-center">
               <Button
                 variant="ghost"
