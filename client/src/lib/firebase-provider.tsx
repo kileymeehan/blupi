@@ -4,6 +4,7 @@ import {
   onAuthStateChanged,
 } from '@firebase/auth';
 import { auth } from './firebase';
+import { useToast } from '@/hooks/use-toast';
 
 type FirebaseContextType = {
   user: User | null;
@@ -15,14 +16,20 @@ const FirebaseContext = createContext<FirebaseContextType | null>(null);
 export function FirebaseProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
+    console.log('Setting up Firebase auth state listener');
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('Auth state changed:', user ? 'User logged in' : 'No user');
       setUser(user);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('Cleaning up Firebase auth state listener');
+      unsubscribe();
+    };
   }, []);
 
   return (

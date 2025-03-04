@@ -18,6 +18,7 @@ export function useFirebaseAuth() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('Auth state changed:', user ? `User logged in: ${user.email}` : 'No user');
       setUser(user);
       setLoading(false);
     });
@@ -27,28 +28,42 @@ export function useFirebaseAuth() {
 
   const signInWithGoogle = async () => {
     try {
-      console.log('Attempting Google sign in from domain:', window.location.hostname);
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
+      // Log detailed domain information before attempting sign-in
+      console.log('Attempting Google sign-in from:', {
+        domain: window.location.hostname,
+        fullUrl: window.location.href,
+        origin: window.location.origin,
+        protocol: window.location.protocol
       });
+
+      const provider = new GoogleAuthProvider();
+
+      // Log the attempt
+      console.log('Initializing Google sign-in popup...');
+
       const result = await signInWithPopup(auth, provider);
-      console.log('Google sign in successful:', result.user.email);
+      console.log('Google sign-in successful:', {
+        userEmail: result.user.email,
+        userId: result.user.uid
+      });
+
       toast({
         title: "Success",
         description: "Successfully signed in with Google",
       });
     } catch (error: any) {
-      console.error('Google sign in error:', error);
+      // Log detailed error information
+      console.error('Google sign-in error:', {
+        code: error.code,
+        message: error.message,
+        domain: window.location.hostname,
+        errorInfo: error.customData ? error.customData : 'No custom data'
+      });
+
       let errorMessage = "Failed to sign in with Google";
 
-      // Handle specific Firebase auth errors
       if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = `This domain (${window.location.hostname}) is not authorized for sign-in. Please contact the administrator.`;
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = "Sign-in was cancelled. Please try again.";
-      } else if (error.code === 'auth/popup-blocked') {
-        errorMessage = "Sign-in popup was blocked. Please allow popups for this site.";
+        errorMessage = `Domain ${window.location.hostname} is not authorized. Please check Firebase Console > Authentication > Settings > Authorized domains`;
       }
 
       toast({
@@ -67,18 +82,10 @@ export function useFirebaseAuth() {
         description: "Successfully signed in",
       });
     } catch (error: any) {
-      console.error('Email sign in error:', error);
-      let errorMessage = "Invalid email or password";
-
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        errorMessage = "Invalid email or password";
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = "Too many failed attempts. Please try again later.";
-      }
-
+      console.error('Email sign-in error:', error);
       toast({
         title: "Error",
-        description: errorMessage,
+        description: error.message,
         variant: "destructive",
       });
     }
@@ -92,20 +99,10 @@ export function useFirebaseAuth() {
         description: "Account created successfully",
       });
     } catch (error: any) {
-      console.error('Email sign up error:', error);
-      let errorMessage = "Failed to create account";
-
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = "This email is already registered";
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "Invalid email address";
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = "Password is too weak";
-      }
-
+      console.error('Email sign-up error:', error);
       toast({
         title: "Error",
-        description: errorMessage,
+        description: error.message,
         variant: "destructive",
       });
     }
@@ -118,7 +115,7 @@ export function useFirebaseAuth() {
         title: "Success",
         description: "Successfully signed out",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error);
       toast({
         title: "Error",

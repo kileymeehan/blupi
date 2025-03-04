@@ -1,18 +1,13 @@
 import { initializeApp } from "@firebase/app";
 import { getAuth } from "@firebase/auth";
 
-// Verify environment variables exist
-const requiredEnvVars = [
-  'VITE_FIREBASE_API_KEY',
-  'VITE_FIREBASE_PROJECT_ID',
-  'VITE_FIREBASE_APP_ID'
-] as const;
-
-for (const envVar of requiredEnvVars) {
-  if (!import.meta.env[envVar]) {
-    console.error(`Missing required environment variable: ${envVar}`);
-  }
-}
+// Log domain information before initialization
+const currentDomain = window.location.hostname;
+console.log('Firebase initialization - Current domain info:', {
+  hostname: currentDomain,
+  fullUrl: window.location.href,
+  origin: window.location.origin
+});
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -22,10 +17,22 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Log non-sensitive config info to help with debugging
-console.log('Firebase initialization with project:', firebaseConfig.projectId);
-console.log('Auth domain:', firebaseConfig.authDomain);
-console.log('Current location:', window.location.hostname);
+console.log('Firebase config (non-sensitive):', {
+  authDomain: firebaseConfig.authDomain,
+  projectId: firebaseConfig.projectId
+});
 
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+let app;
+let auth;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  auth.useDeviceLanguage();
+  console.log('Firebase initialized successfully, auth instance created');
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  throw error;
+}
+
+export { app, auth };
