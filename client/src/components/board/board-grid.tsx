@@ -1,6 +1,7 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image } from "lucide-react";
+import { Plus, GripVertical, Image, Home } from "lucide-react";
+import { useLocation } from "wouter";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
@@ -23,9 +24,12 @@ interface BoardGridProps {
   board: Board;
   onBlocksChange: (blocks: BlockType[]) => void;
   onPhasesChange: (phases: Phase[]) => void;
+  onBoardChange: (board: Board) => void;
 }
 
-export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: BoardGridProps) {
+export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoardChange }: BoardGridProps) {
+  const [_, setLocation] = useLocation();
+
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
@@ -157,11 +161,37 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange }: Boa
     onPhasesChange(newPhases);
   };
 
+  const handleBoardNameChange = (name: string) => {
+    onBoardChange({ ...board, name });
+  };
+
+  const handleClose = () => {
+    setLocation('/');
+  };
+
   return (
     <div className="flex flex-col h-screen">
       {/* Enhanced header bar */}
       <div className="h-40 border-b border-gray-300 px-8 flex justify-between items-center bg-white shadow-sm">
-        <h1 className="text-2xl font-bold">Product Experience Blueprint</h1>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="h-10 px-3"
+          >
+            <Home className="w-5 h-5 mr-2" />
+            Home
+          </Button>
+          <div
+            contentEditable
+            onBlur={(e) => handleBoardNameChange(e.currentTarget.textContent || '')}
+            className="text-2xl font-bold focus:outline-none focus:border-b border-primary"
+            suppressContentEditableWarning={true}
+          >
+            {board.name}
+          </div>
+        </div>
         <div className="flex items-center gap-4">
           {/* Placeholder for future profile/login */}
           <div className="text-lg text-gray-500">Profile/Login (Coming soon)</div>

@@ -30,26 +30,9 @@ interface CreateBoardDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Assuming LAYER_TYPES is defined elsewhere and is an array of objects with a 'type' property.  This needs to be added to your project.
-const LAYER_TYPES = [
-  { type: 'layer1' },
-  { type: 'layer2' },
-  { type: 'layer3' },
-  //Add more layer types here as needed
-];
-
 export default function CreateBoardDialog({ open, onOpenChange }: CreateBoardDialogProps) {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
-
-  // Initial block types - This section is no longer needed because blocks are now initialized in defaultValues.
-  // const initialBlocks = LAYER_TYPES.map((layer) => ({
-  //   id: nanoid(),
-  //   type: layer.type,
-  //   content: '',
-  //   phaseIndex: 0,
-  //   columnIndex: 0
-  // }));
 
   const form = useForm({
     resolver: zodResolver(insertBoardSchema),

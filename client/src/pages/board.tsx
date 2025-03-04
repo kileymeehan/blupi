@@ -20,8 +20,8 @@ export default function BoardPage() {
       const res = await apiRequest("PATCH", `/api/boards/${id}`, updates);
       return res.json();
     },
-    onSuccess: (_data, variables, _context) => {
-      // Only invalidate the query, don't show toast during drag operations
+    onSuccess: (data, variables) => {
+      // Only show toast for non-frequent updates (like name changes)
       if (!variables.blocks && !variables.phases) {
         toast({
           title: "Changes saved",
@@ -38,6 +38,10 @@ export default function BoardPage() {
 
   const handlePhasesChange = (phases: Phase[]) => {
     updateBoardMutation.mutate({ phases });
+  };
+
+  const handleBoardChange = (updates: Partial<Board>) => {
+    updateBoardMutation.mutate(updates);
   };
 
   if (isLoading || !board) {
@@ -62,6 +66,7 @@ export default function BoardPage() {
         board={board}
         onBlocksChange={handleBlocksChange}
         onPhasesChange={handlePhasesChange}
+        onBoardChange={handleBoardChange}
       />
     </div>
   );
