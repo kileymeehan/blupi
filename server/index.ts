@@ -5,8 +5,11 @@ import passport from "passport";
 import session from "express-session";
 import { storage } from "./storage";
 import { createServer } from "http";
+import { setupAuth } from "./auth";
 
 const app = express();
+
+// Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -26,6 +29,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Setup authentication routes
+setupAuth(app);
+
 // Logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
@@ -38,9 +44,6 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    // Create HTTP server
-    const server = createServer(app);
-
     // Set up development middleware
     if (process.env.NODE_ENV !== "production") {
       await setupVite(app);
@@ -49,9 +52,17 @@ app.use((req, res, next) => {
     }
 
     // Register API routes after Vite middleware
-    await registerRoutes(app);
+    const server = await registerRoutes(app);
 
-    // Handle SPA routing
+    // Error handling middleware - must be after all routes
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      console.error('Error:', err);
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      res.status(status).json({ error: true, message });
+    });
+
+    // Handle SPA routing - must be after API routes
     app.get('*', (req, res, next) => {
       if (req.path.startsWith('/api')) return next();
       if (process.env.NODE_ENV !== "production") return next();
@@ -67,11 +78,3 @@ app.use((req, res, next) => {
     process.exit(1);
   }
 })();
-
-// Error handling middleware
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Error:', err);
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  res.status(status).json({ error: true, message });
-});
