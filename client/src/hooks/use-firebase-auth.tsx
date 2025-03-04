@@ -28,8 +28,16 @@ export function useFirebaseAuth() {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
+
+      // Configure provider settings
       provider.addScope('profile');
       provider.addScope('email');
+
+      // Specify custom OAuth parameters
+      provider.setCustomParameters({
+        prompt: 'select_account',
+        auth_domain: window.location.hostname
+      });
 
       const result = await signInWithPopup(auth, provider);
 
@@ -40,11 +48,16 @@ export function useFirebaseAuth() {
 
       return result.user;
     } catch (error: any) {
-      console.error('Sign-in error:', error);
+      console.error('Google Sign-in Error:', {
+        code: error.code,
+        message: error.message,
+        domain: window.location.hostname
+      });
 
       let errorMessage = "Failed to sign in with Google";
+
       if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = "Please ensure the current domain is authorized in Firebase Console";
+        errorMessage = `Domain ${window.location.hostname} needs to be authorized. Please check Firebase Console > Authentication > Settings > Authorized domains`;
       }
 
       toast({
@@ -52,10 +65,12 @@ export function useFirebaseAuth() {
         description: errorMessage,
         variant: "destructive",
       });
+
       throw error;
     }
   };
 
+  // Keep the rest of the methods unchanged
   const signInWithEmail = async (email: string, password: string) => {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);

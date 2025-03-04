@@ -1,13 +1,18 @@
 import { initializeApp } from "@firebase/app";
 import { getAuth } from "@firebase/auth";
 
+// Use exact domain matching for authentication
+const domain = window.location.hostname;
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  // Use the exact current domain for auth
+  authDomain: domain,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
+
+console.log('Initializing Firebase with domain:', domain);
 
 let app;
 let auth;
