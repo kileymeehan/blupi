@@ -1,20 +1,14 @@
 import { initializeApp } from "@firebase/app";
 import { getAuth } from "@firebase/auth";
 
+// Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: "blueprints-48648.firebaseapp.com", // Use exact Firebase project domain
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
+  authDomain: "blueprints-48648.firebaseapp.com",
+  projectId: "blueprints-48648",
+  storageBucket: "blueprints-48648.appspot.com",
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  // Add explicit domain settings
-  authEmulatorHost: window.location.hostname
 };
-
-console.log('Firebase initialization:', {
-  currentDomain: window.location.hostname,
-  projectDomain: firebaseConfig.authDomain
-});
 
 let app;
 let auth;
