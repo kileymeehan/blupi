@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { 
   GoogleAuthProvider, 
-  signInWithRedirect,
+  signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  getRedirectResult,
   type User
 } from '@firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -18,40 +17,13 @@ export function useFirebaseAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Handle redirect result
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result?.user) {
-          toast({
-            title: "Success",
-            description: "Successfully signed in with Google",
-          });
-        }
-      })
-      .catch((error) => {
-        let errorMessage = "Authentication failed";
-
-        if (error.code === 'auth/unauthorized-domain') {
-          errorMessage = "Please try again in a moment while we configure authentication.";
-        } else if (error.code === 'auth/network-request-failed') {
-          errorMessage = "Network error. Please check your connection and try again.";
-        }
-
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      });
-
-    // Set up auth state listener
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, []);
 
   const signInWithGoogle = async () => {
     try {
@@ -59,13 +31,29 @@ export function useFirebaseAuth() {
       provider.addScope('profile');
       provider.addScope('email');
 
-      // Use redirect-based sign in
-      await signInWithRedirect(auth, provider);
-      // Result will be handled in the useEffect hook
+      const result = await signInWithPopup(auth, provider);
+
+      toast({
+        title: "Success",
+        description: "Successfully signed in with Google",
+      });
+
+      return result.user;
     } catch (error: any) {
+      console.error('Sign-in error:', {
+        code: error.code,
+        message: error.message,
+        domain: window.location.hostname
+      });
+
+      let errorMessage = "Failed to sign in with Google";
+      if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "Domain not authorized. Please try again in a moment.";
+      }
+
       toast({
         title: "Error",
-        description: "Failed to initiate sign in. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
