@@ -1,11 +1,26 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBoardSchema } from "@shared/schema";
-//import { setupAuth } from "./auth"; // Removed as it's not present in the edited code
+import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Register API routes
+  // Project routes
+  app.get("/api/projects", async (_req, res) => {
+    const projects = await storage.getProjects();
+    res.json(projects);
+  });
+
+  app.post("/api/projects", async (req, res) => {
+    const parseResult = insertProjectSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400).json({ error: true, message: "Invalid project data" });
+      return;
+    }
+    const project = await storage.createProject(parseResult.data);
+    res.json(project);
+  });
+
+  // Board/Blueprint routes
   app.get("/api/boards", async (_req, res) => {
     const boards = await storage.getBoards();
     res.json(boards);
@@ -39,8 +54,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     await storage.deleteBoard(Number(req.params.id));
     res.status(204).send();
   });
-
-  // Removed project routes as they are not in the edited snippet
 
   // Create HTTP server
   const httpServer = createServer(app);

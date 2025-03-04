@@ -9,7 +9,7 @@ import Home from "@/pages/home";
 import Board from "@/pages/board";
 import LoginPage from "@/pages/auth/login";
 import RegisterPage from "@/pages/auth/register";
-import Dashboard from "@/pages/dashboard"; // Added import for Dashboard
+import Dashboard from "@/pages/dashboard";
 
 function Router() {
   return (
@@ -21,6 +21,7 @@ function Router() {
       </Route>
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/boards" component={Home} />
+      <ProtectedRoute path="/board/new" component={Board} />
       <ProtectedRoute path="/board/:id" component={Board} />
       <Route component={NotFound} />
     </Switch>
