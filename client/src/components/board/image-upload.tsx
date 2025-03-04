@@ -48,7 +48,7 @@ export default function ImageUpload({ onImageChange, currentImage }: ImageUpload
     <>
       <div 
         onClick={handleClick}
-        className="mb-2 h-32 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer relative overflow-hidden w-[205px]"
+        className="mb-2 h-32 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer relative overflow-hidden w-[225px]"
       >
         <input
           type="file"
