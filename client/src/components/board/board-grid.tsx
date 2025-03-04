@@ -173,8 +173,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Enhanced header bar */}
-      <div className="h-40 border-b border-gray-300 px-8 flex justify-between items-center bg-white shadow-sm">
+      {/* Fixed header bar */}
+      <div className="h-40 border-b border-gray-300 px-8 flex justify-between items-center bg-white shadow-sm flex-shrink-0">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -200,8 +200,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="flex flex-1">
+      {/* Content area with drawer and board */}
+      <div className="flex flex-1 overflow-hidden">
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Collapsible block drawer */}
           <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-[width] duration-300`}>
