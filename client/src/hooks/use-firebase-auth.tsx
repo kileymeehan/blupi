@@ -28,18 +28,33 @@ export function useFirebaseAuth() {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      const result = await signInWithPopup(auth, provider);
+      console.log('Google sign in successful:', result.user.email);
       toast({
         title: "Success",
         description: "Successfully signed in with Google",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Google sign in error:', error);
+      let errorMessage = "Failed to sign in with Google";
+
+      // Handle specific Firebase auth errors
+      if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized for sign-in. Please contact the administrator.";
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in was cancelled. Please try again.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Sign-in popup was blocked. Please allow popups for this site.";
+      }
+
       toast({
         title: "Error",
-        description: "Failed to sign in with Google",
+        description: errorMessage,
         variant: "destructive",
       });
-      console.error(error);
     }
   };
 
@@ -50,13 +65,21 @@ export function useFirebaseAuth() {
         title: "Success",
         description: "Successfully signed in",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Email sign in error:', error);
+      let errorMessage = "Invalid email or password";
+
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = "Invalid email or password";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      }
+
       toast({
         title: "Error",
-        description: "Invalid email or password",
+        description: errorMessage,
         variant: "destructive",
       });
-      console.error(error);
     }
   };
 
@@ -67,13 +90,23 @@ export function useFirebaseAuth() {
         title: "Success",
         description: "Account created successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Email sign up error:', error);
+      let errorMessage = "Failed to create account";
+
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "This email is already registered";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "Password is too weak";
+      }
+
       toast({
         title: "Error",
-        description: "Failed to create account",
+        description: errorMessage,
         variant: "destructive",
       });
-      console.error(error);
     }
   };
 
@@ -85,12 +118,12 @@ export function useFirebaseAuth() {
         description: "Successfully signed out",
       });
     } catch (error) {
+      console.error('Logout error:', error);
       toast({
         title: "Error",
         description: "Failed to sign out",
         variant: "destructive",
       });
-      console.error(error);
     }
   };
 
