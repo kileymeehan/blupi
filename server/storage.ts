@@ -1,4 +1,4 @@
-import { boards, users, projects, type Board, type InsertBoard, type User, type InsertUser, type Project, type InsertProject } from "@shared/schema";
+import { boards, users, projects, type Board, type InsertBoard, type User, type InsertUser, type Project, type InsertProject, type Block, type Phase } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
@@ -58,12 +58,15 @@ export class MemStorage implements IStorage {
   async createBoard(insertBoard: InsertBoard): Promise<Board> {
     const id = this.currentBoardId++;
     const createdAt = new Date();
-    const board: Board = { 
-      ...insertBoard, 
+    const board: Board = {
+      ...insertBoard,
       id,
       createdAt,
       userId: 1, // Default for now
-      projectId: null
+      projectId: null,
+      description: insertBoard.description || null,
+      blocks: (insertBoard.blocks || []) as Block[], // Type assertion for blocks
+      phases: (insertBoard.phases || []) as Phase[] // Type assertion for phases
     };
     this.boards.set(id, board);
     return board;
@@ -94,7 +97,11 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
     const createdAt = new Date();
-    const user: User = { ...insertUser, id, createdAt };
+    const user: User = {
+      ...insertUser,
+      id,
+      createdAt
+    };
     this.users.set(id, user);
     return user;
   }
@@ -111,7 +118,8 @@ export class MemStorage implements IStorage {
       ...insertProject,
       id,
       createdAt,
-      userId: 1 // Default for now
+      userId: 1, // Default for now
+      description: insertProject.description || null
     };
     this.projects.set(id, project);
     return project;
