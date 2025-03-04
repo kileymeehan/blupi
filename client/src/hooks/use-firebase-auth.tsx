@@ -38,13 +38,22 @@ export function useFirebaseAuth() {
 
       const provider = new GoogleAuthProvider();
 
-      // Log the attempt
-      console.log('Initializing Google sign-in popup...');
+      // Add extra scopes if needed
+      provider.addScope('profile');
+      provider.addScope('email');
 
+      // Force account selection
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+
+      console.log('Initializing Google sign-in popup...');
       const result = await signInWithPopup(auth, provider);
+
       console.log('Google sign-in successful:', {
         userEmail: result.user.email,
-        userId: result.user.uid
+        userId: result.user.uid,
+        displayName: result.user.displayName
       });
 
       toast({
@@ -64,6 +73,10 @@ export function useFirebaseAuth() {
 
       if (error.code === 'auth/unauthorized-domain') {
         errorMessage = `Domain ${window.location.hostname} is not authorized. Please check Firebase Console > Authentication > Settings > Authorized domains`;
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in was cancelled. Please try again.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Sign-in popup was blocked. Please allow popups for this site.";
       }
 
       toast({
