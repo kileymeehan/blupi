@@ -19,7 +19,7 @@ interface CreateBlueprintDialogProps {
 export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDialogProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  
+
   const form = useForm<InsertBoard>({
     resolver: zodResolver(insertBoardSchema),
     defaultValues: {
@@ -38,7 +38,10 @@ export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDia
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create blueprint");
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
       return response.json();
     },
     onSuccess: (data) => {

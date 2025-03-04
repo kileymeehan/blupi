@@ -32,7 +32,10 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create project");
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
       return response.json();
     },
     onSuccess: () => {

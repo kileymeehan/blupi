@@ -13,7 +13,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/projects", async (req, res) => {
     const parseResult = insertProjectSchema.safeParse(req.body);
     if (!parseResult.success) {
-      res.status(400).json({ error: true, message: "Invalid project data" });
+      res.status(400).json({ 
+        error: true, 
+        message: parseResult.error.errors[0].message 
+      });
       return;
     }
     const project = await storage.createProject(parseResult.data);
@@ -38,7 +41,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/boards", async (req, res) => {
     const parseResult = insertBoardSchema.safeParse(req.body);
     if (!parseResult.success) {
-      res.status(400).json({ error: true, message: "Invalid board data" });
+      res.status(400).json({ 
+        error: true, 
+        message: parseResult.error.errors[0].message 
+      });
       return;
     }
     const board = await storage.createBoard(parseResult.data);
