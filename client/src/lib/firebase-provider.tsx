@@ -2,6 +2,7 @@ import { createContext, ReactNode, useContext, useEffect, useState } from 'react
 import { 
   User,
   onAuthStateChanged,
+  getRedirectResult
 } from '@firebase/auth';
 import { auth } from './firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -26,11 +27,26 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
+    // Check for redirect result on mount
+    getRedirectResult(auth).catch((error) => {
+      if (error.code === 'auth/unauthorized-domain') {
+        console.error('Domain authorization error:', {
+          currentDomain: window.location.hostname,
+          message: error.message
+        });
+        toast({
+          title: "Domain Error",
+          description: `Please ensure ${window.location.hostname} is added to Firebase Console > Authentication > Settings > Authorized domains`,
+          variant: "destructive",
+        });
+      }
+    });
+
     return () => {
       console.log('Cleaning up Firebase auth state listener');
       unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   return (
     <FirebaseContext.Provider value={{ user, loading }}>
