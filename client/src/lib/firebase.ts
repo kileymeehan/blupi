@@ -25,6 +25,7 @@ const firebaseConfig = {
 // Log non-sensitive config info to help with debugging
 console.log('Firebase initialization with project:', firebaseConfig.projectId);
 console.log('Auth domain:', firebaseConfig.authDomain);
+console.log('Current location:', window.location.hostname);
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

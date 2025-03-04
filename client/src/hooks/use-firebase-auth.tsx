@@ -27,6 +27,7 @@ export function useFirebaseAuth() {
 
   const signInWithGoogle = async () => {
     try {
+      console.log('Attempting Google sign in from domain:', window.location.hostname);
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
         prompt: 'select_account'
@@ -43,7 +44,7 @@ export function useFirebaseAuth() {
 
       // Handle specific Firebase auth errors
       if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = "This domain is not authorized for sign-in. Please contact the administrator.";
+        errorMessage = `This domain (${window.location.hostname}) is not authorized for sign-in. Please contact the administrator.`;
       } else if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign-in was cancelled. Please try again.";
       } else if (error.code === 'auth/popup-blocked') {
