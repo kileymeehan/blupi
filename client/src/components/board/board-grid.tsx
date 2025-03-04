@@ -1,14 +1,27 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2 } from "lucide-react";
+import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
+import ImageUpload from './image-upload'; // Assuming ImageUpload component exists
 
-// LAYER_TYPES constant remains unchanged 
+
+interface ColumnWithImage {
+  id: string;
+  name: string;
+  image?: string;
+}
+
+interface PhaseWithImages {
+  id: string;
+  name: string;
+  columns: ColumnWithImage[];
+}
+
 export const LAYER_TYPES = [
   { type: 'touchpoint', label: 'Touchpoints', color: 'bg-sky-200' },
   { type: 'role', label: 'Roles', color: 'bg-green-200' },
@@ -22,15 +35,16 @@ export const LAYER_TYPES = [
 ] as const;
 
 interface BoardGridProps {
-  board: Board;
+  board: Board & { phases: PhaseWithImages[] };
   onBlocksChange: (blocks: BlockType[]) => void;
-  onPhasesChange: (phases: Phase[]) => void;
+  onPhasesChange: (phases: PhaseWithImages[]) => void;
   onBoardChange: (board: Board) => void;
 }
 
 export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoardChange }: BoardGridProps) {
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const [isEditingName, setIsEditingName] = useState(false);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -128,9 +142,10 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
-    const newColumn = {
+    const newColumn: ColumnWithImage = {
       id: nanoid(),
-      name: `Step ${newPhases[phaseIndex].columns.length + 1}`
+      name: `Step ${newPhases[phaseIndex].columns.length + 1}`,
+      image: undefined // Added to handle potential image property
     };
 
     newPhases[phaseIndex].columns.push(newColumn);
@@ -144,7 +159,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
       name: `Phase ${newPhases.length + 1}`,
       columns: [{
         id: nanoid(),
-        name: 'Step 1'
+        name: 'Step 1',
+        image: undefined // Added to handle potential image property
       }]
     });
 
@@ -171,27 +187,43 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
     setLocation('/');
   };
 
+  const handleImageChange = (phaseIndex: number, columnIndex: number, image: string | null) => {
+    const newPhases = [...board.phases];
+    newPhases[phaseIndex].columns[columnIndex].image = image || undefined;
+    onPhasesChange(newPhases);
+  };
+
   return (
     <div className="flex flex-col h-screen">
       {/* Fixed header bar */}
       <div className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 pl-4"> {/* Added padding for alignment */}
           <Button
             variant="ghost"
             size="sm"
             onClick={handleClose}
-            className="h-10 px-3"
+            className="h-10 px-3 -ml-3"
           >
             <Home className="w-5 h-5" />
             Home
           </Button>
-          <div
-            contentEditable
-            onBlur={(e) => handleBoardNameChange(e.currentTarget.textContent || '')}
-            className="text-2xl font-bold focus:outline-none focus:border-b border-primary"
-            suppressContentEditableWarning={true}
-          >
-            {board.name}
+
+          <div className="w-px h-6 bg-gray-200 mx-2" /> {/* Subtle separator */}
+
+          <div className="group flex items-center gap-2">
+            <div
+              contentEditable
+              onFocus={() => setIsEditingName(true)}
+              onBlur={(e) => {
+                setIsEditingName(false);
+                handleBoardNameChange(e.currentTarget.textContent || '');
+              }}
+              className="text-2xl font-bold focus:outline-none focus:border-b border-primary"
+              suppressContentEditableWarning={true}
+            >
+              {board.name}
+            </div>
+            <Pencil className={`w-4 h-4 text-gray-400 transition-opacity duration-200 ${isEditingName ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -225,7 +257,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
             {isDrawerOpen && (
               <Droppable droppableId="drawer">
                 {(provided) => (
-                  <div ref={provided.innerRef} {...provided.droppableProps} className="p-4">
+                  <div ref={provided.innerRef} {...provided.droppableProps} className="p-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
                     <BlockDrawer />
                     {provided.placeholder}
                   </div>
@@ -299,18 +331,18 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                       <div
                                         contentEditable
                                         onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                                        className="font-medium text-sm focus:outline-none focus:border-b border-primary flex-1"
+                                        className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
                                         suppressContentEditableWarning={true}
                                       >
                                         {column.name}
                                       </div>
                                     </div>
 
-                                    {/* Image upload placeholder */}
-                                    <div className="mb-2 h-12 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer">
-                                      <Image className="w-4 h-4 mr-2" />
-                                      <span className="text-xs">Add image</span>
-                                    </div>
+                                    {/* Image upload */}
+                                    <ImageUpload
+                                      currentImage={column.image}
+                                      onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
+                                    />
 
                                     {/* Blocks droppable area with improved drop target */}
                                     <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
