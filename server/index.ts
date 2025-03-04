@@ -69,10 +69,17 @@ app.use('/api', (req, res, next) => {
       });
     });
 
+    // Handle SPA routing - must be after API routes
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) return next();
+      if (process.env.NODE_ENV !== "production") return next();
+      res.sendFile('index.html', { root: './dist/client' });
+    });
+
     // General error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       console.error('Error:', err);
-      if (res.headersSent) return next(err);
+      if (res.headersSent) return;
 
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
@@ -84,13 +91,6 @@ app.use('/api', (req, res, next) => {
 
       // For non-API routes, send the index.html
       res.status(status).sendFile('index.html', { root: './dist/client' });
-    });
-
-    // Handle SPA routing - must be after API routes
-    app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api')) return next();
-      if (process.env.NODE_ENV !== "production") return next();
-      res.sendFile('index.html', { root: './dist/client' });
     });
 
     const port = process.env.PORT || 5000;

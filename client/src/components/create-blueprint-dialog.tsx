@@ -33,17 +33,29 @@ export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDia
 
   const createBlueprint = useMutation({
     mutationFn: async (data: InsertBoard) => {
-      const response = await fetch("/api/boards", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      try {
+        console.log('Creating blueprint with data:', data);
+        const response = await fetch("/api/boards", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(data),
+          credentials: 'include'
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create blueprint");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to create blueprint");
+        }
+
+        const responseData = await response.json();
+        return responseData;
+      } catch (error) {
+        console.error('Blueprint creation error:', error);
+        throw error;
       }
-      return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
@@ -56,6 +68,7 @@ export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDia
       navigate(`/board/${data.id}`);
     },
     onError: (error: Error) => {
+      console.error('Blueprint creation error:', error);
       toast({
         title: "Error",
         description: error.message,

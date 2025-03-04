@@ -29,6 +29,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
   const createProject = useMutation({
     mutationFn: async (data: InsertProject) => {
       try {
+        console.log('Creating project with data:', data);
         const response = await fetch("/api/projects", {
           method: "POST",
           headers: {
@@ -36,18 +37,19 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
             "Accept": "application/json"
           },
           body: JSON.stringify(data),
+          credentials: 'include'
         });
 
-        const responseData = await response.json();
         if (!response.ok) {
-          throw new Error(responseData.message || "Failed to create project");
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to create project");
         }
+
+        const responseData = await response.json();
         return responseData;
       } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        }
-        throw new Error("An unexpected error occurred");
+        console.error('Project creation error:', error);
+        throw error;
       }
     },
     onSuccess: () => {
