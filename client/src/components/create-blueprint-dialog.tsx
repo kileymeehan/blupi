@@ -38,9 +38,10 @@ export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDia
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create blueprint");
       }
       return response.json();
     },
@@ -100,7 +101,7 @@ export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDia
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter blueprint description (optional)" {...field} />
+                    <Input placeholder="Enter blueprint description (optional)" value={field.value || ''} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

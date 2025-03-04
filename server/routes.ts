@@ -6,59 +6,97 @@ import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Project routes
   app.get("/api/projects", async (_req, res) => {
-    const projects = await storage.getProjects();
-    res.json(projects);
+    try {
+      const projects = await storage.getProjects();
+      res.json(projects);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch projects" });
+    }
   });
 
   app.post("/api/projects", async (req, res) => {
-    const parseResult = insertProjectSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      res.status(400).json({ 
-        error: true, 
-        message: parseResult.error.errors[0].message 
-      });
-      return;
+    try {
+      console.log('Creating project with data:', req.body);
+      const parseResult = insertProjectSchema.safeParse(req.body);
+
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          error: true,
+          message: parseResult.error.errors[0].message 
+        });
+      }
+
+      const project = await storage.createProject(parseResult.data);
+      res.json(project);
+    } catch (err) {
+      console.error('Error creating project:', err);
+      res.status(500).json({ error: true, message: "Failed to create project" });
     }
-    const project = await storage.createProject(parseResult.data);
-    res.json(project);
   });
 
   // Board/Blueprint routes
   app.get("/api/boards", async (_req, res) => {
-    const boards = await storage.getBoards();
-    res.json(boards);
+    try {
+      const boards = await storage.getBoards();
+      res.json(boards);
+    } catch (err) {
+      console.error('Error fetching boards:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch boards" });
+    }
   });
 
   app.get("/api/boards/:id", async (req, res) => {
-    const board = await storage.getBoard(Number(req.params.id));
-    if (!board) {
-      res.status(404).json({ error: true, message: "Board not found" });
-      return;
+    try {
+      const board = await storage.getBoard(Number(req.params.id));
+      if (!board) {
+        return res.status(404).json({ error: true, message: "Board not found" });
+      }
+      res.json(board);
+    } catch (err) {
+      console.error('Error fetching board:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch board" });
     }
-    res.json(board);
   });
 
   app.post("/api/boards", async (req, res) => {
-    const parseResult = insertBoardSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      res.status(400).json({ 
-        error: true, 
-        message: parseResult.error.errors[0].message 
-      });
-      return;
+    try {
+      console.log('Creating board with data:', req.body);
+      const parseResult = insertBoardSchema.safeParse(req.body);
+
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          error: true,
+          message: parseResult.error.errors[0].message 
+        });
+      }
+
+      const board = await storage.createBoard(parseResult.data);
+      res.json(board);
+    } catch (err) {
+      console.error('Error creating board:', err);
+      res.status(500).json({ error: true, message: "Failed to create board" });
     }
-    const board = await storage.createBoard(parseResult.data);
-    res.json(board);
   });
 
   app.patch("/api/boards/:id", async (req, res) => {
-    const board = await storage.updateBoard(Number(req.params.id), req.body);
-    res.json(board);
+    try {
+      const board = await storage.updateBoard(Number(req.params.id), req.body);
+      res.json(board);
+    } catch (err) {
+      console.error('Error updating board:', err);
+      res.status(500).json({ error: true, message: "Failed to update board" });
+    }
   });
 
   app.delete("/api/boards/:id", async (req, res) => {
-    await storage.deleteBoard(Number(req.params.id));
-    res.status(204).send();
+    try {
+      await storage.deleteBoard(Number(req.params.id));
+      res.status(204).send();
+    } catch (err) {
+      console.error('Error deleting board:', err);
+      res.status(500).json({ error: true, message: "Failed to delete board" });
+    }
   });
 
   // Create HTTP server

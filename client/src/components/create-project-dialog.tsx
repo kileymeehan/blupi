@@ -32,9 +32,10 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create project");
       }
       return response.json();
     },
@@ -66,7 +67,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
           <DialogDescription>
-            Create a new project to organize your blueprints
+            Create a project to organize your blueprints
           </DialogDescription>
         </DialogHeader>
 
@@ -93,7 +94,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter project description (optional)" {...field} />
+                    <Input placeholder="Enter project description (optional)" value={field.value || ''} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
