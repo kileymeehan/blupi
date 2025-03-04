@@ -1,7 +1,8 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image, Home } from "lucide-react";
+import { Plus, GripVertical, Image, Home, LayoutGrid } from "lucide-react";
 import { useLocation } from "wouter";
+import { useState } from "react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
@@ -29,6 +30,7 @@ interface BoardGridProps {
 
 export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoardChange }: BoardGridProps) {
   const [_, setLocation] = useLocation();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -201,19 +203,28 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
       {/* Main content */}
       <div className="flex flex-1">
         <DragDropContext onDragEnd={handleDragEnd}>
-          {/* Block drawer */}
-          <div className="w-72 bg-white border-r border-gray-300 flex-shrink-0 shadow-md">
-            <div className="p-4 border-b border-gray-300">
-              <h1 className="text-2xl font-bold truncate">{board.name}</h1>
+          {/* Collapsible block drawer */}
+          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300`}>
+            <div className="p-4 border-b border-gray-300 flex justify-between items-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                className="h-10 w-10 p-2"
+              >
+                <LayoutGrid className={`w-5 h-5 transition-transform duration-300 ${isDrawerOpen ? 'rotate-0' : 'rotate-180'}`} />
+              </Button>
             </div>
-            <Droppable droppableId="drawer">
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} className="p-4">
-                  <BlockDrawer />
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
+            {isDrawerOpen && (
+              <Droppable droppableId="drawer">
+                {(provided) => (
+                  <div ref={provided.innerRef} {...provided.droppableProps} className="p-4">
+                    <BlockDrawer />
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            )}
           </div>
 
           {/* Board content */}
