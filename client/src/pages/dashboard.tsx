@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, LogOut, User } from "lucide-react";
+import { Plus, LogOut, User, LayoutTemplate, Briefcase } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
@@ -56,7 +56,10 @@ export default function Dashboard() {
         {/* Blueprints Section */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">Blueprints</h2>
+            <div className="flex items-center gap-2">
+              <LayoutTemplate className="h-6 w-6" />
+              <h2 className="text-2xl font-semibold">Blueprints</h2>
+            </div>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
@@ -70,23 +73,20 @@ export default function Dashboard() {
                   <CardTitle>Create your first blueprint</CardTitle>
                   <CardDescription>Start designing your workflow</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Button className="w-full">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Blueprint
-                  </Button>
-                </CardContent>
               </Card>
             )}
           </div>
         </section>
 
-        <Separator className="my-8" />
+        <Separator className="my-8 h-px bg-border" />
 
         {/* Projects Section */}
         <section>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">Projects</h2>
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-6 w-6" />
+              <h2 className="text-2xl font-semibold">Projects</h2>
+            </div>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Create New Project
@@ -120,12 +120,6 @@ export default function Dashboard() {
                   <CardTitle>Get started with a project</CardTitle>
                   <CardDescription>Create a project to organize your blueprints</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Button className="w-full">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Project
-                  </Button>
-                </CardContent>
               </Card>
             )}
           </div>
