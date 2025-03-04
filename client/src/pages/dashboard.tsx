@@ -8,11 +8,13 @@ import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
+import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 
 export default function Dashboard() {
   const { user, logout } = useFirebaseAuth();
   const [, navigate] = useLocation();
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
+  const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
 
   const { data: projects = [] } = useQuery({
     queryKey: ['/api/projects'],
@@ -22,10 +24,6 @@ export default function Dashboard() {
       return res.json();
     }
   });
-
-  const handleCreateBlueprint = () => {
-    navigate("/board/new");
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,7 +66,7 @@ export default function Dashboard() {
               <LayoutTemplate className="h-6 w-6" />
               <h2 className="text-2xl font-semibold">Blueprints</h2>
             </div>
-            <Button onClick={handleCreateBlueprint}>
+            <Button onClick={() => setCreateBlueprintOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
@@ -137,6 +135,11 @@ export default function Dashboard() {
       <CreateProjectDialog 
         open={createProjectOpen}
         onOpenChange={setCreateProjectOpen}
+      />
+
+      <CreateBlueprintDialog
+        open={createBlueprintOpen}
+        onOpenChange={setCreateBlueprintOpen}
       />
     </div>
   );
