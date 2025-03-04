@@ -22,5 +22,9 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Log non-sensitive config info to help with debugging
+console.log('Firebase initialization with project:', firebaseConfig.projectId);
+console.log('Auth domain:', firebaseConfig.authDomain);
+
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
