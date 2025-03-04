@@ -27,17 +27,18 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
 
   const createProject = useMutation({
     mutationFn: async (data: InsertProject) => {
+      console.log('Submitting project data:', data);
       const response = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
+      const responseData = await response.json();
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create project");
+        throw new Error(responseData.message || "Failed to create project");
       }
-      return response.json();
+      return responseData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
@@ -49,6 +50,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
       form.reset();
     },
     onError: (error: Error) => {
+      console.error('Project creation error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -94,7 +96,11 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter project description (optional)" value={field.value || ''} onChange={field.onChange} />
+                    <Input 
+                      placeholder="Enter project description (optional)" 
+                      value={field.value || ''} 
+                      onChange={field.onChange} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

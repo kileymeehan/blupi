@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
+import { ZodError } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Project routes
@@ -21,6 +22,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parseResult = insertProjectSchema.safeParse(req.body);
 
       if (!parseResult.success) {
+        console.error('Project validation error:', parseResult.error);
         return res.status(400).json({ 
           error: true,
           message: parseResult.error.errors[0].message 
@@ -31,6 +33,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(project);
     } catch (err) {
       console.error('Error creating project:', err);
+      if (err instanceof ZodError) {
+        return res.status(400).json({
+          error: true,
+          message: err.errors[0].message
+        });
+      }
       res.status(500).json({ error: true, message: "Failed to create project" });
     }
   });
@@ -65,6 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parseResult = insertBoardSchema.safeParse(req.body);
 
       if (!parseResult.success) {
+        console.error('Board validation error:', parseResult.error);
         return res.status(400).json({ 
           error: true,
           message: parseResult.error.errors[0].message 
@@ -75,6 +84,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(board);
     } catch (err) {
       console.error('Error creating board:', err);
+      if (err instanceof ZodError) {
+        return res.status(400).json({
+          error: true,
+          message: err.errors[0].message
+        });
+      }
       res.status(500).json({ error: true, message: "Failed to create board" });
     }
   });
