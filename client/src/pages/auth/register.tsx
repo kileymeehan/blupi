@@ -2,34 +2,56 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "@/hooks/use-auth";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { insertUserSchema } from "@shared/schema";
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
+import { SiGoogle } from "react-icons/si";
+
+const registerSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const [_, setLocation] = useLocation();
-  const { registerMutation } = useAuth();
+  const { signUpWithEmail, signInWithGoogle, user } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm({
-    resolver: zodResolver(insertUserSchema),
+  // Redirect if already logged in
+  if (user) {
+    setLocation("/");
+    return null;
+  }
+
+  const form = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: "",
-      username: "",
       password: "",
     },
   });
 
   const onSubmit = form.handleSubmit(async (data) => {
     try {
-      await registerMutation.mutateAsync(data);
+      await signUpWithEmail(data.email, data.password);
       setLocation("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     }
   });
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      setLocation("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in failed");
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5">
@@ -37,10 +59,29 @@ export default function RegisterPage() {
         <CardHeader className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">Create an account</h2>
           <p className="text-sm text-muted-foreground">
-            Enter your details to create your account
+            Choose your preferred sign up method
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleGoogleSignIn}
+          >
+            <SiGoogle className="mr-2 h-4 w-4" />
+            Sign up with Google
+          </Button>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <Input
@@ -51,18 +92,6 @@ export default function RegisterPage() {
               {form.formState.errors.email && (
                 <p className="text-sm text-destructive">
                   {form.formState.errors.email.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Input
-                type="text"
-                placeholder="Username"
-                {...form.register("username")}
-              />
-              {form.formState.errors.username && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.username.message}
                 </p>
               )}
             </div>
@@ -81,12 +110,8 @@ export default function RegisterPage() {
             {error && (
               <p className="text-sm text-destructive">{error}</p>
             )}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={registerMutation.isPending}
-            >
-              {registerMutation.isPending ? "Creating account..." : "Create account"}
+            <Button type="submit" className="w-full">
+              Create account
             </Button>
           </form>
         </CardContent>

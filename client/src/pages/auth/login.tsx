@@ -2,23 +2,32 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "@/hooks/use-auth";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { insertUserSchema } from "@shared/schema";
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
+import { SiGoogle } from "react-icons/si";
 
-const loginSchema = insertUserSchema.pick({
-  email: true,
-  password: true,
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
+
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [_, setLocation] = useLocation();
-  const { loginMutation } = useAuth();
+  const { signInWithEmail, signInWithGoogle, user } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm({
+  // Redirect if already logged in
+  if (user) {
+    setLocation("/");
+    return null;
+  }
+
+  const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -28,12 +37,21 @@ export default function LoginPage() {
 
   const onSubmit = form.handleSubmit(async (data) => {
     try {
-      await loginMutation.mutateAsync(data);
+      await signInWithEmail(data.email, data.password);
       setLocation("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     }
   });
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      setLocation("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in failed");
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
@@ -41,10 +59,29 @@ export default function LoginPage() {
         <CardHeader className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
           <p className="text-sm text-muted-foreground">
-            Enter your email to sign in to your account
+            Sign in to your account
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleGoogleSignIn}
+          >
+            <SiGoogle className="mr-2 h-4 w-4" />
+            Sign in with Google
+          </Button>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <Input
@@ -73,12 +110,8 @@ export default function LoginPage() {
             {error && (
               <p className="text-sm text-destructive">{error}</p>
             )}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loginMutation.isPending}
-            >
-              {loginMutation.isPending ? "Signing in..." : "Sign in"}
+            <Button type="submit" className="w-full">
+              Sign in
             </Button>
           </form>
         </CardContent>
