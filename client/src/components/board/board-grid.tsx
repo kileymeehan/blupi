@@ -174,7 +174,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
   return (
     <div className="flex flex-col h-screen">
       {/* Fixed header bar */}
-      <div className="h-40 border-b border-gray-300 px-8 flex justify-between items-center bg-white shadow-sm flex-shrink-0">
+      <div className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
