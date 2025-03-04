@@ -377,7 +377,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                           ref={provided.innerRef}
                                           {...provided.droppableProps}
                                           className={`
-                                            space-y-2 min-h-[100px] p-2 
+                                            space-y-2 min-h-[100px] px-3 py-2 
                                             rounded-lg bg-white border-2 
                                             border-gray-200 flex flex-col items-center
                                             transition-colors duration-200
