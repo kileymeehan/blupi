@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image, Home, LayoutGrid } from "lucide-react";
+import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import Block from "./block";
@@ -182,7 +182,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
             onClick={handleClose}
             className="h-10 px-3"
           >
-            <Home className="w-5 h-5 mr-2" />
+            <Home className="w-5 h-5" />
             Home
           </Button>
           <div
@@ -195,8 +195,15 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {/* Placeholder for future profile/login */}
-          <div className="text-lg text-gray-500">Profile/Login (Coming soon)</div>
+          <Button variant="ghost" size="sm" className="h-10 px-3">
+            <Share2 className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-10 px-3">
+            <UserCircle2 className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-10 px-3">
+            <LogIn className="w-5 h-5" />
+          </Button>
         </div>
       </div>
 
