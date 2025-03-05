@@ -49,30 +49,43 @@ export function CommentDialog({ open, onOpenChange, block, boardId }: CommentDia
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("Too many requests. Please wait a moment before trying again.");
+        }
         const error = await response.json();
         throw new Error(error.message || "Failed to add comment");
       }
 
       return response.json();
     },
-    onSuccess: (updatedBoard) => {
-      // Update the cache with the new board data
-      queryClient.setQueryData(['/api/boards', boardId], updatedBoard);
+    onMutate: async (newComment) => {
+      // Cancel any outgoing refetches to avoid overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: ['/api/boards', boardId] });
 
-      // Also invalidate to ensure we get fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/boards', boardId] });
+      // Get the current board data
+      const previousBoard = queryClient.getQueryData(['/api/boards', boardId]);
 
-      form.reset();
-      toast({
-        title: "Success",
-        description: "Comment added successfully",
-      });
+      // Return context with the optimistic update
+      return { previousBoard };
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _, context) => {
+      // If there was an error, roll back to the previous value
+      if (context?.previousBoard) {
+        queryClient.setQueryData(['/api/boards', boardId], context.previousBoard);
+      }
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
+      });
+    },
+    onSuccess: (updatedBoard) => {
+      // Update the cache with the new board data
+      queryClient.setQueryData(['/api/boards', boardId], updatedBoard);
+      form.reset();
+      toast({
+        title: "Success",
+        description: "Comment added successfully",
       });
     },
   });

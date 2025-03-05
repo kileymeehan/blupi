@@ -56,19 +56,17 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       }
       return res.json();
     },
-    refetchInterval: 5000, // Reduce polling frequency to 5 seconds
+    refetchInterval: 5000, 
     retry: (failureCount, error) => {
-      // Don't retry on rate limit errors
       if (error instanceof Error && error.message.includes("Too many requests")) {
         return false;
       }
       return failureCount < 3;
     },
-    staleTime: 1000, // Consider data fresh for 1 second
-    cacheTime: 1000 * 60 * 5, // Cache responses for 5 minutes
+    staleTime: 1000, 
+    cacheTime: 1000 * 60 * 5, 
   });
 
-  // If we hit rate limiting, show a user-friendly message
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -101,7 +99,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
     const { source, destination, type } = result;
 
-    // Handle column reordering
     if (type === 'COLUMN') {
       const sourcePhaseIndex = Number(source.droppableId.split('-')[1]);
       const destPhaseIndex = Number(destination.droppableId.split('-')[1]);
@@ -110,21 +107,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       const sourcePhase = newPhases[sourcePhaseIndex];
       const destPhase = newPhases[destPhaseIndex];
 
-      // Remove column from source phase
       const [movedColumn] = sourcePhase.columns.splice(source.index, 1);
-
-      // Add column to destination phase
       destPhase.columns.splice(destination.index, 0, movedColumn);
 
-      // Update blocks to match new column positions
       const blocks = Array.from(board.blocks);
       blocks.forEach(block => {
         if (block.phaseIndex === sourcePhaseIndex && block.columnIndex === source.index) {
-          // Update blocks that were in the moved column
           block.phaseIndex = destPhaseIndex;
           block.columnIndex = destination.index;
         } else {
-          // Update indices for other blocks
           if (block.phaseIndex === sourcePhaseIndex && block.columnIndex > source.index) {
             block.columnIndex--;
           }
@@ -139,18 +130,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       return;
     }
 
-    // Handle block drag and drop
     if (!type || type === 'DEFAULT') {
       const blocks = Array.from(board.blocks);
 
-      // If dragging back to drawer, remove the block
       if (destination.droppableId === 'drawer') {
         const updatedBlocks = blocks.filter(b => b.id !== result.draggableId);
         onBlocksChange(updatedBlocks);
         return;
       }
 
-      // If dragging from drawer to column
       if (source.droppableId === 'drawer') {
         const blockType = result.draggableId.replace('drawer-', '');
         const [phaseIndex, columnIndex] = destination.droppableId.split('-').map(Number);
@@ -169,7 +157,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         return;
       }
 
-      // If reordering within or between columns
       const [movedBlock] = blocks.splice(source.index, 1);
       const [phaseIndex, columnIndex] = destination.droppableId.split('-').map(Number);
 
@@ -248,7 +235,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     const newPhases = [...board.phases];
     newPhases[phaseIndex].columns.splice(columnIndex, 1);
 
-    // Update blocks - remove blocks in the deleted column and adjust indices
     const newBlocks = board.blocks.filter(block =>
       !(block.phaseIndex === phaseIndex && block.columnIndex === columnIndex)
     ).map(block => {
@@ -285,7 +271,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Fixed header bar */}
       <div className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
         <div className="flex items-center gap-4 pl-4">
           <Button
@@ -329,13 +314,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         </div>
       </div>
 
-      {/* Content area with drawer and board */}
       <div className="flex flex-1 overflow-hidden">
         <DragDropContext onDragEnd={handleDragEnd}>
-          {/* Collapsible block drawer */}
           <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative`}>
             <div className="flex flex-col h-full">
-              {/* Panel headers */}
               <div className="border-b border-gray-200 bg-white">
                 <Button
                   variant="ghost"
@@ -354,7 +336,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   <LayoutGrid className="w-5 h-5" />
                   {isDrawerOpen && <span className="text-sm">Available Boxes</span>}
                 </Button>
-                <div className="w-full h-px bg-gray-200" /> {/* Separator line */}
+                <div className="w-full h-px bg-gray-200" /> 
                 <Button
                   variant="ghost"
                   size="sm"
@@ -371,7 +353,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 </Button>
               </div>
 
-              {/* Collapse button */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -385,7 +366,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 )}
               </Button>
 
-              {/* Panel content */}
               {isDrawerOpen && (
                 <div className="flex-1 overflow-hidden">
                   <div className="h-full">
@@ -428,18 +408,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             </div>
           </div>
 
-          {/* Board content */}
           <div className="flex-1 overflow-x-auto">
             <div className="min-w-[800px] p-8">
               <div className="flex items-start">
                 {board.phases.map((phase, phaseIndex) => (
                   <div key={phase.id} className="flex-shrink-0 relative mr-8">
-                    {/* Phase separator */}
                     {phaseIndex > 0 && (
                       <div className="absolute -left-4 top-0 bottom-0 w-[1px] bg-gray-200" />
                     )}
                     <div className="px-4">
-                      {/* Phase header */}
                       <div className="mb-4 bg-gray-100 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <div
@@ -462,7 +439,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                         </div>
                       </div>
 
-                      {/* Columns */}
                       <Droppable droppableId={`phase-${phaseIndex}`} type="COLUMN" direction="horizontal">
                         {(provided) => (
                           <div
@@ -482,7 +458,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                     {...provided.draggableProps}
                                     className="flex-shrink-0 w-[225px]"
                                   >
-                                    {/* Column header with drag handle */}
                                     <div className="flex items-center gap-2 mb-2">
                                       <div
                                         {...provided.dragHandleProps}
@@ -508,13 +483,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                       </Button>
                                     </div>
 
-                                    {/* Image upload */}
                                     <ImageUpload
                                       currentImage={column.image}
                                       onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
                                     />
 
-                                    {/* Blocks droppable area with improved drop target */}
                                     <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
                                       {(provided, snapshot) => (
                                         <div
@@ -576,7 +549,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   </div>
                 ))}
 
-                {/* Add Phase button */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -592,7 +564,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         </DragDropContext>
       </div>
 
-      {/* Comment Dialog */}
       {selectedBlock && (
         <CommentDialog
           open={commentDialogOpen}
