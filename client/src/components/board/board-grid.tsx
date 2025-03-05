@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import Block from "./block";
@@ -11,6 +11,7 @@ import { nanoid } from "nanoid";
 import ImageUpload from './image-upload';
 import { CommentsOverview } from "./comments-overview";
 import { useQuery } from '@tanstack/react-query';
+import AddToProjectDialog from "./add-to-project-dialog";
 
 interface ColumnWithImage {
   id: string;
@@ -86,6 +87,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [showComments, setShowComments] = useState(false);
   const [showBlocks, setShowBlocks] = useState(true);
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
+  const [addToProjectOpen, setAddToProjectOpen] = useState(false);
 
   if (boardLoading || !board) {
     return (
@@ -321,6 +323,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setAddToProjectOpen(true)}
+            className="h-10 px-3"
+          >
+            <FolderPlus className="w-5 h-5" />
+            Add to Project
+          </Button>
           <Button variant="ghost" size="sm" className="h-10 px-3">
             <Share2 className="w-5 h-5" />
           </Button>
@@ -394,9 +405,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     `}>
                       <Droppable droppableId="drawer">
                         {(provided) => (
-                          <div 
-                            ref={provided.innerRef} 
-                            {...provided.droppableProps} 
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
                             className="p-4"
                             style={{ position: 'relative', zIndex: 20 }}
                           >
@@ -595,6 +606,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           boardId={board.id}
         />
       )}
+
+      <AddToProjectDialog
+        open={addToProjectOpen}
+        onOpenChange={setAddToProjectOpen}
+        boardId={board.id}
+      />
     </div>
   );
 }

@@ -8,9 +8,9 @@ export default function BlockDrawer() {
 
   return (
     <div className="w-full p-4">
-      <h3 className="text-sm font-medium text-center mb-4 text-muted-foreground">
-        Available Boxes
-      </h3>
+      <div className="flex items-center mb-4">
+        <h2 className="font-semibold text-gray-700">Available Boxes</h2>
+      </div>
       <div className="space-y-4 flex flex-col items-center">
         {blockTypes.map((layer, index) => (
           <Draggable
@@ -23,12 +23,15 @@ export default function BlockDrawer() {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-[205px] h-[100px] relative`}
+                className={`${layer.color} rounded-lg w-[205px] h-[100px] relative flex items-center justify-center`}
                 style={{
                   ...provided.draggableProps.style,
                   zIndex: snapshot.isDragging ? 9999 : 'auto'
                 }}
               >
+                <div className="font-bold text-gray-700/75 text-center">
+                  {layer.label}
+                </div>
                 <Block
                   block={{
                     id: `drawer-${layer.type}`,

@@ -25,6 +25,17 @@ export default function Dashboard() {
     }
   });
 
+  const { data: boards = [] } = useQuery({
+    queryKey: ['/api/boards'],
+    queryFn: async () => {
+      const res = await fetch('/api/boards');
+      if (!res.ok) throw new Error('Failed to fetch boards');
+      return res.json();
+    }
+  });
+
+  const unassignedBoards = boards.filter((board: any) => !board.projectId);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Top Navigation Bar */}
@@ -73,7 +84,21 @@ export default function Dashboard() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {projects.length === 0 && (
+            {unassignedBoards.map((board: any) => (
+              <Card key={board.id}>
+                <CardHeader>
+                  <CardTitle>{board.name}</CardTitle>
+                  <CardDescription>{board.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button variant="outline" asChild className="w-full">
+                    <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+
+            {unassignedBoards.length === 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Create your first blueprint</CardTitle>
