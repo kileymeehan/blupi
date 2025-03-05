@@ -84,7 +84,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [showBlocks, setShowBlocks] = useState(true); 
+  const [showBlocks, setShowBlocks] = useState(true);
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
 
   if (boardLoading || !board) {
@@ -278,7 +278,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     setIsDrawerOpen(!isDrawerOpen);
     if (!isDrawerOpen) {
       setShowComments(false);
-      setShowBlocks(false); 
+      setShowBlocks(false);
     }
   };
 
@@ -341,12 +341,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     flex items-center gap-2
                     hover:bg-gray-100
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                    ${showBlocks && isDrawerOpen ? 'bg-gray-100' : ''}
                   `}
                 >
                   <LayoutGrid className="w-5 h-5" />
                   {isDrawerOpen && <span className="text-sm">Available Boxes</span>}
                 </Button>
-                <div className="w-full h-px bg-gray-200" />
+
                 <Button
                   variant="ghost"
                   size="sm"
@@ -356,7 +357,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     flex items-center gap-2
                     hover:bg-gray-100
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showComments ? 'bg-gray-100' : ''}
+                    ${showComments && isDrawerOpen ? 'bg-gray-100' : ''}
                   `}
                 >
                   <MessageSquare className="w-5 h-5" />
@@ -368,7 +369,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 variant="ghost"
                 size="sm"
                 onClick={toggleSidebar}
-                className="absolute top-2 -right-4 w-8 h-8 rounded-full bg-white shadow-md z-10 hover:bg-gray-100"
+                className="absolute top-2 -right-4 w-8 h-8 rounded-full bg-white shadow-md z-50 hover:bg-gray-100"
               >
                 {isDrawerOpen ? (
                   <ChevronLeft className="w-4 h-4" />
@@ -378,46 +379,39 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               </Button>
 
               {isDrawerOpen && (
-                <div className="flex-1 overflow-y-auto relative">
-                  <div className="h-full">
-                    <div
-                      className={`
-                        absolute w-full h-full bg-gray-100
-                        transition-all duration-300 ease-in-out overflow-y-auto
-                        ${showComments ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}
-                      `}
-                    >
-                      <CommentsOverview
-                        board={board}
-                        onCommentClick={(block) => {
-                          setSelectedBlock(block);
-                          setCommentDialogOpen(true);
-                          setHighlightedBlockId(block.id);
-                          setTimeout(() => setHighlightedBlockId(null), 2000);
-                        }}
-                      />
-                    </div>
-                    <div
-                      className={`
-                        absolute w-full h-full bg-gray-100
-                        transition-all duration-300 ease-in-out overflow-y-auto
-                        ${!showComments ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}
-                      `}
-                    >
-                      <Droppable droppableId="drawer">
-                        {(provided) => (
-                          <div 
-                            ref={provided.innerRef} 
-                            {...provided.droppableProps} 
-                            className="p-4"
-                            style={{ position: 'relative', zIndex: 1 }}
-                          >
-                            <BlockDrawer />
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    </div>
+                <div className="flex-1 overflow-hidden">
+                  <div className="h-full relative">
+                    {showBlocks && (
+                      <div className="absolute inset-0 bg-gray-100">
+                        <Droppable droppableId="drawer">
+                          {(provided) => (
+                            <div 
+                              ref={provided.innerRef} 
+                              {...provided.droppableProps} 
+                              className="p-4"
+                              style={{ position: 'relative', zIndex: 20 }}
+                            >
+                              <BlockDrawer />
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </div>
+                    )}
+
+                    {showComments && (
+                      <div className="absolute inset-0 bg-gray-100">
+                        <CommentsOverview
+                          board={board}
+                          onCommentClick={(block) => {
+                            setSelectedBlock(block);
+                            setCommentDialogOpen(true);
+                            setHighlightedBlockId(block.id);
+                            setTimeout(() => setHighlightedBlockId(null), 2000);
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
