@@ -95,8 +95,8 @@ export default function Dashboard() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project: any) => (
-              <Card key={project.id}>
-                <div className="w-2 h-full absolute left-0 rounded-l-lg" style={{ backgroundColor: project.color || '#4F46E5' }} />
+              <Card key={project.id} className="relative overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-2" style={{ backgroundColor: project.color || '#4F46E5' }} />
                 <CardHeader>
                   <CardTitle>{project.name}</CardTitle>
                   <CardDescription>
@@ -146,12 +146,9 @@ export default function Dashboard() {
             {recentBoards.map((board: any) => {
               const project = projects.find(p => p.id === board.projectId);
               return (
-                <Card key={board.id} className="relative">
+                <Card key={board.id} className="relative overflow-hidden">
                   {project && (
-                    <div 
-                      className="w-2 h-full absolute left-0 rounded-l-lg" 
-                      style={{ backgroundColor: project.color || '#4F46E5' }} 
-                    />
+                    <div className="absolute inset-y-0 left-0 w-2" style={{ backgroundColor: project.color || '#4F46E5' }} />
                   )}
                   <CardHeader>
                     <CardTitle>{board.name}</CardTitle>
