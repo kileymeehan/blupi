@@ -31,6 +31,7 @@ export default function Project() {
       const res = await fetch('/api/boards');
       if (!res.ok) throw new Error('Failed to fetch boards');
       const allBoards = await res.json();
+      // Convert id to number for correct comparison
       return allBoards.filter((board: any) => board.projectId === Number(id));
     }
   });

@@ -44,18 +44,20 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
   const createBlueprint = useMutation({
     mutationFn: async (data: InsertBoard) => {
       try {
-        const requestData = {
+        console.log('Creating blueprint with data:', {
           ...data,
           projectId: projectId || null
-        };
-        console.log('Creating blueprint with data:', requestData);
+        });
 
         const response = await fetch("/api/boards", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(requestData),
+          body: JSON.stringify({
+            ...data,
+            projectId: projectId || null
+          }),
         });
 
         if (!response.ok) {
@@ -146,6 +148,12 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
                   <FormMessage />
                 </FormItem>
               )}
+            />
+
+            <input 
+              type="hidden" 
+              {...form.register("projectId")}
+              value={projectId || ''} 
             />
 
             <div className="flex justify-end space-x-2">
