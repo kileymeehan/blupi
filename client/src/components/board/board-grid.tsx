@@ -384,9 +384,9 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                           ref={provided.innerRef}
                                           {...provided.droppableProps}
                                           className={`
-                                            space-y-2 min-h-[100px] px-3 py-2 
+                                            space-y-2 min-h-[100px] px-1 py-2 
                                             rounded-lg bg-white border-2 
-                                            border-gray-200 flex flex-col items-center
+                                            border-gray-200
                                             transition-colors duration-200
                                             ${snapshot.isDraggingOver ? 'bg-gray-50' : ''}
                                           `}
@@ -407,20 +407,20 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
                                                       group/block relative rounded-lg 
-                                                      w-[225px] h-[100px]
+                                                      w-full 
                                                       transition-transform duration-150
                                                       cursor-pointer
                                                       ${snapshot.isDragging ? 'shadow-lg scale-[1.02]' : ''}
                                                     `}
-                                                    onClick={() => handleBlockClick(block)}
                                                     style={{
                                                       ...provided.draggableProps.style,
                                                       transition: snapshot.isDropAnimating
                                                         ? 'all 0.15s cubic-bezier(0.2, 0, 0, 1)'
                                                         : provided.draggableProps.style?.transition,
                                                     }}
+                                                    onClick={() => handleBlockClick(block)}
                                                   >
-                                                    <Block block={block} onChange={handleBlockChange} />
+                                                    <Block block={block} onChange={handleBlockChange} onCommentClick={() => handleBlockClick(block)} />
                                                   </div>
                                                 )}
                                               </Draggable>
