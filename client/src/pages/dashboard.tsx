@@ -80,87 +80,8 @@ export default function Dashboard() {
           <p className="text-muted-foreground mb-8">Manage your blueprints and projects</p>
         </div>
 
-        {/* Recent Blueprints Section */}
+        {/* Projects Section - Moved to top */}
         <section className="mb-12">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <LayoutGrid className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
-            </div>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {recentBoards.map((board: any) => (
-              <Card key={board.id}>
-                <CardHeader>
-                  <CardTitle>{board.name}</CardTitle>
-                  <CardDescription>
-                    {board.description}
-                    {board.projectId && (
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        Project: {projects.find(p => p.id === board.projectId)?.name}
-                      </div>
-                    )}
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      Created {format(new Date(board.createdAt), 'MMM d, yyyy')}
-                    </div>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="outline" asChild className="w-full">
-                    <Link href={`/board/${board.id}`}>View Blueprint</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        <Separator className="my-8" />
-
-        {/* Blueprints Section */}
-        <section className="mb-12">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <LayoutGrid className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
-            </div>
-            <Button onClick={() => setCreateBlueprintOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create New Blueprint
-            </Button>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {unassignedBoards.map((board: any) => (
-              <Card key={board.id}>
-                <CardHeader>
-                  <CardTitle>{board.name}</CardTitle>
-                  <CardDescription>{board.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="outline" asChild className="w-full">
-                    <Link href={`/board/${board.id}`}>View Blueprint</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-
-            {unassignedBoards.length === 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create your first blueprint</CardTitle>
-                  <CardDescription>Start designing your workflow</CardDescription>
-                </CardHeader>
-              </Card>
-            )}
-          </div>
-        </section>
-
-        <Separator className="my-8" />
-
-        {/* Projects Section */}
-        <section>
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <Briefcase className="h-6 w-6" />
@@ -175,9 +96,15 @@ export default function Dashboard() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project: any) => (
               <Card key={project.id}>
+                <div className="w-2 h-full absolute left-0 rounded-l-lg" style={{ backgroundColor: project.color || '#4F46E5' }} />
                 <CardHeader>
                   <CardTitle>{project.name}</CardTitle>
-                  <CardDescription>{project.description}</CardDescription>
+                  <CardDescription>
+                    {project.description}
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Created by {project.createdBy || 'Unknown'} on {format(new Date(project.createdAt), 'MMM d, yyyy')}
+                    </div>
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                   <Button variant="outline" asChild className="w-full">
@@ -198,6 +125,99 @@ export default function Dashboard() {
                 <CardHeader>
                   <CardTitle>Get started with a project</CardTitle>
                   <CardDescription>Create a project to organize your blueprints</CardDescription>
+                </CardHeader>
+              </Card>
+            )}
+          </div>
+        </section>
+
+        <Separator className="my-8" />
+
+        {/* Recent Blueprints Section */}
+        <section className="mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-2">
+              <LayoutGrid className="h-6 w-6" />
+              <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {recentBoards.map((board: any) => {
+              const project = projects.find(p => p.id === board.projectId);
+              return (
+                <Card key={board.id} className="relative">
+                  {project && (
+                    <div 
+                      className="w-2 h-full absolute left-0 rounded-l-lg" 
+                      style={{ backgroundColor: project.color || '#4F46E5' }} 
+                    />
+                  )}
+                  <CardHeader>
+                    <CardTitle>{board.name}</CardTitle>
+                    <CardDescription>
+                      {board.description}
+                      {project && (
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          Project: {project.name}
+                        </div>
+                      )}
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        Created by {board.createdBy || 'Unknown'} on {format(new Date(board.createdAt), 'MMM d, yyyy')}
+                      </div>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button variant="outline" asChild className="w-full">
+                      <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+
+        <Separator className="my-8" />
+
+        {/* Unassigned Blueprints Section */}
+        <section className="mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-2">
+              <LayoutGrid className="h-6 w-6" />
+              <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
+            </div>
+            <Button onClick={() => setCreateBlueprintOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create New Blueprint
+            </Button>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {unassignedBoards.map((board: any) => (
+              <Card key={board.id}>
+                <CardHeader>
+                  <CardTitle>{board.name}</CardTitle>
+                  <CardDescription>
+                    {board.description}
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Created by {board.createdBy || 'Unknown'} on {format(new Date(board.createdAt), 'MMM d, yyyy')}
+                    </div>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button variant="outline" asChild className="w-full">
+                    <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+
+            {unassignedBoards.length === 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Create your first blueprint</CardTitle>
+                  <CardDescription>Start designing your workflow</CardDescription>
                 </CardHeader>
               </Card>
             )}

@@ -2,7 +2,7 @@ import { pgTable, text, serial, jsonb, integer, timestamp } from "drizzle-orm/pg
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User schema
+// User schema remains unchanged
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
@@ -20,20 +20,26 @@ export const insertUserSchema = createInsertSchema(users)
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-// Project schema
+// Project schema updated with color
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  color: text("color").default("#4F46E5"), // Default to indigo-600
   userId: integer("user_id").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 
-export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, userId: true, createdAt: true });
+export const insertProjectSchema = createInsertSchema(projects)
+  .extend({
+    color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color").optional()
+  })
+  .omit({ id: true, userId: true, createdAt: true });
+
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 
-// Update the comment schema to include completion status
+// Rest of the schema remains unchanged
 export const commentSchema = z.object({
   id: z.string(),
   content: z.string(),
@@ -45,7 +51,6 @@ export const commentSchema = z.object({
 
 export type Comment = z.infer<typeof commentSchema>;
 
-// Update block schema to include comments
 export const blockSchema = z.object({
   id: z.string(),
   type: z.enum(['touchpoint', 'role', 'process', 'pitfall', 'policy', 'technology', 'rationale', 'question', 'note']),
@@ -73,7 +78,6 @@ export const phaseSchema = z.object({
 
 export type Phase = z.infer<typeof phaseSchema>;
 
-// Board schema updated with project and user references
 export const boards = pgTable("boards", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),

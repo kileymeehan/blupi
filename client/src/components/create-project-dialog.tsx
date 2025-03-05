@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { insertProjectSchema, type InsertProject } from "@shared/schema";
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 
 interface CreateProjectDialogProps {
   open: boolean;
@@ -17,12 +18,14 @@ interface CreateProjectDialogProps {
 
 export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogProps) {
   const { toast } = useToast();
+  const { user } = useFirebaseAuth();
 
   const form = useForm<InsertProject>({
     resolver: zodResolver(insertProjectSchema),
     defaultValues: {
       name: "",
       description: "",
+      color: "#4F46E5" // Default indigo color
     },
   });
 
@@ -35,11 +38,11 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify({
+            ...data,
+            createdBy: user?.email // Add creator information
+          }),
         });
-
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
 
         let responseData;
         try {
@@ -126,6 +129,30 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
                       onChange={field.onChange} 
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project Color</FormLabel>
+                  <div className="flex gap-4 items-center">
+                    <FormControl>
+                      <Input 
+                        type="color" 
+                        className="w-20 h-10 p-1 bg-transparent cursor-pointer"
+                        {...field}
+                      />
+                    </FormControl>
+                    <div 
+                      className="w-10 h-10 rounded-md border"
+                      style={{ backgroundColor: field.value }}
+                    />
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
