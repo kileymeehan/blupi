@@ -32,8 +32,9 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
 
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/boards', board.id] });
+    onSuccess: (updatedBoard) => {
+      // Update the cache immediately
+      queryClient.setQueryData(['/api/boards', board.id], updatedBoard);
     },
   });
 

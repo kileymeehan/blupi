@@ -10,6 +10,7 @@ import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
 import ImageUpload from './image-upload';
 import { CommentsOverview } from "./comments-overview";
+import { useQuery } from '@tanstack/react-query'; // Assuming this is the query library used
 
 interface ColumnWithImage {
   id: string;
@@ -36,19 +37,34 @@ export const LAYER_TYPES = [
 ] as const;
 
 interface BoardGridProps {
-  board: Board & { phases: PhaseWithImages[] };
+  id: string; // Added board ID prop
   onBlocksChange: (blocks: BlockType[]) => void;
   onPhasesChange: (phases: PhaseWithImages[]) => void;
   onBoardChange: (board: Board) => void;
 }
 
-export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoardChange }: BoardGridProps) {
+export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange }: BoardGridProps) {
+  const { data: board, isLoading: boardLoading } = useQuery({
+    queryKey: ['/api/boards', id],
+    queryFn: async () => {
+      const res = await fetch(`/api/boards/${id}`);
+      if (!res.ok) throw new Error('Failed to fetch board');
+      return res.json();
+    },
+    refetchOnWindowFocus: true,
+    refetchInterval: 1000,
+  });
+
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
+
+  if (boardLoading) {
+    return <div>Loading...</div>; // Add loading indicator
+  }
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
