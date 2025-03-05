@@ -10,7 +10,7 @@ import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
 import ImageUpload from './image-upload';
 import { CommentsOverview } from "./comments-overview";
-import { useQuery } from '@tanstack/react-query'; // Assuming this is the query library used
+import { useQuery } from '@tanstack/react-query';
 
 interface ColumnWithImage {
   id: string;
@@ -37,7 +37,7 @@ export const LAYER_TYPES = [
 ] as const;
 
 interface BoardGridProps {
-  id: string; // Added board ID prop
+  id: string;
   onBlocksChange: (blocks: BlockType[]) => void;
   onPhasesChange: (phases: PhaseWithImages[]) => void;
   onBoardChange: (board: Board) => void;
@@ -62,8 +62,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
 
-  if (boardLoading) {
-    return <div>Loading...</div>; // Add loading indicator
+  if (boardLoading || !board) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading project...</div>
+      </div>
+    );
   }
 
   const handleDragEnd = (result: DropResult) => {
@@ -131,7 +135,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           content: '',
           phaseIndex,
           columnIndex,
-          comments: [] // Initialize empty comments array
+          comments: []
         };
 
         blocks.splice(destination.index, 0, newBlock);
