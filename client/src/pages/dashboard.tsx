@@ -83,14 +83,16 @@ export default function Dashboard() {
         {/* Projects Section - Moved to top */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <Briefcase className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold">Projects</h2>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-6 w-6" />
+                <h2 className="text-2xl font-semibold">Projects</h2>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setCreateProjectOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create New Project
+              </Button>
             </div>
-            <Button onClick={() => setCreateProjectOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create New Project
-            </Button>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -180,14 +182,16 @@ export default function Dashboard() {
         {/* Unassigned Blueprints Section */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <LayoutGrid className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <LayoutGrid className="h-6 w-6" />
+                <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setCreateBlueprintOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create New Blueprint
+              </Button>
             </div>
-            <Button onClick={() => setCreateBlueprintOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create New Blueprint
-            </Button>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
