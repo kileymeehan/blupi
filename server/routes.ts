@@ -70,6 +70,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add this endpoint after the other project routes
+  app.post("/api/projects/:id/invite", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ 
+          error: true, 
+          message: "Email is required" 
+        });
+      }
+
+      // For now, we'll just simulate sending an invitation
+      // In a real application, you would:
+      // 1. Check if the user exists
+      // 2. Add them to the project's collaborators
+      // 3. Send an email invitation
+
+      // Simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      res.json({ 
+        message: "Invitation sent successfully",
+        invited: email
+      });
+    } catch (err) {
+      console.error('Error sending invitation:', err);
+      res.status(500).json({ 
+        error: true, 
+        message: "Failed to send invitation" 
+      });
+    }
+  });
+
+
   // Board/Blueprint routes
   app.get("/api/boards", async (_req, res) => {
     try {

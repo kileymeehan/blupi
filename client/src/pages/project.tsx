@@ -1,10 +1,11 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Plus, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
+import { InviteProjectDialog } from "@/components/invite-project-dialog";
 import { PageHeader } from "@/components/page-header";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -13,6 +14,7 @@ import { queryClient } from "@/lib/queryClient";
 export default function Project() {
   const { id } = useParams();
   const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: ['/api/projects', id],
@@ -69,10 +71,16 @@ export default function Project() {
       <main className="container px-8 py-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Blueprints</h2>
-          <Button onClick={() => setCreateBlueprintOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create New Blueprint
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setInviteOpen(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite
+            </Button>
+            <Button onClick={() => setCreateBlueprintOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create New Blueprint
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -104,6 +112,12 @@ export default function Project() {
       <CreateBlueprintDialog 
         open={createBlueprintOpen}
         onOpenChange={setCreateBlueprintOpen}
+        projectId={Number(id)}
+      />
+
+      <InviteProjectDialog
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
         projectId={Number(id)}
       />
     </div>
