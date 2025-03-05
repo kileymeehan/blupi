@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,12 +21,6 @@ export default function RegisterPage() {
   const { signUpWithEmail, signInWithGoogle, user } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect if already logged in
-  if (user) {
-    setLocation("/");
-    return null;
-  }
-
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -35,10 +29,16 @@ export default function RegisterPage() {
     },
   });
 
+  // Handle redirect in useEffect instead of during render
+  useEffect(() => {
+    if (user) {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
+
   const onSubmit = form.handleSubmit(async (data) => {
     try {
       await signUpWithEmail(data.email, data.password);
-      setLocation("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     }
@@ -47,11 +47,15 @@ export default function RegisterPage() {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
-      setLocation("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Google sign-in failed");
     }
   };
+
+  // Return null during user state transitions
+  if (user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5">
