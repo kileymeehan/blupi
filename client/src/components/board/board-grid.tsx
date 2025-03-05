@@ -56,15 +56,16 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       }
       return res.json();
     },
-    refetchInterval: 5000, // Reduce polling frequency
+    refetchInterval: 5000, // Reduce polling frequency to 5 seconds
     retry: (failureCount, error) => {
       // Don't retry on rate limit errors
-      if (error.message.includes("Too many requests")) {
+      if (error instanceof Error && error.message.includes("Too many requests")) {
         return false;
       }
       return failureCount < 3;
     },
     staleTime: 1000, // Consider data fresh for 1 second
+    cacheTime: 1000 * 60 * 5, // Cache responses for 5 minutes
   });
 
   // If we hit rate limiting, show a user-friendly message
