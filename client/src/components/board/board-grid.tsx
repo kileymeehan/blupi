@@ -75,7 +75,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       }
       return failureCount < 3;
     },
-    gcTime: 1000 * 60 * 5, 
+    gcTime: 1000 * 60 * 5,
   });
 
   // Render loading state
@@ -494,7 +494,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                     <div className="flex items-center gap-2 mb-2">
                                       <div
                                         {...provided.dragHandleProps}
-                                        className="cursor-grab hover:text-gray-700 text-gray-400"
+                                        className="cursor-grab hover:text-gray-700 text-gray-400 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
                                       >
                                         <GripVertical className="w-4 h-4" />
                                       </div>
@@ -527,11 +527,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                           ref={provided.innerRef}
                                           {...provided.droppableProps}
                                           className={`
-                                            space-y-2 min-h-[100px] px-2 py-2 
-                                            rounded-lg bg-white border-2 
-                                            border-gray-200 relative z-0
-                                            transition-colors duration-200
-                                            ${snapshot.isDraggingOver ? 'bg-gray-50' : ''}
+                                            space-y-2 min-h-[100px] p-4
+                                            rounded-lg bg-white border-2
+                                            transition-all duration-200 ease-in-out
+                                            ${snapshot.isDraggingOver ? 'border-primary bg-primary/5' : 'border-gray-200'}
                                           `}
                                           style={{
                                             minHeight: '100px',
@@ -553,14 +552,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
                                                       relative rounded-lg z-10
-                                                      transition-all duration-300
-                                                      ${snapshot.isDragging ? 'shadow-lg scale-[1.02]' : ''}
+                                                      transition-all duration-200 ease-in-out
+                                                      transform
+                                                      ${snapshot.isDragging ? 'shadow-lg scale-[1.02] rotate-1' : ''}
                                                       ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                     `}
                                                     style={{
                                                       ...provided.draggableProps.style,
                                                       transition: snapshot.isDropAnimating
-                                                        ? 'all 0.15s cubic-bezier(0.2, 0, 0, 1)'
+                                                        ? 'all 0.2s cubic-bezier(0.2, 0, 0, 1)'
                                                         : provided.draggableProps.style?.transition,
                                                     }}
                                                   >

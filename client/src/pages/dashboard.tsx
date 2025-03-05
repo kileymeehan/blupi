@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Separator } from "@/components/ui/separator";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
+import AddToProjectDialog from "@/components/board/add-to-project-dialog";
 import { format } from "date-fns";
 
 export default function Dashboard() {
@@ -16,6 +17,8 @@ export default function Dashboard() {
   const [, navigate] = useLocation();
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
+  const [addToProjectOpen, setAddToProjectOpen] = useState(false);
+  const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
 
   const { data: projects = [] } = useQuery({
     queryKey: ['/api/projects'],
@@ -35,20 +38,16 @@ export default function Dashboard() {
     }
   });
 
-  // Sort boards by creation date, most recent first
   const sortedBoards = [...boards].sort((a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  // Get the 3 most recent boards
   const recentBoards = sortedBoards.slice(0, 3);
 
-  // Get unassigned boards
   const unassignedBoards = boards.filter((board: any) => !board.projectId);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Navigation Bar */}
       <header className="border-b">
         <div className="container flex h-16 items-center px-8">
           <div className="flex-1">
@@ -80,7 +79,6 @@ export default function Dashboard() {
           <p className="text-muted-foreground mb-8">Manage your blueprints and projects</p>
         </div>
 
-        {/* Projects Section - Moved to top */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
@@ -129,7 +127,6 @@ export default function Dashboard() {
 
         <Separator className="my-8" />
 
-        {/* Recent Blueprints Section */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
@@ -173,7 +170,6 @@ export default function Dashboard() {
 
         <Separator className="my-8" />
 
-        {/* Unassigned Blueprints Section */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
@@ -201,9 +197,23 @@ export default function Dashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" asChild className="w-full">
-                    <Link href={`/board/${board.id}`}>View Blueprint</Link>
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button variant="outline" asChild className="w-full">
+                      <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="w-full text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        setSelectedBoardId(board.id);
+                        setAddToProjectOpen(true);
+                      }}
+                    >
+                      <Briefcase className="w-4 h-4 mr-2" />
+                      Add to Project
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -228,6 +238,11 @@ export default function Dashboard() {
       <CreateBlueprintDialog
         open={createBlueprintOpen}
         onOpenChange={setCreateBlueprintOpen}
+      />
+      <AddToProjectDialog
+        open={addToProjectOpen}
+        onOpenChange={setAddToProjectOpen}
+        boardId={selectedBoardId!}
       />
     </div>
   );
