@@ -337,7 +337,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative h-[calc(100vh-5rem)]`}>
             <div className="flex flex-col h-full">
-              <div className="border-b border-gray-200 bg-white">
+              <div className="border-b border-gray-200 bg-white shadow-sm">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -388,7 +388,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 <div className="flex-1 overflow-hidden">
                   <div className="h-full">
                     <div className={`
+                      h-full overflow-y-auto
                       ${showBlocks ? 'block' : 'hidden'}
+                      bg-blue-50
                     `}>
                       <Droppable droppableId="drawer">
                         {(provided) => (
@@ -406,7 +408,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </div>
 
                     <div className={`
+                      h-full overflow-y-auto
                       ${showComments ? 'block' : 'hidden'}
+                      bg-blue-50
                     `}>
                       <CommentsOverview
                         board={board}
