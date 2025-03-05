@@ -256,21 +256,27 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     setTimeout(() => setHighlightedBlockId(null), 2000);
   };
 
-  const toggleComments = () => {
-    if (showComments) {
-      setShowComments(false);
+  const toggleBlocks = () => {
+    if (showBlocks) {
+      setShowBlocks(false);
     } else {
-      setShowComments(true);
+      setShowBlocks(true);
+      setShowComments(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
     }
   };
 
-  const toggleBlocks = () => {
-    setShowBlocks(!showBlocks);
-    if (!isDrawerOpen) {
-      setIsDrawerOpen(true);
+  const toggleComments = () => {
+    if (showComments) {
+      setShowComments(false);
+    } else {
+      setShowComments(true);
+      setShowBlocks(false);
+      if (!isDrawerOpen) {
+        setIsDrawerOpen(true);
+      }
     }
   };
 
@@ -380,38 +386,42 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
               {isDrawerOpen && (
                 <div className="flex-1 overflow-hidden">
-                  <div className="h-full relative">
-                    {showBlocks && (
-                      <div className="absolute inset-0 bg-gray-100">
-                        <Droppable droppableId="drawer">
-                          {(provided) => (
-                            <div 
-                              ref={provided.innerRef} 
-                              {...provided.droppableProps} 
-                              className="p-4"
-                              style={{ position: 'relative', zIndex: 20 }}
-                            >
-                              <BlockDrawer />
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
-                      </div>
-                    )}
+                  <div className="h-full">
+                    <div className={`
+                      transition-all duration-300 ease-in-out
+                      ${showBlocks ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full absolute'}
+                      ${showComments ? 'pointer-events-none' : ''}
+                    `}>
+                      <Droppable droppableId="drawer">
+                        {(provided) => (
+                          <div 
+                            ref={provided.innerRef} 
+                            {...provided.droppableProps} 
+                            className="p-4"
+                            style={{ position: 'relative', zIndex: 20 }}
+                          >
+                            <BlockDrawer />
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </div>
 
-                    {showComments && (
-                      <div className="absolute inset-0 bg-gray-100">
-                        <CommentsOverview
-                          board={board}
-                          onCommentClick={(block) => {
-                            setSelectedBlock(block);
-                            setCommentDialogOpen(true);
-                            setHighlightedBlockId(block.id);
-                            setTimeout(() => setHighlightedBlockId(null), 2000);
-                          }}
-                        />
-                      </div>
-                    )}
+                    <div className={`
+                      transition-all duration-300 ease-in-out
+                      ${showComments ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full absolute'}
+                      ${showBlocks ? 'pointer-events-none' : ''}
+                    `}>
+                      <CommentsOverview
+                        board={board}
+                        onCommentClick={(block) => {
+                          setSelectedBlock(block);
+                          setCommentDialogOpen(true);
+                          setHighlightedBlockId(block.id);
+                          setTimeout(() => setHighlightedBlockId(null), 2000);
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
