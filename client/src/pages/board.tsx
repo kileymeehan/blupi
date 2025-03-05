@@ -1,11 +1,10 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import BoardGrid from "@/components/board/board-grid";
 import type { Board, Block, Phase } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
-import { nanoid } from "nanoid";
 
 export default function BoardPage() {
   const { id } = useParams();
@@ -25,6 +24,13 @@ export default function BoardPage() {
         });
       }
       queryClient.invalidateQueries({ queryKey: ['/api/boards', id] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error saving changes",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 

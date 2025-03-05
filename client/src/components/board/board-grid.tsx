@@ -44,16 +44,40 @@ interface BoardGridProps {
 }
 
 export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange }: BoardGridProps) {
-  const { data: board, isLoading: boardLoading } = useQuery({
+  const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
     queryFn: async () => {
       const res = await fetch(`/api/boards/${id}`);
-      if (!res.ok) throw new Error('Failed to fetch board');
+      if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error("Too many requests. Please wait a moment before trying again.");
+        }
+        throw new Error('Failed to fetch board');
+      }
       return res.json();
     },
-    refetchOnWindowFocus: true,
-    refetchInterval: 1000,
+    refetchInterval: 5000, // Reduce polling frequency
+    retry: (failureCount, error) => {
+      // Don't retry on rate limit errors
+      if (error.message.includes("Too many requests")) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+    staleTime: 1000, // Consider data fresh for 1 second
   });
+
+  // If we hit rate limiting, show a user-friendly message
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-lg text-red-600 mb-2">{error.message}</div>
+          <div className="text-sm text-gray-600">Please wait a moment and try again</div>
+        </div>
+      </div>
+    );
+  }
 
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);

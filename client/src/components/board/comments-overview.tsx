@@ -1,4 +1,3 @@
-import { MessageSquare } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -16,7 +15,7 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
   const blocksWithComments = board.blocks.filter(block => block.comments && block.comments.length > 0);
 
   const toggleCommentCompletion = useMutation({
-    mutationFn: async ({ blockId, commentId, completed }: { blockId: string; commentId: string; completed: boolean }) => {
+    mutationFn: async ({ blockId, commentId, completed }) => {
       const response = await fetch(`/api/boards/${board.id}/blocks/${blockId}/comments/${commentId}/toggle`, {
         method: "PATCH",
         headers: {
