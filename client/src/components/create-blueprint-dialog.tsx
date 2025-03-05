@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { insertBoardSchema, type InsertBoard } from "@shared/schema";
+import { nanoid } from 'nanoid';
 
 interface CreateBlueprintDialogProps {
   open: boolean;
@@ -27,7 +28,15 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
       name: "",
       description: "",
       blocks: [],
-      phases: [],
+      phases: [{
+        id: nanoid(),
+        name: 'Phase 1',
+        columns: [{
+          id: nanoid(),
+          name: 'Step 1',
+          image: undefined
+        }]
+      }],
       projectId: projectId || null
     },
   });
@@ -35,7 +44,6 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
   const createBlueprint = useMutation({
     mutationFn: async (data: InsertBoard) => {
       try {
-        console.log('Creating blueprint with data:', data);
         const response = await fetch("/api/boards", {
           method: "POST",
           headers: {
@@ -44,17 +52,12 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
           body: JSON.stringify(data),
         });
 
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Server returned non-JSON response");
-        }
-
-        const responseData = await response.json();
         if (!response.ok) {
-          throw new Error(responseData.message || "Failed to create blueprint");
+          const error = await response.json();
+          throw new Error(error.message || "Failed to create blueprint");
         }
 
-        return responseData;
+        return response.json();
       } catch (error) {
         console.error('Blueprint creation error:', error);
         if (error instanceof Error) {
@@ -64,7 +67,7 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
       }
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+      queryClient.setQueryData(['/api/boards', data.id], data);
       toast({
         title: "Success",
         description: "Blueprint created successfully",
@@ -120,10 +123,10 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Enter blueprint description (optional)" 
-                      value={field.value || ''} 
-                      onChange={field.onChange} 
+                    <Input
+                      placeholder="Enter blueprint description (optional)"
+                      value={field.value || ''}
+                      onChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />

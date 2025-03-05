@@ -11,10 +11,6 @@ export default function BoardPage() {
   const { id } = useParams();
   const { toast } = useToast();
 
-  const { data: board, isLoading } = useQuery<Board>({
-    queryKey: [`/api/boards/${id}`]
-  });
-
   const updateBoardMutation = useMutation({
     mutationFn: async (updates: Partial<Board>) => {
       const res = await apiRequest("PATCH", `/api/boards/${id}`, updates);
@@ -28,7 +24,7 @@ export default function BoardPage() {
           description: "Your blueprint has been updated"
         });
       }
-      queryClient.invalidateQueries({ queryKey: [`/api/boards/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/boards', id] });
     }
   });
 
@@ -44,26 +40,10 @@ export default function BoardPage() {
     updateBoardMutation.mutate(updates);
   };
 
-  if (isLoading || !board) {
-    return <div className="p-8">Loading...</div>;
-  }
-
-  // Initialize phases if they don't exist
-  if (!board.phases) {
-    handlePhasesChange([{
-      id: nanoid(),
-      name: 'Phase 1',
-      columns: [{
-        id: nanoid(),
-        name: 'Step 1'
-      }]
-    }]);
-  }
-
   return (
     <div className="h-screen">
       <BoardGrid
-        board={board}
+        id={id!}
         onBlocksChange={handleBlocksChange}
         onPhasesChange={handlePhasesChange}
         onBoardChange={handleBoardChange}
