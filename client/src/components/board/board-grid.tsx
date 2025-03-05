@@ -214,6 +214,11 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
     onBlocksChange(newBlocks);
   };
 
+  // Add the handler function back
+  const handleCommentClick = (block: BlockType) => {
+    setSelectedBlock(block);
+    setCommentDialogOpen(true);
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -286,8 +291,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                 )}
               </Droppable>
             ) : (
-              <CommentsOverview 
-                board={board} 
+              <CommentsOverview
+                board={board}
                 onCommentClick={(block) => {
                   setSelectedBlock(block);
                   setCommentDialogOpen(true);
@@ -422,7 +427,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                                         : provided.draggableProps.style?.transition,
                                                     }}
                                                   >
-                                                    <Block block={block} onChange={handleBlockChange} />
+                                                    <Block block={block} onChange={handleBlockChange} onCommentClick={() => handleCommentClick(block)} />
                                                   </div>
                                                 )}
                                               </Draggable>
