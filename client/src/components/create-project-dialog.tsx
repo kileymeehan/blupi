@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { insertProjectSchema, type InsertProject } from "@shared/schema";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
+import { Paintbrush } from "lucide-react";
 
 // Predefined project colors - high contrast, visually distinct colors
 const projectColors = [
@@ -33,6 +34,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
   const { toast } = useToast();
   const { user } = useFirebaseAuth();
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
 
   // Get existing projects to determine next color
   const { data: projects = [] } = useQuery({
@@ -44,10 +46,10 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
     }
   });
 
-  // Get next available color
+  // Get next color by cycling through the list
   const getNextColor = () => {
-    const usedColors = new Set(projects.map((p: any) => p.color));
-    return projectColors.find(color => !usedColors.has(color)) || projectColors[0];
+    const projectCount = projects.length;
+    return projectColors[projectCount % projectColors.length];
   };
 
   const form = useForm<InsertProject>({
@@ -103,6 +105,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
       });
       onOpenChange(false);
       form.reset();
+      setShowCustomPicker(false);
     },
     onError: (error: Error) => {
       console.error('Project creation error:', error);
@@ -186,12 +189,34 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
                             onClick={() => {
                               field.onChange(color);
                               setColorPickerOpen(false);
+                              setShowCustomPicker(false);
                             }}
                           />
                         ))}
+                        <div
+                          className={`w-8 h-8 rounded-md border cursor-pointer transition-transform hover:scale-105 flex items-center justify-center ${
+                            showCustomPicker ? 'ring-2 ring-offset-2 ring-primary' : ''
+                          }`}
+                          onClick={() => setShowCustomPicker(!showCustomPicker)}
+                        >
+                          <Paintbrush className="w-4 h-4" />
+                        </div>
                       </div>
                     )}
                   </div>
+                  {showCustomPicker && (
+                    <div className="mt-2">
+                      <Input 
+                        type="color"
+                        className="w-full h-10 p-1 cursor-pointer"
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                          setColorPickerOpen(false);
+                        }}
+                      />
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
