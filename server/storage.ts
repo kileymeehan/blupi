@@ -19,6 +19,7 @@ export interface IStorage {
 
   // Project methods
   getProjects(): Promise<Project[]>;
+  getProject(id: number): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
 
   // Session store
@@ -109,6 +110,10 @@ export class MemStorage implements IStorage {
   // Project methods
   async getProjects(): Promise<Project[]> {
     return Array.from(this.projects.values());
+  }
+
+  async getProject(id: number): Promise<Project | undefined> {
+    return this.projects.get(id);
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {

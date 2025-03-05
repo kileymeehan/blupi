@@ -10,6 +10,7 @@ import Board from "@/pages/board";
 import LoginPage from "@/pages/auth/login";
 import RegisterPage from "@/pages/auth/register";
 import Dashboard from "@/pages/dashboard";
+import Project from "@/pages/project"; // Add this import
 
 function Router() {
   return (
@@ -20,6 +21,8 @@ function Router() {
         <LoginPage />
       </Route>
       <ProtectedRoute path="/" component={Dashboard} />
+      <ProtectedRoute path="/project/:id" component={Project} />
+      <ProtectedRoute path="/project/:id/new" component={Board} />
       <ProtectedRoute path="/boards" component={Home} />
       <ProtectedRoute path="/board/new" component={Board} />
       <ProtectedRoute path="/board/:id" component={Board} />
