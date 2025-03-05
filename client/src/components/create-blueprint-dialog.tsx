@@ -39,22 +39,27 @@ export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDia
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Accept": "application/json"
           },
           body: JSON.stringify(data),
-          credentials: 'include'
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to create blueprint");
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Server returned non-JSON response");
         }
 
         const responseData = await response.json();
+        if (!response.ok) {
+          throw new Error(responseData.message || "Failed to create blueprint");
+        }
+
         return responseData;
       } catch (error) {
         console.error('Blueprint creation error:', error);
-        throw error;
+        if (error instanceof Error) {
+          throw new Error(error.message);
+        }
+        throw new Error("An unexpected error occurred");
       }
     },
     onSuccess: (data) => {
@@ -114,7 +119,11 @@ export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDia
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter blueprint description (optional)" value={field.value || ''} onChange={field.onChange} />
+                    <Input 
+                      placeholder="Enter blueprint description (optional)" 
+                      value={field.value || ''} 
+                      onChange={field.onChange} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -130,7 +139,7 @@ export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDia
                 Cancel
               </Button>
               <Button type="submit" disabled={createBlueprint.isPending}>
-                Create Blueprint
+                {createBlueprint.isPending ? "Creating..." : "Create Blueprint"}
               </Button>
             </div>
           </form>
