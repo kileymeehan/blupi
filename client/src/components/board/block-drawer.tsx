@@ -7,8 +7,11 @@ export default function BlockDrawer() {
   const blockTypes = LAYER_TYPES.filter(type => type.type !== 'touchpoint');
 
   return (
-    <div className="w-64 bg-white p-4">
-      <div className="space-y-4">
+    <div className="w-full bg-white p-4">
+      <h3 className="text-sm font-medium text-center mb-4 text-muted-foreground">
+        Available Boxes
+      </h3>
+      <div className="space-y-4 flex flex-col items-center">
         {blockTypes.map((layer, index) => (
           <Draggable
             key={layer.type}
@@ -28,7 +31,8 @@ export default function BlockDrawer() {
                     type: layer.type,
                     content: '',
                     phaseIndex: -1,
-                    columnIndex: -1
+                    columnIndex: -1,
+                    comments: [] // Add default empty comments array
                   }}
                   isTemplate
                 />

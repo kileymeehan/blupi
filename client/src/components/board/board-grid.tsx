@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2 } from "lucide-react";
+import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import Block from "./block";
@@ -48,6 +48,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
   const [isEditingName, setIsEditingName] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [showComments, setShowComments] = useState(false); // Added state
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -271,15 +272,28 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Collapsible block drawer */}
           <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-[width] duration-300`}>
-            <div className="p-4 border-b border-gray-300 flex justify-between items-center">
+            <div className="p-4 border-b border-gray-300 flex flex-col gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                onClick={() => {
+                  setIsDrawerOpen(!isDrawerOpen);
+                  setShowComments(false);
+                }}
                 className="h-10 w-10 p-2"
               >
                 <LayoutGrid className={`w-5 h-5 transition-transform duration-300 ${isDrawerOpen ? 'rotate-0' : 'rotate-180'}`} />
               </Button>
+              {!isDrawerOpen && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowComments(true)}
+                  className="h-10 w-10 p-2"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                </Button>
+              )}
             </div>
             {isDrawerOpen ? (
               <Droppable droppableId="drawer">
@@ -290,7 +304,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                   </div>
                 )}
               </Droppable>
-            ) : (
+            ) : showComments ? (
               <CommentsOverview
                 board={board}
                 onCommentClick={(block) => {
@@ -298,7 +312,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                   setCommentDialogOpen(true);
                 }}
               />
-            )}
+            ) : null}
           </div>
 
           {/* Board content */}

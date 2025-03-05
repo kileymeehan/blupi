@@ -178,17 +178,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add this endpoint after the other board routes
+  // Update the comments endpoint to remove authentication requirement temporarily
   app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ 
-          error: true, 
-          message: "Authentication required" 
-        });
-      }
-
-      const { content } = req.body;
+      const { content, username } = req.body;
       if (!content) {
         return res.status(400).json({ 
           error: true, 
@@ -211,8 +204,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               {
                 id: nanoid(),
                 content,
-                userId: req.user.id,
-                username: req.user.username,
+                userId: 1, // Default user ID for now
+                username: username || "Anonymous",
                 createdAt: new Date().toISOString()
               }
             ]
@@ -233,16 +226,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add this endpoint after the existing comments endpoint
+  // Update clear comments endpoint to remove auth requirement
   app.post("/api/boards/:boardId/blocks/:blockId/comments/clear", async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ 
-          error: true, 
-          message: "Authentication required" 
-        });
-      }
-
       const board = await storage.getBoard(Number(req.params.boardId));
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
