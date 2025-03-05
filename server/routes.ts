@@ -54,19 +54,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/boards/:id", async (req, res) => {
-    try {
-      const board = await storage.getBoard(Number(req.params.id));
-      if (!board) {
-        return res.status(404).json({ error: true, message: "Board not found" });
-      }
-      res.json(board);
-    } catch (err) {
-      console.error('Error fetching board:', err);
-      res.status(500).json({ error: true, message: "Failed to fetch board" });
-    }
-  });
-
   app.post("/api/boards", async (req, res) => {
     try {
       console.log('Creating board with data:', req.body);
@@ -91,6 +78,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       res.status(500).json({ error: true, message: "Failed to create board" });
+    }
+  });
+
+  app.get("/api/boards/:id", async (req, res) => {
+    try {
+      const board = await storage.getBoard(Number(req.params.id));
+      if (!board) {
+        return res.status(404).json({ error: true, message: "Board not found" });
+      }
+      res.json(board);
+    } catch (err) {
+      console.error('Error fetching board:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch board" });
     }
   });
 

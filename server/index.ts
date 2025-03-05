@@ -68,18 +68,18 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     // Register API routes after Vite middleware
     const server = await registerRoutes(app);
 
-    // API Error handling middleware
+    // API Error handling middleware - must be after all routes
     app.use('/api', (err: any, req: Request, res: Response, next: NextFunction) => {
       console.error('API Error:', err);
       if (!res.headersSent) {
-        res.status(err.status || 500).json({
+        res.status(500).json({
           error: true,
           message: err.message || "Internal Server Error"
         });
       }
     });
 
-    // Handle SPA routing - must be after API routes
+    // Handle SPA routing - must be after API routes and error handling
     app.get('*', (req, res, next) => {
       if (req.path.startsWith('/api')) return next();
       if (process.env.NODE_ENV !== "production") return next();
