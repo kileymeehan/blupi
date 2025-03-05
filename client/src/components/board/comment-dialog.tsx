@@ -11,6 +11,7 @@ import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { Comment, Block } from "@shared/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
+import { Trash2 } from "lucide-react";
 
 interface CommentDialogProps {
   open: boolean;
@@ -70,6 +71,35 @@ export function CommentDialog({ open, onOpenChange, block, boardId }: CommentDia
     },
   });
 
+  const clearCommentsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/boards/${boardId}/blocks/${block.id}/comments/clear`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to clear comments");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/boards', boardId] });
+      toast({
+        title: "Success",
+        description: "Comments cleared successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: CommentForm) => {
     if (!user) {
       toast({
@@ -86,7 +116,21 @@ export function CommentDialog({ open, onOpenChange, block, boardId }: CommentDia
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Comments</DialogTitle>
+          <div className="flex justify-between items-center">
+            <DialogTitle>Comments</DialogTitle>
+            {block.comments && block.comments.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => clearCommentsMutation.mutate()}
+                className="text-red-500 hover:text-red-600"
+                disabled={clearCommentsMutation.isPending}
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Clear All
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <ScrollArea className="h-[300px] pr-4">
@@ -101,39 +145,45 @@ export function CommentDialog({ open, onOpenChange, block, boardId }: CommentDia
               <p className="text-sm">{comment.content}</p>
             </div>
           ))}
-          
+
           {(!block.comments || block.comments.length === 0) && (
             <p className="text-center text-muted-foreground">No comments yet</p>
           )}
         </ScrollArea>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <div className="flex gap-2">
-                      <Input 
-                        placeholder="Add a comment..." 
-                        {...field} 
-                      />
-                      <Button 
-                        type="submit" 
-                        disabled={addCommentMutation.isPending}
-                      >
-                        {addCommentMutation.isPending ? "Adding..." : "Add"}
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
+        {user ? (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="Add a comment..." 
+                          {...field} 
+                        />
+                        <Button 
+                          type="submit" 
+                          disabled={addCommentMutation.isPending}
+                        >
+                          {addCommentMutation.isPending ? "Adding..." : "Add"}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        ) : (
+          <div className="text-center text-sm text-muted-foreground">
+            Please sign in to add comments
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

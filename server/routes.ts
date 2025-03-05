@@ -233,6 +233,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add this endpoint after the existing comments endpoint
+  app.post("/api/boards/:boardId/blocks/:blockId/comments/clear", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ 
+          error: true, 
+          message: "Authentication required" 
+        });
+      }
+
+      const board = await storage.getBoard(Number(req.params.boardId));
+      if (!board) {
+        return res.status(404).json({ error: true, message: "Board not found" });
+      }
+
+      // Clear comments for the specified block
+      const updatedBlocks = board.blocks.map(block => {
+        if (block.id === req.params.blockId) {
+          return {
+            ...block,
+            comments: []
+          };
+        }
+        return block;
+      });
+
+      const updatedBoard = await storage.updateBoard(Number(req.params.boardId), {
+        ...board,
+        blocks: updatedBlocks
+      });
+
+      res.json(updatedBoard);
+    } catch (err) {
+      console.error('Error clearing comments:', err);
+      res.status(500).json({ error: true, message: "Failed to clear comments" });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
   return httpServer;

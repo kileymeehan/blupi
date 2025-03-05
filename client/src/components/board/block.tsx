@@ -1,4 +1,5 @@
 import { useRef, useEffect, KeyboardEvent } from "react";
+import { MessageSquare } from "lucide-react";
 import type { Block as BlockType } from "@shared/schema";
 
 interface BlockProps {
@@ -43,6 +44,8 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
     }
   };
 
+  const commentCount = block.comments?.length || 0;
+
   return (
     <div className="group relative w-full h-full">
       <div
@@ -68,6 +71,20 @@ export default function Block({ block, onChange, isTemplate = false }: BlockProp
       <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-xs text-center text-gray-500 pb-1">
         {TYPE_LABELS[block.type]}
       </div>
+
+      {/* Comment count badge - only show if there are comments or on hover */}
+      {!isTemplate && (
+        <div className={`
+          absolute top-1 right-1
+          flex items-center gap-1
+          text-xs text-gray-500
+          ${commentCount > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+          transition-opacity duration-150
+        `}>
+          <MessageSquare className="w-4 h-4" />
+          <span>{commentCount}</span>
+        </div>
+      )}
     </div>
   );
 }
