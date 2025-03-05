@@ -9,6 +9,7 @@ import { CommentDialog } from "./comment-dialog";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
 import ImageUpload from './image-upload';
+import { CommentsOverview } from "./comments-overview";
 
 interface ColumnWithImage {
   id: string;
@@ -213,10 +214,6 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
     onBlocksChange(newBlocks);
   };
 
-  const handleBlockClick = (block: BlockType) => {
-    setSelectedBlock(block);
-    setCommentDialogOpen(true);
-  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -279,7 +276,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                 <LayoutGrid className={`w-5 h-5 transition-transform duration-300 ${isDrawerOpen ? 'rotate-0' : 'rotate-180'}`} />
               </Button>
             </div>
-            {isDrawerOpen && (
+            {isDrawerOpen ? (
               <Droppable droppableId="drawer">
                 {(provided) => (
                   <div ref={provided.innerRef} {...provided.droppableProps} className="p-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
@@ -288,6 +285,14 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                   </div>
                 )}
               </Droppable>
+            ) : (
+              <CommentsOverview 
+                board={board} 
+                onCommentClick={(block) => {
+                  setSelectedBlock(block);
+                  setCommentDialogOpen(true);
+                }}
+              />
             )}
           </div>
 
@@ -384,7 +389,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                           ref={provided.innerRef}
                                           {...provided.droppableProps}
                                           className={`
-                                            space-y-2 min-h-[100px] px-1 py-2 
+                                            space-y-2 min-h-[100px] px-2 py-2 
                                             rounded-lg bg-white border-2 
                                             border-gray-200
                                             transition-colors duration-200
@@ -406,10 +411,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                                     {...provided.dragHandleProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      group/block relative rounded-lg 
-                                                      w-full 
+                                                      relative rounded-lg
                                                       transition-transform duration-150
-                                                      cursor-pointer
                                                       ${snapshot.isDragging ? 'shadow-lg scale-[1.02]' : ''}
                                                     `}
                                                     style={{
@@ -418,9 +421,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                                         ? 'all 0.15s cubic-bezier(0.2, 0, 0, 1)'
                                                         : provided.draggableProps.style?.transition,
                                                     }}
-                                                    onClick={() => handleBlockClick(block)}
                                                   >
-                                                    <Block block={block} onChange={handleBlockChange} onCommentClick={() => handleBlockClick(block)} />
+                                                    <Block block={block} onChange={handleBlockChange} />
                                                   </div>
                                                 )}
                                               </Draggable>

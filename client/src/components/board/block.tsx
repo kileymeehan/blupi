@@ -55,10 +55,10 @@ export default function Block({ block, onChange, isTemplate = false, onCommentCl
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`
-          w-full h-full rounded-lg px-3 py-3 text-sm
+          w-full min-h-[120px] rounded-lg px-3 py-3 text-sm
           ${isTemplate ? 'flex items-center justify-center' : 'flex items-start text-left'}
           overflow-y-auto whitespace-pre-wrap break-words
-          leading-normal max-h-[100px]
+          leading-normal
           transition-all duration-150 ease-out
           focus:outline-none focus:ring-2 focus:ring-primary/20
         `}
