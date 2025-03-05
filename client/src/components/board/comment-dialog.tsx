@@ -55,9 +55,13 @@ export function CommentDialog({ open, onOpenChange, block, boardId }: CommentDia
 
       return response.json();
     },
-    onSuccess: () => {
-      // Force a complete refetch of the board data
+    onSuccess: (updatedBoard) => {
+      // Update the cache with the new board data
+      queryClient.setQueryData(['/api/boards', boardId], updatedBoard);
+
+      // Also invalidate to ensure we get fresh data
       queryClient.invalidateQueries({ queryKey: ['/api/boards', boardId] });
+
       form.reset();
       toast({
         title: "Success",
@@ -86,8 +90,13 @@ export function CommentDialog({ open, onOpenChange, block, boardId }: CommentDia
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedBoard) => {
+      // Update the cache with the new board data
+      queryClient.setQueryData(['/api/boards', boardId], updatedBoard);
+
+      // Also invalidate to ensure we get fresh data
       queryClient.invalidateQueries({ queryKey: ['/api/boards', boardId] });
+
       toast({
         title: "Success",
         description: "Comments cleared successfully",

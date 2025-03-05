@@ -216,6 +216,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
     onBlocksChange(newBlocks);
   };
 
+  // Update the comment handler to properly update local state
   const handleCommentClick = (block: BlockType) => {
     setSelectedBlock(block);
     setCommentDialogOpen(true);
