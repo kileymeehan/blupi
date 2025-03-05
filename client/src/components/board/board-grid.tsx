@@ -56,15 +56,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       }
       return res.json();
     },
-    refetchInterval: 5000, 
+    refetchInterval: 5000,
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes("Too many requests")) {
         return false;
       }
       return failureCount < 3;
     },
-    staleTime: 1000, 
-    cacheTime: 1000 * 60 * 5, 
+    staleTime: 1000,
+    cacheTime: 1000 * 60 * 5,
   });
 
   if (error) {
@@ -84,6 +84,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showBlocks, setShowBlocks] = useState(true); // Added state for Available Boxes
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
 
   if (boardLoading || !board) {
@@ -256,7 +257,18 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   };
 
   const toggleComments = () => {
-    setShowComments(!showComments);
+    if (showComments) {
+      setShowComments(false);
+    } else {
+      setShowComments(true);
+      if (!isDrawerOpen) {
+        setIsDrawerOpen(true);
+      }
+    }
+  };
+
+  const toggleBlocks = () => {
+    setShowBlocks(!showBlocks);
     if (!isDrawerOpen) {
       setIsDrawerOpen(true);
     }
@@ -266,6 +278,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     setIsDrawerOpen(!isDrawerOpen);
     if (!isDrawerOpen) {
       setShowComments(false);
+      setShowBlocks(false); // Added to hide Available Boxes when closing sidebar
     }
   };
 
@@ -316,16 +329,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
       <div className="flex flex-1 overflow-hidden">
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative`}>
+          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative h-[calc(100vh-5rem)]`}>
             <div className="flex flex-col h-full">
               <div className="border-b border-gray-200 bg-white">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setShowComments(false);
-                    setIsDrawerOpen(true);
-                  }}
+                  onClick={toggleBlocks}
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
@@ -336,7 +346,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   <LayoutGrid className="w-5 h-5" />
                   {isDrawerOpen && <span className="text-sm">Available Boxes</span>}
                 </Button>
-                <div className="w-full h-px bg-gray-200" /> 
+                <div className="w-full h-px bg-gray-200" />
                 <Button
                   variant="ghost"
                   size="sm"
@@ -346,6 +356,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     flex items-center gap-2
                     hover:bg-gray-100
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                    ${showComments ? 'bg-gray-100' : ''}
                   `}
                 >
                   <MessageSquare className="w-5 h-5" />
@@ -367,12 +378,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               </Button>
 
               {isDrawerOpen && (
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 overflow-y-auto relative">
                   <div className="h-full">
                     <div
                       className={`
-                        absolute w-full h-full bg-[#f5f2ea]
-                        transition-all duration-300 ease-in-out
+                        absolute w-full h-full bg-gray-800
+                        transition-all duration-300 ease-in-out overflow-y-auto
                         ${showComments ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}
                       `}
                     >
@@ -388,14 +399,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </div>
                     <div
                       className={`
-                        absolute w-full h-full bg-[#f5f2ea]
-                        transition-all duration-300 ease-in-out
+                        absolute w-full h-full bg-gray-800
+                        transition-all duration-300 ease-in-out overflow-y-auto
                         ${!showComments ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}
                       `}
                     >
                       <Droppable droppableId="drawer">
                         {(provided) => (
-                          <div ref={provided.innerRef} {...provided.droppableProps} className="p-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
+                          <div ref={provided.innerRef} {...provided.droppableProps} className="p-4">
                             <BlockDrawer />
                             {provided.placeholder}
                           </div>
@@ -496,10 +507,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                           className={`
                                             space-y-2 min-h-[100px] px-2 py-2 
                                             rounded-lg bg-white border-2 
-                                            border-gray-200
+                                            border-gray-200 relative z-0
                                             transition-colors duration-200
                                             ${snapshot.isDraggingOver ? 'bg-gray-50' : ''}
                                           `}
+                                          style={{
+                                            minHeight: '100px',
+                                          }}
                                         >
                                           {board.blocks
                                             .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
@@ -516,7 +530,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     {...provided.dragHandleProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      relative rounded-lg
+                                                      relative rounded-lg z-10
                                                       transition-all duration-300
                                                       ${snapshot.isDragging ? 'shadow-lg scale-[1.02]' : ''}
                                                       ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}

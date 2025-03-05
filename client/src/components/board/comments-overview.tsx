@@ -15,7 +15,7 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
   const blocksWithComments = board.blocks.filter(block => block.comments && block.comments.length > 0);
 
   const toggleCommentCompletion = useMutation({
-    mutationFn: async ({ blockId, commentId, completed }) => {
+    mutationFn: async ({ blockId, commentId, completed }: { blockId: string; commentId: string; completed: boolean }) => {
       const response = await fetch(`/api/boards/${board.id}/blocks/${blockId}/comments/${commentId}/toggle`, {
         method: "PATCH",
         headers: {
@@ -36,23 +36,23 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
   });
 
   return (
-    <div className="p-4 bg-[#f5f2ea]">
+    <div className="p-4 bg-gray-800 h-full">
       <div className="flex items-center mb-4">
-        <h2 className="font-semibold">All Comments</h2>
+        <h2 className="font-semibold text-gray-200">All Comments</h2>
       </div>
 
       <ScrollArea className="h-[calc(100vh-12rem)]">
         {blocksWithComments.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center">No comments yet</p>
+          <p className="text-sm text-gray-400 text-center">No comments yet</p>
         ) : (
           <div className="space-y-4">
             {blocksWithComments.map(block => (
               <div key={block.id} className="space-y-2">
-                <div className="text-sm font-medium">
+                <div className="text-sm font-medium text-gray-300">
                   {block.content.slice(0, 50)}{block.content.length > 50 ? '...' : ''}
                 </div>
                 {block.comments?.map(comment => (
-                  <div key={comment.id} className="bg-muted p-2 rounded-md">
+                  <div key={comment.id} className="bg-gray-700 p-2 rounded-md">
                     <div className="flex justify-between items-start mb-1">
                       <div className="flex items-center gap-2">
                         <Checkbox
@@ -65,19 +65,19 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
                             });
                           }}
                         />
-                        <span className="text-xs font-medium">{comment.username}</span>
+                        <span className="text-xs font-medium text-gray-300">{comment.username}</span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-gray-400">
                         {format(new Date(comment.createdAt), 'MMM d, h:mm a')}
                       </span>
                     </div>
-                    <p className="text-sm">{comment.content}</p>
+                    <p className="text-sm text-gray-200">{comment.content}</p>
                   </div>
                 ))}
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="w-full text-xs" 
+                  className="w-full text-xs hover:bg-gray-700 text-gray-300" 
                   onClick={() => onCommentClick(block)}
                 >
                   View All Comments
