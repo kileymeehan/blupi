@@ -108,15 +108,9 @@ export default function Dashboard() {
                     </div>
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                  <Button variant="outline" asChild className="w-full">
-                    <Link href={`/project/${project.id}`}>View Project</Link>
-                  </Button>
+                <CardContent>
                   <Button asChild className="w-full">
-                    <Link href={`/project/${project.id}/new`}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create New Blueprint
-                    </Link>
+                    <Link href={`/project/${project.id}`}>View Project</Link>
                   </Button>
                 </CardContent>
               </Card>
