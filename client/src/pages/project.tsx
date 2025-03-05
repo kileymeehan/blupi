@@ -109,7 +109,7 @@ export default function Project() {
         </div>
       </main>
 
-      <CreateBlueprintDialog 
+      <CreateBlueprintDialog
         open={createBlueprintOpen}
         onOpenChange={setCreateBlueprintOpen}
         projectId={Number(id)}
