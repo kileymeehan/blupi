@@ -65,10 +65,10 @@ export class MemStorage implements IStorage {
       id,
       createdAt,
       userId: 1, // Default for now
-      projectId: null,
+      projectId: insertBoard.projectId, // Ensure projectId is preserved from input
       description: insertBoard.description || null,
-      blocks: (insertBoard.blocks || []) as Block[], // Type assertion for blocks
-      phases: (insertBoard.phases || []) as Phase[] // Type assertion for phases
+      blocks: (insertBoard.blocks || []) as Block[],
+      phases: (insertBoard.phases || []) as Phase[]
     };
     this.boards.set(id, board);
     return board;
