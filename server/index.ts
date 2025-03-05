@@ -79,13 +79,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
       }
     });
 
-    // Handle SPA routing - must be after API routes and error handling
-    app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api')) return next();
-      if (process.env.NODE_ENV !== "production") return next();
-      res.sendFile('index.html', { root: './dist/client' });
-    });
-
     const port = process.env.PORT || 5000;
     server.listen(port, () => {
       log(`Server running on port ${port}`);

@@ -38,12 +38,19 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
           body: JSON.stringify(data),
         });
 
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Server returned non-JSON response");
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+
+        let responseData;
+        try {
+          const text = await response.text();
+          console.log('Raw response:', text);
+          responseData = JSON.parse(text);
+        } catch (parseError) {
+          console.error('Failed to parse response:', parseError);
+          throw new Error('Server returned invalid JSON');
         }
 
-        const responseData = await response.json();
         if (!response.ok) {
           throw new Error(responseData.message || "Failed to create project");
         }
