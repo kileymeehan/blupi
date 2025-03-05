@@ -45,6 +45,17 @@ interface BoardGridProps {
 }
 
 export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange }: BoardGridProps) {
+  // Initialize all hooks at the top
+  const [_, setLocation] = useLocation();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [showBlocks, setShowBlocks] = useState(true);
+  const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
+  const [addToProjectOpen, setAddToProjectOpen] = useState(false);
+
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
     queryFn: async () => {
@@ -64,10 +75,19 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       }
       return failureCount < 3;
     },
-    staleTime: 1000,
-    cacheTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 5, 
   });
 
+  // Render loading state
+  if (boardLoading || !board) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading project...</div>
+      </div>
+    );
+  }
+
+  // Render error state
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -75,24 +95,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           <div className="text-lg text-red-600 mb-2">{error.message}</div>
           <div className="text-sm text-gray-600">Please wait a moment and try again</div>
         </div>
-      </div>
-    );
-  }
-
-  const [_, setLocation] = useLocation();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
-  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
-  const [showComments, setShowComments] = useState(false);
-  const [showBlocks, setShowBlocks] = useState(true);
-  const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
-  const [addToProjectOpen, setAddToProjectOpen] = useState(false);
-
-  if (boardLoading || !board) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading project...</div>
       </div>
     );
   }
