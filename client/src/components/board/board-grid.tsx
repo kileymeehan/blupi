@@ -1,8 +1,9 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus } from "lucide-react";
+import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import { CommentDialog } from "./comment-dialog";
@@ -45,7 +46,6 @@ interface BoardGridProps {
 }
 
 export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange }: BoardGridProps) {
-  // Initialize all hooks at the top
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -55,6 +55,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [showBlocks, setShowBlocks] = useState(true);
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
   const [addToProjectOpen, setAddToProjectOpen] = useState(false);
+  const [showContext, setShowContext] = useState(false);
+  const [blueprintDetails, setBlueprintDetails] = useState("");
+  const [personaDetails, setPersonaDetails] = useState("");
+  const [personaImage, setPersonaImage] = useState<string | null>(null);
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -78,7 +82,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     gcTime: 1000 * 60 * 5,
   });
 
-  // Render loading state
   if (boardLoading || !board) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -87,7 +90,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     );
   }
 
-  // Render error state
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -354,6 +356,22 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => setShowContext(!showContext)}
+                  className={`
+                    w-full h-12 px-4
+                    flex items-center gap-2
+                    hover:bg-gray-100
+                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                    ${showContext && isDrawerOpen ? 'bg-gray-100' : ''}
+                  `}
+                >
+                  <Info className="w-5 h-5" />
+                  {isDrawerOpen && <span className="text-sm">Context</span>}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={toggleBlocks}
                   className={`
                     w-full h-12 px-4
@@ -400,6 +418,73 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               {isDrawerOpen && (
                 <div className="flex-1 overflow-hidden">
                   <div className="h-full">
+                    <div className={`
+                      h-full overflow-y-auto
+                      ${showContext ? 'block' : 'hidden'}
+                      bg-blue-50 p-4
+                    `}>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Blueprint Details
+                          </label>
+                          <Textarea
+                            placeholder="Add key details about this blueprint..."
+                            value={blueprintDetails}
+                            onChange={(e) => setBlueprintDetails(e.target.value)}
+                            className="min-h-[150px] resize-none"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium block">
+                            Persona
+                          </label>
+                          <div 
+                            className="w-full h-40 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
+                            onClick={() => document.getElementById('persona-image')?.click()}
+                          >
+                            {personaImage ? (
+                              <img 
+                                src={personaImage} 
+                                alt="Persona" 
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="text-center">
+                                <Upload className="w-8 h-8 mx-auto text-gray-400" />
+                                <span className="text-sm text-gray-500 mt-2 block">
+                                  Upload persona image
+                                </span>
+                              </div>
+                            )}
+                            <input
+                              id="persona-image"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => {
+                                    setPersonaImage(reader.result as string);
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                          </div>
+                          <Textarea
+                            placeholder="Describe the persona..."
+                            value={personaDetails}
+                            onChange={(e) => setPersonaDetails(e.target.value)}
+                            className="min-h-[100px] resize-none mt-2"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className={`
                       h-full overflow-y-auto
                       ${showBlocks ? 'block' : 'hidden'}
