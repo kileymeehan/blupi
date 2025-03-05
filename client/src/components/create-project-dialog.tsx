@@ -46,10 +46,21 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
     }
   });
 
-  // Get next color by cycling through the list
+  // Get next color by finding the first unused color in the sequence
   const getNextColor = () => {
-    const projectCount = projects.length;
-    return projectColors[projectCount % projectColors.length];
+    if (projects.length === 0) return projectColors[0];
+
+    const lastProject = projects[projects.length - 1];
+    const lastColorIndex = projectColors.indexOf(lastProject.color);
+
+    // If the last color wasn't in our list or was the last color,
+    // start from the beginning
+    if (lastColorIndex === -1 || lastColorIndex === projectColors.length - 1) {
+      return projectColors[0];
+    }
+
+    // Return the next color in sequence
+    return projectColors[lastColorIndex + 1];
   };
 
   const form = useForm<InsertProject>({
@@ -104,7 +115,11 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
         description: "Project created successfully",
       });
       onOpenChange(false);
-      form.reset();
+      form.reset({
+        name: "",
+        description: "",
+        color: getNextColor() // Set new color for next project
+      });
       setShowCustomPicker(false);
     },
     onError: (error: Error) => {
