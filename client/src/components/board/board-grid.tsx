@@ -82,6 +82,17 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     gcTime: 1000 * 60 * 5,
   });
 
+  const { data: project } = useQuery({
+    queryKey: ['/api/projects', board?.projectId],
+    queryFn: async () => {
+      if (!board?.projectId) return null;
+      const res = await fetch(`/api/projects/${board.projectId}`);
+      if (!res.ok) throw new Error('Failed to fetch project');
+      return res.json();
+    },
+    enabled: !!board?.projectId,
+  });
+
   if (boardLoading || !board) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -333,8 +344,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             onClick={() => setAddToProjectOpen(true)}
             className="h-10 px-3"
           >
-            <FolderPlus className="w-5 h-5" />
-            Add to Project
+            <FolderPlus className="w-5 h-5 mr-2" />
+            {project ? project.name : 'Add to Project'}
           </Button>
           <Button variant="ghost" size="sm" className="h-10 px-3">
             <Share2 className="w-5 h-5" />
