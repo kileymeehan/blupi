@@ -48,7 +48,7 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
   const [isEditingName, setIsEditingName] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
-  const [showComments, setShowComments] = useState(false); // Added state
+  const [showComments, setShowComments] = useState(false);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -215,10 +215,16 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
     onBlocksChange(newBlocks);
   };
 
-  // Add the handler function back
   const handleCommentClick = (block: BlockType) => {
     setSelectedBlock(block);
     setCommentDialogOpen(true);
+  };
+
+  const toggleComments = () => {
+    setShowComments(!showComments);
+    if (!isDrawerOpen) {
+      setIsDrawerOpen(true);
+    }
   };
 
   return (
@@ -272,38 +278,48 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Collapsible block drawer */}
           <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-[width] duration-300`}>
-            <div className="p-4 border-b border-gray-300 flex flex-col gap-2">
+            <div className="p-4 border-b border-gray-300 flex gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
+                  if (showComments) {
+                    setShowComments(false);
+                  }
                   setIsDrawerOpen(!isDrawerOpen);
-                  setShowComments(false);
                 }}
                 className="h-10 w-10 p-2"
               >
                 <LayoutGrid className={`w-5 h-5 transition-transform duration-300 ${isDrawerOpen ? 'rotate-0' : 'rotate-180'}`} />
               </Button>
-              {!isDrawerOpen && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowComments(true)}
-                  className="h-10 w-10 p-2"
-                >
-                  <MessageSquare className="w-5 h-5" />
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleComments}
+                className="h-10 w-10 p-2"
+              >
+                <MessageSquare className="w-5 h-5" />
+              </Button>
             </div>
             {isDrawerOpen ? (
-              <Droppable droppableId="drawer">
-                {(provided) => (
-                  <div ref={provided.innerRef} {...provided.droppableProps} className="p-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
-                    <BlockDrawer />
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
+              showComments ? (
+                <CommentsOverview
+                  board={board}
+                  onCommentClick={(block) => {
+                    setSelectedBlock(block);
+                    setCommentDialogOpen(true);
+                  }}
+                />
+              ) : (
+                <Droppable droppableId="drawer">
+                  {(provided) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className="p-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
+                      <BlockDrawer />
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              )
             ) : showComments ? (
               <CommentsOverview
                 board={board}

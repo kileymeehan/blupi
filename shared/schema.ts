@@ -33,13 +33,14 @@ export const insertProjectSchema = createInsertSchema(projects).omit({ id: true,
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 
-// Add comment schema before block schema
+// Update the comment schema to include completion status
 export const commentSchema = z.object({
   id: z.string(),
   content: z.string(),
   userId: z.number(),
   createdAt: z.string(),
-  username: z.string()
+  username: z.string(),
+  completed: z.boolean().default(false)
 });
 
 export type Comment = z.infer<typeof commentSchema>;

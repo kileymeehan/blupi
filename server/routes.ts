@@ -5,7 +5,6 @@ import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid'; //Import nanoid for unique comment IDs
 
-
 export async function registerRoutes(app: Express): Promise<Server> {
   // Project routes
   app.get("/api/projects", async (_req, res) => {
@@ -206,6 +205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 content,
                 userId: 1, // Default user ID for now
                 username: username || "Anonymous",
+                completed: false, // Add completed field
                 createdAt: new Date().toISOString()
               }
             ]
@@ -254,6 +254,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error('Error clearing comments:', err);
       res.status(500).json({ error: true, message: "Failed to clear comments" });
+    }
+  });
+
+  // Add this endpoint for toggling comment completion
+  app.patch("/api/boards/:boardId/blocks/:blockId/comments/:commentId/toggle", async (req, res) => {
+    try {
+      const { completed } = req.body;
+
+      const board = await storage.getBoard(Number(req.params.boardId));
+      if (!board) {
+        return res.status(404).json({ error: true, message: "Board not found" });
+      }
+
+      // Update the comment's completion status
+      const updatedBlocks = board.blocks.map(block => {
+        if (block.id === req.params.blockId) {
+          return {
+            ...block,
+            comments: (block.comments || []).map(comment => {
+              if (comment.id === req.params.commentId) {
+                return {
+                  ...comment,
+                  completed
+                };
+              }
+              return comment;
+            })
+          };
+        }
+        return block;
+      });
+
+      const updatedBoard = await storage.updateBoard(Number(req.params.boardId), {
+        ...board,
+        blocks: updatedBlocks
+      });
+
+      res.json(updatedBoard);
+    } catch (err) {
+      console.error('Error toggling comment completion:', err);
+      res.status(500).json({ error: true, message: "Failed to update comment" });
     }
   });
 
