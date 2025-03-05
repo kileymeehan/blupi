@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, LogOut, User, LayoutTemplate, Briefcase } from "lucide-react";
+import { Plus, LogOut, User, LayoutGrid, Briefcase } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Separator } from "@/components/ui/separator";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
+import { format } from "date-fns";
 
 export default function Dashboard() {
   const { user, logout } = useFirebaseAuth();
@@ -34,6 +35,15 @@ export default function Dashboard() {
     }
   });
 
+  // Sort boards by creation date, most recent first
+  const sortedBoards = [...boards].sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  // Get the 3 most recent boards
+  const recentBoards = sortedBoards.slice(0, 3);
+
+  // Get unassigned boards
   const unassignedBoards = boards.filter((board: any) => !board.projectId);
 
   return (
@@ -70,12 +80,50 @@ export default function Dashboard() {
           <p className="text-muted-foreground mb-8">Manage your blueprints and projects</p>
         </div>
 
+        {/* Recent Blueprints Section */}
+        <section className="mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-2">
+              <LayoutGrid className="h-6 w-6" />
+              <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {recentBoards.map((board: any) => (
+              <Card key={board.id}>
+                <CardHeader>
+                  <CardTitle>{board.name}</CardTitle>
+                  <CardDescription>
+                    {board.description}
+                    {board.projectId && (
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        Project: {projects.find(p => p.id === board.projectId)?.name}
+                      </div>
+                    )}
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Created {format(new Date(board.createdAt), 'MMM d, yyyy')}
+                    </div>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button variant="outline" asChild className="w-full">
+                    <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        <Separator className="my-8" />
+
         {/* Blueprints Section */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
-              <LayoutTemplate className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold">Blueprints</h2>
+              <LayoutGrid className="h-6 w-6" />
+              <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
             </div>
             <Button onClick={() => setCreateBlueprintOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -109,7 +157,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <Separator className="my-8 h-px bg-border" />
+        <Separator className="my-8" />
 
         {/* Projects Section */}
         <section>
