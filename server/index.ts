@@ -58,15 +58,15 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 (async () => {
   try {
+    // Register API routes before Vite middleware
+    const server = await registerRoutes(app);
+
     // Set up development middleware
     if (process.env.NODE_ENV !== "production") {
-      await setupVite(app);
+      await setupVite(app, server);
     } else {
       serveStatic(app);
     }
-
-    // Register API routes after Vite middleware
-    const server = await registerRoutes(app);
 
     // API Error handling middleware - must be after all routes
     app.use('/api', (err: any, req: Request, res: Response, next: NextFunction) => {
