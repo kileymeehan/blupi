@@ -114,7 +114,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
           type: blockType as BlockType['type'],
           content: '',
           phaseIndex,
-          columnIndex
+          columnIndex,
+          comments: [] // Initialize empty comments array
         };
 
         blocks.splice(destination.index, 0, newBlock);
