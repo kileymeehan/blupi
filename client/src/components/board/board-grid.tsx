@@ -84,7 +84,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [showBlocks, setShowBlocks] = useState(true); // Added state for Available Boxes
+  const [showBlocks, setShowBlocks] = useState(true); 
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
 
   if (boardLoading || !board) {
@@ -278,7 +278,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     setIsDrawerOpen(!isDrawerOpen);
     if (!isDrawerOpen) {
       setShowComments(false);
-      setShowBlocks(false); // Added to hide Available Boxes when closing sidebar
+      setShowBlocks(false); 
     }
   };
 
@@ -382,7 +382,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   <div className="h-full">
                     <div
                       className={`
-                        absolute w-full h-full bg-gray-800
+                        absolute w-full h-full bg-gray-100
                         transition-all duration-300 ease-in-out overflow-y-auto
                         ${showComments ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}
                       `}
@@ -399,14 +399,19 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </div>
                     <div
                       className={`
-                        absolute w-full h-full bg-gray-800
+                        absolute w-full h-full bg-gray-100
                         transition-all duration-300 ease-in-out overflow-y-auto
                         ${!showComments ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}
                       `}
                     >
                       <Droppable droppableId="drawer">
                         {(provided) => (
-                          <div ref={provided.innerRef} {...provided.droppableProps} className="p-4">
+                          <div 
+                            ref={provided.innerRef} 
+                            {...provided.droppableProps} 
+                            className="p-4"
+                            style={{ position: 'relative', zIndex: 1 }}
+                          >
                             <BlockDrawer />
                             {provided.placeholder}
                           </div>
