@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/page-header";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import type { Board } from "@shared/schema";
 
 export default function Project() {
   const { id } = useParams();
@@ -25,14 +26,14 @@ export default function Project() {
     }
   });
 
-  const { data: boards = [], isLoading: boardsLoading } = useQuery({
-    queryKey: ['/api/boards', { projectId: id }],
+  const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
+    queryKey: ['/api/boards'],
     queryFn: async () => {
       const res = await fetch('/api/boards');
       if (!res.ok) throw new Error('Failed to fetch boards');
       const allBoards = await res.json();
-      // Convert id to number for correct comparison
-      return allBoards.filter((board: any) => board.projectId === Number(id));
+      // Ensure proper type comparison by converting both to numbers
+      return allBoards.filter((board: Board) => board.projectId === Number(id));
     }
   });
 
@@ -85,7 +86,7 @@ export default function Project() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {boards.map((board: any) => (
+          {boards.map((board) => (
             <Card key={board.id}>
               <CardHeader>
                 <CardTitle>{board.name}</CardTitle>

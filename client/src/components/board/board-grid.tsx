@@ -1,7 +1,7 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload } from "lucide-react";
-import { useLocation } from "wouter";
+import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Briefcase } from "lucide-react";
+import { useLocation, Link } from "wouter";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import Block from "./block";
@@ -315,9 +315,28 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             onClick={handleClose}
             className="h-10 px-3 -ml-3"
           >
-            <Home className="w-5 h-5" />
+            <Home className="w-5 h-5 mr-2" />
             Home
           </Button>
+
+          {project && (
+            <>
+              <div className="w-px h-6 bg-gray-200 mx-2" />
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="h-10 px-3"
+              >
+                <Link href={`/project/${project.id}`}>
+                  <div className="flex items-center">
+                    <Briefcase className="w-5 h-5 mr-2" />
+                    {project.name}
+                  </div>
+                </Link>
+              </Button>
+            </>
+          )}
 
           <div className="w-px h-6 bg-gray-200 mx-2" />
 
@@ -451,14 +470,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                           <label className="text-sm font-medium block">
                             Persona
                           </label>
-                          <div 
+                          <div
                             className="w-full h-40 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
                             onClick={() => document.getElementById('persona-image')?.click()}
                           >
                             {personaImage ? (
-                              <img 
-                                src={personaImage} 
-                                alt="Persona" 
+                              <img
+                                src={personaImage}
+                                alt="Persona"
                                 className="w-full h-full object-cover rounded-lg"
                               />
                             ) : (
