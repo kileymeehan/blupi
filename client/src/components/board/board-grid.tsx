@@ -466,7 +466,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     <div className={`
                       h-full overflow-y-auto
                       ${showContext ? 'block' : 'hidden'}
-                      bg-blue-50 p-4
+                      bg-slate-50 p-4
                     `}>
                       <div className="space-y-4">
                         <div>
@@ -533,7 +533,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     <div className={`
                       h-full overflow-y-auto
                       ${showBlocks ? 'block' : 'hidden'}
-                      bg-blue-50
+                      bg-slate-50
                     `}>
                       <Droppable droppableId="drawer">
                         {(provided) => (
@@ -553,7 +553,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     <div className={`
                       h-full overflow-y-auto
                       ${showComments ? 'block' : 'hidden'}
-                      bg-blue-50
+                      bg-slate-50
                     `}>
                       <CommentsOverview
                         board={board}

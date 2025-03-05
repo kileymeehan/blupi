@@ -29,7 +29,6 @@ export default function LoginPage() {
     },
   });
 
-  // Handle redirect in useEffect instead of during render
   useEffect(() => {
     if (user) {
       setLocation("/");
@@ -52,86 +51,125 @@ export default function LoginPage() {
     }
   };
 
-  // Return null during user state transitions
   if (user) {
     return null;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
-          <p className="text-sm text-muted-foreground">
-            Sign in to your account
+    <div className="min-h-screen flex">
+      {/* Left side - Hero content */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/90 to-primary/40 text-white p-12 flex-col justify-between">
+        <div>
+          <h1 className="text-4xl font-bold mb-6">
+            Welcome to Blueprint
+          </h1>
+          <p className="text-xl font-light leading-relaxed opacity-90 max-w-md">
+            Transform your project workflows with our intelligent design platform. 
+            Collaborate seamlessly, iterate faster, and bring your ideas to life.
           </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleSignIn}
-          >
-            <SiGoogle className="mr-2 h-4 w-4" />
-            Sign in with Google
-          </Button>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+        </div>
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                ✨
+              </div>
+              <p className="text-lg">Intelligent workflow management</p>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                🤝
+              </div>
+              <p className="text-lg">Real-time collaboration</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                📊
+              </div>
+              <p className="text-lg">Dynamic project organization</p>
             </div>
           </div>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type="email"
-                placeholder="Email"
-                {...form.register("email")}
-              />
-              {form.formState.errors.email && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.email.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="Password"
-                {...form.register("password")}
-              />
-              {form.formState.errors.password && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.password.message}
-                </p>
-              )}
-            </div>
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
-            <Button type="submit" className="w-full">
-              Sign in
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter>
-          <p className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
+        </div>
+      </div>
+
+      {/* Right side - Login form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-background to-muted/50">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
+            <p className="text-sm text-muted-foreground">
+              Sign in to your account to continue
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <Button
-              variant="link"
-              className="px-0"
-              onClick={() => setLocation("/auth/register")}
+              type="button"
+              variant="outline"
+              className="w-full hover:bg-primary/5"
+              onClick={handleGoogleSignIn}
             >
-              Register
+              <SiGoogle className="mr-2 h-4 w-4" />
+              Sign in with Google
             </Button>
-          </p>
-        </CardFooter>
-      </Card>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  {...form.register("email")}
+                  className="bg-background"
+                />
+                {form.formState.errors.email && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.email.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  {...form.register("password")}
+                  className="bg-background"
+                />
+                {form.formState.errors.password && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+              {error && (
+                <p className="text-sm text-destructive">{error}</p>
+              )}
+              <Button type="submit" className="w-full">
+                Sign in
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter>
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Button
+                variant="link"
+                className="px-0"
+                onClick={() => setLocation("/auth/register")}
+              >
+                Register
+              </Button>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }
