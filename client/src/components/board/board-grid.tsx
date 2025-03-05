@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare } from "lucide-react";
+import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import Block from "./block";
@@ -237,12 +237,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     onBlocksChange(newBlocks);
   };
 
-  // Update the comment handler to properly update local state
   const handleCommentClick = (block: BlockType) => {
     setSelectedBlock(block);
     setCommentDialogOpen(true);
     setHighlightedBlockId(block.id);
-    // Remove highlight after 2 seconds
     setTimeout(() => setHighlightedBlockId(null), 2000);
   };
 
@@ -253,8 +251,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     }
   };
 
+  const toggleSidebar = () => {
+    setIsDrawerOpen(!isDrawerOpen);
+    if (!isDrawerOpen) {
+      setShowComments(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-screen">
+    <div className="min-h-screen bg-background">
       {/* Fixed header bar */}
       <div className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
         <div className="flex items-center gap-4 pl-4">
@@ -303,7 +308,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       <div className="flex flex-1 overflow-hidden">
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Collapsible block drawer */}
-          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-[width] duration-300`}>
+          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative`}>
             <div className="flex flex-col h-full">
               {/* Panel headers */}
               <div className="border-b border-gray-200 bg-white">
@@ -336,32 +341,63 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
                   `}
                 >
-                  {!isDrawerOpen && <MessageSquare className="w-5 h-5" />}
-                  {isDrawerOpen && <span className="text-sm ml-7">All Comments</span>}
+                  <MessageSquare className="w-5 h-5" />
+                  {isDrawerOpen && <span className="text-sm">All Comments</span>}
                 </Button>
               </div>
+
+              {/* Collapse button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleSidebar}
+                className="absolute top-2 -right-4 w-8 h-8 rounded-full bg-white shadow-md z-10 hover:bg-gray-100"
+              >
+                {isDrawerOpen ? (
+                  <ChevronLeft className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
+              </Button>
 
               {/* Panel content */}
               {isDrawerOpen && (
                 <div className="flex-1 overflow-hidden">
-                  {showComments ? (
-                    <CommentsOverview
-                      board={board}
-                      onCommentClick={(block) => {
-                        setSelectedBlock(block);
-                        setCommentDialogOpen(true);
-                      }}
-                    />
-                  ) : (
-                    <Droppable droppableId="drawer">
-                      {(provided) => (
-                        <div ref={provided.innerRef} {...provided.droppableProps} className="p-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
-                          <BlockDrawer />
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </Droppable>
-                  )}
+                  <div className="h-full">
+                    <div
+                      className={`
+                        absolute w-full h-full bg-[#f5f2ea]
+                        transition-all duration-300 ease-in-out
+                        ${showComments ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}
+                      `}
+                    >
+                      <CommentsOverview
+                        board={board}
+                        onCommentClick={(block) => {
+                          setSelectedBlock(block);
+                          setCommentDialogOpen(true);
+                          setHighlightedBlockId(block.id);
+                          setTimeout(() => setHighlightedBlockId(null), 2000);
+                        }}
+                      />
+                    </div>
+                    <div
+                      className={`
+                        absolute w-full h-full bg-[#f5f2ea]
+                        transition-all duration-300 ease-in-out
+                        ${!showComments ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}
+                      `}
+                    >
+                      <Droppable droppableId="drawer">
+                        {(provided) => (
+                          <div ref={provided.innerRef} {...provided.droppableProps} className="p-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
+                            <BlockDrawer />
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

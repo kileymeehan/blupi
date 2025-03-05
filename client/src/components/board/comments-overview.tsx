@@ -13,7 +13,6 @@ interface CommentsOverviewProps {
 
 export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProps) {
   const queryClient = useQueryClient();
-  // Get all blocks with comments
   const blocksWithComments = board.blocks.filter(block => block.comments && block.comments.length > 0);
 
   const toggleCommentCompletion = useMutation({
@@ -33,13 +32,12 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
       return response.json();
     },
     onSuccess: (updatedBoard) => {
-      // Update the cache with the new board data
       queryClient.setQueryData(['/api/boards', board.id], updatedBoard);
     },
   });
 
   return (
-    <div className="p-4 bg-gray-50">
+    <div className="p-4 bg-[#f5f2ea]">
       <div className="flex items-center mb-4">
         <h2 className="font-semibold">All Comments</h2>
       </div>

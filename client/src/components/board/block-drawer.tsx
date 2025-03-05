@@ -7,7 +7,7 @@ export default function BlockDrawer() {
   const blockTypes = LAYER_TYPES.filter(type => type.type !== 'touchpoint');
 
   return (
-    <div className="w-full bg-white p-4">
+    <div className="w-full p-4">
       <h3 className="text-sm font-medium text-center mb-4 text-muted-foreground">
         Available Boxes
       </h3>
@@ -32,7 +32,7 @@ export default function BlockDrawer() {
                     content: '',
                     phaseIndex: -1,
                     columnIndex: -1,
-                    comments: [] // Add default empty comments array
+                    comments: []
                   }}
                   isTemplate
                 />
