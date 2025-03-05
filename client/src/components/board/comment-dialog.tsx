@@ -172,12 +172,12 @@ export function CommentDialog({ open, onOpenChange, block, boardId }: CommentDia
                   <FormItem>
                     <FormControl>
                       <div className="flex gap-2">
-                        <Input 
-                          placeholder="Add a comment..." 
-                          {...field} 
+                        <Input
+                          placeholder="Add a comment..."
+                          {...field}
                         />
-                        <Button 
-                          type="submit" 
+                        <Button
+                          type="submit"
                           disabled={addCommentMutation.isPending}
                         >
                           {addCommentMutation.isPending ? "Adding..." : "Add"}

@@ -33,16 +33,15 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
       return response.json();
     },
     onSuccess: (updatedBoard) => {
-      // Update the cache immediately
+      // Update the cache with the new board data
       queryClient.setQueryData(['/api/boards', board.id], updatedBoard);
     },
   });
 
   return (
-    <div className="p-4">
-      <div className="flex items-center gap-2 mb-4">
-        <MessageSquare className="w-5 h-5" />
-        <h2 className="font-semibold">Comments</h2>
+    <div className="p-4 bg-gray-50">
+      <div className="flex items-center mb-4">
+        <h2 className="font-semibold">All Comments</h2>
       </div>
 
       <ScrollArea className="h-[calc(100vh-12rem)]">

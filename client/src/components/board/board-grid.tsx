@@ -61,6 +61,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
 
   if (boardLoading || !board) {
     return (
@@ -240,6 +241,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const handleCommentClick = (block: BlockType) => {
     setSelectedBlock(block);
     setCommentDialogOpen(true);
+    setHighlightedBlockId(block.id);
+    // Remove highlight after 2 seconds
+    setTimeout(() => setHighlightedBlockId(null), 2000);
   };
 
   const toggleComments = () => {
@@ -302,15 +306,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-[width] duration-300`}>
             <div className="flex flex-col h-full">
               {/* Panel headers */}
-              <div className="border-b border-gray-200">
+              <div className="border-b border-gray-200 bg-white">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    if (showComments) {
-                      setShowComments(false);
-                    }
-                    setIsDrawerOpen(!isDrawerOpen);
+                    setShowComments(false);
+                    setIsDrawerOpen(true);
                   }}
                   className={`
                     w-full h-12 px-4
@@ -334,8 +336,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
                   `}
                 >
-                  <MessageSquare className="w-5 h-5" />
-                  {isDrawerOpen && <span className="text-sm">Comments</span>}
+                  {!isDrawerOpen && <MessageSquare className="w-5 h-5" />}
+                  {isDrawerOpen && <span className="text-sm ml-7">All Comments</span>}
                 </Button>
               </div>
 
@@ -481,8 +483,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
                                                       relative rounded-lg
-                                                      transition-transform duration-150
+                                                      transition-all duration-300
                                                       ${snapshot.isDragging ? 'shadow-lg scale-[1.02]' : ''}
+                                                      ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                     `}
                                                     style={{
                                                       ...provided.draggableProps.style,
