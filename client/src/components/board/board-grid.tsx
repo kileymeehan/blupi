@@ -278,57 +278,66 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
         <DragDropContext onDragEnd={handleDragEnd}>
           {/* Collapsible block drawer */}
           <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-[width] duration-300`}>
-            <div className="p-4 border-b border-gray-300 flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (showComments) {
-                    setShowComments(false);
-                  }
-                  setIsDrawerOpen(!isDrawerOpen);
-                }}
-                className="h-10 w-10 p-2"
-              >
-                <LayoutGrid className={`w-5 h-5 transition-transform duration-300 ${isDrawerOpen ? 'rotate-0' : 'rotate-180'}`} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleComments}
-                className="h-10 w-10 p-2"
-              >
-                <MessageSquare className="w-5 h-5" />
-              </Button>
-            </div>
-            {isDrawerOpen ? (
-              showComments ? (
-                <CommentsOverview
-                  board={board}
-                  onCommentClick={(block) => {
-                    setSelectedBlock(block);
-                    setCommentDialogOpen(true);
+            <div className="flex flex-col">
+              {/* Panel headers */}
+              <div className="border-b border-gray-200">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (showComments) {
+                      setShowComments(false);
+                    }
+                    setIsDrawerOpen(!isDrawerOpen);
                   }}
-                />
-              ) : (
-                <Droppable droppableId="drawer">
-                  {(provided) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps} className="p-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
-                      <BlockDrawer />
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              )
-            ) : showComments ? (
-              <CommentsOverview
-                board={board}
-                onCommentClick={(block) => {
-                  setSelectedBlock(block);
-                  setCommentDialogOpen(true);
-                }}
-              />
-            ) : null}
+                  className={`
+                    w-full h-12 px-4
+                    flex items-center gap-2
+                    hover:bg-gray-100
+                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                  `}
+                >
+                  <LayoutGrid className="w-5 h-5" />
+                  {isDrawerOpen && <span className="text-sm">Available Boxes</span>}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleComments}
+                  className={`
+                    w-full h-12 px-4
+                    flex items-center gap-2
+                    hover:bg-gray-100
+                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                  `}
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  {isDrawerOpen && <span className="text-sm">Comments</span>}
+                </Button>
+              </div>
+
+              {/* Panel content */}
+              {isDrawerOpen ? (
+                showComments ? (
+                  <CommentsOverview
+                    board={board}
+                    onCommentClick={(block) => {
+                      setSelectedBlock(block);
+                      setCommentDialogOpen(true);
+                    }}
+                  />
+                ) : (
+                  <Droppable droppableId="drawer">
+                    {(provided) => (
+                      <div ref={provided.innerRef} {...provided.droppableProps} className="p-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
+                        <BlockDrawer />
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                )
+              ) : null}
+            </div>
           </div>
 
           {/* Board content */}

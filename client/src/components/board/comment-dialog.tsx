@@ -44,6 +44,7 @@ export function CommentDialog({ open, onOpenChange, block, boardId }: CommentDia
         },
         body: JSON.stringify({
           content: data.content,
+          username: user?.displayName || "Anonymous"
         }),
       });
 
@@ -55,6 +56,7 @@ export function CommentDialog({ open, onOpenChange, block, boardId }: CommentDia
       return response.json();
     },
     onSuccess: () => {
+      // Force a complete refetch of the board data
       queryClient.invalidateQueries({ queryKey: ['/api/boards', boardId] });
       form.reset();
       toast({
