@@ -33,13 +33,25 @@ export const insertProjectSchema = createInsertSchema(projects).omit({ id: true,
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 
-// Block schema
+// Add comment schema before block schema
+export const commentSchema = z.object({
+  id: z.string(),
+  content: z.string(),
+  userId: z.number(),
+  createdAt: z.string(),
+  username: z.string()
+});
+
+export type Comment = z.infer<typeof commentSchema>;
+
+// Update block schema to include comments
 export const blockSchema = z.object({
   id: z.string(),
   type: z.enum(['touchpoint', 'role', 'process', 'pitfall', 'policy', 'technology', 'rationale', 'question', 'note']),
   content: z.string(),
   phaseIndex: z.number(),
-  columnIndex: z.number()
+  columnIndex: z.number(),
+  comments: z.array(commentSchema).optional().default([])
 });
 
 export type Block = z.infer<typeof blockSchema>;

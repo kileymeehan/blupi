@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
+import { nanoid } from 'nanoid'; //Import nanoid for unique comment IDs
+
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Project routes
@@ -173,6 +175,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error('Error deleting board:', err);
       res.status(500).json({ error: true, message: "Failed to delete board" });
+    }
+  });
+
+  // Add this endpoint after the other board routes
+  app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ 
+          error: true, 
+          message: "Authentication required" 
+        });
+      }
+
+      const { content } = req.body;
+      if (!content) {
+        return res.status(400).json({ 
+          error: true, 
+          message: "Comment content is required" 
+        });
+      }
+
+      const board = await storage.getBoard(Number(req.params.boardId));
+      if (!board) {
+        return res.status(404).json({ error: true, message: "Board not found" });
+      }
+
+      // Find and update the block with the new comment
+      const updatedBlocks = board.blocks.map(block => {
+        if (block.id === req.params.blockId) {
+          return {
+            ...block,
+            comments: [
+              ...(block.comments || []),
+              {
+                id: nanoid(),
+                content,
+                userId: req.user.id,
+                username: req.user.username,
+                createdAt: new Date().toISOString()
+              }
+            ]
+          };
+        }
+        return block;
+      });
+
+      const updatedBoard = await storage.updateBoard(Number(req.params.boardId), {
+        ...board,
+        blocks: updatedBlocks
+      });
+
+      res.json(updatedBoard);
+    } catch (err) {
+      console.error('Error adding comment:', err);
+      res.status(500).json({ error: true, message: "Failed to add comment" });
     }
   });
 

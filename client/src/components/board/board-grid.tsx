@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
+import { CommentDialog } from "./comment-dialog";
 import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
 import ImageUpload from './image-upload';
@@ -44,6 +45,8 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
+  const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -210,6 +213,10 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
     onBlocksChange(newBlocks);
   };
 
+  const handleBlockClick = (block: BlockType) => {
+    setSelectedBlock(block);
+    setCommentDialogOpen(true);
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -402,8 +409,10 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
                                                       group/block relative rounded-lg 
                                                       w-[225px] h-[100px]
                                                       transition-transform duration-150
+                                                      cursor-pointer
                                                       ${snapshot.isDragging ? 'shadow-lg scale-[1.02]' : ''}
                                                     `}
+                                                    onClick={() => handleBlockClick(block)}
                                                     style={{
                                                       ...provided.draggableProps.style,
                                                       transition: snapshot.isDropAnimating
@@ -447,6 +456,16 @@ export default function BoardGrid({ board, onBlocksChange, onPhasesChange, onBoa
           </div>
         </DragDropContext>
       </div>
+
+      {/* Comment Dialog */}
+      {selectedBlock && (
+        <CommentDialog
+          open={commentDialogOpen}
+          onOpenChange={setCommentDialogOpen}
+          block={selectedBlock}
+          boardId={board.id}
+        />
+      )}
     </div>
   );
 }
