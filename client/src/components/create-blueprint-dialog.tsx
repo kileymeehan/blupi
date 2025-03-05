@@ -14,9 +14,10 @@ import { insertBoardSchema, type InsertBoard } from "@shared/schema";
 interface CreateBlueprintDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  projectId?: number;
 }
 
-export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDialogProps) {
+export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateBlueprintDialogProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -27,7 +28,7 @@ export function CreateBlueprintDialog({ open, onOpenChange }: CreateBlueprintDia
       description: "",
       blocks: [],
       phases: [],
-      projectId: null
+      projectId: projectId || null
     },
   });
 

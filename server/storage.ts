@@ -21,6 +21,7 @@ export interface IStorage {
   getProjects(): Promise<Project[]>;
   getProject(id: number): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
+  updateProject(id: number, updates: Partial<Project>): Promise<Project>;
 
   // Session store
   sessionStore: session.Store;
@@ -128,6 +129,15 @@ export class MemStorage implements IStorage {
     };
     this.projects.set(id, project);
     return project;
+  }
+
+  async updateProject(id: number, updates: Partial<Project>): Promise<Project> {
+    const project = await this.getProject(id);
+    if (!project) throw new Error("Project not found");
+
+    const updatedProject = { ...project, ...updates };
+    this.projects.set(id, updatedProject);
+    return updatedProject;
   }
 }
 

@@ -56,6 +56,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add PATCH endpoint for projects
+  app.patch("/api/projects/:id", async (req, res) => {
+    try {
+      const project = await storage.updateProject(Number(req.params.id), req.body);
+      if (!project) {
+        return res.status(404).json({ error: true, message: "Project not found" });
+      }
+      res.json(project);
+    } catch (err) {
+      console.error('Error updating project:', err);
+      res.status(500).json({ error: true, message: "Failed to update project" });
+    }
+  });
+
   // Board/Blueprint routes
   app.get("/api/boards", async (_req, res) => {
     try {
