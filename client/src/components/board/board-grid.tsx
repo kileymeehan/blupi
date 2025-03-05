@@ -388,9 +388,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 <div className="flex-1 overflow-hidden">
                   <div className="h-full">
                     <div className={`
-                      transition-all duration-300 ease-in-out
-                      ${showBlocks ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full absolute'}
-                      ${showComments ? 'pointer-events-none' : ''}
+                      ${showBlocks ? 'block' : 'hidden'}
                     `}>
                       <Droppable droppableId="drawer">
                         {(provided) => (
@@ -408,9 +406,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </div>
 
                     <div className={`
-                      transition-all duration-300 ease-in-out
-                      ${showComments ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full absolute'}
-                      ${showBlocks ? 'pointer-events-none' : ''}
+                      ${showComments ? 'block' : 'hidden'}
                     `}>
                       <CommentsOverview
                         board={board}
