@@ -67,7 +67,13 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
       }
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['/api/boards', data.id], data);
+      // Update the boards cache
+      queryClient.setQueryData(['/api/boards'], (oldData: any[] = []) => [...oldData, data]);
+      // Also update project's boards if projectId exists
+      if (projectId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/boards', { projectId }] });
+      }
+
       toast({
         title: "Success",
         description: "Blueprint created successfully",

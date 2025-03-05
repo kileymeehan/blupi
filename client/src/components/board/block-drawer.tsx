@@ -1,6 +1,5 @@
 import { LAYER_TYPES } from "./board-grid";
 import { Draggable } from "react-beautiful-dnd";
-import Block from "./block";
 
 export default function BlockDrawer() {
   // Skip the touchpoint type as it's added by default
@@ -32,17 +31,6 @@ export default function BlockDrawer() {
                 <div className="font-bold text-gray-700/75 text-center">
                   {layer.label}
                 </div>
-                <Block
-                  block={{
-                    id: `drawer-${layer.type}`,
-                    type: layer.type,
-                    content: '',
-                    phaseIndex: -1,
-                    columnIndex: -1,
-                    comments: []
-                  }}
-                  isTemplate
-                />
               </div>
             )}
           </Draggable>
