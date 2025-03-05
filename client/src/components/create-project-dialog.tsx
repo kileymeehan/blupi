@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -35,40 +35,28 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
   const { user } = useFirebaseAuth();
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [currentColorIndex, setCurrentColorIndex] = useState(0);
 
-  // Get existing projects to determine next color
-  const { data: projects = [] } = useQuery({
-    queryKey: ['/api/projects'],
-    queryFn: async () => {
-      const res = await fetch('/api/projects');
-      if (!res.ok) throw new Error('Failed to fetch projects');
-      return res.json();
-    }
-  });
-
-  // Get next color by finding the first unused color in the sequence
+  // Get next color in sequence
   const getNextColor = () => {
-    if (projects.length === 0) return projectColors[0];
-
-    const lastProject = projects[projects.length - 1];
-    const lastColorIndex = projectColors.indexOf(lastProject.color);
-
-    // If the last color wasn't in our list or was the last color,
-    // start from the beginning
-    if (lastColorIndex === -1 || lastColorIndex === projectColors.length - 1) {
-      return projectColors[0];
-    }
-
-    // Return the next color in sequence
-    return projectColors[lastColorIndex + 1];
+    const nextIndex = (currentColorIndex + 1) % projectColors.length;
+    setCurrentColorIndex(nextIndex);
+    return projectColors[nextIndex];
   };
+
+  // Update form with new color when dialog opens
+  useEffect(() => {
+    if (open) {
+      form.setValue('color', getNextColor());
+    }
+  }, [open]);
 
   const form = useForm<InsertProject>({
     resolver: zodResolver(insertProjectSchema),
     defaultValues: {
       name: "",
       description: "",
-      color: getNextColor()
+      color: projectColors[0]
     },
   });
 
@@ -118,7 +106,6 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
       form.reset({
         name: "",
         description: "",
-        color: getNextColor() // Set new color for next project
       });
       setShowCustomPicker(false);
     },
