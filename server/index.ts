@@ -9,7 +9,7 @@ import { setupAuth } from "./auth";
 
 const app = express();
 
-// Body parsing middleware
+// Body parsing middleware - must be first
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -44,8 +44,16 @@ app.use((req, res, next) => {
 
 // Set default content type for API routes
 app.use('/api', (req, res, next) => {
-  res.setHeader('Content-Type', 'application/json');
+  res.type('application/json');
   next();
+});
+
+// Error handling for JSON parsing
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    return res.status(400).json({ error: true, message: 'Invalid JSON' });
+  }
+  next(err);
 });
 
 (async () => {
@@ -61,12 +69,14 @@ app.use('/api', (req, res, next) => {
     const server = await registerRoutes(app);
 
     // API Error handling middleware
-    app.use('/api', (err: any, _req: Request, res: Response, _next: NextFunction) => {
+    app.use('/api', (err: any, req: Request, res: Response, next: NextFunction) => {
       console.error('API Error:', err);
-      res.status(err.status || 500).json({
-        error: true,
-        message: err.message || "Internal Server Error"
-      });
+      if (!res.headersSent) {
+        res.status(err.status || 500).json({
+          error: true,
+          message: err.message || "Internal Server Error"
+        });
+      }
     });
 
     // Handle SPA routing - must be after API routes
@@ -74,23 +84,6 @@ app.use('/api', (req, res, next) => {
       if (req.path.startsWith('/api')) return next();
       if (process.env.NODE_ENV !== "production") return next();
       res.sendFile('index.html', { root: './dist/client' });
-    });
-
-    // General error handling middleware
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      console.error('Error:', err);
-      if (res.headersSent) return;
-
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-
-      // Check if the request is for the API
-      if (_req.path.startsWith('/api')) {
-        return res.status(status).json({ error: true, message });
-      }
-
-      // For non-API routes, send the index.html
-      res.status(status).sendFile('index.html', { root: './dist/client' });
     });
 
     const port = process.env.PORT || 5000;
