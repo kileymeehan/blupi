@@ -37,7 +37,7 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
           image: undefined
         }]
       }],
-      projectId: projectId || null
+      projectId: projectId || null // Set projectId from props
     },
   });
 
@@ -49,7 +49,10 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify({
+            ...data,
+            projectId: projectId || null // Ensure projectId is explicitly set
+          }),
         });
 
         if (!response.ok) {
@@ -69,9 +72,11 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
     onSuccess: (data) => {
       // Update the boards cache
       queryClient.setQueryData(['/api/boards'], (oldData: any[] = []) => [...oldData, data]);
+
       // Also update project's boards if projectId exists
       if (projectId) {
         queryClient.invalidateQueries({ queryKey: ['/api/boards', { projectId }] });
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
       }
 
       toast({
