@@ -273,11 +273,25 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     setTimeout(() => setHighlightedBlockId(null), 2000);
   };
 
+  const toggleContext = () => {
+    if (showContext) {
+      setShowContext(false);
+    } else {
+      setShowContext(true);
+      setShowBlocks(false);
+      setShowComments(false);
+      if (!isDrawerOpen) {
+        setIsDrawerOpen(true);
+      }
+    }
+  };
+
   const toggleBlocks = () => {
     if (showBlocks) {
       setShowBlocks(false);
     } else {
       setShowBlocks(true);
+      setShowContext(false);
       setShowComments(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
@@ -290,6 +304,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       setShowComments(false);
     } else {
       setShowComments(true);
+      setShowContext(false);
       setShowBlocks(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
@@ -386,13 +401,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowContext(!showContext)}
+                  onClick={toggleContext}
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    hover:bg-gray-100
+                    group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showContext && isDrawerOpen ? 'bg-gray-100' : ''}
+                    ${showContext ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
                   `}
                 >
                   <Info className="w-5 h-5" />
@@ -406,9 +421,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    hover:bg-gray-100
+                    group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showBlocks && isDrawerOpen ? 'bg-gray-100' : ''}
+                    ${showBlocks ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
                   `}
                 >
                   <LayoutGrid className="w-5 h-5" />
@@ -422,9 +437,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    hover:bg-gray-100
+                    group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showComments && isDrawerOpen ? 'bg-gray-100' : ''}
+                    ${showComments ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
                   `}
                 >
                   <MessageSquare className="w-5 h-5" />
