@@ -185,38 +185,42 @@ export default function Dashboard() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {unassignedBoards.map((board: any) => (
-              <Card key={board.id}>
-                <CardHeader>
-                  <CardTitle>{board.name}</CardTitle>
-                  <CardDescription>
-                    {board.description}
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      Created by {board.createdBy || 'Unknown'} on {format(new Date(board.createdAt), 'MMM d, yyyy')}
+            {unassignedBoards.map((board: any) => {
+              const assignedProject = projects.find(p => p.id === board.projectId);
+
+              return (
+                <Card key={board.id}>
+                  <CardHeader>
+                    <CardTitle>{board.name}</CardTitle>
+                    <CardDescription>
+                      {board.description}
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        Created by {board.createdBy || 'Unknown'} on {format(new Date(board.createdAt), 'MMM d, yyyy')}
+                      </div>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col gap-2">
+                      <Button variant="outline" asChild className="w-full">
+                        <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="w-full text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                          setSelectedBoardId(board.id);
+                          setAddToProjectOpen(true);
+                        }}
+                      >
+                        <Briefcase className="w-4 h-4 mr-2" />
+                        {assignedProject ? `Assigned to ${assignedProject.name}` : 'Add to Project'}
+                      </Button>
                     </div>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-2">
-                    <Button variant="outline" asChild className="w-full">
-                      <Link href={`/board/${board.id}`}>View Blueprint</Link>
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="w-full text-muted-foreground hover:text-foreground"
-                      onClick={() => {
-                        setSelectedBoardId(board.id);
-                        setAddToProjectOpen(true);
-                      }}
-                    >
-                      <Briefcase className="w-4 h-4 mr-2" />
-                      Add to Project
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
 
             {unassignedBoards.length === 0 && (
               <Card>

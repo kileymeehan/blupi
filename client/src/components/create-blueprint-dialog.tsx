@@ -37,22 +37,25 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
           image: undefined
         }]
       }],
-      projectId: projectId || null // Set projectId from props
+      projectId: projectId || null
     },
   });
 
   const createBlueprint = useMutation({
     mutationFn: async (data: InsertBoard) => {
       try {
+        const requestData = {
+          ...data,
+          projectId: projectId || null
+        };
+        console.log('Creating blueprint with data:', requestData);
+
         const response = await fetch("/api/boards", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            ...data,
-            projectId: projectId || null // Ensure projectId is explicitly set
-          }),
+          body: JSON.stringify(requestData),
         });
 
         if (!response.ok) {
