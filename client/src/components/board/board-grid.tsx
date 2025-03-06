@@ -577,7 +577,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 {board.phases.map((phase, phaseIndex) => (
                   <div key={phase.id} className="flex-shrink-0 relative mr-8">
                     {phaseIndex > 0 && (
-                      <div className="absolute -left-4 top-0 bottom-0 w-[1px] bg-gray-200" />
+                      <div className="absolute -left-4 top-0 bottom-0 w-[1px] bg-gray-300" />
                     )}
                     <div className="px-4">
                       <div className="mb-4 border-[3px] border-gray-900 rounded-lg p-3">
@@ -624,7 +624,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                     <div className="flex items-center gap-2 mb-2">
                                       <div
                                         {...provided.dragHandleProps}
-                                        className="cursor-grab hover:text-gray-700 text-gray-400 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
+                                        className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
                                       >
                                         <GripVertical className="w-4 h-4" />
                                       </div>
@@ -658,9 +658,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                           {...provided.droppableProps}
                                           className={`
                                             space-y-2 min-h-[100px] p-4
-                                            rounded-lg bg-white border-2 
+                                            rounded-lg bg-white border-2
                                             transition-all duration-200 ease-in-out
-                                            ${snapshot.isDraggingOver ? 'border-primary bg-primary/5' : 'border-gray-300'}
+                                            ${snapshot.isDraggingOver ? 'border-primary bg-primary/5' : 'border-gray-400'}
                                           `}
                                           style={{
                                             minHeight: '100px',
@@ -681,7 +681,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     {...provided.dragHandleProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      relative rounded-lg z-10 border border-gray-300/50
+                                                      relative rounded-lg z-10 border border-gray-400
                                                       transition-all duration-200 ease-in-out
                                                       transform
                                                       ${snapshot.isDragging ? 'shadow-lg scale-[1.02] rotate-1 border-primary' : ''}
