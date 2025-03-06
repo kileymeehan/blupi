@@ -5,10 +5,13 @@ import BoardGrid from "@/components/board/board-grid";
 import type { Board, Block, Phase } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { useWebSocket } from "@/hooks/use-websocket";
+import { useEffect } from "react";
 
 export default function BoardPage() {
   const { id } = useParams();
   const { toast } = useToast();
+  const { sendMessage } = useWebSocket(Number(id));
 
   const updateBoardMutation = useMutation({
     mutationFn: async (updates: Partial<Board>) => {
@@ -24,6 +27,12 @@ export default function BoardPage() {
         });
       }
       queryClient.invalidateQueries({ queryKey: ['/api/boards', id] });
+
+      // Broadcast changes to other users
+      sendMessage({
+        type: 'board_update',
+        board: data
+      });
     },
     onError: (error: Error) => {
       toast({

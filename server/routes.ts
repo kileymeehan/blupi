@@ -3,9 +3,82 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
-import { nanoid } from 'nanoid'; //Import nanoid for unique comment IDs
+import { nanoid } from 'nanoid';
+import { WebSocketServer, WebSocket } from 'ws';
+
+// Track active connections per board
+const boardConnections = new Map<number, Set<WebSocket>>();
+
+function broadcastToBoardUsers(boardId: number, message: any, excludeWs?: WebSocket) {
+  const connections = boardConnections.get(boardId);
+  if (!connections) return;
+
+  const messageStr = JSON.stringify(message);
+  connections.forEach(client => {
+    if (client !== excludeWs && client.readyState === WebSocket.OPEN) {
+      client.send(messageStr);
+    }
+  });
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Create HTTP server
+  const httpServer = createServer(app);
+
+  // Create WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+  wss.on('connection', (ws) => {
+    let currentBoardId: number | null = null;
+
+    ws.on('message', async (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+
+        // Handle board subscription
+        if (message.type === 'subscribe') {
+          const boardId = Number(message.boardId);
+          currentBoardId = boardId;
+
+          if (!boardConnections.has(boardId)) {
+            boardConnections.set(boardId, new Set());
+          }
+          boardConnections.get(boardId)!.add(ws);
+
+          // Send initial board state
+          const board = await storage.getBoard(boardId);
+          if (board) {
+            ws.send(JSON.stringify({ type: 'board_update', board }));
+          }
+        }
+
+        // Handle board updates
+        else if (message.type === 'board_update' && currentBoardId) {
+          const updatedBoard = await storage.updateBoard(currentBoardId, message.board);
+          broadcastToBoardUsers(currentBoardId, { 
+            type: 'board_update',
+            board: updatedBoard 
+          }, ws);
+        }
+      } catch (err) {
+        console.error('WebSocket message error:', err);
+        ws.send(JSON.stringify({ 
+          type: 'error',
+          message: 'Failed to process message'
+        }));
+      }
+    });
+
+    ws.on('close', () => {
+      if (currentBoardId && boardConnections.has(currentBoardId)) {
+        boardConnections.get(currentBoardId)!.delete(ws);
+        if (boardConnections.get(currentBoardId)!.size === 0) {
+          boardConnections.delete(currentBoardId);
+        }
+      }
+    });
+  });
+
   // Project routes
   app.get("/api/projects", async (_req, res) => {
     try {
@@ -298,7 +371,5 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create HTTP server
-  const httpServer = createServer(app);
   return httpServer;
 }
