@@ -49,7 +49,8 @@ export function useFirebaseAuth() {
 
       let errorMessage = "Failed to sign in with Google";
       if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = `Please ensure ${window.location.hostname} is added to Firebase Console > Authentication > Settings > Authorized domains`;
+        const currentDomain = window.location.hostname;
+        errorMessage = `Please add "${currentDomain}" to Firebase Console:\n1. Go to Authentication > Settings\n2. Scroll to Authorized domains\n3. Click Add domain`;
       }
 
       toast({
