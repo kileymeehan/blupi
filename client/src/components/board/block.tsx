@@ -21,6 +21,8 @@ interface BlockProps {
 
 const TYPE_LABELS = {
   touchpoint: 'Touchpoint',
+  email: 'Email Touchpoint',
+  pendo: 'Pendo Touchpoint',
   role: 'Role',
   process: 'Process',
   friction: 'Friction',
@@ -98,13 +100,10 @@ export default function Block({
         onKeyDown={handleKeyDown}
         className={`
           w-full min-h-[120px] rounded-lg px-3 py-3 text-sm
-          ${isTemplate ? 'flex items-center justify-center' : 'flex items-center text-left pt-12'}
+          ${isTemplate ? 'flex items-center justify-center' : 'flex flex-col justify-center min-h-[120px] pt-10 pb-4'}
           overflow-y-auto whitespace-pre-wrap break-words
-          leading-normal
-          transition-all duration-150 ease-out
+          leading-normal text-center
           focus:outline-none focus:ring-2 focus:ring-primary/20
-          ${['touchpoint', 'email', 'pendo'].includes(block.type) ? 
-            'hover:scale-105 hover:shadow-lg hover:z-20 hover:brightness-110 transition-all duration-300 ease-in-out' : ''}
         `}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
