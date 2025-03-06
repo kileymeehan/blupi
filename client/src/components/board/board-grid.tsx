@@ -580,7 +580,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                       <div className="absolute -left-4 top-0 bottom-0 w-[1px] bg-gray-200" />
                     )}
                     <div className="px-4">
-                      <div className="mb-4 bg-gray-100 rounded-lg p-3">
+                      <div className="mb-4 border-[3px] border-gray-900 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <div
                             contentEditable
