@@ -4,9 +4,10 @@ import { getAuth } from "@firebase/auth";
 // Firebase configuration - be explicit about domain settings
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_PROJECT_ID + '.firebaseapp.com',
+  // Keep the original Firebase domain as authDomain
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_PROJECT_ID + '.appspot.com',
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
   messagingSenderId: "345099176849",
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: "G-5ZGZX4SLYS"

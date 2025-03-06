@@ -36,10 +36,11 @@ export function useFirebaseAuth() {
       provider.addScope('profile');
       provider.addScope('email');
 
-      // Set custom OAuth parameter for debugging
+      // Add origin_domain parameter for debugging
       provider.setCustomParameters({
         prompt: 'select_account',
-        auth_domain: currentDomain
+        origin_domain: currentDomain,
+        hosted_domain: currentDomain
       });
 
       const result = await signInWithPopup(auth, provider);
