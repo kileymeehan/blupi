@@ -44,12 +44,18 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
     },
   });
 
-  // Update form with new color when dialog opens
+  // Reset form and update color when dialog opens
   useEffect(() => {
     if (open) {
       const nextIndex = (currentColorIndex + 1) % projectColors.length;
       setCurrentColorIndex(nextIndex);
-      form.setValue('color', projectColors[nextIndex]);
+      form.reset({
+        name: "",
+        description: "",
+        color: projectColors[nextIndex]
+      });
+      setShowCustomPicker(false);
+      setColorPickerOpen(false);
     }
   }, [open]);
 
@@ -60,7 +66,10 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          color: data.color || projectColors[currentColorIndex] // Ensure color is always sent
+        }),
       });
 
       if (!response.ok) {
@@ -77,12 +86,6 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
         description: "Project created successfully",
       });
       onOpenChange(false);
-      form.reset({
-        name: "",
-        description: "",
-        color: projectColors[(currentColorIndex + 1) % projectColors.length],
-      });
-      setShowCustomPicker(false);
     },
     onError: (error: Error) => {
       toast({
@@ -203,6 +206,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={createProject.isPending}
               >
                 Cancel
               </Button>
