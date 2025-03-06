@@ -658,9 +658,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                           {...provided.droppableProps}
                                           className={`
                                             space-y-2 min-h-[100px] p-4
-                                            rounded-lg bg-white border-2
+                                            rounded-lg bg-white border-2 
                                             transition-all duration-200 ease-in-out
-                                            ${snapshot.isDraggingOver ? 'border-primary bg-primary/5' : 'border-gray-200'}
+                                            ${snapshot.isDraggingOver ? 'border-primary bg-primary/5' : 'border-gray-300'}
                                           `}
                                           style={{
                                             minHeight: '100px',
@@ -681,11 +681,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     {...provided.dragHandleProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      relative rounded-lg z-10
+                                                      relative rounded-lg z-10 border border-gray-300/50
                                                       transition-all duration-200 ease-in-out
                                                       transform
-                                                      ${snapshot.isDragging ? 'shadow-lg scale-[1.02] rotate-1' : ''}
-                                                      ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                      ${snapshot.isDragging ? 'shadow-lg scale-[1.02] rotate-1 border-primary' : ''}
+                                                      ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2 border-primary' : ''}
                                                     `}
                                                     style={{
                                                       ...provided.draggableProps.style,

@@ -93,7 +93,7 @@ export default function Project() {
                 <CardDescription>{board.description}</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" asChild className="w-full">
+                <Button variant="outline" asChild className="w-full border-gray-300 hover:bg-gray-50">
                   <Link href={`/board/${board.id}`}>View Blueprint</Link>
                 </Button>
               </CardContent>
@@ -101,7 +101,7 @@ export default function Project() {
           ))}
 
           {boards.length === 0 && !boardsLoading && (
-            <Card>
+            <Card className="border-2 border-dashed border-gray-300">
               <CardHeader>
                 <CardTitle>No blueprints yet</CardTitle>
                 <CardDescription>Create your first blueprint for this project</CardDescription>
