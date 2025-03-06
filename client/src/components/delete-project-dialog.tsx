@@ -22,12 +22,12 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
 
   const deleteProjectMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest(
+      await apiRequest(
         "DELETE",
         `/api/projects/${projectId}`,
         { blueprintAction }
       );
-      return res.json();
+      return { success: true };
     },
     onSuccess: () => {
       // Invalidate both projects and boards queries since either could be affected
