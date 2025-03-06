@@ -61,6 +61,11 @@ export const LAYER_TYPES = [
   { type: 'note', label: 'Notes', color: 'bg-cyan-200' }
 ] as const;
 
+interface Attachment {
+  type: 'link' | 'image' | 'video';
+  url: string;
+}
+
 /**
  * Main component for the blueprint editor
  * @param id - The ID of the current blueprint
@@ -194,7 +199,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           content: '',
           phaseIndex,
           columnIndex,
-          comments: []
+          comments: [],
+          attachments: [],
+          notes: ""
         };
 
         blocks.splice(destination.index, 0, newBlock);
@@ -223,9 +230,16 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     onBlocksChange(blocks);
   };
 
-  const handleAttachmentChange = (blockId: string, attachment: { type: 'link' | 'image' | 'video', url: string }) => {
+  const handleAttachmentChange = (blockId: string, attachments: Attachment[]) => {
     const blocks = board.blocks.map(block =>
-      block.id === blockId ? { ...block, attachment } : block
+      block.id === blockId ? { ...block, attachments } : block
+    );
+    onBlocksChange(blocks);
+  };
+
+  const handleNotesChange = (blockId: string, notes: string) => {
+    const blocks = board.blocks.map(block =>
+      block.id === blockId ? { ...block, notes } : block
     );
     onBlocksChange(blocks);
   };
@@ -810,10 +824,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                         : provided.draggableProps.style?.transition,
                                                     }}
                                                   >
-                                                    <Block 
-                                                      block={block} 
-                                                      onChange={handleBlockChange} 
-                                                      onAttachmentChange={handleAttachmentChange} 
+                                                    <Block
+                                                      block={block}
+                                                      onChange={handleBlockChange}
+                                                      onAttachmentChange={handleAttachmentChange}
+                                                      onNotesChange={handleNotesChange}
                                                       onCommentClick={() => handleCommentClick(block)}
                                                       projectId={board.projectId || undefined}
                                                     />
@@ -845,8 +860,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Phase
-                </Button>
-              </div>
+                </Button>              </div>
             </div>
           </div>
         </DragDropContext>

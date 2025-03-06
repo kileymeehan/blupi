@@ -101,8 +101,10 @@ export const commentSchema = z.object({
 export type Comment = z.infer<typeof commentSchema>;
 
 export const attachmentSchema = z.object({
+  id: z.string(),
   type: z.enum(['link', 'image', 'video']),
-  url: z.string().url('Invalid URL')
+  url: z.string().url('Invalid URL'),
+  title: z.string().optional()
 });
 
 export type Attachment = z.infer<typeof attachmentSchema>;
@@ -114,7 +116,8 @@ export const blockSchema = z.object({
   phaseIndex: z.number(),
   columnIndex: z.number(),
   comments: z.array(commentSchema).optional().default([]),
-  attachment: attachmentSchema.optional()
+  attachments: z.array(attachmentSchema).optional().default([]),
+  notes: z.string().optional()
 });
 
 export type Block = z.infer<typeof blockSchema>;
