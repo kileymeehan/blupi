@@ -111,7 +111,8 @@ export default function Block({
               rounded bg-white/80 backdrop-blur-sm
               text-xs text-gray-600 hover:text-gray-900
               shadow-sm hover:shadow
-              ${commentCount > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+              opacity-0 group-hover:opacity-100
+              ${commentCount > 0 ? '!opacity-100' : ''}
               transition-all duration-150
             `}
           >
@@ -129,9 +130,9 @@ export default function Block({
               rounded bg-white/80 backdrop-blur-sm
               text-xs text-gray-600 hover:text-gray-900
               shadow-sm hover:shadow
-              ${attachmentCount > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+              opacity-0 group-hover:opacity-100
+              ${attachmentCount > 0 ? '!opacity-100 text-blue-600' : ''}
               transition-all duration-150
-              ${block.attachments?.length ? 'text-blue-600' : ''}
             `}
           >
             <Paperclip className="w-4 h-4" />
@@ -148,7 +149,8 @@ export default function Block({
               rounded bg-white/80 backdrop-blur-sm
               text-xs text-gray-600 hover:text-gray-900
               shadow-sm hover:shadow
-              ${block.notes ? 'opacity-100 text-yellow-600' : 'opacity-0 group-hover:opacity-100'}
+              opacity-0 group-hover:opacity-100
+              ${block.notes ? '!opacity-100 text-yellow-600' : ''}
               transition-all duration-150
             `}
           >
