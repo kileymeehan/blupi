@@ -103,6 +103,8 @@ export default function Block({
           leading-normal
           transition-all duration-150 ease-out
           focus:outline-none focus:ring-2 focus:ring-primary/20
+          ${['touchpoint', 'email', 'pendo'].includes(block.type) ? 
+            'hover:scale-105 hover:shadow-lg hover:z-20 hover:brightness-110 transition-all duration-300 ease-in-out' : ''}
         `}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}

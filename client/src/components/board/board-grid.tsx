@@ -83,6 +83,8 @@ const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
 // Update LAYER_TYPES with new categories and colors
 export const LAYER_TYPES = [
   { type: 'touchpoint', label: 'Touchpoint', color: 'bg-blue-600/20' },
+  { type: 'email', label: 'Email Touchpoint', color: 'bg-blue-500/20' },
+  { type: 'pendo', label: 'Pendo Touchpoint', color: 'bg-blue-700/20' },
   { type: 'role', label: 'Role', color: 'bg-green-200' },
   { type: 'process', label: 'Process', color: 'bg-pink-200' },
   { type: 'friction', label: 'Friction', color: 'bg-red-200' },
@@ -853,8 +855,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                             .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
                                             .map((block, index) => (
                                               <Draggable
-                                                key={block.id}
-                                                draggableId={block.id}
+                                                key={block.id}                                                draggableId={block.id}
                                                 index={index}
                                               >
                                                 {(provided, snapshot) => (
