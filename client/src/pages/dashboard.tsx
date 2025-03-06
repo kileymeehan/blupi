@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, LogOut, User, LayoutGrid, Folder } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Plus, LogOut, User, LayoutGrid, Folder, Trash2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 import AddToProjectDialog from "@/components/board/add-to-project-dialog";
+import { DeleteProjectDialog } from "@/components/delete-project-dialog";
 import { format } from "date-fns";
 import { StatusSelector } from "@/components/status-selector";
 import { Project, Board } from "@shared/schema"; 
@@ -31,6 +32,7 @@ export default function Dashboard() {
   const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
   const [addToProjectOpen, setAddToProjectOpen] = useState(false);
   const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<{id: number, name: string} | null>(null);
   const { toast } = useToast();
 
   const { data: projects = [] } = useQuery<Project[]>({
@@ -166,7 +168,17 @@ export default function Dashboard() {
                 />
                 <CardHeader className="relative">
                   <div className="flex items-center justify-between">
-                    <CardTitle>{project.name}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle>{project.name}</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setProjectToDelete({ id: project.id, name: project.name })}
+                        className="text-muted-foreground hover:text-red-600 p-1 h-auto"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <StatusSelector
                       type="project"
                       value={project.status}
@@ -330,6 +342,14 @@ export default function Dashboard() {
           open={addToProjectOpen}
           onOpenChange={setAddToProjectOpen}
           boardId={Number(selectedBoardId)}
+        />
+      )}
+      {projectToDelete && (
+        <DeleteProjectDialog
+          open={projectToDelete !== null}
+          onOpenChange={(open) => !open && setProjectToDelete(null)}
+          projectId={projectToDelete.id}
+          projectName={projectToDelete.name}
         />
       )}
     </div>
