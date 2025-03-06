@@ -98,7 +98,19 @@ export default function Dashboard() {
               <Card key={project.id} className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow">
                 <div className="absolute inset-y-0 left-0" style={{ backgroundColor: project.color || '#4F46E5' }} />
                 <CardHeader>
-                  <CardTitle>{project.name}</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>{project.name}</CardTitle>
+                    <div className={`
+                      px-2 py-1 text-xs font-medium rounded-full
+                      ${project.status === 'complete' ? 'bg-green-100 text-green-700' : ''}
+                      ${project.status === 'in-progress' ? 'bg-blue-100 text-blue-700' : ''}
+                      ${project.status === 'draft' ? 'bg-gray-100 text-gray-700' : ''}
+                      ${project.status === 'review' ? 'bg-yellow-100 text-yellow-700' : ''}
+                      ${!project.status ? 'bg-gray-100 text-gray-700' : ''}
+                    `}>
+                      {project.status || 'draft'}
+                    </div>
+                  </div>
                   <CardDescription>
                     {project.description}
                     <div className="mt-1 text-xs text-muted-foreground">
