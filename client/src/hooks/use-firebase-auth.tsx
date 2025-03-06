@@ -29,19 +29,9 @@ export function useFirebaseAuth() {
 
   const signInWithGoogle = async () => {
     try {
-      const currentDomain = window.location.hostname;
-      console.log('Attempting Google sign-in from domain:', currentDomain);
-
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
-
-      // Add origin_domain parameter for debugging
-      provider.setCustomParameters({
-        prompt: 'select_account',
-        origin_domain: currentDomain,
-        hosted_domain: currentDomain
-      });
 
       const result = await signInWithPopup(auth, provider);
       console.log('Google sign-in successful');

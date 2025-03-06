@@ -1,7 +1,7 @@
 import { initializeApp } from "@firebase/app";
 import { getAuth } from "@firebase/auth";
 
-// Firebase configuration - be explicit about domain settings
+// Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   // Keep the original Firebase domain as authDomain
