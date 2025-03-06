@@ -28,6 +28,7 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
       name: "",
       description: "",
       blocks: [],
+      status: "draft",
       phases: [{
         id: nanoid(),
         name: 'Phase 1',
@@ -43,36 +44,23 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
 
   const createBlueprint = useMutation({
     mutationFn: async (data: InsertBoard) => {
-      try {
-        // Ensure projectId is explicitly set in the request
-        const blueprintData = {
+      const response = await fetch("/api/boards", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           ...data,
           projectId: projectId || null
-        };
+        }),
+      });
 
-        console.log('Creating blueprint with data:', blueprintData);
-
-        const response = await fetch("/api/boards", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(blueprintData),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || "Failed to create blueprint");
-        }
-
-        return response.json();
-      } catch (error) {
-        console.error('Blueprint creation error:', error);
-        if (error instanceof Error) {
-          throw new Error(error.message);
-        }
-        throw new Error("An unexpected error occurred");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create blueprint");
       }
+
+      return response.json();
     },
     onSuccess: (data) => {
       // Update the boards cache
@@ -88,12 +76,16 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
         title: "Success",
         description: "Blueprint created successfully",
       });
+
       onOpenChange(false);
       form.reset();
-      navigate(`/board/${data.id}`);
+
+      // Add a small delay before navigation to ensure state updates are complete
+      setTimeout(() => {
+        navigate(`/board/${data.id}`);
+      }, 100);
     },
     onError: (error: Error) => {
-      console.error('Blueprint creation error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -103,10 +95,7 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
   });
 
   const onSubmit = (data: InsertBoard) => {
-    createBlueprint.mutate({
-      ...data,
-      projectId: projectId || null
-    });
+    createBlueprint.mutate(data);
   };
 
   return (
@@ -158,6 +147,7 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={createBlueprint.isPending}
               >
                 Cancel
               </Button>
