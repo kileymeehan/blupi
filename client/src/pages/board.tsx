@@ -6,11 +6,23 @@ import type { Board, Block, Phase } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { Loader2 } from "lucide-react";
 
 export default function BoardPage() {
   const { id } = useParams();
   const { toast } = useToast();
   const { sendMessage, connectedUsers } = useWebSocket(Number(id));
+
+  const { data: board, isLoading, error } = useQuery({
+    queryKey: ['/api/boards', id],
+    queryFn: async () => {
+      const res = await fetch(`/api/boards/${id}`);
+      if (!res.ok) throw new Error('Failed to fetch board');
+      return res.json();
+    },
+    retry: 3,
+    retryDelay: 1000,
+  });
 
   const updateBoardMutation = useMutation({
     mutationFn: async (updates: Partial<Board>) => {
@@ -25,7 +37,7 @@ export default function BoardPage() {
           description: "Your blueprint has been updated"
         });
       }
-      queryClient.invalidateQueries({ queryKey: ['/api/boards', id] });
+      queryClient.setQueryData(['/api/boards', id], data);
 
       // Broadcast changes to other users
       sendMessage({
@@ -54,6 +66,25 @@ export default function BoardPage() {
     updateBoardMutation.mutate(updates);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !board) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-lg text-red-600 mb-2">Failed to load blueprint</div>
+          <div className="text-sm text-gray-600">Please try again later</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <BoardGrid
       id={id!}
@@ -62,8 +93,8 @@ export default function BoardPage() {
       onBoardChange={handleBoardChange}
       connectedUsers={connectedUsers.map(userId => ({
         id: userId,
-        name: userId, // For now using ID as name
-        color: '#4F46E5' // Default color
+        name: userId,
+        color: '#4F46E5'
       }))}
     />
   );

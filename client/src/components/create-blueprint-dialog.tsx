@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -63,7 +62,8 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
       return response.json();
     },
     onSuccess: (data) => {
-      // Update the boards cache
+      // Update cache first
+      queryClient.setQueryData(['/api/boards', data.id], data);
       queryClient.setQueryData(['/api/boards'], (oldData: any[] = []) => [...oldData, data]);
 
       // Also update project's boards if projectId exists
@@ -77,13 +77,14 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
         description: "Blueprint created successfully",
       });
 
+      // Close dialog and reset form
       onOpenChange(false);
       form.reset();
 
-      // Add a small delay before navigation to ensure state updates are complete
+      // Navigate after a small delay to ensure cache is updated
       setTimeout(() => {
         navigate(`/board/${data.id}`);
-      }, 100);
+      }, 300);
     },
     onError: (error: Error) => {
       toast({
