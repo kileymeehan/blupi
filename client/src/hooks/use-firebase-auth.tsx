@@ -29,15 +29,22 @@ export function useFirebaseAuth() {
 
   const signInWithGoogle = async () => {
     try {
-      console.log('Attempting Google sign-in from domain:', window.location.hostname);
+      const currentDomain = window.location.hostname;
+      console.log('Attempting Google sign-in from domain:', currentDomain);
 
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
 
-      const result = await signInWithPopup(auth, provider);
+      // Set custom OAuth parameter for debugging
+      provider.setCustomParameters({
+        prompt: 'select_account',
+        auth_domain: currentDomain
+      });
 
+      const result = await signInWithPopup(auth, provider);
       console.log('Google sign-in successful');
+
       toast({
         title: "Success",
         description: "Successfully signed in with Google",
@@ -54,14 +61,18 @@ export function useFirebaseAuth() {
       let errorMessage = "Failed to sign in with Google";
       if (error.code === 'auth/unauthorized-domain') {
         const currentDomain = window.location.hostname;
-        errorMessage = `Please add "${currentDomain}" to Firebase Console:\n1. Go to Authentication > Settings\n2. Scroll to Authorized domains\n3. Click Add domain\n4. Enter: ${currentDomain}\n\nMake sure to click Save after adding the domain.`;
+        errorMessage = `Domain "${currentDomain}" is not authorized. Please:\n` +
+          `1. Go to Firebase Console > Authentication > Settings\n` +
+          `2. Add "${currentDomain}" to Authorized domains\n` +
+          `3. Wait a few minutes for changes to propagate\n` +
+          `4. Try logging in again`;
       }
 
       toast({
         title: "Error",
         description: errorMessage,
         variant: "destructive",
-        duration: 10000, // Show for longer since it's an important message
+        duration: 15000, // Show longer for detailed instructions
       });
       throw error;
     }
