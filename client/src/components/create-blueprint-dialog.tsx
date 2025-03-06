@@ -62,29 +62,27 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
       return response.json();
     },
     onSuccess: (data) => {
-      // Update cache first
+      // Close dialog and reset form first
+      onOpenChange(false);
+      form.reset();
+
+      // Update all caches synchronously
       queryClient.setQueryData(['/api/boards', data.id], data);
       queryClient.setQueryData(['/api/boards'], (oldData: any[] = []) => [...oldData, data]);
 
-      // Also update project's boards if projectId exists
       if (projectId) {
         queryClient.invalidateQueries({ queryKey: ['/api/boards', { projectId }] });
         queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
       }
 
+      // Show success message
       toast({
         title: "Success",
         description: "Blueprint created successfully",
       });
 
-      // Close dialog and reset form
-      onOpenChange(false);
-      form.reset();
-
-      // Navigate after a small delay to ensure cache is updated
-      setTimeout(() => {
-        navigate(`/board/${data.id}`);
-      }, 300);
+      // Navigate immediately after cache updates
+      navigate(`/board/${data.id}`);
     },
     onError: (error: Error) => {
       toast({

@@ -17,11 +17,33 @@ export default function BoardPage() {
     queryKey: ['/api/boards', id],
     queryFn: async () => {
       const res = await fetch(`/api/boards/${id}`);
-      if (!res.ok) throw new Error('Failed to fetch board');
+      if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error("Too many requests. Please wait a moment before trying again.");
+        }
+        throw new Error('Failed to fetch board');
+      }
       return res.json();
     },
-    retry: 3,
-    retryDelay: 1000,
+    refetchInterval: 5000,
+    retry: (failureCount, error) => {
+      if (error instanceof Error && error.message.includes("Too many requests")) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+    gcTime: 1000 * 60 * 5,
+  });
+
+  const { data: project } = useQuery({
+    queryKey: ['/api/projects', board?.projectId],
+    queryFn: async () => {
+      if (!board?.projectId) return null;
+      const res = await fetch(`/api/projects/${board.projectId}`);
+      if (!res.ok) throw new Error('Failed to fetch project');
+      return res.json();
+    },
+    enabled: !!board?.projectId,
   });
 
   const updateBoardMutation = useMutation({
@@ -54,6 +76,25 @@ export default function BoardPage() {
     }
   });
 
+  if (isLoading || !board) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading project...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-lg text-red-600 mb-2">{error.message}</div>
+          <div className="text-sm text-gray-600">Please wait a moment and try again</div>
+        </div>
+      </div>
+    );
+  }
+
   const handleBlocksChange = (blocks: Block[]) => {
     updateBoardMutation.mutate({ blocks });
   };
@@ -66,25 +107,6 @@ export default function BoardPage() {
     updateBoardMutation.mutate(updates);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (error || !board) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="text-lg text-red-600 mb-2">Failed to load blueprint</div>
-          <div className="text-sm text-gray-600">Please try again later</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <BoardGrid
       id={id!}
@@ -96,6 +118,7 @@ export default function BoardPage() {
         name: userId,
         color: '#4F46E5'
       }))}
+      project={project} //Pass project data to BoardGrid
     />
   );
 }
