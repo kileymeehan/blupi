@@ -16,6 +16,14 @@ import { Project, Board } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 
+const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
+
+// Simple hash function to get consistent emoji for a user
+function getAnimalEmoji(id: string): string {
+  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return ANIMAL_EMOJIS[Math.abs(hash) % ANIMAL_EMOJIS.length];
+}
+
 export default function Dashboard() {
   const { user, logout } = useFirebaseAuth();
   const [, navigate] = useLocation();
@@ -104,14 +112,19 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            <User className="h-5 w-5 text-muted-foreground" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative">
-                  {user?.email}
+                <Button variant="ghost" className="relative flex items-center gap-2">
+                  <span className="text-xl">{user ? getAnimalEmoji(user.uid) : '👤'}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile Settings
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout

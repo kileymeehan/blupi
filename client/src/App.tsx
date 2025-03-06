@@ -12,6 +12,7 @@ import RegisterPage from "@/pages/auth/register";
 import Dashboard from "@/pages/dashboard";
 import Project from "@/pages/project";
 import Profile from "@/pages/profile";
+import PublicBoard from "@/pages/public-board";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/auth">
         <LoginPage />
       </Route>
+      <Route path="/public/board/:id" component={PublicBoard} />
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/profile" component={Profile} />
       <ProtectedRoute path="/project/:id" component={Project} />

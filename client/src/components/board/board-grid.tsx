@@ -64,7 +64,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [personaDetails, setPersonaDetails] = useState("");
   const [personaImage, setPersonaImage] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [shareLinkOpen, setShareLinkOpen] = useState("");
+  const [shareLinkOpen, setShareLinkOpen] = useState(false);
   const [shareLink, setShareLink] = useState("");
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
@@ -847,33 +847,61 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         </Dialog>
       )}
 
+      {/* Update the share dialog section */}
       {shareLinkOpen && (
         <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Share Link</DialogTitle>
+              <DialogTitle>Share Blueprint</DialogTitle>
               <DialogDescription>
-                Copy this link to share with your team
+                Choose how you want to share this blueprint
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="flex gap-2">
-                <Input
-                  value={window.location.href}
-                  readOnly
-                  className="w-full"
-                />
-                <Button
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    toast({
-                      title: "Link copied",
-                      description: "Share link has been copied to clipboard"
-                    });
-                  }}
-                >
-                  Copy
-                </Button>
+            <div className="space-y-6 py-4">
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
+                <div className="flex gap-2">
+                  <Input
+                    value={window.location.href}
+                    readOnly
+                    className="w-full"
+                  />
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast({
+                        title: "Link copied",
+                        description: "Team access link has been copied to clipboard"
+                      });
+                    }}
+                  >
+                    Copy
+                  </Button>                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
+                <div className="flex gap-2">
+                  <Input
+                    value={`${window.location.origin}/public/board/${id}`}
+                    readOnly
+                    className="w-full"
+                  />
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
+                      toast({
+                        title: "Link copied",
+                        description: "Public access link has been copied to clipboard"
+                      });
+                    }}
+                  >
+                    Copy
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Anyone with this link can view the blueprint in read-only mode
+                </p>
               </div>
             </div>
           </DialogContent>
