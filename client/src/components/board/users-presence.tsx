@@ -22,12 +22,12 @@ function getInitials(name: string): string {
 
 export function UsersPresence({ users }: UsersPresenceProps) {
   return (
-    <div className="fixed top-4 right-4 flex -space-x-2">
+    <div className="flex -space-x-2">
       <TooltipProvider>
         {users.map((user) => (
           <Tooltip key={user.id}>
             <TooltipTrigger asChild>
-              <Avatar className="w-8 h-8 border-2 border-black bg-white shadow-sm">
+              <Avatar className="w-8 h-8 border-2 border-white bg-white shadow-sm">
                 <AvatarFallback style={{ color: user.color }}>
                   {getInitials(user.name)}
                 </AvatarFallback>

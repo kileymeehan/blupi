@@ -96,8 +96,9 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-white shadow-sm">
         <div className="container flex h-16 items-center px-8">
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold">Dashboard</h2>
+          <div className="flex-1 flex items-center gap-8">
+            <h1 className="text-2xl font-bold tracking-tight font-mono">BLUPE</h1>
+            <h2 className="text-lg font-semibold text-muted-foreground">Dashboard</h2>
           </div>
 
           <div className="flex items-center gap-2">
@@ -119,13 +120,13 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container px-8 py-8">
-        <div className="mb-12 bg-white rounded-lg p-8 shadow-sm">
+      <main className="container px-8 py-8 space-y-8">
+        <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
           <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
           <p className="text-muted-foreground">Manage your blueprints and projects</p>
         </div>
 
-        <section className="mb-12 bg-white rounded-lg p-8 shadow-sm">
+        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -186,7 +187,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="mb-12 bg-white rounded-lg p-8 shadow-sm">
+        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -227,7 +228,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="mb-12 bg-white rounded-lg p-8 shadow-sm">
+        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">

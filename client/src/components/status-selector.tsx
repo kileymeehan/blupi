@@ -27,27 +27,30 @@ export function StatusSelector({ value, onChange, type, disabled = false }: Stat
   const statuses = type === 'project' ? projectStatuses : boardStatuses;
 
   return (
-    <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger className="w-[140px]">
-        <SelectValue>
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(value)}`}>
-            {value}
-          </span>
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {statuses.map((status) => (
-          <SelectItem 
-            key={status} 
-            value={status}
-            className="flex items-center space-x-2"
-          >
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(status)}`}>
-              {status}
+    <div className="flex items-center gap-2">
+      <span className="text-sm font-medium text-muted-foreground">Status</span>
+      <Select value={value} onValueChange={onChange} disabled={disabled}>
+        <SelectTrigger className="w-[140px]">
+          <SelectValue>
+            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(value)}`}>
+              {value}
             </span>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {statuses.map((status) => (
+            <SelectItem 
+              key={status} 
+              value={status}
+              className="flex items-center space-x-2"
+            >
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(status)}`}>
+                {status}
+              </span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

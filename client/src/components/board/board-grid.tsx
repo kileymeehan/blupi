@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Image, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Briefcase } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Briefcase } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,8 @@ import ImageUpload from './image-upload';
 import { CommentsOverview } from "./comments-overview";
 import { useQuery } from '@tanstack/react-query';
 import AddToProjectDialog from "./add-to-project-dialog";
+import { UsersPresence } from "./users-presence"; // Fixed import
+import { StatusSelector } from "@/components/status-selector";
 
 interface ColumnWithImage {
   id: string;
@@ -59,6 +61,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [blueprintDetails, setBlueprintDetails] = useState("");
   const [personaDetails, setPersonaDetails] = useState("");
   const [personaImage, setPersonaImage] = useState<string | null>(null);
+  const [connectedUsers, setConnectedUsers] = useState<string[]>([]); //add state for connected users
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -370,8 +373,17 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             </div>
             <Pencil className={`w-4 h-4 text-gray-400 transition-opacity duration-200 ${isEditingName ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
           </div>
+
+          <div className="w-px h-6 bg-gray-200 mx-2" />
+
+          <StatusSelector
+            type="board"
+            value={board.status}
+            onChange={(status) => onBoardChange({ ...board, status })}
+          />
         </div>
         <div className="flex items-center gap-4">
+          <UsersPresence users={connectedUsers} />
           <Button
             variant="ghost"
             size="sm"
