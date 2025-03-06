@@ -16,8 +16,15 @@ let app;
 let auth;
 
 try {
+  console.log('Initializing Firebase with config:', {
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    currentDomain: window.location.hostname
+  });
+
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
+
   console.log('Firebase initialized successfully');
 } catch (error) {
   console.error('Firebase initialization error:', error);
