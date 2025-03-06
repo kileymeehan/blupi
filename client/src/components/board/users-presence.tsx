@@ -5,7 +5,6 @@ interface ConnectedUser {
   id: string;
   name: string;
   color: string;
-  photoURL?: string;
 }
 
 interface UsersPresenceProps {
@@ -38,7 +37,7 @@ export function UsersPresence({ users }: UsersPresenceProps) {
                     fontWeight: '600'
                   }}
                 >
-                  {user.photoURL || getAnimalEmoji(user.id)}
+                  {getAnimalEmoji(user.id)}
                 </AvatarFallback>
               </Avatar>
             </TooltipTrigger>

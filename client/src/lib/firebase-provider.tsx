@@ -30,21 +30,15 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
     // Check for redirect result on mount
     getRedirectResult(auth).catch((error) => {
       if (error.code === 'auth/unauthorized-domain') {
-        const currentDomain = window.location.hostname;
         console.error('Domain authorization error:', {
-          currentDomain,
-          message: error.message,
-          errorCode: error.code
+          currentDomain: window.location.hostname,
+          message: error.message
         });
-
         toast({
-          title: "Domain Not Authorized",
-          description: `Please add "${currentDomain}" to Firebase Console:\n1. Go to Authentication > Settings\n2. Scroll to Authorized domains\n3. Click Add domain\n4. Enter: ${currentDomain}`,
+          title: "Domain Error",
+          description: `Please ensure ${window.location.hostname} is added to Firebase Console > Authentication > Settings > Authorized domains`,
           variant: "destructive",
-          duration: 10000, // Show for longer since it's an important message
         });
-      } else {
-        console.error('Firebase redirect error:', error);
       }
     });
 

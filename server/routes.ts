@@ -14,7 +14,6 @@ const boardUsers = new Map<number, Set<{
   id: string;
   name: string;
   color: string;
-  photoURL?: string;
 }>>();
 
 function broadcastToBoardUsers(boardId: number, message: any, excludeWs?: WebSocket) {
@@ -47,7 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   wss.on('connection', (ws) => {
     let currentBoardId: number | null = null;
-    let currentUser: { id: string; name: string; color: string; photoURL?: string } | null = null;
+    let currentUser: { id: string; name: string; color: string } | null = null;
 
     ws.on('message', async (data) => {
       try {
@@ -59,12 +58,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const userName = message.userName || 'Anonymous';
           currentBoardId = boardId;
 
-          // Create unique user identity with photoURL
+          // Create unique user identity
           currentUser = {
             id: nanoid(),
             name: userName,
-            color: getRandomColor(),
-            photoURL: message.photoURL
+            color: getRandomColor()
           };
 
           // Add user to board connections
@@ -78,12 +76,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             boardUsers.set(boardId, new Set());
           }
           boardUsers.get(boardId)!.add(currentUser);
-
-          console.log('User connected:', {
-            name: userName,
-            photoURL: message.photoURL,
-            boardId
-          });
 
           // Send initial board state
           const board = await storage.getBoard(boardId);

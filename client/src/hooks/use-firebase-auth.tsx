@@ -6,7 +6,6 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile as firebaseUpdateProfile,
   type User
 } from '@firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -19,7 +18,6 @@ export function useFirebaseAuth() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('Auth state changed:', user ? 'User logged in' : 'No user');
       setUser(user);
       setLoading(false);
     });
@@ -34,7 +32,6 @@ export function useFirebaseAuth() {
       provider.addScope('email');
 
       const result = await signInWithPopup(auth, provider);
-      console.log('Google sign-in successful');
 
       toast({
         title: "Success",
@@ -51,19 +48,13 @@ export function useFirebaseAuth() {
 
       let errorMessage = "Failed to sign in with Google";
       if (error.code === 'auth/unauthorized-domain') {
-        const currentDomain = window.location.hostname;
-        errorMessage = `Domain "${currentDomain}" is not authorized. Please:\n` +
-          `1. Go to Firebase Console > Authentication > Settings\n` +
-          `2. Add "${currentDomain}" to Authorized domains\n` +
-          `3. Wait a few minutes for changes to propagate\n` +
-          `4. Try logging in again`;
+        errorMessage = "Domain not authorized. Please try again in a moment.";
       }
 
       toast({
         title: "Error",
         description: errorMessage,
         variant: "destructive",
-        duration: 15000, // Show longer for detailed instructions
       });
       throw error;
     }
@@ -122,38 +113,12 @@ export function useFirebaseAuth() {
     }
   };
 
-  const updateProfile = async (data: { displayName?: string; photoURL?: string }) => {
-    try {
-      if (!auth.currentUser) {
-        throw new Error('No user is currently signed in');
-      }
-
-      await firebaseUpdateProfile(auth.currentUser, data);
-      // Update local user state to reflect changes immediately
-      setUser(auth.currentUser);
-
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
-    } catch (error: any) {
-      console.error('Profile update error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
   return {
     user,
     loading,
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
-    logout,
-    updateProfile
+    logout
   };
 }

@@ -71,7 +71,6 @@ export default function Block({
 
   const commentCount = block.comments?.length || 0;
   const attachmentCount = block.attachments?.length || 0;
-  const hasNotes = !!block.notes;
 
   return (
     <div className="group relative w-full h-full px-2">
@@ -112,13 +111,12 @@ export default function Block({
               rounded bg-white/80 backdrop-blur-sm
               text-xs text-gray-600 hover:text-gray-900
               shadow-sm hover:shadow
-              opacity-0 group-hover:opacity-100
-              ${commentCount > 0 && 'opacity-100'}
+              ${commentCount > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
               transition-all duration-150
             `}
           >
             <MessageSquare className="w-4 h-4" />
-            {commentCount > 0 && <span>{commentCount}</span>}
+            <span>{commentCount}</span>
           </button>
 
           <button
@@ -131,9 +129,9 @@ export default function Block({
               rounded bg-white/80 backdrop-blur-sm
               text-xs text-gray-600 hover:text-gray-900
               shadow-sm hover:shadow
-              opacity-0 group-hover:opacity-100
-              ${attachmentCount > 0 && 'opacity-100 text-blue-600'}
+              ${attachmentCount > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
               transition-all duration-150
+              ${block.attachments?.length ? 'text-blue-600' : ''}
             `}
           >
             <Paperclip className="w-4 h-4" />
@@ -150,8 +148,7 @@ export default function Block({
               rounded bg-white/80 backdrop-blur-sm
               text-xs text-gray-600 hover:text-gray-900
               shadow-sm hover:shadow
-              opacity-0 group-hover:opacity-100
-              ${hasNotes && 'opacity-100 text-yellow-600'}
+              ${block.notes ? 'opacity-100 text-yellow-600' : 'opacity-0 group-hover:opacity-100'}
               transition-all duration-150
             `}
           >
