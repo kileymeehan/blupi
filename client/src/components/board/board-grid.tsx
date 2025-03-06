@@ -580,7 +580,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
       <div className="flex flex-1 overflow-hidden">
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative h-[calc(100vh-5rem)]`}>
+          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative h-[calc(100vh-5rem)] flex flex-col`}>
             <div className="flex flex-col h-full">
               <div className="border-b border-gray-200 bg-white shadow-sm">
                 <Button
@@ -646,14 +646,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               </Button>
 
               {isDrawerOpen && (
-                <div className="flex-1 overflow-hidden">
-                  <div className="h-full">
+                <div className="flex-1 overflow-hidden flex flex-col">
+                  <div className="h-full flex flex-col">
                     <div className={`
-                      h-full overflow-y-auto
+                      flex-1 overflow-y-auto
                       ${showContext ? 'block' : 'hidden'}
-                      bg-slate-50 p-4
+                      bg-slate-50
                     `}>
-                      <div className="space-y-4">
+                      <div className="p-4 space-y-4">
                         <div>
                           <label className="text-sm font-medium mb-2 block">
                             Blueprint Details
@@ -716,7 +716,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </div>
 
                     <div className={`
-                      h-full overflow-y-auto
+                      flex-1 overflow-y-auto
                       ${showBlocks ? 'block' : 'hidden'}
                       bg-slate-50
                     `}>
@@ -736,7 +736,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </div>
 
                     <div className={`
-                      h-full overflow-y-auto
+                      flex-1 overflow-y-auto
                       ${showComments ? 'block' : 'hidden'}
                       bg-slate-50
                     `}>
@@ -757,7 +757,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           </div>
 
           <div className="flex-1 overflow-x-auto">
-            <div ref={boardRef} className="min-w-[800px] p-8"> {/* Added ref here */}
+            <div ref={boardRef} className="min-w-[800px] p-8">
               <div className="flex items-start">
                 {board.phases.map((phase, phaseIndex) => (
                   <div key={phase.id} className="flex-shrink-0 relative mr-8">
