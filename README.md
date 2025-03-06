@@ -1,8 +1,8 @@
-# BLUPE - Customer Journey Blueprint Platform
+# Blupi - Customer Journey Blueprint Platform
 
-BLUPE helps teams work together to design and share customer journey maps. Think of it as a digital whiteboard where you can map out how customers interact with your product or service, making it easy for everyone to contribute and stay on the same page.
+Blupi helps teams work together to design and share customer journey maps. Think of it as a digital whiteboard where you can map out how customers interact with your product or service, making it easy for everyone to contribute and stay on the same page.
 
-## 🎯 What Can You Do With BLUPE?
+## 🎯 What Can You Do With Blupi?
 
 - **Work Together in Real-Time**: Multiple team members can edit the same blueprint at once - just like Google Docs!
 - **Organize Your Work**: Keep your blueprints organized in projects, making it easy to find what you need
@@ -50,7 +50,7 @@ BLUPE helps teams work together to design and share customer journey maps. Think
 
 ## 🔑 Logging In
 
-BLUPE uses Google Sign-In to keep your account secure. You'll need:
+Blupi uses Google Sign-In to keep your account secure. You'll need:
 - A Google account, or
 - An email address and password to create a new account
 
@@ -90,15 +90,15 @@ BLUPE uses Google Sign-In to keep your account secure. You'll need:
 - Public links show only what you choose to share
 - Team members need to be invited to access editable versions
 
-## 📱 Using BLUPE on Different Devices
+## 📱 Using Blupi on Different Devices
 
-BLUPE works on:
+Blupi works on:
 - Desktop computers
 - Laptops
 - Tablets
 - Mobile phones (best for viewing)
 
-## ✨ Making the Most of BLUPE
+## ✨ Making the Most of Blupi
 
 1. **Start Simple**
    - Begin with a basic customer journey
@@ -115,4 +115,4 @@ BLUPE works on:
    - Share context in the sidebar
    - Keep your team updated on changes
 
-Remember: BLUPE is designed to be simple and helpful. Don't worry about getting everything perfect right away - you can always make changes and improvements as you go!
+Remember: Blupi is designed to be simple and helpful. Don't worry about getting everything perfect right away - you can always make changes and improvements as you go!

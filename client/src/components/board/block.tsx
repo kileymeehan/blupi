@@ -98,7 +98,7 @@ export default function Block({
         onKeyDown={handleKeyDown}
         className={`
           w-full min-h-[120px] rounded-lg px-3 py-3 text-sm
-          ${isTemplate ? 'flex items-center justify-center' : 'flex items-start text-left'}
+          ${isTemplate ? 'flex items-center justify-center' : 'flex items-center text-left pt-12'}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal
           transition-all duration-150 ease-out
