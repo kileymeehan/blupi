@@ -1,6 +1,6 @@
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, UserPlus } from "lucide-react";
+import { Plus, UserPlus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
@@ -12,11 +12,13 @@ import { queryClient } from "@/lib/queryClient";
 import type { Board } from "@shared/schema";
 import { StatusSelector } from "@/components/status-selector";
 import { useToast } from "@/hooks/use-toast";
+import { DeleteProjectDialog } from "@/components/delete-project-dialog";
 
 export default function Project() {
   const { id } = useParams();
   const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: project, isLoading: projectLoading } = useQuery({
@@ -96,12 +98,22 @@ export default function Project() {
           await updateProjectMutation.mutateAsync({ name: newTitle });
         }}
         rightContent={
-          <StatusSelector
-            type="project"
-            value={project?.status}
-            onChange={(status) => updateProjectMutation.mutateAsync({ status })}
-            disabled={updateProjectMutation.isPending}
-          />
+          <div className="flex items-center gap-2">
+            <StatusSelector
+              type="project"
+              value={project?.status}
+              onChange={(status) => updateProjectMutation.mutateAsync({ status })}
+              disabled={updateProjectMutation.isPending}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDeleteProjectOpen(true)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         }
       />
 
@@ -164,6 +176,12 @@ export default function Project() {
         open={inviteOpen}
         onOpenChange={setInviteOpen}
         projectId={Number(id)}
+      />
+      <DeleteProjectDialog
+        open={deleteProjectOpen}
+        onOpenChange={setDeleteProjectOpen}
+        projectId={Number(id)}
+        projectName={project?.name || ''}
       />
     </div>
   );
