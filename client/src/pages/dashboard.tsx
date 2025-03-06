@@ -43,7 +43,6 @@ export default function Dashboard() {
   );
 
   const recentBoards = sortedBoards.slice(0, 3);
-
   const unassignedBoards = boards.filter((board: any) => !board.projectId);
 
   return (
@@ -95,9 +94,16 @@ export default function Dashboard() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project: any) => (
-              <Card key={project.id} className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow">
-                <div className="absolute inset-y-0 left-0" style={{ backgroundColor: project.color || '#4F46E5' }} />
-                <CardHeader>
+              <Card key={project.id} className="relative overflow-hidden group hover:shadow-md transition-shadow">
+                <div 
+                  className="absolute inset-y-0 left-0 w-1.5" 
+                  style={{ 
+                    backgroundColor: project.color || '#4F46E5',
+                    opacity: 1,
+                    zIndex: 10 
+                  }} 
+                />
+                <CardHeader className="relative">
                   <div className="flex items-center justify-between">
                     <CardTitle>{project.name}</CardTitle>
                     <div className={`
@@ -114,7 +120,7 @@ export default function Dashboard() {
                   <CardDescription>
                     {project.description}
                     <div className="mt-1 text-xs text-muted-foreground">
-                      Created by {project.createdBy || 'Unknown'} on {format(new Date(project.createdAt), 'MMM d, yyyy')}
+                      Created on {format(new Date(project.createdAt), 'MMM d, yyyy')}
                     </div>
                   </CardDescription>
                 </CardHeader>
@@ -151,7 +157,7 @@ export default function Dashboard() {
               return (
                 <Card key={board.id} className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow">
                   {project && (
-                    <div className="absolute inset-y-0 left-0" style={{ backgroundColor: project.color || '#4F46E5' }} />
+                    <div className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: project.color || '#4F46E5', opacity: 1, zIndex: 10 }} />
                   )}
                   <CardHeader>
                     <CardTitle>{board.name}</CardTitle>
@@ -252,11 +258,13 @@ export default function Dashboard() {
         onOpenChange={setCreateBlueprintOpen}
       />
 
-      <AddToProjectDialog
-        open={addToProjectOpen}
-        onOpenChange={setAddToProjectOpen}
-        boardId={selectedBoardId!}
-      />
+      {selectedBoardId && (
+        <AddToProjectDialog
+          open={addToProjectOpen}
+          onOpenChange={setAddToProjectOpen}
+          boardId={Number(selectedBoardId)}
+        />
+      )}
     </div>
   );
 }
