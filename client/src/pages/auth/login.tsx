@@ -58,7 +58,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Hero content */}
-      <div className="hidden lg:flex lg:w-1/2 bg-blue-600 text-white p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/3 bg-blue-600 text-white p-12 flex-col justify-between">
         <div>
           <h1 className="text-4xl font-bold mb-6">
             Welcome to Blueprint
@@ -93,7 +93,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Login form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-background to-muted/50">
+      <div className="w-full lg:w-2/3 flex items-center justify-center p-8 bg-gradient-to-br from-background to-muted/50">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
