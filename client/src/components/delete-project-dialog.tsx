@@ -34,13 +34,19 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
         const error = await res.json();
         throw new Error(error.message || "Failed to delete project");
       }
+
+      return res.json();
     },
     onSuccess: () => {
+      // Invalidate both projects and boards queries since either could be affected
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+
       toast({
         title: "Success",
         description: "Project deleted successfully"
       });
+
       onOpenChange(false);
       setLocation("/");
     },
