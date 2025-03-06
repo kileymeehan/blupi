@@ -193,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update this endpoint to handle role assignment
+  // Update just the invite endpoint
   app.post("/api/projects/:id/invite", async (req, res) => {
     try {
       const { email, role } = req.body;
@@ -205,7 +205,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get or create user (in a real app, this would send an email)
+      // Get the project details
+      const project = await storage.getProject(Number(req.params.id));
+      if (!project) {
+        return res.status(404).json({ error: true, message: "Project not found" });
+      }
+
+      // Get or create user
       let user = await storage.getUserByEmail(email);
       if (!user) {
         user = await storage.createUser({
@@ -223,8 +229,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending'
       });
 
+      // Send invitation email
+      const emailSent = await sendProjectInvitation({
+        to: email,
+        projectName: project.name,
+        role,
+        inviterName: "Team member" // In a real app, this would be the current user's name
+      });
+
       res.json({ 
-        message: "Invitation sent successfully",
+        message: emailSent ? "Invitation sent successfully" : "Invitation created but email failed to send",
         projectMember
       });
     } catch (err) {
