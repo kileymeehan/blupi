@@ -5,6 +5,7 @@ import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { WebSocketServer, WebSocket } from 'ws';
+import { sendProjectInvitation } from './utils/sendgrid';
 
 // Track active connections per board
 const boardConnections = new Map<number, Set<WebSocket>>();
@@ -193,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update just the invite endpoint
+  // Update the invite endpoint
   app.post("/api/projects/:id/invite", async (req, res) => {
     try {
       const { email, role } = req.body;
@@ -237,8 +238,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         inviterName: "Team member" // In a real app, this would be the current user's name
       });
 
+      if (!emailSent) {
+        console.error('Failed to send invitation email to:', email);
+        return res.status(500).json({ 
+          error: true, 
+          message: "Failed to send invitation email. Please try again." 
+        });
+      }
+
       res.json({ 
-        message: emailSent ? "Invitation sent successfully" : "Invitation created but email failed to send",
+        message: "Invitation sent successfully",
         projectMember
       });
     } catch (err) {

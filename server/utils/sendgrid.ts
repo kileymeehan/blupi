@@ -22,7 +22,7 @@ export async function sendProjectInvitation({
 }: InvitationEmailParams) {
   const msg = {
     to,
-    from: 'noreply@yourdomain.com', // Replace with your verified sender
+    from: process.env.SENDGRID_VERIFIED_SENDER || 'noreply@blueprint-app.com', // Replace with your verified sender
     subject: `You've been invited to collaborate on ${projectName}`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -52,6 +52,9 @@ export async function sendProjectInvitation({
     return true;
   } catch (error) {
     console.error('SendGrid email error:', error);
+    if (error.response) {
+      console.error('SendGrid error response:', error.response.body);
+    }
     return false;
   }
 }
