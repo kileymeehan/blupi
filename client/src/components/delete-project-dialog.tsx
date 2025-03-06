@@ -29,7 +29,7 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
         },
         body: JSON.stringify({ blueprintAction })
       });
-      
+
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to delete project");
@@ -41,6 +41,7 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
         title: "Success",
         description: "Project deleted successfully"
       });
+      onOpenChange(false);
       setLocation("/");
     },
     onError: (error: Error) => {

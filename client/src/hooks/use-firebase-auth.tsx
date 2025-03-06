@@ -30,6 +30,13 @@ export function useFirebaseAuth() {
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
+      provider.setCustomParameters({
+        prompt: 'select_account',
+        // Ensure mobile browsers are properly handled
+        mobile: '1',
+        // Allow sign in from embedded browsers
+        embedded: '1'
+      });
 
       const result = await signInWithPopup(auth, provider);
 
@@ -48,7 +55,11 @@ export function useFirebaseAuth() {
 
       let errorMessage = "Failed to sign in with Google";
       if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = "Domain not authorized. Please try again in a moment.";
+        errorMessage = "This app needs to be verified by Google. Please try again in a moment.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Please allow popups for this site to sign in with Google.";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = "Sign in was cancelled. Please try again.";
       }
 
       toast({
