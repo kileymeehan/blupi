@@ -27,8 +27,8 @@ export function UsersPresence({ users }: UsersPresenceProps) {
         {users.map((user) => (
           <Tooltip key={user.id}>
             <TooltipTrigger asChild>
-              <Avatar className="w-8 h-8 border-2 border-background" style={{ backgroundColor: user.color }}>
-                <AvatarFallback className="text-white text-xs">
+              <Avatar className="w-8 h-8 border-2 border-black bg-white shadow-sm">
+                <AvatarFallback style={{ color: user.color }}>
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
