@@ -2,16 +2,13 @@ import { LAYER_TYPES } from "./board-grid";
 import { Draggable } from "react-beautiful-dnd";
 
 export default function BlockDrawer() {
-  // Skip the touchpoint type as it's added by default
-  const blockTypes = LAYER_TYPES.filter(type => type.type !== 'touchpoint');
-
   return (
     <div className="w-full p-4">
       <div className="flex items-center mb-4">
         <h2 className="font-semibold text-gray-700">Available Boxes</h2>
       </div>
       <div className="space-y-4 flex flex-col items-center">
-        {blockTypes.map((layer, index) => (
+        {LAYER_TYPES.map((layer, index) => (
           <Draggable
             key={layer.type}
             draggableId={`drawer-${layer.type}`}
