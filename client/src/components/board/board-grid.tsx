@@ -810,7 +810,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                         : provided.draggableProps.style?.transition,
                                                     }}
                                                   >
-                                                    <Block block={block} onChange={handleBlockChange} onAttachmentChange={handleAttachmentChange} onCommentClick={() => handleCommentClick(block)} />
+                                                    <Block 
+                                                      block={block} 
+                                                      onChange={handleBlockChange} 
+                                                      onAttachmentChange={handleAttachmentChange} 
+                                                      onCommentClick={() => handleCommentClick(block)}
+                                                      projectId={board.projectId || undefined}
+                                                    />
                                                   </div>
                                                 )}
                                               </Draggable>
@@ -863,8 +869,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       {inviteOpen && (
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Invite Team Members</DialogTitle>
+            <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
               <DialogDescription>
                 Enter email addresses to invite team members
               </DialogDescription>
