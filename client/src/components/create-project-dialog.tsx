@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { insertProjectSchema, type InsertProject } from "@shared/schema";
-import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { Paintbrush } from "lucide-react";
 
 // Predefined project colors - high contrast, visually distinct colors
@@ -32,24 +31,9 @@ interface CreateProjectDialogProps {
 
 export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogProps) {
   const { toast } = useToast();
-  const { user } = useFirebaseAuth();
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [currentColorIndex, setCurrentColorIndex] = useState(0);
-
-  // Get next color in sequence
-  const getNextColor = () => {
-    const nextIndex = (currentColorIndex + 1) % projectColors.length;
-    setCurrentColorIndex(nextIndex);
-    return projectColors[nextIndex];
-  };
-
-  // Update form with new color when dialog opens
-  useEffect(() => {
-    if (open) {
-      form.setValue('color', getNextColor());
-    }
-  }, [open]);
 
   const form = useForm<InsertProject>({
     resolver: zodResolver(insertProjectSchema),
@@ -60,41 +44,31 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
     },
   });
 
+  // Update form with new color when dialog opens
+  useEffect(() => {
+    if (open) {
+      const nextIndex = (currentColorIndex + 1) % projectColors.length;
+      setCurrentColorIndex(nextIndex);
+      form.setValue('color', projectColors[nextIndex]);
+    }
+  }, [open]);
+
   const createProject = useMutation({
     mutationFn: async (data: InsertProject) => {
-      try {
-        const response = await fetch("/api/projects", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...data,
-            createdBy: user?.email
-          }),
-        });
+      const response = await fetch("/api/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-        let responseData;
-        try {
-          const text = await response.text();
-          responseData = JSON.parse(text);
-        } catch (parseError) {
-          console.error('Failed to parse response:', parseError);
-          throw new Error('Server returned invalid JSON');
-        }
-
-        if (!response.ok) {
-          throw new Error(responseData.message || "Failed to create project");
-        }
-
-        return responseData;
-      } catch (error) {
-        console.error('Project creation error:', error);
-        if (error instanceof Error) {
-          throw new Error(error.message);
-        }
-        throw new Error("An unexpected error occurred");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create project");
       }
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
@@ -106,11 +80,11 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
       form.reset({
         name: "",
         description: "",
+        color: projectColors[(currentColorIndex + 1) % projectColors.length],
       });
       setShowCustomPicker(false);
     },
     onError: (error: Error) => {
-      console.error('Project creation error:', error);
       toast({
         title: "Error",
         description: error.message,

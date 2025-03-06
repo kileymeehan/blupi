@@ -134,6 +134,7 @@ export class MemStorage implements IStorage {
       id,
       createdAt,
       userId: 1, // Default for now
+      color: insertProject.color || '#4F46E5', // Ensure color is never null
       description: insertProject.description || null
     };
     this.projects.set(id, project);

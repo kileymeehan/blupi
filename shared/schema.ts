@@ -46,14 +46,14 @@ export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  color: text("color").default("#4F46E5"), // Default to indigo-600
+  color: text("color").notNull().default('#4F46E5'), // Default to indigo-600
   userId: integer("user_id").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 
 export const insertProjectSchema = createInsertSchema(projects)
   .extend({
-    color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color").optional()
+    color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
   })
   .omit({ id: true, userId: true, createdAt: true });
 
