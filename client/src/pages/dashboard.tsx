@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, LogOut, User, LayoutGrid, Folder, Trash2 } from "lucide-react";
+import { Plus, LogOut, User, LayoutGrid, Folder, Trash2, Briefcase } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
@@ -35,7 +35,7 @@ export default function Dashboard() {
   const [projectToDelete, setProjectToDelete] = useState<{id: number, name: string} | null>(null);
   const { toast } = useToast();
 
-  const { data: projects = [] } = useQuery<Project[]>({
+  const { data: projects = [], refetch: refetchProjects } = useQuery<Project[]>({
     queryKey: ['/api/projects']
   });
 
@@ -166,10 +166,10 @@ export default function Dashboard() {
                     zIndex: 10 
                   }} 
                 />
-                <CardHeader className="relative">
+                <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <CardTitle>{project.name}</CardTitle>
+                      <CardTitle className="text-lg">{project.name}</CardTitle>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -186,12 +186,12 @@ export default function Dashboard() {
                       disabled={updateProjectStatus.isPending}
                     />
                   </div>
-                  <CardDescription>
-                    {project.description}
+                  <div className="mt-2">
+                    <div className="text-sm text-muted-foreground">{project.description}</div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       Created on {format(new Date(project.createdAt), 'MMM d, yyyy')}
                     </div>
-                  </CardDescription>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Button asChild className="w-full">
