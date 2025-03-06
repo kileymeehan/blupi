@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
 interface DeleteProjectDialogProps {
   open: boolean;
@@ -22,32 +22,12 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
 
   const deleteProjectMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/projects/${projectId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ blueprintAction })
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        let message: string;
-        try {
-          const error = JSON.parse(text);
-          message = error.message;
-        } catch {
-          message = "Failed to delete project. Please try again.";
-        }
-        throw new Error(message);
-      }
-
-      // Don't try to parse the response if it's empty
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        return res.json();
-      }
-      return null;
+      const res = await apiRequest(
+        "DELETE",
+        `/api/projects/${projectId}`,
+        { blueprintAction }
+      );
+      return res.json();
     },
     onSuccess: () => {
       // Invalidate both projects and boards queries since either could be affected
