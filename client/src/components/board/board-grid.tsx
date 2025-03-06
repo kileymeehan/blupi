@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Briefcase } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +16,18 @@ import AddToProjectDialog from "./add-to-project-dialog";
 import { UsersPresence } from "./users-presence";
 import { StatusSelector } from "@/components/status-selector";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { useToast, toast } from "@/hooks/use-toast";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { UserPlus, Link as LinkIcon } from "lucide-react";
+
 
 interface BoardGridProps {
   id: string;
@@ -52,7 +63,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [blueprintDetails, setBlueprintDetails] = useState("");
   const [personaDetails, setPersonaDetails] = useState("");
   const [personaImage, setPersonaImage] = useState<string | null>(null);
-  //const [connectedUsers, setConnectedUsers] = useState<string[]>([]); //add state for connected users - Removed, now passed as prop
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [shareLinkOpen, setShareLinkOpen] = useState(false);
+  const [shareLink, setShareLink] = useState("");
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -192,7 +205,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
-    const newColumn: any = { //Fixed type issue
+    const newColumn: { id: string; name: string; image?: string | undefined } = { 
       id: nanoid(),
       name: `Step ${newPhases[phaseIndex].columns.length + 1}`,
       image: undefined
@@ -355,7 +368,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               >
                 <Link href={`/project/${project.id}`}>
                   <div className="flex items-center">
-                    <Briefcase className="w-5 h-5 mr-2" />
+                    <Folder className="w-5 h-5 mr-2" />
                     {project.name}
                   </div>
                 </Link>
@@ -405,9 +418,23 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
               <Share2 className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-              <UserCircle2 className="w-4 h-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                  <UserCircle2 className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onSelect={() => setInviteOpen(true)}>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Invite Team Members
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setShareLinkOpen(true)}>
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  Generate Share Link
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
@@ -698,9 +725,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                           {...provided.droppableProps}
                                           className={`
                                             space-y-2 min-h-[100px] p-4
-                                            rounded-lg bg-white border-2
+                                            rounded-lg bg-white border
                                             transition-all duration-200 ease-in-out
-                                            ${snapshot.isDraggingOver ? 'border-primary bg-primary/5' : 'border-gray-400'}
+                                            ${snapshot.isDraggingOver ? 'border-primary bg-primary/5' : 'border-gray-300'}
                                           `}
                                           style={{
                                             minHeight: '100px',
@@ -784,6 +811,60 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         onOpenChange={setAddToProjectOpen}
         boardId={board.id}
       />
+      {inviteOpen && (
+        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Invite Team Members</DialogTitle>
+              <DialogDescription>
+                Enter email addresses to invite team members
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <Input
+                placeholder="Enter email addresses (comma separated)"
+                className="w-full"
+              />
+              <Button className="w-full" onClick={() => setInviteOpen(false)}>
+                Send Invites
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {shareLinkOpen && (
+        <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Share Link</DialogTitle>
+              <DialogDescription>
+                Copy this link to share with your team
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex gap-2">
+                <Input
+                  value={window.location.href}
+                  readOnly
+                  className="w-full"
+                />
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast({
+                      title: "Link copied",
+                      description: "Share link has been copied to clipboard"
+                    });
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

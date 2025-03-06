@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, LogOut, User, LayoutGrid, Briefcase } from "lucide-react";
+import { Plus, LogOut, User, LayoutGrid, Folder } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
@@ -97,7 +97,9 @@ export default function Dashboard() {
       <header className="border-b bg-white shadow-sm">
         <div className="container flex h-16 items-center px-8">
           <div className="flex-1 flex items-center gap-8">
-            <h1 className="text-2xl font-bold tracking-tight font-mono">BLUPE</h1>
+            <h1 className="text-4xl font-black tracking-tighter font-mono bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              BLUPE
+            </h1>
             <h2 className="text-lg font-semibold text-muted-foreground">Dashboard</h2>
           </div>
 
@@ -130,7 +132,7 @@ export default function Dashboard() {
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <Briefcase className="h-6 w-6 text-primary" />
+                <Folder className="h-6 w-6 text-primary" />
                 <h2 className="text-2xl font-semibold">Projects</h2>
               </div>
               <Button variant="outline" size="sm" onClick={() => setCreateProjectOpen(true)}>
