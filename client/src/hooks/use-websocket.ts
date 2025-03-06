@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useFirebaseAuth } from '@/hooks/use-firebase-auth';
 
 interface WebSocketMessage {
   type: string;
@@ -10,11 +11,13 @@ interface ConnectedUser {
   id: string;
   name: string;
   color: string;
+  photoURL?: string;
 }
 
 export function useWebSocket(boardId: number) {
   const socketRef = useRef<WebSocket | null>(null);
   const { toast } = useToast();
+  const { user } = useFirebaseAuth();
   const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
@@ -31,18 +34,24 @@ export function useWebSocket(boardId: number) {
     socketRef.current = socket;
 
     socket.addEventListener('open', () => {
-      // Subscribe to board updates with user info
-      const userEmail = localStorage.getItem('userEmail') || 'Anonymous';
+      // Subscribe to board updates with user info including photoURL
       sendMessage({ 
         type: 'subscribe', 
         boardId,
-        userName: userEmail 
+        userName: user?.email || 'Anonymous',
+        photoURL: user?.photoURL
+      });
+
+      console.log('WebSocket connected, sending user data:', {
+        email: user?.email,
+        photoURL: user?.photoURL
       });
     });
 
     socket.addEventListener('message', (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'users_update') {
+        console.log('Received users update:', data.users);
         setConnectedUsers(data.users);
       }
     });
@@ -58,7 +67,7 @@ export function useWebSocket(boardId: number) {
     return () => {
       socket.close();
     };
-  }, [boardId, toast, sendMessage]);
+  }, [boardId, toast, sendMessage, user]);
 
   return { sendMessage, connectedUsers };
 }
