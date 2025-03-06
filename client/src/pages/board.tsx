@@ -105,7 +105,7 @@ export default function BoardPage() {
       onPhasesChange={handlePhasesChange}
       onBoardChange={handleBoardChange}
       connectedUsers={connectedUsers.map(userId => ({
-        id: userId,
+        id: String(userId),
         name: String(userId),
         color: '#4F46E5'
       }))}

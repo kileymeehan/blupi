@@ -13,10 +13,13 @@ interface UsersPresenceProps {
 
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
-function getAnimalEmoji(id: string): string {
-  // Use the hash of the ID to consistently pick an emoji for each user
-  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return ANIMAL_EMOJIS[hash % ANIMAL_EMOJIS.length];
+function getAnimalEmoji(id: string | number): string {
+  // Convert id to string if it's not already
+  const idString = String(id);
+
+  // Generate a simple hash from the string
+  const hash = idString.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return ANIMAL_EMOJIS[Math.abs(hash) % ANIMAL_EMOJIS.length];
 }
 
 export function UsersPresence({ users }: UsersPresenceProps) {
