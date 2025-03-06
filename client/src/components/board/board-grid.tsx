@@ -48,17 +48,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { UserPlus, Link as LinkIcon } from "lucide-react";
 
 
-// Types of content blocks that can be added to the blueprint
+// Update LAYER_TYPES with new categories and colors
 export const LAYER_TYPES = [
-  { type: 'touchpoint', label: 'Touchpoints', color: 'bg-sky-200' },
+  { type: 'touchpoint', label: 'Touchpoint', color: 'bg-indigo-200' },
   { type: 'role', label: 'Roles', color: 'bg-green-200' },
   { type: 'process', label: 'Processes', color: 'bg-pink-200' },
-  { type: 'pitfall', label: 'Pitfalls', color: 'bg-red-200' },
+  { type: 'friction', label: 'Friction', color: 'bg-red-200' },
   { type: 'policy', label: 'Policy', color: 'bg-orange-200' },
   { type: 'technology', label: 'Technology', color: 'bg-purple-200' },
-  { type: 'rationale', label: 'Rationale', color: 'bg-indigo-200' },
+  { type: 'rationale', label: 'Rationale', color: 'bg-blue-200' },
   { type: 'question', label: 'Questions', color: 'bg-violet-200' },
-  { type: 'note', label: 'Notes', color: 'bg-cyan-200' }
+  { type: 'note', label: 'Notes', color: 'bg-cyan-200' },
+  { type: 'hidden', label: 'Hidden Step', color: 'bg-gray-700' }
 ] as const;
 
 interface Attachment {
@@ -201,7 +202,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           columnIndex,
           comments: [],
           attachments: [],
-          notes: ""
+          notes: "",
+          emoji: "" // Added emoji property
         };
 
         blocks.splice(destination.index, 0, newBlock);
@@ -243,6 +245,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     );
     onBlocksChange(blocks);
   };
+
+  // Add handleEmojiChange function
+  const handleEmojiChange = (blockId: string, emoji: string) => {
+    const blocks = board.blocks.map(block =>
+      block.id === blockId ? { ...block, emoji } : block
+    );
+    onBlocksChange(blocks);
+  };
+
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
@@ -829,6 +840,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                       onChange={handleBlockChange}
                                                       onAttachmentChange={handleAttachmentChange}
                                                       onNotesChange={handleNotesChange}
+                                                      onEmojiChange={handleEmojiChange}
                                                       onCommentClick={() => handleCommentClick(block)}
                                                       projectId={board.projectId || undefined}
                                                     />
@@ -856,11 +868,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   variant="outline"
                   size="sm"
                   onClick={handleAddPhase}
-                  className="mt-3 h-7 px-2 ml-4"
+                  className="mt-3 h-7 px2 border border-gray-300"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Phase
-                </Button>              </div>
+                </Button>
+              </div>
             </div>
           </div>
         </DragDropContext>

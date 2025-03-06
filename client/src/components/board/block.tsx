@@ -1,16 +1,19 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote } from "lucide-react";
+import { MessageSquare, Paperclip, StickyNote, Smile } from "lucide-react";
 import type { Block as BlockType, Attachment } from "@shared/schema";
 import { AttachmentDialog } from "./attachment-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
 
 interface BlockProps {
   block: BlockType;
   onChange?: (id: string, content: string) => void;
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
+  onEmojiChange?: (id: string, emoji: string) => void;
   isTemplate?: boolean;
   onCommentClick?: () => void;
   projectId?: number;
@@ -20,12 +23,13 @@ const TYPE_LABELS = {
   touchpoint: 'Touchpoint',
   role: 'Role',
   process: 'Process',
-  pitfall: 'Pitfall',
+  friction: 'Friction',
   policy: 'Policy',
   technology: 'Technology',
   rationale: 'Rationale',
   question: 'Question',
-  note: 'Note'
+  note: 'Note',
+  hidden: 'Hidden Step'
 } as const;
 
 export default function Block({ 
@@ -33,6 +37,7 @@ export default function Block({
   onChange, 
   onAttachmentChange, 
   onNotesChange,
+  onEmojiChange,
   isTemplate = false, 
   onCommentClick, 
   projectId 
@@ -40,6 +45,7 @@ export default function Block({
   const contentRef = useRef<HTMLDivElement>(null);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [notes, setNotes] = useState(block.notes || '');
 
   useEffect(() => {
@@ -69,11 +75,22 @@ export default function Block({
     setNotesDialogOpen(false);
   };
 
+  const handleEmojiSelect = (emoji: any) => {
+    if (!onEmojiChange) return;
+    onEmojiChange(block.id, emoji.native);
+    setEmojiPickerOpen(false);
+  };
+
   const commentCount = block.comments?.length || 0;
   const attachmentCount = block.attachments?.length || 0;
 
   return (
     <div className="group relative w-full h-full px-2">
+      {block.emoji && (
+        <div className="absolute -top-2 -right-2 z-10 text-lg">
+          {block.emoji}
+        </div>
+      )}
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
@@ -156,6 +173,23 @@ export default function Block({
           >
             <StickyNote className="w-4 h-4" />
           </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setEmojiPickerOpen(true);
+            }}
+            className={`
+              flex items-center gap-1 p-1
+              rounded bg-white/80 backdrop-blur-sm
+              text-xs text-gray-600 hover:text-gray-900
+              shadow-sm hover:shadow
+              opacity-0 group-hover:opacity-100
+              transition-all duration-150
+            `}
+          >
+            <Smile className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -182,6 +216,21 @@ export default function Block({
             <Button onClick={handleNotesChange} className="w-full">
               Save Notes
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Emoji</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Picker
+              data={data}
+              onEmojiSelect={handleEmojiSelect}
+              theme="light"
+            />
           </div>
         </DialogContent>
       </Dialog>

@@ -109,15 +109,17 @@ export const attachmentSchema = z.object({
 
 export type Attachment = z.infer<typeof attachmentSchema>;
 
+// Update the blockSchema to include emoji support
 export const blockSchema = z.object({
   id: z.string(),
-  type: z.enum(['touchpoint', 'role', 'process', 'pitfall', 'policy', 'technology', 'rationale', 'question', 'note']),
+  type: z.enum(['touchpoint', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden']),
   content: z.string(),
   phaseIndex: z.number(),
   columnIndex: z.number(),
   comments: z.array(commentSchema).optional().default([]),
   attachments: z.array(attachmentSchema).optional().default([]),
-  notes: z.string().optional()
+  notes: z.string().optional(),
+  emoji: z.string().optional()
 });
 
 export type Block = z.infer<typeof blockSchema>;
