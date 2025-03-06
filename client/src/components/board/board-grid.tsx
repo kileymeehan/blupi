@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, LogIn, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Briefcase } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Briefcase } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,21 +13,17 @@ import ImageUpload from './image-upload';
 import { CommentsOverview } from "./comments-overview";
 import { useQuery } from '@tanstack/react-query';
 import AddToProjectDialog from "./add-to-project-dialog";
-import { UsersPresence } from "./users-presence"; // Fixed import
+import { UsersPresence } from "./users-presence";
 import { StatusSelector } from "@/components/status-selector";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { toast } from "@/hooks/use-toast"; // Updated import path
+import { useToast } from "@/hooks/use-toast";
 
-interface ColumnWithImage {
+interface BoardGridProps {
   id: string;
-  name: string;
-  image?: string;
-}
-
-interface PhaseWithImages {
-  id: string;
-  name: string;
-  columns: ColumnWithImage[];
+  onBlocksChange: (blocks: BlockType[]) => void;
+  onPhasesChange: (phases: Phase[]) => void;
+  onBoardChange: (board: Board) => void;
+  connectedUsers: Array<{ id: string; name: string; color: string; }>;
 }
 
 export const LAYER_TYPES = [
@@ -42,14 +38,7 @@ export const LAYER_TYPES = [
   { type: 'note', label: 'Notes', color: 'bg-cyan-200' }
 ] as const;
 
-interface BoardGridProps {
-  id: string;
-  onBlocksChange: (blocks: BlockType[]) => void;
-  onPhasesChange: (phases: PhaseWithImages[]) => void;
-  onBoardChange: (board: Board) => void;
-}
-
-export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange }: BoardGridProps) {
+export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange, connectedUsers }: BoardGridProps) {
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -63,7 +52,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [blueprintDetails, setBlueprintDetails] = useState("");
   const [personaDetails, setPersonaDetails] = useState("");
   const [personaImage, setPersonaImage] = useState<string | null>(null);
-  const [connectedUsers, setConnectedUsers] = useState<string[]>([]); //add state for connected users
+  //const [connectedUsers, setConnectedUsers] = useState<string[]>([]); //add state for connected users - Removed, now passed as prop
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -203,7 +192,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
-    const newColumn: ColumnWithImage = {
+    const newColumn: any = { //Fixed type issue
       id: nanoid(),
       name: `Step ${newPhases[phaseIndex].columns.length + 1}`,
       image: undefined
@@ -333,7 +322,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       if (!res.ok) throw new Error('Failed to delete blueprint');
       setLocation('/');
     } catch (error) {
-      toast({
+      useToast({
         title: "Error",
         description: error instanceof Error ? error.message : 'Failed to delete blueprint',
         variant: "destructive"

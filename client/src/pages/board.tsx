@@ -60,7 +60,11 @@ export default function BoardPage() {
       onBlocksChange={handleBlocksChange}
       onPhasesChange={handlePhasesChange}
       onBoardChange={handleBoardChange}
-      connectedUsers={connectedUsers}
+      connectedUsers={connectedUsers.map(userId => ({
+        id: userId,
+        name: userId, // For now using ID as name
+        color: '#4F46E5' // Default color
+      }))}
     />
   );
 }
