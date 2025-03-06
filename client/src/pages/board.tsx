@@ -6,7 +6,6 @@ import type { Board, Block, Phase } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useWebSocket } from "@/hooks/use-websocket";
-import { UsersPresence } from "@/components/board/users-presence";
 
 export default function BoardPage() {
   const { id } = useParams();
@@ -56,14 +55,12 @@ export default function BoardPage() {
   };
 
   return (
-    <div className="h-screen">
-      <UsersPresence users={connectedUsers} />
-      <BoardGrid
-        id={id!}
-        onBlocksChange={handleBlocksChange}
-        onPhasesChange={handlePhasesChange}
-        onBoardChange={handleBoardChange}
-      />
-    </div>
+    <BoardGrid
+      id={id!}
+      onBlocksChange={handleBlocksChange}
+      onPhasesChange={handlePhasesChange}
+      onBoardChange={handleBoardChange}
+      connectedUsers={connectedUsers}
+    />
   );
 }

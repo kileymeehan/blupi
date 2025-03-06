@@ -15,6 +15,8 @@ import { useQuery } from '@tanstack/react-query';
 import AddToProjectDialog from "./add-to-project-dialog";
 import { UsersPresence } from "./users-presence"; // Fixed import
 import { StatusSelector } from "@/components/status-selector";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast"; // Updated import path
 
 interface ColumnWithImage {
   id: string;
@@ -323,6 +325,22 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     }
   };
 
+  const handleDeleteBoard = async () => {
+    try {
+      const res = await fetch(`/api/boards/${id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Failed to delete blueprint');
+      setLocation('/');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to delete blueprint',
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
@@ -386,24 +404,42 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         <div className="flex items-center">
           <UsersPresence users={connectedUsers} />
           <div className="w-px h-6 bg-gray-200 mx-3" />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setAddToProjectOpen(true)}
-              className="h-9 px-2"
+              className="h-9 w-9 p-0"
             >
               <FolderPlus className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-9 px-2">
+            <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
               <Share2 className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-9 px-2">
+            <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
               <UserCircle2 className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-9 px-2">
-              <LogIn className="w-4 h-4" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Blueprint</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this blueprint? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteBoard} className="bg-red-600 hover:bg-red-700">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </header>
