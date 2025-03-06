@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,14 +10,39 @@ import { useToast } from "@/hooks/use-toast";
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
 export default function ProfilePage() {
-  const { user, logout } = useFirebaseAuth();
+  const { user, logout, updateProfile } = useFirebaseAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [selectedEmoji, setSelectedEmoji] = useState<string>(ANIMAL_EMOJIS[0]);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>("");
+
+  // Initialize with user's current avatar if available
+  useEffect(() => {
+    if (user?.photoURL && ANIMAL_EMOJIS.includes(user.photoURL)) {
+      setSelectedEmoji(user.photoURL);
+    } else {
+      setSelectedEmoji(ANIMAL_EMOJIS[0]);
+    }
+  }, [user]);
+
+  const handleEmojiChange = async (emoji: string) => {
+    try {
+      setSelectedEmoji(emoji);
+      await updateProfile({ photoURL: emoji });
+      toast({
+        title: "Success",
+        description: "Your avatar has been updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update avatar",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDeleteAccount = async () => {
     try {
-      // Here you would implement the account deletion logic
       await logout();
       navigate("/auth");
       toast({
@@ -63,21 +88,26 @@ export default function ProfilePage() {
 
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Choose Your Animal Avatar</h3>
-              <Select
-                value={selectedEmoji}
-                onValueChange={setSelectedEmoji}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue>{selectedEmoji}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {ANIMAL_EMOJIS.map((emoji) => (
-                    <SelectItem key={emoji} value={emoji}>
-                      {emoji}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-4">
+                <Select
+                  value={selectedEmoji}
+                  onValueChange={handleEmojiChange}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue>{selectedEmoji}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ANIMAL_EMOJIS.map((emoji) => (
+                      <SelectItem key={emoji} value={emoji}>
+                        {emoji}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="text-sm text-muted-foreground">
+                  This is how others will see you in collaborative blueprints
+                </div>
+              </div>
             </div>
           </CardContent>
 
