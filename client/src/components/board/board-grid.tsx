@@ -580,8 +580,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
       <div className="flex flex-1 overflow-hidden">
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative h-[calc(100vh-5rem)] flex flex-col`}>
-            <div className="flex flex-col h-full">
+          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}>
+            <div className="flex flex-col flex-grow bg-slate-50">
               <div className="border-b border-gray-200 bg-white shadow-sm">
                 <Button
                   variant="ghost"
@@ -646,110 +646,95 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               </Button>
 
               {isDrawerOpen && (
-                <div className="flex-1 overflow-hidden flex flex-col">
-                  <div className="h-full flex flex-col">
-                    <div className={`
-                      flex-1 overflow-y-auto
-                      ${showContext ? 'block' : 'hidden'}
-                      bg-slate-50
-                    `}>
-                      <div className="p-4 space-y-4">
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">
-                            Blueprint Details
-                          </label>
-                          <Textarea
-                            placeholder="Add key details about this blueprint..."
-                            value={blueprintDetails}
-                            onChange={(e) => setBlueprintDetails(e.target.value)}
-                            className="min-h-[150px] resize-none"
-                          />
-                        </div>
+                <div className="flex-1 flex flex-col bg-slate-50">
+                  <div className={`flex-1 ${showContext ? 'block' : 'hidden'}`}>
+                    <div className="p-4 space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Blueprint Details
+                        </label>
+                        <Textarea
+                          placeholder="Add key details about this blueprint..."
+                          value={blueprintDetails}
+                          onChange={(e) => setBlueprintDetails(e.target.value)}
+                          className="min-h-[150px] resize-none"
+                        />
+                      </div>
 
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium block">
-                            Persona
-                          </label>
-                          <div
-                            className="w-full h-40 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
-                            onClick={() => document.getElementById('persona-image')?.click()}
-                          >
-                            {personaImage ? (
-                              <img
-                                src={personaImage}
-                                alt="Persona"
-                                className="w-full h-full object-cover rounded-lg"
-                              />
-                            ) : (
-                              <div className="text-center">
-                                <Upload className="w-8 h-8 mx-auto text-gray-400" />
-                                <span className="text-sm text-gray-500 mt-2 block">
-                                  Upload persona image
-                                </span>
-                              </div>
-                            )}
-                            <input
-                              id="persona-image"
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    setPersonaImage(reader.result as string);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium block">
+                          Persona
+                        </label>
+                        <div
+                          className="w-full h-40 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
+                          onClick={() => document.getElementById('persona-image')?.click()}
+                        >
+                          {personaImage ? (
+                            <img
+                              src={personaImage}
+                              alt="Persona"
+                              className="w-full h-full object-cover rounded-lg"
                             />
-                          </div>
-                          <Textarea
-                            placeholder="Describe the persona..."
-                            value={personaDetails}
-                            onChange={(e) => setPersonaDetails(e.target.value)}
-                            className="min-h-[100px] resize-none mt-2"
+                          ) : (
+                            <div className="text-center">
+                              <Upload className="w-8 h-8 mx-auto text-gray-400" />
+                              <span className="text-sm text-gray-500 mt-2 block">
+                                Upload persona image
+                              </span>
+                            </div>
+                          )}
+                          <input
+                            id="persona-image"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setPersonaImage(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
                           />
                         </div>
+                        <Textarea
+                          placeholder="Describe the persona..."
+                          value={personaDetails}
+                          onChange={(e) => setPersonaDetails(e.target.value)}
+                          className="min-h-[100px] resize-none mt-2"
+                        />
                       </div>
                     </div>
+                  </div>
 
-                    <div className={`
-                      flex-1 overflow-y-auto
-                      ${showBlocks ? 'block' : 'hidden'}
-                      bg-slate-50
-                    `}>
-                      <Droppable droppableId="drawer">
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className="p-4"
-                            style={{ position: 'relative', zIndex: 20 }}
-                          >
-                            <BlockDrawer />
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    </div>
+                  <div className={`flex-1 ${showBlocks ? 'block' : 'hidden'}`}>
+                    <Droppable droppableId="drawer">
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className="p-4"
+                        >
+                          <BlockDrawer />
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  </div>
 
-                    <div className={`
-                      flex-1 overflow-y-auto
-                      ${showComments ? 'block' : 'hidden'}
-                      bg-slate-50
-                    `}>
-                      <CommentsOverview
-                        board={board}
-                        onCommentClick={(block) => {
-                          setSelectedBlock(block);
-                          setCommentDialogOpen(true);
-                          setHighlightedBlockId(block.id);
-                          setTimeout(() => setHighlightedBlockId(null), 2000);
-                        }}
-                      />
-                    </div>
+                  <div className={`flex-1 ${showComments ? 'block' : 'hidden'}`}>
+                    <CommentsOverview
+                      board={board}
+                      onCommentClick={(block) => {
+                        setSelectedBlock(block);
+                        setCommentDialogOpen(true);
+                        setHighlightedBlockId(block.id);
+                        setTimeout(() => setHighlightedBlockId(null), 2000);
+                      }}
+                    />
                   </div>
                 </div>
               )}
@@ -863,7 +848,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                   <div
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
+                               {...provided.dragHandleProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
                                                       relative rounded-lg z-10 border border-gray-400                                                      transition-all duration-200 ease-in-out
