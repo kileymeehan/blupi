@@ -61,20 +61,22 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
 
       return response.json();
     },
-    onSuccess: (data) => {
-      // Pre-populate the cache
-      queryClient.setQueryData(['/api/boards', data.id], data);
+    onSuccess: async (data) => {
+      // Prefetch and cache the board data
+      await queryClient.prefetchQuery({
+        queryKey: ['/api/boards', data.id],
+        queryFn: async () => data
+      });
 
-      // Update the boards list
+      // Update other caches
       queryClient.setQueryData(['/api/boards'], (oldData: any[] = []) => [...oldData, data]);
 
-      // Update project-related queries if needed
       if (projectId) {
         queryClient.invalidateQueries({ queryKey: ['/api/boards', { projectId }] });
         queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
       }
 
-      // First close the dialog and reset form
+      // Close dialog and reset form
       onOpenChange(false);
       form.reset();
 
@@ -84,10 +86,8 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
         description: "Blueprint created successfully",
       });
 
-      // Only navigate after ensuring cache is populated
-      queryClient.refetchQueries({ queryKey: ['/api/boards', data.id] }).then(() => {
-        navigate(`/board/${data.id}`);
-      });
+      // Navigate after ensuring data is cached
+      navigate(`/board/${data.id}`);
     },
     onError: (error: Error) => {
       toast({

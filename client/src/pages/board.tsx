@@ -51,17 +51,8 @@ export default function BoardPage() {
       const res = await apiRequest("PATCH", `/api/boards/${id}`, updates);
       return res.json();
     },
-    onSuccess: (data, variables) => {
-      // Only show toast for non-frequent updates (like name changes)
-      if (!variables.blocks && !variables.phases) {
-        toast({
-          title: "Changes saved",
-          description: "Your blueprint has been updated"
-        });
-      }
+    onSuccess: (data) => {
       queryClient.setQueryData(['/api/boards', id], data);
-
-      // Broadcast changes to other users
       sendMessage({
         type: 'board_update',
         board: data
@@ -115,10 +106,10 @@ export default function BoardPage() {
       onBoardChange={handleBoardChange}
       connectedUsers={connectedUsers.map(userId => ({
         id: userId,
-        name: userId,
+        name: String(userId),
         color: '#4F46E5'
       }))}
-      project={project} //Pass project data to BoardGrid
+      project={project}
     />
   );
 }

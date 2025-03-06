@@ -12,6 +12,7 @@ interface UsersPresenceProps {
 }
 
 function getInitials(name: string): string {
+  if (!name || typeof name !== 'string') return '??';
   return name
     .split(' ')
     .map(part => part[0])
