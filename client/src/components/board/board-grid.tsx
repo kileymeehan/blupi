@@ -51,15 +51,15 @@ import { UserPlus, Link as LinkIcon } from "lucide-react";
 // Update LAYER_TYPES with new categories and colors
 export const LAYER_TYPES = [
   { type: 'touchpoint', label: 'Touchpoint', color: 'bg-indigo-200' },
-  { type: 'role', label: 'Roles', color: 'bg-green-200' },
-  { type: 'process', label: 'Processes', color: 'bg-pink-200' },
+  { type: 'role', label: 'Role', color: 'bg-green-200' },
+  { type: 'process', label: 'Process', color: 'bg-pink-200' },
   { type: 'friction', label: 'Friction', color: 'bg-red-200' },
   { type: 'policy', label: 'Policy', color: 'bg-orange-200' },
   { type: 'technology', label: 'Technology', color: 'bg-purple-200' },
   { type: 'rationale', label: 'Rationale', color: 'bg-blue-200' },
-  { type: 'question', label: 'Questions', color: 'bg-violet-200' },
-  { type: 'note', label: 'Notes', color: 'bg-cyan-200' },
-  { type: 'hidden', label: 'Hidden Step', color: 'bg-gray-700' }
+  { type: 'question', label: 'Question', color: 'bg-violet-200' },
+  { type: 'note', label: 'Note', color: 'bg-cyan-200' },
+  { type: 'hidden', label: 'Hidden Step', color: 'bg-gray-400' }
 ] as const;
 
 interface Attachment {
@@ -868,7 +868,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   variant="outline"
                   size="sm"
                   onClick={handleAddPhase}
-                  className="mt-3 h-7 px2 border border-gray-300"
+                  className="mt3 h-7 px2 border border-gray-300"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Phase
