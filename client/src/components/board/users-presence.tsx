@@ -11,14 +11,12 @@ interface UsersPresenceProps {
   users: ConnectedUser[];
 }
 
-function getInitials(name: string): string {
-  if (!name || typeof name !== 'string') return '??';
-  return name
-    .split(' ')
-    .map(part => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
+
+function getAnimalEmoji(id: string): string {
+  // Use the hash of the ID to consistently pick an emoji for each user
+  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return ANIMAL_EMOJIS[hash % ANIMAL_EMOJIS.length];
 }
 
 export function UsersPresence({ users }: UsersPresenceProps) {
@@ -36,7 +34,7 @@ export function UsersPresence({ users }: UsersPresenceProps) {
                     fontWeight: '600'
                   }}
                 >
-                  {getInitials(user.name)}
+                  {getAnimalEmoji(user.id)}
                 </AvatarFallback>
               </Avatar>
             </TooltipTrigger>
