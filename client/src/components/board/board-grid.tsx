@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,12 +17,12 @@ import { UsersPresence } from "./users-presence";
 import { StatusSelector } from "@/components/status-selector";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast, toast } from "@/hooks/use-toast";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger 
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -64,7 +64,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [personaDetails, setPersonaDetails] = useState("");
   const [personaImage, setPersonaImage] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [shareLinkOpen, setShareLinkOpen] = useState(false);
+  const [shareLinkOpen, setShareLinkOpen] = useState("");
   const [shareLink, setShareLink] = useState("");
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
@@ -205,7 +205,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
-    const newColumn: { id: string; name: string; image?: string | undefined } = { 
+    const newColumn: { id: string; name: string; image?: string | undefined } = {
       id: nanoid(),
       name: `Step ${newPhases[phaseIndex].columns.length + 1}`,
       image: undefined
@@ -415,13 +415,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             >
               <FolderPlus className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-              <Share2 className="w-4 h-4" />
-            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                  <UserCircle2 className="w-4 h-4" />
+                  <Share2 className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -432,6 +430,22 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 <DropdownMenuItem onSelect={() => setShareLinkOpen(true)}>
                   <LinkIcon className="w-4 h-4 mr-2" />
                   Generate Share Link
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                  <UserCircle2 className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="w-4 h-4 mr-2" />
+                    Profile Settings
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
