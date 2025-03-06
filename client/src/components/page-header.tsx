@@ -13,6 +13,7 @@ interface PageHeaderProps {
   onTitleChange?: (newTitle: string) => Promise<void>;
   backTo?: string;
   backLabel?: string;
+  rightContent?: React.ReactNode;
 }
 
 export function PageHeader({ 
@@ -20,7 +21,8 @@ export function PageHeader({
   description, 
   onTitleChange,
   backTo = "/",
-  backLabel = "Home"
+  backLabel = "Home",
+  rightContent
 }: PageHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
@@ -57,7 +59,7 @@ export function PageHeader({
 
   return (
     <div className="border-b">
-      <div className="container px-8 py-4">
+      <div className="max-w-[1440px] mx-auto px-8 py-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" asChild className="p-2">
             <Link href={backTo}>
@@ -93,6 +95,12 @@ export function PageHeader({
               <p className="text-sm text-muted-foreground mt-1">{description}</p>
             )}
           </div>
+
+          {rightContent && (
+            <div>
+              {rightContent}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -105,7 +105,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-white shadow-sm">
-        <div className="container flex h-16 items-center px-8">
+        <div className="max-w-[1440px] mx-auto flex h-16 items-center px-8">
           <div className="flex-1 flex items-center gap-8">
             <h1 className="text-4xl font-black tracking-tighter font-mono bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Blupi
@@ -137,7 +137,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container px-8 py-8 space-y-8">
+      <main className="max-w-[1440px] mx-auto px-8 py-8 space-y-8">
         <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
           <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
           <p className="text-muted-foreground">Manage your blueprints and projects</p>
