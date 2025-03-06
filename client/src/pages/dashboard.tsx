@@ -47,8 +47,8 @@ export default function Dashboard() {
   const unassignedBoards = boards.filter((board: any) => !board.projectId);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
+    <div className="min-h-screen bg-slate-50">
+      <header className="border-b bg-white shadow-sm">
         <div className="container flex h-16 items-center px-8">
           <div className="flex-1">
             <h2 className="text-lg font-semibold">Dashboard</h2>
@@ -74,16 +74,16 @@ export default function Dashboard() {
       </header>
 
       <main className="container px-8 py-8">
-        <div>
+        <div className="mb-12 bg-white rounded-lg p-8 shadow-sm">
           <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
-          <p className="text-muted-foreground mb-8">Manage your blueprints and projects</p>
+          <p className="text-muted-foreground">Manage your blueprints and projects</p>
         </div>
 
-        <section className="mb-12">
+        <section className="mb-12 bg-white rounded-lg p-8 shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <Briefcase className="h-6 w-6" />
+                <Briefcase className="h-6 w-6 text-primary" />
                 <h2 className="text-2xl font-semibold">Projects</h2>
               </div>
               <Button variant="outline" size="sm" onClick={() => setCreateProjectOpen(true)}>
@@ -95,8 +95,8 @@ export default function Dashboard() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project: any) => (
-              <Card key={project.id} className="relative overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-2" style={{ backgroundColor: project.color || '#4F46E5' }} />
+              <Card key={project.id} className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow">
+                <div className="absolute inset-y-0 left-0" style={{ backgroundColor: project.color || '#4F46E5' }} />
                 <CardHeader>
                   <CardTitle>{project.name}</CardTitle>
                   <CardDescription>
@@ -115,7 +115,7 @@ export default function Dashboard() {
             ))}
 
             {projects.length === 0 && (
-              <Card>
+              <Card className="border-dashed">
                 <CardHeader>
                   <CardTitle>Get started with a project</CardTitle>
                   <CardDescription>Create a project to organize your blueprints</CardDescription>
@@ -125,12 +125,10 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <Separator className="my-8" />
-
-        <section className="mb-12">
+        <section className="mb-12 bg-white rounded-lg p-8 shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
-              <LayoutGrid className="h-6 w-6" />
+              <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
             </div>
           </div>
@@ -139,9 +137,9 @@ export default function Dashboard() {
             {recentBoards.map((board: any) => {
               const project = projects.find(p => p.id === board.projectId);
               return (
-                <Card key={board.id} className="relative overflow-hidden">
+                <Card key={board.id} className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow">
                   {project && (
-                    <div className="absolute inset-y-0 left-0 w-2" style={{ backgroundColor: project.color || '#4F46E5' }} />
+                    <div className="absolute inset-y-0 left-0" style={{ backgroundColor: project.color || '#4F46E5' }} />
                   )}
                   <CardHeader>
                     <CardTitle>{board.name}</CardTitle>
@@ -168,13 +166,11 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <Separator className="my-8" />
-
-        <section className="mb-12">
+        <section className="mb-12 bg-white rounded-lg p-8 shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <LayoutGrid className="h-6 w-6" />
+                <LayoutGrid className="h-6 w-6 text-primary" />
                 <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
               </div>
               <Button variant="outline" size="sm" onClick={() => setCreateBlueprintOpen(true)}>
@@ -189,7 +185,7 @@ export default function Dashboard() {
               const assignedProject = projects.find(p => p.id === board.projectId);
 
               return (
-                <Card key={board.id}>
+                <Card key={board.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <CardTitle>{board.name}</CardTitle>
                     <CardDescription>
@@ -223,7 +219,7 @@ export default function Dashboard() {
             })}
 
             {unassignedBoards.length === 0 && (
-              <Card>
+              <Card className="border-dashed">
                 <CardHeader>
                   <CardTitle>Create your first blueprint</CardTitle>
                   <CardDescription>Start designing your workflow</CardDescription>
@@ -243,6 +239,7 @@ export default function Dashboard() {
         open={createBlueprintOpen}
         onOpenChange={setCreateBlueprintOpen}
       />
+
       <AddToProjectDialog
         open={addToProjectOpen}
         onOpenChange={setAddToProjectOpen}
