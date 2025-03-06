@@ -31,11 +31,23 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
       });
 
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to delete project");
+        const text = await res.text();
+        let message: string;
+        try {
+          const error = JSON.parse(text);
+          message = error.message;
+        } catch {
+          message = "Failed to delete project. Please try again.";
+        }
+        throw new Error(message);
       }
 
-      return res.json();
+      // Don't try to parse the response if it's empty
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return res.json();
+      }
+      return null;
     },
     onSuccess: () => {
       // Invalidate both projects and boards queries since either could be affected
