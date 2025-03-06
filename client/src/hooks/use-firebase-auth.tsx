@@ -6,6 +6,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  updateProfile as firebaseUpdateProfile,
   type User
 } from '@firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -113,12 +114,38 @@ export function useFirebaseAuth() {
     }
   };
 
+  const updateProfile = async (data: { displayName?: string; photoURL?: string }) => {
+    try {
+      if (!auth.currentUser) {
+        throw new Error('No user is currently signed in');
+      }
+
+      await firebaseUpdateProfile(auth.currentUser, data);
+      // Update local user state to reflect changes immediately
+      setUser(auth.currentUser);
+
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   return {
     user,
     loading,
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
-    logout
+    logout,
+    updateProfile
   };
 }
