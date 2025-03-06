@@ -1,3 +1,22 @@
+/**
+ * The BoardGrid component is the heart of BLUPE's blueprint editor.
+ * It provides a drag-and-drop interface for organizing customer journey steps
+ * and allows real-time collaboration between team members.
+ *
+ * Features:
+ * - Drag and drop interface for organizing content
+ * - Real-time collaboration with team members
+ * - Image uploads for visual context
+ * - Comment system for team discussion
+ * - Public sharing capabilities
+ * - Project organization
+ *
+ * The layout is organized as:
+ * - Left sidebar: Contains tools and context information
+ * - Main area: Shows the blueprint with phases and columns
+ * - Top bar: Navigation and sharing controls
+ */
+
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User } from "lucide-react";
@@ -29,14 +48,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { UserPlus, Link as LinkIcon } from "lucide-react";
 
 
-interface BoardGridProps {
-  id: string;
-  onBlocksChange: (blocks: BlockType[]) => void;
-  onPhasesChange: (phases: Phase[]) => void;
-  onBoardChange: (board: Board) => void;
-  connectedUsers: Array<{ id: string; name: string; color: string; }>;
-}
-
+// Types of content blocks that can be added to the blueprint
 export const LAYER_TYPES = [
   { type: 'touchpoint', label: 'Touchpoints', color: 'bg-sky-200' },
   { type: 'role', label: 'Roles', color: 'bg-green-200' },
@@ -49,6 +61,14 @@ export const LAYER_TYPES = [
   { type: 'note', label: 'Notes', color: 'bg-cyan-200' }
 ] as const;
 
+/**
+ * Main component for the blueprint editor
+ * @param id - The ID of the current blueprint
+ * @param onBlocksChange - Callback when blocks are updated
+ * @param onPhasesChange - Callback when phases are updated
+ * @param onBoardChange - Callback when board settings are updated
+ * @param connectedUsers - Array of currently connected users
+ */
 export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange, connectedUsers }: BoardGridProps) {
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
@@ -203,6 +223,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     onBlocksChange(blocks);
   };
 
+  const handleAttachmentChange = (blockId: string, attachment: { type: 'link' | 'image' | 'video', url: string }) => {
+    const blocks = board.blocks.map(block =>
+      block.id === blockId ? { ...block, attachment } : block
+    );
+    onBlocksChange(blocks);
+  };
+
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
     const newColumn: { id: string; name: string; image?: string | undefined } = {
@@ -342,6 +369,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       });
     }
   };
+
+  interface BoardGridProps {
+    id: string;
+    onBlocksChange: (blocks: BlockType[]) => void;
+    onPhasesChange: (phases: Phase[]) => void;
+    onBoardChange: (board: Board) => void;
+    connectedUsers: Array<{ id: string; name: string; color: string; }>;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -775,7 +810,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                         : provided.draggableProps.style?.transition,
                                                     }}
                                                   >
-                                                    <Block block={block} onChange={handleBlockChange} onCommentClick={() => handleCommentClick(block)} />
+                                                    <Block block={block} onChange={handleBlockChange} onAttachmentChange={handleAttachmentChange} onCommentClick={() => handleCommentClick(block)} />
                                                   </div>
                                                 )}
                                               </Draggable>
@@ -833,8 +868,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               <DialogDescription>
                 Enter email addresses to invite team members
               </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
+            </DialogHeader>            <div className="space-y-4 py-4">
               <Input
                 placeholder="Enter email addresses (comma separated)"
                 className="w-full"
@@ -847,7 +881,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         </Dialog>
       )}
 
-      {/* Update the share dialog section */}
       {shareLinkOpen && (
         <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
           <DialogContent>
@@ -876,7 +909,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     }}
                   >
                     Copy
-                  </Button>                </div>
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-4">

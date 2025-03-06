@@ -100,13 +100,21 @@ export const commentSchema = z.object({
 
 export type Comment = z.infer<typeof commentSchema>;
 
+export const attachmentSchema = z.object({
+  type: z.enum(['link', 'image', 'video']),
+  url: z.string().url('Invalid URL')
+});
+
+export type Attachment = z.infer<typeof attachmentSchema>;
+
 export const blockSchema = z.object({
   id: z.string(),
   type: z.enum(['touchpoint', 'role', 'process', 'pitfall', 'policy', 'technology', 'rationale', 'question', 'note']),
   content: z.string(),
   phaseIndex: z.number(),
   columnIndex: z.number(),
-  comments: z.array(commentSchema).optional().default([])
+  comments: z.array(commentSchema).optional().default([]),
+  attachment: attachmentSchema.optional()
 });
 
 export type Block = z.infer<typeof blockSchema>;

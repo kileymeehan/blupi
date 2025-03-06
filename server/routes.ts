@@ -331,6 +331,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add this new endpoint for public board access
+  app.get("/api/public/boards/:id", async (req, res) => {
+    try {
+      const board = await storage.getBoard(Number(req.params.id));
+      if (!board) {
+        return res.status(404).json({ error: true, message: "Board not found" });
+      }
+
+      // Remove sensitive information for public view
+      const publicBoard = {
+        ...board,
+        blocks: board.blocks.map(block => ({
+          ...block,
+          comments: [] // Remove comments from public view
+        }))
+      };
+
+      res.json(publicBoard);
+    } catch (err) {
+      console.error('Error fetching public board:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch board" });
+    }
+  });
+
   // Update the comments endpoint to remove authentication requirement temporarily
   app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
     try {
