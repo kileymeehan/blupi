@@ -58,7 +58,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Hero content */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/90 to-primary/40 text-white p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-400/80 to-blue-100 text-white p-12 flex-col justify-between">
         <div>
           <h1 className="text-4xl font-bold mb-6">
             Welcome to Blueprint
