@@ -1,5 +1,5 @@
 import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,14 +8,16 @@ import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 import { InviteProjectDialog } from "@/components/invite-project-dialog";
 import { PageHeader } from "@/components/page-header";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import type { Board } from "@shared/schema";
+import { StatusSelector } from "@/components/status-selector";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Project() {
   const { id } = useParams();
   const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const { toast } = useToast();
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: ['/api/projects', id],
@@ -32,23 +34,48 @@ export default function Project() {
       const res = await fetch('/api/boards');
       if (!res.ok) throw new Error('Failed to fetch boards');
       const allBoards = await res.json();
-      // Ensure proper type comparison by converting both to numbers
       return allBoards.filter((board: Board) => board.projectId === Number(id));
     }
   });
 
   const updateProjectMutation = useMutation({
-    mutationFn: async (newTitle: string) => {
+    mutationFn: async (updates: { name?: string; status?: string }) => {
       const res = await fetch(`/api/projects/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newTitle })
+        body: JSON.stringify(updates)
       });
       if (!res.ok) throw new Error('Failed to update project');
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', id] });
+    }
+  });
+
+  const updateBoardStatus = useMutation({
+    mutationFn: async ({ boardId, status }: { boardId: number; status: string }) => {
+      const res = await fetch(`/api/boards/${boardId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) throw new Error('Failed to update blueprint status');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/boards'] });
+      toast({
+        title: "Success",
+        description: "Blueprint status updated"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 
@@ -66,8 +93,16 @@ export default function Project() {
         title={project?.name || 'Loading...'}
         description={project?.description}
         onTitleChange={async (newTitle) => {
-          await updateProjectMutation.mutateAsync(newTitle);
+          await updateProjectMutation.mutateAsync({ name: newTitle });
         }}
+        rightContent={
+          <StatusSelector
+            type="project"
+            value={project?.status}
+            onChange={(status) => updateProjectMutation.mutateAsync({ status })}
+            disabled={updateProjectMutation.isPending}
+          />
+        }
       />
 
       <main className="container px-8 py-8">
@@ -89,7 +124,15 @@ export default function Project() {
           {boards.map((board) => (
             <Card key={board.id}>
               <CardHeader>
-                <CardTitle>{board.name}</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>{board.name}</CardTitle>
+                  <StatusSelector
+                    type="board"
+                    value={board.status}
+                    onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
+                    disabled={updateBoardStatus.isPending}
+                  />
+                </div>
                 <CardDescription>{board.description}</CardDescription>
               </CardHeader>
               <CardContent>

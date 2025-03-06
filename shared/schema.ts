@@ -26,7 +26,7 @@ export const projectMembers = pgTable("project_members", {
   projectId: integer("project_id").references(() => projects.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
   role: text("role").notNull(),
-  status: text("status").notNull().default('pending'), // pending, accepted
+  status: text("status").notNull().default('pending'),
   invitedAt: timestamp("invited_at").defaultNow().notNull(),
   acceptedAt: timestamp("accepted_at"),
 });
@@ -41,26 +41,54 @@ export const insertProjectMemberSchema = createInsertSchema(projectMembers)
 export type InsertProjectMember = z.infer<typeof insertProjectMemberSchema>;
 export type ProjectMember = typeof projectMembers.$inferSelect;
 
-// Project schema 
+// Project schema updated with status
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  color: text("color").notNull().default('#4F46E5'), // Default to indigo-600
+  color: text("color").notNull().default('#4F46E5'),
+  status: text("status").notNull().default('draft'),
   userId: integer("user_id").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 
+export const projectStatuses = ["draft", "in-progress", "review", "complete"] as const;
+
 export const insertProjectSchema = createInsertSchema(projects)
   .extend({
-    color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
+    color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color"),
+    status: z.enum(projectStatuses).optional(),
   })
   .omit({ id: true, userId: true, createdAt: true });
 
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 
+// Board schema updated with status
+export const boards = pgTable("boards", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  blocks: jsonb("blocks").$type<Block[]>().notNull().default([]),
+  phases: jsonb("phases").$type<Phase[]>().notNull().default([]),
+  status: text("status").notNull().default('draft'),
+  projectId: integer("project_id").references(() => projects.id),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
 
+export const boardStatuses = ["draft", "in-progress", "review", "complete"] as const;
+
+export const insertBoardSchema = createInsertSchema(boards)
+  .extend({
+    status: z.enum(boardStatuses).optional(),
+  })
+  .omit({ id: true, userId: true, createdAt: true });
+
+export type InsertBoard = z.infer<typeof insertBoardSchema>;
+export type Board = typeof boards.$inferSelect;
+
+// Other schemas
 export const commentSchema = z.object({
   id: z.string(),
   content: z.string(),
@@ -98,18 +126,3 @@ export const phaseSchema = z.object({
 });
 
 export type Phase = z.infer<typeof phaseSchema>;
-
-export const boards = pgTable("boards", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  blocks: jsonb("blocks").$type<Block[]>().notNull().default([]),
-  phases: jsonb("phases").$type<Phase[]>().notNull().default([]),
-  projectId: integer("project_id").references(() => projects.id),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
-});
-
-export const insertBoardSchema = createInsertSchema(boards).omit({ id: true, userId: true, createdAt: true });
-export type InsertBoard = z.infer<typeof insertBoardSchema>;
-export type Board = typeof boards.$inferSelect;

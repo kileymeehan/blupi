@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, LogOut, User, LayoutGrid, Briefcase } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,10 @@ import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 import AddToProjectDialog from "@/components/board/add-to-project-dialog";
 import { format } from "date-fns";
+import { StatusSelector } from "@/components/status-selector";
+import { Project, Board } from "@shared/schema"; 
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 
 export default function Dashboard() {
   const { user, logout } = useFirebaseAuth();
@@ -19,31 +23,74 @@ export default function Dashboard() {
   const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
   const [addToProjectOpen, setAddToProjectOpen] = useState(false);
   const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['/api/projects'],
-    queryFn: async () => {
-      const res = await fetch('/api/projects');
-      if (!res.ok) throw new Error('Failed to fetch projects');
-      return res.json();
-    }
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['/api/projects']
   });
 
-  const { data: boards = [] } = useQuery({
-    queryKey: ['/api/boards'],
-    queryFn: async () => {
-      const res = await fetch('/api/boards');
-      if (!res.ok) throw new Error('Failed to fetch boards');
-      return res.json();
-    }
+  const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
+    queryKey: ['/api/boards']
   });
 
-  const sortedBoards = [...boards].sort((a, b) => 
+  const sortedBoards = [...boards].sort((a, b) =>
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   const recentBoards = sortedBoards.slice(0, 3);
-  const unassignedBoards = boards.filter((board: any) => !board.projectId);
+  const unassignedBoards = boards.filter((board) => !board.projectId);
+
+  const updateProjectStatus = useMutation({
+    mutationFn: async ({ projectId, status }: { projectId: number; status: string }) => {
+      const res = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) throw new Error('Failed to update project status');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      toast({
+        title: "Success",
+        description: "Project status updated"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateBoardStatus = useMutation({
+    mutationFn: async ({ boardId, status }: { boardId: number; status: string }) => {
+      const res = await fetch(`/api/boards/${boardId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) throw new Error('Failed to update blueprint status');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/boards'] });
+      toast({
+        title: "Success",
+        description: "Blueprint status updated"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -93,7 +140,7 @@ export default function Dashboard() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project: any) => (
+            {projects.map((project) => (
               <Card key={project.id} className="relative overflow-hidden group hover:shadow-md transition-shadow">
                 <div 
                   className="absolute inset-y-0 left-0 w-1.5" 
@@ -106,16 +153,12 @@ export default function Dashboard() {
                 <CardHeader className="relative">
                   <div className="flex items-center justify-between">
                     <CardTitle>{project.name}</CardTitle>
-                    <div className={`
-                      px-2 py-1 text-xs font-medium rounded-full
-                      ${project.status === 'complete' ? 'bg-green-100 text-green-700' : ''}
-                      ${project.status === 'in-progress' ? 'bg-blue-100 text-blue-700' : ''}
-                      ${project.status === 'draft' ? 'bg-gray-100 text-gray-700' : ''}
-                      ${project.status === 'review' ? 'bg-yellow-100 text-yellow-700' : ''}
-                      ${!project.status ? 'bg-gray-100 text-gray-700' : ''}
-                    `}>
-                      {project.status || 'draft'}
-                    </div>
+                    <StatusSelector
+                      type="project"
+                      value={project.status}
+                      onChange={(status) => updateProjectStatus.mutate({ projectId: project.id, status })}
+                      disabled={updateProjectStatus.isPending}
+                    />
                   </div>
                   <CardDescription>
                     {project.description}
@@ -152,7 +195,7 @@ export default function Dashboard() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {recentBoards.map((board: any) => {
+            {recentBoards.map((board) => {
               const project = projects.find(p => p.id === board.projectId);
               return (
                 <Card key={board.id} className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow">
@@ -169,7 +212,7 @@ export default function Dashboard() {
                         </div>
                       )}
                       <div className="mt-1 text-xs text-muted-foreground">
-                        Created by {board.createdBy || 'Unknown'} on {format(new Date(board.createdAt), 'MMM d, yyyy')}
+                        Created on {format(new Date(board.createdAt), 'MMM d, yyyy')}
                       </div>
                     </CardDescription>
                   </CardHeader>
@@ -199,17 +242,25 @@ export default function Dashboard() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {unassignedBoards.map((board: any) => {
+            {unassignedBoards.map((board) => {
               const assignedProject = projects.find(p => p.id === board.projectId);
 
               return (
                 <Card key={board.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
-                    <CardTitle>{board.name}</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>{board.name}</CardTitle>
+                      <StatusSelector
+                        type="board"
+                        value={board.status}
+                        onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
+                        disabled={updateBoardStatus.isPending}
+                      />
+                    </div>
                     <CardDescription>
                       {board.description}
                       <div className="mt-1 text-xs text-muted-foreground">
-                        Created by {board.createdBy || 'Unknown'} on {format(new Date(board.createdAt), 'MMM d, yyyy')}
+                        Created on {format(new Date(board.createdAt), 'MMM d, yyyy')}
                       </div>
                     </CardDescription>
                   </CardHeader>
@@ -218,12 +269,12 @@ export default function Dashboard() {
                       <Button variant="outline" asChild className="w-full">
                         <Link href={`/board/${board.id}`}>View Blueprint</Link>
                       </Button>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         className="w-full text-muted-foreground hover:text-foreground"
                         onClick={() => {
-                          setSelectedBoardId(board.id);
+                          setSelectedBoardId(String(board.id));
                           setAddToProjectOpen(true);
                         }}
                       >
@@ -236,7 +287,7 @@ export default function Dashboard() {
               );
             })}
 
-            {unassignedBoards.length === 0 && (
+            {unassignedBoards.length === 0 && !boardsLoading && (
               <Card className="border-dashed">
                 <CardHeader>
                   <CardTitle>Create your first blueprint</CardTitle>
