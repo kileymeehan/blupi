@@ -8,6 +8,12 @@ import { WebSocketServer, WebSocket } from 'ws';
 
 // Track active connections per board
 const boardConnections = new Map<number, Set<WebSocket>>();
+// Track user information per board
+const boardUsers = new Map<number, Set<{
+  id: string;
+  name: string;
+  color: string;
+}>>();
 
 function broadcastToBoardUsers(boardId: number, message: any, excludeWs?: WebSocket) {
   const connections = boardConnections.get(boardId);
@@ -21,6 +27,15 @@ function broadcastToBoardUsers(boardId: number, message: any, excludeWs?: WebSoc
   });
 }
 
+// Generate a random color for user avatars
+function getRandomColor() {
+  const colors = [
+    '#F87171', '#FB923C', '#FBBF24', '#34D399', 
+    '#60A5FA', '#818CF8', '#A78BFA', '#F472B6'
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
@@ -30,6 +45,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   wss.on('connection', (ws) => {
     let currentBoardId: number | null = null;
+    let currentUser: { id: string; name: string; color: string } | null = null;
 
     ws.on('message', async (data) => {
       try {
@@ -38,18 +54,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Handle board subscription
         if (message.type === 'subscribe') {
           const boardId = Number(message.boardId);
+          const userName = message.userName || 'Anonymous';
           currentBoardId = boardId;
 
+          // Create unique user identity
+          currentUser = {
+            id: nanoid(),
+            name: userName,
+            color: getRandomColor()
+          };
+
+          // Add user to board connections
           if (!boardConnections.has(boardId)) {
             boardConnections.set(boardId, new Set());
           }
           boardConnections.get(boardId)!.add(ws);
+
+          // Add user to board users
+          if (!boardUsers.has(boardId)) {
+            boardUsers.set(boardId, new Set());
+          }
+          boardUsers.get(boardId)!.add(currentUser);
 
           // Send initial board state
           const board = await storage.getBoard(boardId);
           if (board) {
             ws.send(JSON.stringify({ type: 'board_update', board }));
           }
+
+          // Broadcast updated user list
+          broadcastToBoardUsers(boardId, {
+            type: 'users_update',
+            users: Array.from(boardUsers.get(boardId)!)
+          });
         }
 
         // Handle board updates
@@ -70,10 +107,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     ws.on('close', () => {
-      if (currentBoardId && boardConnections.has(currentBoardId)) {
-        boardConnections.get(currentBoardId)!.delete(ws);
-        if (boardConnections.get(currentBoardId)!.size === 0) {
-          boardConnections.delete(currentBoardId);
+      if (currentBoardId && currentUser) {
+        // Remove user from board connections
+        if (boardConnections.has(currentBoardId)) {
+          boardConnections.get(currentBoardId)!.delete(ws);
+          if (boardConnections.get(currentBoardId)!.size === 0) {
+            boardConnections.delete(currentBoardId);
+          }
+        }
+
+        // Remove user from board users and broadcast update
+        if (boardUsers.has(currentBoardId)) {
+          boardUsers.get(currentBoardId)!.delete(currentUser);
+          broadcastToBoardUsers(currentBoardId, {
+            type: 'users_update',
+            users: Array.from(boardUsers.get(currentBoardId)!)
+          });
         }
       }
     });
