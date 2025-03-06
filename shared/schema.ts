@@ -1,8 +1,8 @@
-import { pgTable, text, serial, jsonb, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, integer, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User schema remains unchanged
+// User schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
@@ -20,7 +20,28 @@ export const insertUserSchema = createInsertSchema(users)
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-// Project schema updated with color
+// Project members schema
+export const projectMembers = pgTable("project_members", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  role: text("role").notNull(),
+  status: text("status").notNull().default('pending'), // pending, accepted
+  invitedAt: timestamp("invited_at").defaultNow().notNull(),
+  acceptedAt: timestamp("accepted_at"),
+});
+
+export const insertProjectMemberSchema = createInsertSchema(projectMembers)
+  .extend({
+    role: z.enum(["viewer", "editor", "admin"]),
+    status: z.enum(["pending", "accepted"]).optional(),
+  })
+  .omit({ id: true, invitedAt: true, acceptedAt: true });
+
+export type InsertProjectMember = z.infer<typeof insertProjectMemberSchema>;
+export type ProjectMember = typeof projectMembers.$inferSelect;
+
+// Project schema 
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -39,7 +60,7 @@ export const insertProjectSchema = createInsertSchema(projects)
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 
-// Rest of the schema remains unchanged
+
 export const commentSchema = z.object({
   id: z.string(),
   content: z.string(),

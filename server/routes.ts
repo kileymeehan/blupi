@@ -193,30 +193,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add this endpoint after the other project routes
+  // Update this endpoint to handle role assignment
   app.post("/api/projects/:id/invite", async (req, res) => {
     try {
-      const { email } = req.body;
+      const { email, role } = req.body;
 
-      if (!email) {
+      if (!email || !role) {
         return res.status(400).json({ 
           error: true, 
-          message: "Email is required" 
+          message: "Email and role are required" 
         });
       }
 
-      // For now, we'll just simulate sending an invitation
-      // In a real application, you would:
-      // 1. Check if the user exists
-      // 2. Add them to the project's collaborators
-      // 3. Send an email invitation
+      // Get or create user (in a real app, this would send an email)
+      let user = await storage.getUserByEmail(email);
+      if (!user) {
+        user = await storage.createUser({
+          email,
+          username: email.split('@')[0],
+          password: nanoid(), // temporary password
+        });
+      }
 
-      // Simulate a delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Create project member
+      const projectMember = await storage.inviteProjectMember({
+        projectId: Number(req.params.id),
+        userId: user.id,
+        role,
+        status: 'pending'
+      });
 
       res.json({ 
         message: "Invitation sent successfully",
-        invited: email
+        projectMember
       });
     } catch (err) {
       console.error('Error sending invitation:', err);

@@ -6,11 +6,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 const inviteSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
+  role: z.enum(["viewer", "editor", "admin"], {
+    required_error: "Please select a role",
+  }),
 });
 
 type InviteForm = z.infer<typeof inviteSchema>;
@@ -21,13 +25,21 @@ interface InviteProjectDialogProps {
   projectId: number;
 }
 
+const ROLE_DESCRIPTIONS = {
+  viewer: "Can view blueprints and comments",
+  editor: "Can edit blueprints and add comments",
+  admin: "Full access including team management",
+};
+
 export function InviteProjectDialog({ open, onOpenChange, projectId }: InviteProjectDialogProps) {
   const { toast } = useToast();
+  const [sending, setSending] = useState(false);
 
   const form = useForm<InviteForm>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
       email: "",
+      role: "viewer",
     },
   });
 
@@ -48,6 +60,9 @@ export function InviteProjectDialog({ open, onOpenChange, projectId }: InvitePro
 
       return response.json();
     },
+    onMutate: () => {
+      setSending(true);
+    },
     onSuccess: () => {
       toast({
         title: "Success",
@@ -63,6 +78,9 @@ export function InviteProjectDialog({ open, onOpenChange, projectId }: InvitePro
         variant: "destructive",
       });
     },
+    onSettled: () => {
+      setSending(false);
+    },
   });
 
   const onSubmit = (data: InviteForm) => {
@@ -71,11 +89,11 @@ export function InviteProjectDialog({ open, onOpenChange, projectId }: InvitePro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Invite to Project</DialogTitle>
           <DialogDescription>
-            Invite someone to collaborate on this project
+            Invite someone to collaborate on this project. They will receive an email with instructions.
           </DialogDescription>
         </DialogHeader>
 
@@ -99,16 +117,50 @@ export function InviteProjectDialog({ open, onOpenChange, projectId }: InvitePro
               )}
             />
 
-            <div className="flex justify-end space-x-2">
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.entries(ROLE_DESCRIPTIONS).map(([role, description]) => (
+                        <SelectItem 
+                          key={role} 
+                          value={role}
+                          className="flex flex-col items-start py-2"
+                        >
+                          <div className="font-medium capitalize">{role}</div>
+                          <div className="text-xs text-muted-foreground">{description}</div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end space-x-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={sending}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={inviteMutation.isPending}>
-                {inviteMutation.isPending ? "Sending..." : "Send Invitation"}
+              <Button type="submit" disabled={sending}>
+                {sending ? "Sending..." : "Send Invitation"}
               </Button>
             </div>
           </form>

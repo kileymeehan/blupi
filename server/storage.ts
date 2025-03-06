@@ -1,4 +1,4 @@
-import { boards, users, projects, type Board, type InsertBoard, type User, type InsertUser, type Project, type InsertProject, type Block, type Phase } from "@shared/schema";
+import { boards, users, projects, projectMembers, type Board, type InsertBoard, type User, type InsertUser, type Project, type InsertProject, type Block, type Phase, type ProjectMember, type InsertProjectMember } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
@@ -23,6 +23,11 @@ export interface IStorage {
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: number, updates: Partial<Project>): Promise<Project>;
 
+  // Project member methods
+  getProjectMembers(projectId: number): Promise<ProjectMember[]>;
+  inviteProjectMember(member: InsertProjectMember): Promise<ProjectMember>;
+  updateProjectMember(id: number, updates: Partial<ProjectMember>): Promise<ProjectMember>;
+
   // Session store
   sessionStore: session.Store;
 }
@@ -31,21 +36,25 @@ export class MemStorage implements IStorage {
   private boards: Map<number, Board>;
   private users: Map<number, User>;
   private projects: Map<number, Project>;
+  private projectMembers: Map<number, ProjectMember>;
   public sessionStore: session.Store;
   private currentBoardId: number;
   private currentUserId: number;
   private currentProjectId: number;
+  private currentProjectMemberId: number;
 
   constructor() {
     this.boards = new Map();
     this.users = new Map();
     this.projects = new Map();
+    this.projectMembers = new Map();
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // prune expired entries every 24h
     });
     this.currentBoardId = 1;
     this.currentUserId = 1;
     this.currentProjectId = 1;
+    this.currentProjectMemberId = 1;
   }
 
   // Board methods
@@ -138,6 +147,37 @@ export class MemStorage implements IStorage {
     const updatedProject = { ...project, ...updates };
     this.projects.set(id, updatedProject);
     return updatedProject;
+  }
+
+  // Project member methods
+  async getProjectMembers(projectId: number): Promise<ProjectMember[]> {
+    return Array.from(this.projectMembers.values())
+      .filter(member => member.projectId === projectId);
+  }
+
+  async inviteProjectMember(member: InsertProjectMember): Promise<ProjectMember> {
+    const id = this.currentProjectMemberId++;
+    const now = new Date();
+
+    const projectMember: ProjectMember = {
+      ...member,
+      id,
+      invitedAt: now,
+      acceptedAt: null,
+      status: member.status || 'pending'
+    };
+
+    this.projectMembers.set(id, projectMember);
+    return projectMember;
+  }
+
+  async updateProjectMember(id: number, updates: Partial<ProjectMember>): Promise<ProjectMember> {
+    const member = this.projectMembers.get(id);
+    if (!member) throw new Error("Project member not found");
+
+    const updatedMember = { ...member, ...updates };
+    this.projectMembers.set(id, updatedMember);
+    return updatedMember;
   }
 }
 
