@@ -60,12 +60,11 @@ export default function LoginPage() {
       {/* Left side - Hero content */}
       <div className="hidden lg:flex lg:w-1/3 bg-blue-600 text-white p-12 flex-col justify-between">
         <div>
-          <h1 className="text-4xl font-bold mb-6">
-            Welcome to Blueprint
+          <h1 className="text-4xl font-black tracking-tighter mb-6">
+            BLUPE
           </h1>
           <p className="text-xl font-light leading-relaxed opacity-90 max-w-md">
-            Transform your project workflows with our intelligent design platform. 
-            Collaborate seamlessly, iterate faster, and bring your ideas to life.
+            A simple way to create and collaborate on your customer journeys.
           </p>
         </div>
         <div className="space-y-8">
