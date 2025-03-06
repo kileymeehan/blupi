@@ -325,7 +325,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
+      <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
         <div className="flex items-center gap-4 pl-4">
           <Button
             variant="ghost"
@@ -382,28 +382,31 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             onChange={(status) => onBoardChange({ ...board, status })}
           />
         </div>
-        <div className="flex items-center gap-4">
+
+        <div className="flex items-center">
           <UsersPresence users={connectedUsers} />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setAddToProjectOpen(true)}
-            className="h-10 px-3"
-          >
-            <FolderPlus className="w-5 h-5 mr-2" />
-            {project ? project.name : 'Add to Project'}
-          </Button>
-          <Button variant="ghost" size="sm" className="h-10 px-3">
-            <Share2 className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="sm" className="h-10 px-3">
-            <UserCircle2 className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="sm" className="h-10 px-3">
-            <LogIn className="w-5 h-5" />
-          </Button>
+          <div className="w-px h-6 bg-gray-200 mx-3" />
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setAddToProjectOpen(true)}
+              className="h-9 px-2"
+            >
+              <FolderPlus className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-9 px-2">
+              <Share2 className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-9 px-2">
+              <UserCircle2 className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-9 px-2">
+              <LogIn className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-      </div>
+      </header>
 
       <div className="flex flex-1 overflow-hidden">
         <DragDropContext onDragEnd={handleDragEnd}>
