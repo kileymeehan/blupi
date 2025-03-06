@@ -19,9 +19,9 @@
 
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown } from "lucide-react";
 import { useLocation, Link } from "wouter";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
@@ -46,11 +46,43 @@ import {
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { UserPlus, Link as LinkIcon } from "lucide-react";
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
+
+// Add this function before the BoardGrid component
+const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
+  const pdf = new jsPDF('landscape', 'pt', 'a4');
+
+  // Convert the board to an image
+  const canvas = await html2canvas(boardRef, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    allowTaint: true,
+  });
+
+  // Calculate dimensions to fit the page
+  const imgWidth = 842; // A4 landscape width
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  // Add the image to PDF
+  pdf.addImage(
+    canvas.toDataURL('image/png'),
+    'PNG',
+    0,
+    0,
+    imgWidth,
+    imgHeight
+  );
+
+  // Save the PDF
+  pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
+};
 
 // Update LAYER_TYPES with new categories and colors
 export const LAYER_TYPES = [
-  { type: 'touchpoint', label: 'Touchpoint', color: 'bg-indigo-200' },
+  { type: 'touchpoint', label: 'Touchpoint', color: 'bg-blue-600/20' },
   { type: 'role', label: 'Role', color: 'bg-green-200' },
   { type: 'process', label: 'Process', color: 'bg-pink-200' },
   { type: 'friction', label: 'Friction', color: 'bg-red-200' },
@@ -92,6 +124,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [inviteOpen, setInviteOpen] = useState(false);
   const [shareLinkOpen, setShareLinkOpen] = useState(false);
   const [shareLink, setShareLink] = useState("");
+  const boardRef = useRef<HTMLDivElement>(null);
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -530,6 +563,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            {/* Added PDF export button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => boardRef.current && exportToPDF(boardRef.current, board.name)}
+              className="h-9 w-9 p-0"
+            >
+              <FileDown className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </header>
@@ -713,7 +755,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           </div>
 
           <div className="flex-1 overflow-x-auto">
-            <div className="min-w-[800px] p-8">
+            <div ref={boardRef} className="min-w-[800px] p-8"> {/* Added ref here */}
               <div className="flex items-start">
                 {board.phases.map((phase, phaseIndex) => (
                   <div key={phase.id} className="flex-shrink-0 relative mr-8">
@@ -822,8 +864,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     {...provided.dragHandleProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      relative rounded-lg z-10 border border-gray-400
-                                                      transition-all duration-200 ease-in-out
+                                                      relative rounded-lg z-10 border border-gray-400                                                      transition-all duration-200 ease-in-out
                                                       transform
                                                       ${snapshot.isDragging ? 'shadow-lg scale-[1.02] rotate-1 border-primary' : ''}
                                                       ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2 border-primary' : ''}
@@ -868,7 +909,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   variant="outline"
                   size="sm"
                   onClick={handleAddPhase}
-                  className="mt3 h-7 px2 border border-gray-300"
+                  className="mt-3 h-7 px-2 border border-gray-300"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Phase

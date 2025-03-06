@@ -106,7 +106,7 @@ export default function Dashboard() {
         <div className="container flex h-16 items-center px-8">
           <div className="flex-1 flex items-center gap-8">
             <h1 className="text-4xl font-black tracking-tighter font-mono bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              BLUPE
+              BLUPI
             </h1>
             <h2 className="text-lg font-semibold text-muted-foreground">Dashboard</h2>
           </div>
