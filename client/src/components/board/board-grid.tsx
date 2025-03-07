@@ -773,7 +773,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           <div className="flex-1 overflow-x-auto">
             <div ref={boardRef} className="min-w-[800px] p-8"
               style={{
-                transform: `scale(${scale})`,
                 transformOrigin: 'top left',
                 transition: 'transform 0.2s ease-out'
               }}
@@ -885,31 +884,19 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     {...provided.draggableProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      group relative rounded-lg z-10 border
-                                                      ${snapshot.isDragging 
-                                                        ? 'border-primary shadow-lg' 
-                                                        : 'border-gray-200'
-                                                      }
-                                                      ${highlightedBlockId === block.id 
-                                                        ? 'ring-2 ring-primary ring-offset-2' 
-                                                        : ''
-                                                      }
+                                                      relative rounded-lg border
+                                                      ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
+                                                      ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                     `}
-                                                    style={{
-                                                      ...provided.draggableProps.style,
-                                                      transform: snapshot.isDragging
-                                                        ? provided.draggableProps.style?.transform
-                                                        : 'translate(0, 0)'
-                                                    }}
                                                   >
                                                     <div 
                                                       {...provided.dragHandleProps}
-                                                      className="absolute left-2 top-2 p-1 opacity-0 
-                                                        group-hover:opacity-40 hover:!opacity-100 
-                                                        transition-opacity cursor-grab active:cursor-grabbing
-                                                        hover:bg-gray-100 rounded"
+                                                      className="absolute left-3 top-2 p-1
+                                                        rounded-sm opacity-0 group-hover:opacity-100
+                                                        transition-opacity cursor-move bg-white/50
+                                                        hover:bg-white/80"
                                                     >
-                                                      <GripVertical className="w-4 h-4" />
+                                                      <GripVertical className="w-4 h-4 text-gray-600" />
                                                     </div>
                                                     <Block
                                                       block={block}

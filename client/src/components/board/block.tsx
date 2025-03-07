@@ -34,15 +34,15 @@ const TYPE_LABELS = {
   hidden: 'Hidden Step'
 } as const;
 
-export default function Block({ 
-  block, 
-  onChange, 
-  onAttachmentChange, 
+export default function Block({
+  block,
+  onChange,
+  onAttachmentChange,
   onNotesChange,
   onEmojiChange,
-  isTemplate = false, 
+  isTemplate = false,
   onCommentClick,
-  projectId 
+  projectId
 }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
@@ -87,7 +87,7 @@ export default function Block({
   const attachmentCount = block.attachments?.length || 0;
 
   return (
-    <div className="w-full h-full px-2">
+    <div className="w-full h-full">
       {block.emoji && (
         <div className="absolute -top-2 -right-2 z-10 text-lg">
           {block.emoji}
@@ -99,7 +99,7 @@ export default function Block({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`
-          w-full min-h-[120px] rounded-lg px-3 py-6 text-sm
+          w-full min-h-[120px] px-3 py-6 pt-10 text-sm
           ${isTemplate ? 'flex items-center justify-center' : ''}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal text-center
@@ -113,12 +113,6 @@ export default function Block({
         {isTemplate && TYPE_LABELS[block.type]}
       </div>
 
-      {/* Type label - shows on hover */}
-      <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-xs text-center text-gray-500 pb-1">
-        {TYPE_LABELS[block.type]}
-      </div>
-
-      {/* Action buttons - only show if not template */}
       {!isTemplate && (
         <div className="absolute top-1 right-1 flex gap-1">
           <button
@@ -158,7 +152,6 @@ export default function Block({
             <Paperclip className="w-4 h-4" />
             {attachmentCount > 0 && <span>{attachmentCount}</span>}
           </button>
-
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -176,7 +169,6 @@ export default function Block({
           >
             <StickyNote className="w-4 h-4" />
           </button>
-
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -196,7 +188,7 @@ export default function Block({
         </div>
       )}
 
-      <AttachmentDialog 
+      <AttachmentDialog
         open={attachmentDialogOpen}
         onOpenChange={setAttachmentDialogOpen}
         projectId={projectId}
