@@ -6,6 +6,9 @@ import session from "express-session";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 
+// Unset REPL_ID to disable cartographer plugin
+delete process.env.REPL_ID;
+
 const app = express();
 
 // Body parsing middleware - must be first
@@ -64,12 +67,17 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   try {
     // Register API routes before Vite middleware
     const server = await registerRoutes(app);
+    log('[INFO] API routes registered successfully');
 
-    // Set up development middleware
+    // Set up development middleware or static serving
     if (process.env.NODE_ENV !== "production") {
+      log('[INFO] Setting up Vite development middleware');
       await setupVite(app, server);
+      log('[INFO] Vite middleware setup complete');
     } else {
+      log('[INFO] Setting up static file serving');
       serveStatic(app);
+      log('[INFO] Static file serving setup complete');
     }
 
     // API Error handling middleware - must be after all routes
