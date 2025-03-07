@@ -31,43 +31,19 @@ app.use(passport.session());
 // Setup authentication routes
 setupAuth(app);
 
-// Detailed request logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
-  const requestId = Math.random().toString(36).substring(7);
-
-  log(`[${requestId}] [${new Date().toISOString()}] ${req.method} ${req.path} started`);
-  log(`[${requestId}] Headers: ${JSON.stringify(req.headers)}`);
-  log(`[${requestId}] Query: ${JSON.stringify(req.query)}`);
-
-  // Log response
-  const oldWrite = res.write;
-  const oldEnd = res.end;
-
-  const chunks: Buffer[] = [];
-
-  res.write = function (chunk: any) {
-    chunks.push(Buffer.from(chunk));
-    return oldWrite.apply(res, arguments as any);
-  };
-
-  res.end = function (chunk: any) {
-    if (chunk) {
-      chunks.push(Buffer.from(chunk));
-    }
-    const duration = Date.now() - start;
-    log(`[${requestId}] [${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} completed in ${duration}ms`);
-
-    return oldEnd.apply(res, arguments as any);
-  };
-
-  next();
+// Add test endpoint
+app.get('/api/test', (_req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
 });
 
-// Test route to verify basic Express functionality
-app.get('/api/test', (_req, res) => {
-  log('[INFO] Test route accessed');
-  res.json({ status: 'ok', message: 'Express server is running' });
+// Logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
+  });
+  next();
 });
 
 // Set default content type for API routes
@@ -79,8 +55,6 @@ app.use('/api', (req, res, next) => {
 // Error handling for JSON parsing
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof SyntaxError && 'body' in err) {
-    log(`[ERROR] JSON parsing error: ${err.message}`);
-    log(`[ERROR] Stack trace: ${err.stack}`);
     return res.status(400).json({ error: true, message: 'Invalid JSON' });
   }
   next(err);
@@ -88,47 +62,23 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 (async () => {
   try {
-    log('[INFO] Starting server initialization...');
-
     // Register API routes before Vite middleware
     const server = await registerRoutes(app);
-    log('[INFO] API routes registered successfully');
 
-    // Set up development middleware or static serving
+    // Set up development middleware
     if (process.env.NODE_ENV !== "production") {
-      log('[INFO] Setting up Vite development middleware');
       await setupVite(app, server);
-      log('[INFO] Vite middleware setup complete');
     } else {
-      log('[INFO] Setting up static file serving');
-      try {
-        serveStatic(app);
-        log('[INFO] Static file serving setup complete');
-      } catch (err) {
-        if (err instanceof Error && err.message.includes('Could not find the build directory')) {
-          log('[WARN] Build directory not found, falling back to Vite middleware');
-          await setupVite(app, server);
-          log('[INFO] Vite fallback middleware setup complete');
-        } else {
-          throw err;
-        }
-      }
+      serveStatic(app);
     }
 
     // API Error handling middleware - must be after all routes
     app.use('/api', (err: any, req: Request, res: Response, next: NextFunction) => {
-      const errorId = Math.random().toString(36).substring(7);
-      console.error(`[ERROR] [${errorId}] API Error:`, err);
-      console.error(`[ERROR] [${errorId}] Stack trace:`, err.stack);
-      console.error(`[ERROR] [${errorId}] Request headers:`, req.headers);
-      console.error(`[ERROR] [${errorId}] Request query:`, req.query);
-      console.error(`[ERROR] [${errorId}] Request body:`, req.body);
-
+      console.error('API Error:', err);
       if (!res.headersSent) {
         res.status(500).json({
           error: true,
-          message: err.message || "Internal Server Error",
-          errorId // Include error ID in response for correlation
+          message: err.message || "Internal Server Error"
         });
       }
     });
@@ -137,52 +87,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     const host = '0.0.0.0'; // Listen on all network interfaces
 
     server.listen(port, host, () => {
-      log(`[INFO] Server running at http://${host}:${port}`);
+      log(`Server running at http://${host}:${port}`);
     });
-
-    server.on('error', (error: any) => {
-      console.error('[ERROR] Server error:', error);
-      if (error.syscall !== 'listen') {
-        throw error;
-      }
-
-      const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
-
-      switch (error.code) {
-        case 'EACCES':
-          console.error(`[ERROR] ${bind} requires elevated privileges`);
-          process.exit(1);
-          break;
-        case 'EADDRINUSE':
-          console.error(`[ERROR] ${bind} is already in use`);
-          process.exit(1);
-          break;
-        default:
-          throw error;
-      }
-    });
-
-    // Handle uncaught exceptions
-    process.on('uncaughtException', (err) => {
-      console.error('[ERROR] Uncaught Exception:', err);
-      console.error('[ERROR] Stack trace:', err.stack);
-      process.exit(1);
-    });
-
-    process.on('unhandledRejection', (reason, promise) => {
-      console.error('[ERROR] Unhandled Rejection at:', promise);
-      console.error('[ERROR] Reason:', reason);
-      if (reason instanceof Error) {
-        console.error('[ERROR] Stack trace:', reason.stack);
-      }
-      process.exit(1);
-    });
-
   } catch (err) {
-    console.error('[ERROR] Failed to start server:', err);
-    if (err instanceof Error) {
-      console.error('[ERROR] Stack trace:', err.stack);
-    }
+    console.error('Failed to start server:', err);
     process.exit(1);
   }
 })();

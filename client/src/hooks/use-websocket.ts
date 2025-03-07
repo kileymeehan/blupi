@@ -1,1 +1,2 @@
-// This file can be deleted as we're removing WebSocket functionality
+// This hook has been removed as we're no longer using WebSocket functionality
+export {};
