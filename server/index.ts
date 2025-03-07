@@ -4,10 +4,13 @@ import { setupVite, serveStatic, log } from "./vite";
 import passport from "passport";
 import session from "express-session";
 import { storage } from "./storage";
-import { createServer } from "http";
 import { setupAuth } from "./auth";
+import { createServer } from "http";
 
 const app = express();
+
+// Create HTTP server
+const server = createServer(app);
 
 // Body parsing middleware - must be first
 app.use(express.json());
@@ -43,6 +46,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Test route to verify basic Express functionality
+app.get('/api/test', (_req, res) => {
+  log('[INFO] Test route accessed');
+  res.json({ status: 'ok', message: 'Express server is running' });
+});
+
 // Set default content type for API routes
 app.use('/api', (req, res, next) => {
   res.type('application/json');
@@ -63,16 +72,18 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     log('[INFO] Starting server initialization...');
 
     // Register API routes before Vite middleware
-    const server = await registerRoutes(app);
+    await registerRoutes(app);
     log('[INFO] API routes registered successfully');
 
     // Set up development middleware or static serving
     if (process.env.NODE_ENV !== "production") {
       log('[INFO] Setting up Vite development middleware');
       await setupVite(app, server);
+      log('[INFO] Vite middleware setup complete');
     } else {
       log('[INFO] Setting up static file serving');
       serveStatic(app);
+      log('[INFO] Static file serving setup complete');
     }
 
     // API Error handling middleware - must be after all routes
@@ -87,9 +98,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     });
 
     const port = Number(process.env.PORT) || 5000;
+    const host = '0.0.0.0'; // Listen on all network interfaces
 
-    server.listen(port, () => {
-      log(`[INFO] Server running at http://localhost:${port}`);
+    server.listen(port, host, () => {
+      log(`[INFO] Server running at http://${host}:${port}`);
     });
 
     server.on('error', (error: any) => {
@@ -111,6 +123,17 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
         default:
           throw error;
       }
+    });
+
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (err) => {
+      console.error('[ERROR] Uncaught Exception:', err);
+      process.exit(1);
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('[ERROR] Unhandled Rejection at:', promise, 'reason:', reason);
+      process.exit(1);
     });
 
   } catch (err) {
