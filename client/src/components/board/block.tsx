@@ -50,9 +50,10 @@ export default function Block({
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [notes, setNotes] = useState(block.notes || '');
 
+  // Update content when block changes
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
-      contentRef.current.textContent = block.content;
+      contentRef.current.innerText = block.content || '';
     }
   }, [block.content, isTemplate]);
 
@@ -64,8 +65,8 @@ export default function Block({
   };
 
   const handleBlur = () => {
-    if (!onChange) return;
-    const content = contentRef.current?.textContent || '';
+    if (!onChange || !contentRef.current) return;
+    const content = contentRef.current.innerText.trim();
     if (content !== block.content) {
       onChange(block.id, content);
     }
@@ -152,6 +153,7 @@ export default function Block({
             <Paperclip className="w-4 h-4" />
             {attachmentCount > 0 && <span>{attachmentCount}</span>}
           </button>
+
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -169,6 +171,7 @@ export default function Block({
           >
             <StickyNote className="w-4 h-4" />
           </button>
+
           <button
             onClick={(e) => {
               e.stopPropagation();
