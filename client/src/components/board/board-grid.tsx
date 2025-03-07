@@ -19,7 +19,7 @@
 
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, Minus } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,7 +50,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
 
-// Add this function before the BoardGrid component
+// Update the exportToPDF function
 const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
   const pdf = new jsPDF('landscape', 'pt', 'a4');
 
@@ -60,6 +60,9 @@ const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
     useCORS: true,
     logging: false,
     allowTaint: true,
+    ignoreElements: (element) => {
+      return element.classList.contains('hide-in-pdf');
+    }
   });
 
   // Calculate dimensions to fit the page
@@ -112,6 +115,7 @@ interface Attachment {
 export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange, connectedUsers }: BoardGridProps) {
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const [scale, setScale] = useState(1);
   const [isEditingName, setIsEditingName] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
@@ -430,6 +434,35 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     }
   };
 
+  const handleZoomIn = () => {
+    setScale(prev => Math.min(prev + 0.1, 2));
+  };
+
+  const handleZoomOut = () => {
+    setScale(prev => Math.max(prev - 0.1, 0.5));
+  };
+
+  const handleExportPDF = async () => {
+    if (!boardRef.current) return;
+
+    // Temporarily hide UI elements
+    const uiElements = boardRef.current.querySelectorAll('.hide-in-pdf');
+    uiElements.forEach(el => (el.classList.add('opacity-0')));
+
+    // Reset zoom for export
+    const currentScale = scale;
+    setScale(1);
+
+    try {
+      await exportToPDF(boardRef.current, board.name);
+    } finally {
+      // Restore UI elements
+      uiElements.forEach(el => el.classList.remove('opacity-0'));
+      // Restore zoom
+      setScale(currentScale);
+    }
+  };
+
   interface BoardGridProps {
     id: string;
     onBlocksChange: (blocks: BlockType[]) => void;
@@ -566,10 +599,29 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               </AlertDialogContent>
             </AlertDialog>
             {/* Added PDF export button */}
+            <div className="flex items-center gap-1 mr-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleZoomOut}
+                className="h-9 w-9 p-0"
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
+              <span className="text-sm">{Math.round(scale * 100)}%</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleZoomIn}
+                className="h-9 w-9 p-0"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => boardRef.current && exportToPDF(boardRef.current, board.name)}
+              onClick={handleExportPDF}
               className="h-9 w-9 p-0"
             >
               <FileDown className="w-4 h-4" />
@@ -742,7 +794,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           </div>
 
           <div className="flex-1 overflow-x-auto">
-            <div ref={boardRef} className="min-w-[800px] p-8">
+            <div ref={boardRef} className="min-w-[800px] p-8"
+              style={{
+                transform: `scale(${scale})`,
+                transformOrigin: 'top left',
+                transition: 'transform 0.2s ease-out'
+              }}
+            >
               <div className="flex items-start">
                 {board.phases.map((phase, phaseIndex) => (
                   <div key={phase.id} className="flex-shrink-0 relative mr-8">
@@ -764,7 +822,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                             variant="outline"
                             size="sm"
                             onClick={() => handleAddColumn(phaseIndex)}
-                            className="h-7 px-2 border border-gray-300"
+                            className="h-7 px-2 border border-gray-300 hide-in-pdf"
                           >
                             <Plus className="w-4 h-4 mr-1" />
                             Step
@@ -805,12 +863,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                         suppressContentEditableWarning={true}
                                       >
                                         {column.name}
-                                      </div>
-                                      <Button
+                                      </div>                                      <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
-                                        className="h-6 w-6 p-0 hover:text-red-500"
+                                        className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
                                       >
                                         <Trash2 className="w-4 h-4" />
                                       </Button>
@@ -848,7 +905,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                   <div
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
-                               {...provided.dragHandleProps}
+                                                    {...provided.dragHandleProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
                                                       relative rounded-lg z-10 border border-gray-400                                                      transition-all duration-200 ease-in-out
@@ -896,7 +953,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   variant="outline"
                   size="sm"
                   onClick={handleAddPhase}
-                  className="mt-3 h-7 px-2 border border-gray-300"
+                  className="mt-3 h-7 px-2 border border-gray-300 hide-in-pdf"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Phase

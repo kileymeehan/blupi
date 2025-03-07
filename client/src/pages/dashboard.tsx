@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, LogOut, User, LayoutGrid, Folder, Archive, Briefcase } from "lucide-react";
+import { Plus, LogOut, User, LayoutGrid, Folder, Archive, Briefcase, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
@@ -35,7 +35,7 @@ export default function Dashboard() {
   const [showArchivedBlueprints, setShowArchivedBlueprints] = useState(false);
   const { toast } = useToast();
 
-  const { data: projects = [], refetch: refetchProjects } = useQuery<Project[]>({
+  const { data: projects = [], refetch: refetchProjects, isLoading: projectLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
     refetchOnWindowFocus: true,
     staleTime: 0
@@ -126,8 +126,19 @@ export default function Dashboard() {
     }
   });
 
+  if (projectLoading || boardsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4 animate-fade-in">
+          <Loader2 className="w-8 h-8 animate-spin text-accent mx-auto" />
+          <p className="text-muted-foreground">Loading your workspace...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 animate-fade-in">
       <header className="border-b bg-white shadow-sm">
         <div className="max-w-[1440px] mx-auto flex h-16 items-center px-8">
           <div className="flex-1 flex items-center gap-8">
@@ -335,7 +346,7 @@ export default function Dashboard() {
               <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setCreateBlueprintOpen(true)}>
+            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-accent hover:bg-accent/90">
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
