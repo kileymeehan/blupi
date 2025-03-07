@@ -5,32 +5,27 @@ import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { sendProjectInvitation } from './utils/sendgrid';
+import { WebSocketServer, WebSocket } from 'ws';
 
-// Track notifications in memory since we're using MemStorage
-const notifications = new Map<number, Array<{
+// Track active connections per board
+const boardConnections = new Map<number, Set<WebSocket>>();
+// Track user information per board
+const boardUsers = new Map<number, Set<{
   id: string;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  type: 'comment' | 'invite';
-  link?: string;
+  name: string;
+  color: string;
 }>>();
 
-function addNotification(userId: number, notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) {
-  if (!notifications.has(userId)) {
-    notifications.set(userId, []);
-  }
+function broadcastToBoardUsers(boardId: number, message: any, excludeWs?: WebSocket) {
+  const connections = boardConnections.get(boardId);
+  if (!connections) return;
 
-  const newNotification = {
-    ...notification,
-    id: nanoid(),
-    timestamp: new Date().toISOString(),
-    read: false
-  };
-
-  notifications.get(userId)!.unshift(newNotification);
-  return newNotification;
+  const messageStr = JSON.stringify(message);
+  connections.forEach(client => {
+    if (client !== excludeWs && client.readyState === WebSocket.OPEN) {
+      client.send(messageStr);
+    }
+  });
 }
 
 // Generate a random color for user avatars
@@ -46,10 +41,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
 
+  // Create WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+  wss.on('connection', (ws) => {
+    let currentBoardId: number | null = null;
+    let currentUser: { id: string; name: string; color: string } | null = null;
+
+    ws.on('message', async (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+
+        // Handle board subscription
+        if (message.type === 'subscribe') {
+          const boardId = Number(message.boardId);
+          const userName = message.userName || 'Anonymous';
+          currentBoardId = boardId;
+
+          // Create unique user identity
+          currentUser = {
+            id: nanoid(),
+            name: userName,
+            color: getRandomColor()
+          };
+
+          // Add user to board connections and broadcast
+          if (!boardConnections.has(boardId)) {
+            boardConnections.set(boardId, new Set());
+          }
+          boardConnections.get(boardId)!.add(ws);
+
+          if (!boardUsers.has(boardId)) {
+            boardUsers.set(boardId, new Set());
+          }
+          boardUsers.get(boardId)!.add(currentUser);
+
+          // Send initial board state and broadcast updated user list
+          const board = await storage.getBoard(boardId);
+          if (board) {
+            ws.send(JSON.stringify({ type: 'board_update', board }));
+          }
+
+          broadcastToBoardUsers(boardId, {
+            type: 'users_update',
+            users: Array.from(boardUsers.get(boardId)!)
+          });
+        }
+
+        // Handle notifications for comments
+        else if (message.type === 'notification') {
+          broadcastToBoardUsers(currentBoardId!, {
+            type: 'notification',
+            notification: {
+              id: nanoid(),
+              title: message.title,
+              message: message.message,
+              timestamp: new Date().toISOString(),
+              read: false,
+              type: message.notificationType
+            }
+          });
+        }
+        // Handle board updates
+        else if (message.type === 'board_update' && currentBoardId) {
+          const updatedBoard = await storage.updateBoard(currentBoardId, message.board);
+          broadcastToBoardUsers(currentBoardId, { 
+            type: 'board_update',
+            board: updatedBoard 
+          }, ws);
+        }
+      } catch (err) {
+        console.error('WebSocket message error:', err);
+        ws.send(JSON.stringify({ 
+          type: 'error',
+          message: 'Failed to process message'
+        }));
+      }
+    });
+
+    ws.on('close', () => {
+      if (currentBoardId && currentUser) {
+        // Remove user from board connections
+        if (boardConnections.has(currentBoardId)) {
+          boardConnections.get(currentBoardId)!.delete(ws);
+          if (boardConnections.get(currentBoardId)!.size === 0) {
+            boardConnections.delete(currentBoardId);
+          }
+        }
+
+        // Remove user from board users and broadcast update
+        if (boardUsers.has(currentBoardId)) {
+          boardUsers.get(currentBoardId)!.delete(currentUser);
+          broadcastToBoardUsers(currentBoardId, {
+            type: 'users_update',
+            users: Array.from(boardUsers.get(currentBoardId)!)
+          });
+        }
+      }
+    });
+  });
+
+  // Add a health check endpoint
+  app.get("/api/ping", (_req, res) => {
+    res.json({ status: "ok" });
+  });
+
   // Project routes
   app.get("/api/projects", async (_req, res) => {
     try {
+      console.log('Fetching all projects');
       const projects = await storage.getProjects();
+      console.log(`Retrieved ${projects.length} projects`);
       res.json(projects);
     } catch (err) {
       console.error('Error fetching projects:', err);
@@ -71,6 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const project = await storage.createProject(parseResult.data);
+      console.log('Successfully created project:', project.id);
       res.json(project);
     } catch (err) {
       console.error('Error creating project:', err);
@@ -86,10 +189,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/projects/:id", async (req, res) => {
     try {
+      console.log(`Fetching project with ID: ${req.params.id}`);
       const project = await storage.getProject(Number(req.params.id));
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
+      console.log(`Retrieved project: ${project.id}`);
       res.json(project);
     } catch (err) {
       console.error('Error fetching project:', err);
@@ -97,13 +202,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add PATCH endpoint for projects
   app.patch("/api/projects/:id", async (req, res) => {
     try {
+      console.log(`Updating project with ID: ${req.params.id}`);
       const project = await storage.updateProject(Number(req.params.id), req.body);
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
+      console.log(`Successfully updated project: ${project.id}`);
       res.json(project);
     } catch (err) {
       console.error('Error updating project:', err);
@@ -111,9 +217,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update the invite endpoint
   app.post("/api/projects/:id/invite", async (req, res) => {
     try {
+      console.log(`Sending invitation for project ID: ${req.params.id}`);
       const { email, role } = req.body;
 
       if (!email || !role) {
@@ -123,23 +229,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get the project details
       const project = await storage.getProject(Number(req.params.id));
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
 
-      // Get or create user
       let user = await storage.getUserByEmail(email);
       if (!user) {
         user = await storage.createUser({
           email,
           username: email.split('@')[0],
-          password: nanoid(), // temporary password
+          password: nanoid(), 
         });
       }
 
-      // Create project member
       const projectMember = await storage.inviteProjectMember({
         projectId: Number(req.params.id),
         userId: user.id,
@@ -147,12 +250,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending'
       });
 
-      // Send invitation email
       const emailSent = await sendProjectInvitation({
         to: email,
         projectName: project.name,
         role,
-        inviterName: "Team member" // In a real app, this would be the current user's name
+        inviterName: "Team member" 
       });
 
       if (!emailSent) {
@@ -163,6 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      console.log(`Invitation sent successfully to ${email} for project ${project.id}`);
       res.json({ 
         message: "Invitation sent successfully",
         projectMember
@@ -177,10 +280,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
-  // Board/Blueprint routes
   app.get("/api/boards", async (_req, res) => {
     try {
+      console.log('Fetching all boards');
       const boards = await storage.getBoards();
+      console.log(`Retrieved ${boards.length} boards`);
       res.json(boards);
     } catch (err) {
       console.error('Error fetching boards:', err);
@@ -202,6 +306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const board = await storage.createBoard(parseResult.data);
+      console.log('Successfully created board:', board.id);
       res.json(board);
     } catch (err) {
       console.error('Error creating board:', err);
@@ -217,10 +322,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/boards/:id", async (req, res) => {
     try {
+      console.log(`Fetching board with ID: ${req.params.id}`);
       const board = await storage.getBoard(Number(req.params.id));
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
+      console.log(`Retrieved board: ${board.id}`);
       res.json(board);
     } catch (err) {
       console.error('Error fetching board:', err);
@@ -230,7 +337,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/boards/:id", async (req, res) => {
     try {
+      console.log(`Updating board with ID: ${req.params.id}`);
       const board = await storage.updateBoard(Number(req.params.id), req.body);
+      console.log(`Successfully updated board: ${board.id}`);
       res.json(board);
     } catch (err) {
       console.error('Error updating board:', err);
@@ -240,7 +349,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/boards/:id", async (req, res) => {
     try {
+      console.log(`Deleting board with ID: ${req.params.id}`);
       await storage.deleteBoard(Number(req.params.id));
+      console.log(`Successfully deleted board: ${req.params.id}`);
       res.status(204).send();
     } catch (err) {
       console.error('Error deleting board:', err);
@@ -248,23 +359,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add this new endpoint for public board access
   app.get("/api/public/boards/:id", async (req, res) => {
     try {
+      console.log(`Fetching public board with ID: ${req.params.id}`);
       const board = await storage.getBoard(Number(req.params.id));
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
 
-      // Remove sensitive information for public view
       const publicBoard = {
         ...board,
         blocks: board.blocks.map(block => ({
           ...block,
-          comments: [] // Remove comments from public view
+          comments: [] 
         }))
       };
 
+      console.log(`Retrieved public board: ${publicBoard.id}`);
       res.json(publicBoard);
     } catch (err) {
       console.error('Error fetching public board:', err);
@@ -272,12 +383,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add logging to notifications endpoint
   app.get("/api/notifications", async (req, res) => {
     try {
       console.log('Fetching notifications for user');
-      // For now, use a dummy user ID since we haven't implemented auth yet
-      const userId = 1;
+      const userId = 1; 
       const userNotifications = notifications.get(userId) || [];
       console.log(`Found ${userNotifications.length} notifications for user ${userId}`);
       res.json(userNotifications);
@@ -287,15 +396,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add a health check endpoint
-  app.get("/api/ping", (_req, res) => {
-    res.json({ status: "ok" });
-  });
-
   app.patch("/api/notifications/:id/read", async (req, res) => {
     try {
       console.log(`Marking notification ${req.params.id} as read`);
-      const userId = 1; // Dummy user ID
+      const userId = 1; 
       const userNotifications = notifications.get(userId);
       if (!userNotifications) {
         console.log(`No notifications found for user ${userId}`);
@@ -317,9 +421,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update the comments endpoint to use addNotification instead of WebSocket broadcast
   app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
     try {
+      console.log(`Adding comment to board ${req.params.boardId}, block ${req.params.blockId}`);
       const { content, username } = req.body;
       if (!content) {
         return res.status(400).json({ 
@@ -333,7 +437,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
 
-      // Find and update the block with the new comment
       const updatedBlocks = board.blocks.map(block => {
         if (block.id === req.params.blockId) {
           const newComment = {
@@ -345,7 +448,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             createdAt: new Date().toISOString()
           };
 
-          // Add notification for new comment
           addNotification(1, {
             title: 'New Comment',
             message: `${username || 'Anonymous'} commented on a block in "${board.name}"`,
@@ -365,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: updatedBlocks
       });
-
+      console.log(`Successfully added comment to board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
     } catch (err) {
       console.error('Error adding comment:', err);
@@ -373,15 +475,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update clear comments endpoint to remove auth requirement
   app.post("/api/boards/:boardId/blocks/:blockId/comments/clear", async (req, res) => {
     try {
+      console.log(`Clearing comments for board ${req.params.boardId}, block ${req.params.blockId}`);
       const board = await storage.getBoard(Number(req.params.boardId));
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
 
-      // Clear comments for the specified block
       const updatedBlocks = board.blocks.map(block => {
         if (block.id === req.params.blockId) {
           return {
@@ -396,7 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: updatedBlocks
       });
-
+      console.log(`Successfully cleared comments for board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
     } catch (err) {
       console.error('Error clearing comments:', err);
@@ -404,9 +505,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add this endpoint for toggling comment completion
   app.patch("/api/boards/:boardId/blocks/:blockId/comments/:commentId/toggle", async (req, res) => {
     try {
+      console.log(`Toggling comment completion for board ${req.params.boardId}, block ${req.params.blockId}, comment ${req.params.commentId}`);
       const { completed } = req.body;
 
       const board = await storage.getBoard(Number(req.params.boardId));
@@ -414,7 +515,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
 
-      // Update the comment's completion status
       const updatedBlocks = board.blocks.map(block => {
         if (block.id === req.params.blockId) {
           return {
@@ -437,13 +537,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: updatedBlocks
       });
-
+      console.log(`Successfully toggled comment completion for board ${updatedBoard.id}, block ${req.params.blockId}, comment ${req.params.commentId}`);
       res.json(updatedBoard);
     } catch (err) {
       console.error('Error toggling comment completion:', err);
       res.status(500).json({ error: true, message: "Failed to update comment" });
     }
   });
+
+  // Track notifications in memory since we're using MemStorage
+  const notifications = new Map<number, Array<{
+    id: string;
+    title: string;
+    message: string;
+    timestamp: string;
+    read: boolean;
+    type: 'comment' | 'invite';
+    link?: string;
+  }>>();
+
+  function addNotification(userId: number, notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) {
+    if (!notifications.has(userId)) {
+      notifications.set(userId, []);
+    }
+
+    const newNotification = {
+      ...notification,
+      id: nanoid(),
+      timestamp: new Date().toISOString(),
+      read: false
+    };
+
+    notifications.get(userId)!.unshift(newNotification);
+    return newNotification;
+  }
+
 
   return httpServer;
 }

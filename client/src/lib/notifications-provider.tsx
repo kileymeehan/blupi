@@ -1,9 +1,7 @@
-import { createContext, useContext, ReactNode, useState, useCallback } from 'react';
+import { createContext, useContext, ReactNode, useState, useCallback, useEffect } from 'react';
 import type { Notification } from '@/components/notifications/notifications';
 import { useFirebaseAuth } from '@/hooks/use-firebase-auth';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useWebSocket } from '@/hooks/use-websocket';
 
 interface NotificationsContextType {
   notifications: Notification[];
@@ -17,41 +15,7 @@ const NotificationsContext = createContext<NotificationsContextType | null>(null
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { user } = useFirebaseAuth();
-  const { toast } = useToast();
-
-  // Fetch notifications using polling
-  useQuery({
-    queryKey: ['/api/notifications'],
-    queryFn: async () => {
-      try {
-        const res = await fetch('/api/notifications');
-        if (!res.ok) throw new Error('Failed to fetch notifications');
-        const data = await res.json();
-        setNotifications(data);
-        return data;
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch notifications",
-          variant: "destructive",
-        });
-        return [];
-      }
-    },
-    refetchInterval: 5000 // Poll every 5 seconds
-  });
-
-  // Mutation for marking notifications as read
-  const markAsReadMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await apiRequest('PATCH', `/api/notifications/${id}/read`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-    },
-  });
+  const { sendMessage } = useWebSocket(0); 
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     console.log('Adding new notification:', notification);
@@ -67,18 +31,49 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const markAsRead = useCallback((id: string) => {
     console.log('Marking notification as read:', id);
-    markAsReadMutation.mutate(id);
-  }, [markAsReadMutation]);
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === id ? { ...notification, read: true } : notification
+      )
+    );
+  }, []);
 
   const clearNotifications = useCallback(() => {
     console.log('Clearing all notifications');
     setNotifications([]);
   }, []);
 
-  // Clear notifications when user logs out
-  if (!user && notifications.length > 0) {
-    clearNotifications();
-  }
+  useEffect(() => {
+    if (!user) {
+      clearNotifications();
+    }
+  }, [user, clearNotifications]);
+
+  // Listen for WebSocket notifications
+  useEffect(() => {
+    console.log('Setting up notifications listener');
+
+    const handleWebSocketMessage = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('Notifications received message:', data);
+        if (data.type === 'notification') {
+          console.log('Processing notification:', data.notification);
+          addNotification(data.notification);
+        }
+      } catch (error) {
+        console.error('Error processing notification message:', error);
+      }
+    };
+
+    // Add message listener to window for WebSocket messages
+    window.addEventListener('message', handleWebSocketMessage);
+
+    return () => {
+      console.log('Cleaning up notifications listener');
+      window.removeEventListener('message', handleWebSocketMessage);
+    };
+  }, [addNotification]);
 
   return (
     <NotificationsContext.Provider value={{

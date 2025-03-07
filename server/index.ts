@@ -9,9 +9,6 @@ import { setupAuth } from "./auth";
 
 const app = express();
 
-// Temporarily force production mode to ensure API routes work
-process.env.NODE_ENV = "production";
-
 // Body parsing middleware - must be first
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
