@@ -52,6 +52,7 @@ import { Notifications } from "@/components/notifications/notifications";
 import { useNotifications } from "@/lib/notifications-provider";
 
 
+
 // Update the exportToPDF function
 const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
   const pdf = new jsPDF('landscape', 'pt', 'a4');
@@ -857,7 +858,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                             ref={provided.innerRef}
                                             {...provided.droppableProps}
                                             className={`
-                                              space-y-4 min-h-[100px] p-4
+                                                                                            space-y-4 min-h-[100px] p-4
                                               rounded-lg border-2                                              ${snapshot.isDraggingOver
                                                 ? 'border-primary/50 bg-primary/5'
                                                 : 'border-gray-200 hover:border-gray300'

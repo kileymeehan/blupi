@@ -15,9 +15,10 @@ const NotificationsContext = createContext<NotificationsContextType | null>(null
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { user } = useFirebaseAuth();
-  const { sendMessage } = useWebSocket(0); // 0 is a dummy boardId, we'll handle global notifications
+  const { sendMessage } = useWebSocket(0); 
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+    console.log('Adding new notification:', notification);
     const newNotification: Notification = {
       ...notification,
       id: crypto.randomUUID(),
@@ -29,6 +30,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const markAsRead = useCallback((id: string) => {
+    console.log('Marking notification as read:', id);
     setNotifications(prev =>
       prev.map(notification =>
         notification.id === id ? { ...notification, read: true } : notification
@@ -37,6 +39,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearNotifications = useCallback(() => {
+    console.log('Clearing all notifications');
     setNotifications([]);
   }, []);
 
@@ -46,25 +49,29 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     }
   }, [user, clearNotifications]);
 
-  // Listen for WebSocket notifications
+  // Listen for WebSocket notifications using the existing hook
   useEffect(() => {
+    console.log('Setting up notifications listener');
+
     const handleWebSocketMessage = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'notification') {
-        addNotification(data.notification);
+      try {
+        const data = JSON.parse(event.data);
+        console.log('Notifications received message:', data);
+        if (data.type === 'notification') {
+          console.log('Processing notification:', data.notification);
+          addNotification(data.notification);
+        }
+      } catch (error) {
+        console.error('Error processing notification message:', error);
       }
     };
 
-    // Get the WebSocket instance
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    const socket = new WebSocket(wsUrl);
-
-    socket.addEventListener('message', handleWebSocketMessage);
+    // Add message listener to window for WebSocket messages
+    window.addEventListener('message', handleWebSocketMessage);
 
     return () => {
-      socket.removeEventListener('message', handleWebSocketMessage);
-      socket.close();
+      console.log('Cleaning up notifications listener');
+      window.removeEventListener('message', handleWebSocketMessage);
     };
   }, [addNotification]);
 

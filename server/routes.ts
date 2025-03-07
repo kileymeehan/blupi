@@ -41,22 +41,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
 
-  // Create WebSocket server
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  // Create WebSocket server with custom path to avoid conflicts with Vite
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws-blupi',
+    perMessageDeflate: false
+  });
+
+  console.log('WebSocket server initialized on path: /ws-blupi');
 
   wss.on('connection', (ws) => {
+    console.log('New WebSocket connection established');
     let currentBoardId: number | null = null;
     let currentUser: { id: string; name: string; color: string } | null = null;
 
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
+        console.log('Received WebSocket message:', message);
 
         // Handle board subscription
         if (message.type === 'subscribe') {
           const boardId = Number(message.boardId);
           const userName = message.userName || 'Anonymous';
           currentBoardId = boardId;
+
+          console.log(`User ${userName} subscribing to board ${boardId}`);
 
           // Create unique user identity
           currentUser = {
@@ -90,6 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Handle notifications for comments
         else if (message.type === 'notification') {
+          console.log('Broadcasting notification:', message);
           broadcastToBoardUsers(currentBoardId!, {
             type: 'notification',
             notification: {
@@ -104,6 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         // Handle board updates
         else if (message.type === 'board_update' && currentBoardId) {
+          console.log('Processing board update');
           const updatedBoard = await storage.updateBoard(currentBoardId, message.board);
           broadcastToBoardUsers(currentBoardId, { 
             type: 'board_update',
@@ -120,6 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     ws.on('close', () => {
+      console.log('WebSocket connection closed');
       if (currentBoardId && currentUser) {
         // Remove user from board connections
         if (boardConnections.has(currentBoardId)) {
@@ -138,6 +151,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
+    });
+
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
     });
   });
 
