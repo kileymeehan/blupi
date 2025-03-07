@@ -769,111 +769,100 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                               className="flex gap-8"
                             >
                               {phase.columns.map((column, columnIndex) => (
-                                <Draggable
+                                <div
                                   key={column.id}
-                                  draggableId={`column-${column.id}`}
-                                  index={columnIndex}
+                                  className="flex-shrink-0 w-[225px]"
                                 >
-                                  {(provided, snapshot) => (
+                                  <div className="flex items-center gap-2 mb-2">
                                     <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      style={provided.draggableProps.style}
-                                      className="flex-shrink-0 w-[225px]"
+                                      className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
                                     >
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <div
-                                          {...provided.dragHandleProps}
-                                          className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
-                                        >
-                                          <GripVertical className="w-4 h-4" />
-                                        </div>
-                                        <div
-                                          contentEditable
-                                          onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                                          className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
-                                          suppressContentEditableWarning={true}
-                                        >
-                                          {column.name}
-                                        </div>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
-                                          className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
-                                        >
-                                          <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                      </div>
-
-                                      <ImageUpload
-                                        currentImage={column.image}
-                                        onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
-                                      />
-
-                                      <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
-                                        {(provided, snapshot) => (
-                                          <div
-                                            ref={provided.innerRef}
-                                            {...provided.droppableProps}
-                                            className={`
-                                                                                            space-y-4 min-h-[100px] p-4
-                                              rounded-lg border-2                                              ${snapshot.isDraggingOver
-                                                ? 'border-primary/50 bg-primary/5'
-                                                : 'border-gray-200 hover:border-gray300'
-                                              }
-                                              transition-colors duration-200
-                                            `}
-                                          >
-                                            {board.blocks
-                                              .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                                              .map((block, index) => (
-                                                <Draggable
-                                                  key={block.id}
-                                                  draggableId={block.id}
-                                                  index={index}
-                                                >
-                                                  {(provided, snapshot) => (
-                                                    <div
-                                                      ref={provided.innerRef}
-                                                      {...provided.draggableProps}
-                                                      style={provided.draggableProps.style}
-                                                      className={`
-                                                        ${LAYER_TYPES.find(l => l.type === block.type)?.color}
-                                                        group relative rounded-lg border mb-2 p-2
-                                                        ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
-                                                        ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
-                                                      `}
-                                                    >
-                                                      <div
-                                                       {...provided.dragHandleProps}
-                                                        className="absolute left-3 top-1 p-1
-                                                          rounded-sm opacity-0 group-hover:opacity-100
-                                                          transition-opacity cursor-move bg-white/50
-                                                          hover:bg-white/80"
-                                                      >
-                                                        <GripVertical className="w-4 h-4 text-gray-600" />
-                                                      </div>
-                                                      <Block
-                                                        block={block}
-                                                        onChange={(content) => handleBlockChange(block.id, content)}
-                                                        onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
-                                                        onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                                        onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
-                                                        onCommentClick={() => handleCommentClick(block)}
-                                                        projectId={board.projectId || undefined}
-                                                      />
-                                                    </div>
-                                                  )}
-                                                </Draggable>
-                                              ))}
-                                            {provided.placeholder}
-                                          </div>
-                                        )}
-                                      </Droppable>
+                                      <GripVertical className="w-4 h-4" />
                                     </div>
-                                  )}
-                                </Draggable>
+                                    <div
+                                      contentEditable
+                                      onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
+                                      className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
+                                      suppressContentEditableWarning={true}
+                                    >
+                                      {column.name}
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
+                                      className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+
+                                  <ImageUpload
+                                    currentImage={column.image}
+                                    onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
+                                  />
+
+                                  <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
+                                    {(provided, snapshot) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.droppableProps}
+                                        className={`
+                                          space-y-4 min-h-[100px] p-4 rounded-lg border-2 
+                                          ${snapshot.isDraggingOver
+                                            ? 'border-primary/50 bg-primary/5'
+                                            : 'border-gray-200 hover:border-gray300'
+                                          }
+                                          transition-colors duration-200
+                                        `}
+                                      >
+                                        {board.blocks
+                                          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                          .map((block, index) => (
+                                            <Draggable
+                                              key={block.id}
+                                              draggableId={block.id}
+                                              index={index}
+                                            >
+                                              {(provided, snapshot) => (
+                                                <div
+                                                  ref={provided.innerRef}
+                                                  {...provided.draggableProps}
+                                                  {...provided.dragHandleProps}
+                                                  style={provided.draggableProps.style}
+                                                  className={`
+                                                    ${LAYER_TYPES.find(l => l.type === block.type)?.color}
+                                                    group relative rounded-lg border mb-2 p-2
+                                                    ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
+                                                    ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                  `}
+                                                >
+                                                  <div
+                                                    className="absolute left-3 top-1 p-1
+                                                      rounded-sm opacity-0 group-hover:opacity-100
+                                                      transition-opacity cursor-move bg-white/50 hover:bg-white/80"
+                                                  >
+                                                    <GripVertical className="w-4 h-4 text-gray-600" />
+                                                  </div>
+                                                  <Block
+                                                    block={block}
+                                                    onChange={(content) => handleBlockChange(block.id, content)}
+                                                    onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
+                                                    onNotesChange={(notes) => handleNotesChange(block.id, notes)}
+                                                    onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
+                                                    onCommentClick={() => handleCommentClick(block)}
+                                                    projectId={board.projectId || undefined}
+                                                    highlighted={block.id === highlightedBlockId}
+                                                  />
+                                                </div>
+                                              )}
+                                            </Draggable>
+                                          ))}
+                                        {provided.placeholder}
+                                      </div>
+                                    )}
+                                  </Droppable>
+                                </div>
                               ))}
                               {provided.placeholder}
                             </div>

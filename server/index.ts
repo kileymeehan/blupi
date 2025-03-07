@@ -86,11 +86,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
       }
     });
 
-    const port = process.env.PORT || 5000;
-    const host = '0.0.0.0'; // Bind to all network interfaces
+    const port = Number(process.env.PORT) || 5000;
 
-    server.listen(port, host, () => {
-      log(`[INFO] Server running at http://${host}:${port}`);
+    server.listen(port, () => {
+      log(`[INFO] Server running at http://localhost:${port}`);
     });
 
     server.on('error', (error: any) => {
