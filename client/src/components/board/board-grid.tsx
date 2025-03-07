@@ -861,7 +861,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                           ref={provided.innerRef}
                                           {...provided.droppableProps}
                                           className={`
-                                            space-y-2 min-h-[100px] p-4
+                                            group space-y-2 min-h-[100px] p-4
                                             rounded-lg border-2
                                             ${snapshot.isDraggingOver 
                                               ? 'border-primary/50 bg-primary/5' 
@@ -884,7 +884,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     {...provided.draggableProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      relative rounded-lg border
+                                                      group relative rounded-lg border
                                                       ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
                                                       ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                     `}
