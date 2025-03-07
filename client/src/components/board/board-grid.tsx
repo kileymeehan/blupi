@@ -1,22 +1,3 @@
-/**
- * The BoardGrid component is the heart of BLUPE's blueprint editor.
- * It provides a drag-and-drop interface for organizing customer journey steps
- * and allows real-time collaboration between team members.
- *
- * Features:
- * - Drag and drop interface for organizing content
- * - Real-time collaboration with team members
- * - Image uploads for visual context
- * - Comment system for team discussion
- * - Public sharing capabilities
- * - Project organization
- *
- * The layout is organized as:
- * - Left sidebar: Contains tools and context information
- * - Main area: Shows the blueprint with phases and columns
- * - Top bar: Navigation and sharing controls
- */
-
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, Minus } from "lucide-react";
@@ -52,12 +33,9 @@ import { Notifications } from "@/components/notifications/notifications";
 import { useNotifications } from "@/lib/notifications-provider";
 
 
-
-// Update the exportToPDF function
 const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
   const pdf = new jsPDF('landscape', 'pt', 'a4');
 
-  // Convert the board to an image
   const canvas = await html2canvas(boardRef, {
     scale: 2,
     useCORS: true,
@@ -68,11 +46,9 @@ const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
     }
   });
 
-  // Calculate dimensions to fit the page
-  const imgWidth = 842; // A4 landscape width
+  const imgWidth = 842; 
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  // Add the image to PDF
   pdf.addImage(
     canvas.toDataURL('image/png'),
     'PNG',
@@ -82,11 +58,9 @@ const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
     imgHeight
   );
 
-  // Save the PDF
   pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
 };
 
-// Update LAYER_TYPES with new categories and colors
 export const LAYER_TYPES = [
   { type: 'touchpoint', label: 'Touchpoint', color: 'bg-blue-600/20' },
   { type: 'email', label: 'Email Touchpoint', color: 'bg-indigo-500/20' },
@@ -107,14 +81,6 @@ interface Attachment {
   url: string;
 }
 
-/**
- * Main component for the blueprint editor
- * @param id - The ID of the current blueprint
- * @param onBlocksChange - Callback when blocks are updated
- * @param onPhasesChange - Callback when phases are updated
- * @param onBoardChange - Callback when board settings are updated
- * @param connectedUsers - Array of currently connected users
- */
 interface BoardGridProps {
   id: string;
   onBlocksChange: (blocks: BlockType[]) => void;
@@ -253,7 +219,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           comments: [],
           attachments: [],
           notes: "",
-          emoji: "" // Added emoji property
+          emoji: "" 
         };
 
         blocks.splice(destination.index, 0, newBlock);
@@ -275,9 +241,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     }
   };
 
-  /**
-   * Update handleBlockChange to properly handle text content
-   */
   const handleBlockChange = (blockId: string, content: string) => {
     const blocks = board.blocks.map(block =>
       block.id === blockId ? { ...block, content: content } : block
@@ -299,14 +262,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     onBlocksChange(blocks);
   };
 
-  // Add handleEmojiChange function
   const handleEmojiChange = (blockId: string, emoji: string) => {
     const blocks = board.blocks.map(block =>
       block.id === blockId ? { ...block, emoji } : block
     );
     onBlocksChange(blocks);
   };
-
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
@@ -451,7 +412,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const handleExportPDF = async () => {
     if (!boardRef.current) return;
 
-    // Temporarily hide UI elements
     const uiElements = boardRef.current.querySelectorAll('.hide-in-pdf');
     uiElements.forEach(el => (el.classList.add('opacity-0')));
 
@@ -459,7 +419,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     try {
       await exportToPDF(boardRef.current, board.name);
     } finally {
-      // Restore UI elements
       uiElements.forEach(el => el.classList.remove('opacity-0'));
     }
   };
@@ -887,7 +846,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                       `}
                                                     >
                                                       <div
-                                                        {...provided.dragHandleProps}
+                                                       {...provided.dragHandleProps}
                                                         className="absolute left-3 top-1 p-1
                                                           rounded-sm opacity-0 group-hover:opacity-100
                                                           transition-opacity cursor-move bg-white/50
@@ -944,7 +903,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               open={commentDialogOpen}
               onOpenChange={setCommentDialogOpen}
               block={selectedBlock}
-              boardId={board.id}
+              boardId={id}
               onCommentAdd={(comment) => {
                 if (!onBlocksChange) return;
                 const blocks = board.blocks.map(b =>
@@ -959,7 +918,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           <AddToProjectDialog
             open={addToProjectOpen}
             onOpenChange={setAddToProjectOpen}
-            boardId={board.id}
+            boardId={id}
           />
           {inviteOpen && (
             <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>

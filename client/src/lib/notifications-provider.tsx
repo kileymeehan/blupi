@@ -18,7 +18,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { sendMessage } = useWebSocket(0); 
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
-    console.log('Adding new notification:', notification);
     const newNotification: Notification = {
       ...notification,
       id: crypto.randomUUID(),
@@ -30,7 +29,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const markAsRead = useCallback((id: string) => {
-    console.log('Marking notification as read:', id);
     setNotifications(prev =>
       prev.map(notification =>
         notification.id === id ? { ...notification, read: true } : notification
@@ -39,7 +37,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearNotifications = useCallback(() => {
-    console.log('Clearing all notifications');
     setNotifications([]);
   }, []);
 
@@ -49,16 +46,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     }
   }, [user, clearNotifications]);
 
-  // Listen for WebSocket notifications
   useEffect(() => {
-    console.log('Setting up notifications listener');
-
     const handleWebSocketMessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('Notifications received message:', data);
         if (data.type === 'notification') {
-          console.log('Processing notification:', data.notification);
           addNotification(data.notification);
         }
       } catch (error) {
@@ -66,11 +58,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // Add message listener to window for WebSocket messages
     window.addEventListener('message', handleWebSocketMessage);
 
     return () => {
-      console.log('Cleaning up notifications listener');
       window.removeEventListener('message', handleWebSocketMessage);
     };
   }, [addNotification]);
