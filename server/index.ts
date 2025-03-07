@@ -77,12 +77,16 @@ async function initializeServer() {
       const server = await registerRoutes(app);
       log('[INFO] API routes registered successfully');
 
-      // Temporarily disable Vite setup for debugging
-      log('[INFO] Vite middleware setup bypassed for debugging');
-      app.get('*', (req, res) => {
-        res.json({ status: 'Server running in debug mode - Vite disabled' });
-      });
-
+      // Set up development middleware or static serving
+      if (process.env.NODE_ENV !== "production") {
+        log('[INFO] Setting up Vite development middleware');
+        await setupVite(app, server);
+        log('[INFO] Vite middleware setup complete');
+      } else {
+        log('[INFO] Setting up static file serving');
+        serveStatic(app);
+        log('[INFO] Static file serving setup complete');
+      }
 
       // API Error handling middleware - must be after all routes
       app.use('/api', (err: any, req: Request, res: Response, next: NextFunction) => {
