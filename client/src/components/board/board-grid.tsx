@@ -852,7 +852,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                     </div>
 
                                     <ImageUpload
-                                      currentImage={column.image}
+                                                                            currentImage={column.image}
                                       onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
                                     />
 
@@ -863,8 +863,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                           {...provided.droppableProps}
                                           className={`
                                             space-y-2 min-h-[100px] p-4
-                                            rounded-lg
-                                            ${snapshot.isDraggingOver ? 'bg-gray-100' : 'bg-white'}
+                                            rounded-lg border-2
+                                            ${snapshot.isDraggingOver 
+                                              ? 'border-primary/50 bg-primary/5' 
+                                              : 'border-gray-200 bg-white'
+                                            }
                                             transition-colors duration-200
                                           `}
                                         >
@@ -883,10 +886,17 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     {...provided.dragHandleProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      relative rounded-lg z-10 border border-gray-400
-                                                      transition-all duration-200 ease-in-out
-                                                      ${snapshot.isDragging ? 'shadow-lg scale-105' : ''}
-                                                      ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                      relative rounded-lg z-10 border
+                                                      ${snapshot.isDragging 
+                                                        ? 'border-primary shadow-lg scale-[1.02]' 
+                                                        : 'border-gray-200'
+                                                      }
+                                                      ${highlightedBlockId === block.id 
+                                                        ? 'ring-2 ring-primary ring-offset-2' 
+                                                        : ''
+                                                      }
+                                                      transform-gpu
+                                                      transition-transform duration-200
                                                     `}
                                                   >
                                                     <Block
