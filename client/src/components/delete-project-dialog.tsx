@@ -23,21 +23,21 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
   const deleteProjectMutation = useMutation({
     mutationFn: async () => {
       try {
-        await apiRequest(
+        const res = await apiRequest(
           "DELETE",
           `/api/projects/${projectId}`,
           { blueprintAction }
         );
-        return true;
+        return res.ok;
       } catch (error) {
         console.error('Delete project error:', error);
         throw error;
       }
     },
     onSuccess: () => {
-      // Invalidate both projects and boards queries since either could be affected
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+      // Force refetch both projects and boards after deletion
+      queryClient.refetchQueries({ queryKey: ["/api/projects"] });
+      queryClient.refetchQueries({ queryKey: ["/api/boards"] });
 
       toast({
         title: "Success",
