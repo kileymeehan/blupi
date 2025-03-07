@@ -4,160 +4,37 @@ import { storage } from "./storage";
 import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
-import { WebSocketServer, WebSocket } from 'ws';
-import { sendProjectInvitation } from './utils/sendgrid';
-
-// Track active connections per board
-const boardConnections = new Map<number, Set<WebSocket>>();
-// Track user information per board
-const boardUsers = new Map<number, Set<{
-  id: string;
-  name: string;
-  color: string;
-}>>();
-
-function broadcastToBoardUsers(boardId: number, message: any, excludeWs?: WebSocket) {
-  const connections = boardConnections.get(boardId);
-  if (!connections) return;
-
-  const messageStr = JSON.stringify(message);
-  connections.forEach(client => {
-    if (client !== excludeWs && client.readyState === WebSocket.OPEN) {
-      client.send(messageStr);
-    }
-  });
-}
-
-// Generate a random color for user avatars
-function getRandomColor() {
-  const colors = [
-    '#F87171', '#FB923C', '#FBBF24', '#34D399', 
-    '#60A5FA', '#818CF8', '#A78BFA', '#F472B6'
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
-
-  // Create WebSocket server with custom path
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws-blupi' // Changed from '/ws' to avoid conflict with Vite
-  });
-
-  wss.on('connection', (ws) => {
-    console.log('[WebSocket] New connection established');
-    let currentBoardId: number | null = null;
-    let currentUser: { id: string; name: string; color: string } | null = null;
-
-    ws.on('message', async (data) => {
-      try {
-        const message = JSON.parse(data.toString());
-        console.log('[WebSocket] Received message:', message.type);
-
-        // Handle board subscription
-        if (message.type === 'subscribe') {
-          const boardId = Number(message.boardId);
-          const userName = message.userName || 'Anonymous';
-          currentBoardId = boardId;
-          console.log(`[WebSocket] User ${userName} subscribing to board ${boardId}`);
-
-          // Create unique user identity
-          currentUser = {
-            id: nanoid(),
-            name: userName,
-            color: getRandomColor()
-          };
-
-          // Add user to board connections and broadcast
-          if (!boardConnections.has(boardId)) {
-            boardConnections.set(boardId, new Set());
-          }
-          boardConnections.get(boardId)!.add(ws);
-
-          if (!boardUsers.has(boardId)) {
-            boardUsers.set(boardId, new Set());
-          }
-          boardUsers.get(boardId)!.add(currentUser);
-
-          // Send initial board state and broadcast updated user list
-          const board = await storage.getBoard(boardId);
-          if (board) {
-            console.log(`[WebSocket] Sending initial board state to user ${userName}`);
-            ws.send(JSON.stringify({ type: 'board_update', board }));
-          }
-
-          broadcastToBoardUsers(boardId, {
-            type: 'users_update',
-            users: Array.from(boardUsers.get(boardId)!)
-          });
-        }
-        // Handle board updates
-        else if (message.type === 'board_update' && currentBoardId) {
-          console.log(`[WebSocket] Broadcasting board update for board ${currentBoardId}`);
-          const updatedBoard = await storage.updateBoard(currentBoardId, message.board);
-          broadcastToBoardUsers(currentBoardId, { 
-            type: 'board_update',
-            board: updatedBoard 
-          }, ws);
-        }
-      } catch (err) {
-        console.error('[WebSocket] Message error:', err);
-        ws.send(JSON.stringify({ 
-          type: 'error',
-          message: 'Failed to process message'
-        }));
-      }
-    });
-
-    ws.on('close', () => {
-      if (currentBoardId && currentUser) {
-        console.log(`[WebSocket] User ${currentUser.name} disconnected from board ${currentBoardId}`);
-        // Remove user from board connections
-        if (boardConnections.has(currentBoardId)) {
-          boardConnections.get(currentBoardId)!.delete(ws);
-          if (boardConnections.get(currentBoardId)!.size === 0) {
-            boardConnections.delete(currentBoardId);
-          }
-        }
-
-        // Remove user from board users and broadcast update
-        if (boardUsers.has(currentBoardId)) {
-          boardUsers.get(currentBoardId)!.delete(currentUser);
-          broadcastToBoardUsers(currentBoardId, {
-            type: 'users_update',
-            users: Array.from(boardUsers.get(currentBoardId)!)
-          });
-        }
-      }
-    });
-  });
+  console.log('[HTTP] Creating basic HTTP server');
 
   // Add a health check endpoint
   app.get("/api/ping", (_req, res) => {
+    console.log('[HTTP] Handling ping request');
     res.json({ status: "ok" });
   });
 
-  // Project routes
-  app.get("/api/projects", async (_req, res) => {
+  // Basic routes without WebSocket functionality
+  app.get("/api/boards", async (_req, res) => {
     try {
-      const projects = await storage.getProjects();
-      res.json(projects);
+      console.log('[HTTP] Fetching all boards');
+      const boards = await storage.getBoards();
+      res.json(boards);
     } catch (err) {
-      console.error('Error fetching projects:', err);
-      res.status(500).json({ error: true, message: "Failed to fetch projects" });
+      console.error('[HTTP] Error fetching boards:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch boards" });
     }
   });
 
   app.post("/api/projects", async (req, res) => {
     try {
-      console.log('Creating project with data:', req.body);
+      console.log('[HTTP] Creating project with data:', req.body);
       const parseResult = insertProjectSchema.safeParse(req.body);
 
       if (!parseResult.success) {
-        console.error('Project validation error:', parseResult.error);
+        console.error('[HTTP] Project validation error:', parseResult.error);
         return res.status(400).json({ 
           error: true,
           message: parseResult.error.errors[0].message 
@@ -165,10 +42,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const project = await storage.createProject(parseResult.data);
-      console.log('Successfully created project:', project.id);
+      console.log('[HTTP] Successfully created project:', project.id);
       res.json(project);
     } catch (err) {
-      console.error('Error creating project:', err);
+      console.error('[HTTP] Error creating project:', err);
       if (err instanceof ZodError) {
         return res.status(400).json({
           error: true,
@@ -181,37 +58,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/projects/:id", async (req, res) => {
     try {
-      console.log(`Fetching project with ID: ${req.params.id}`);
+      console.log(`[HTTP] Fetching project with ID: ${req.params.id}`);
       const project = await storage.getProject(Number(req.params.id));
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
-      console.log(`Retrieved project: ${project.id}`);
+      console.log(`[HTTP] Retrieved project: ${project.id}`);
       res.json(project);
     } catch (err) {
-      console.error('Error fetching project:', err);
+      console.error('[HTTP] Error fetching project:', err);
       res.status(500).json({ error: true, message: "Failed to fetch project" });
     }
   });
 
   app.patch("/api/projects/:id", async (req, res) => {
     try {
-      console.log(`Updating project with ID: ${req.params.id}`);
+      console.log(`[HTTP] Updating project with ID: ${req.params.id}`);
       const project = await storage.updateProject(Number(req.params.id), req.body);
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
-      console.log(`Successfully updated project: ${project.id}`);
+      console.log(`[HTTP] Successfully updated project: ${project.id}`);
       res.json(project);
     } catch (err) {
-      console.error('Error updating project:', err);
+      console.error('[HTTP] Error updating project:', err);
       res.status(500).json({ error: true, message: "Failed to update project" });
     }
   });
 
   app.post("/api/projects/:id/invite", async (req, res) => {
     try {
-      console.log(`Sending invitation for project ID: ${req.params.id}`);
+      console.log(`[HTTP] Sending invitation for project ID: ${req.params.id}`);
       const { email, role } = req.body;
 
       if (!email || !role) {
@@ -250,20 +127,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!emailSent) {
-        console.error('Failed to send invitation email to:', email);
+        console.error('[HTTP] Failed to send invitation email to:', email);
         return res.status(500).json({ 
           error: true, 
           message: "Failed to send invitation email. Please try again." 
         });
       }
 
-      console.log(`Invitation sent successfully to ${email} for project ${project.id}`);
+      console.log(`[HTTP] Invitation sent successfully to ${email} for project ${project.id}`);
       res.json({ 
         message: "Invitation sent successfully",
         projectMember
       });
     } catch (err) {
-      console.error('Error sending invitation:', err);
+      console.error('[HTTP] Error sending invitation:', err);
       res.status(500).json({ 
         error: true, 
         message: "Failed to send invitation" 
@@ -274,23 +151,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/boards", async (_req, res) => {
     try {
-      console.log('Fetching all boards');
+      console.log('[HTTP] Fetching all boards');
       const boards = await storage.getBoards();
-      console.log(`Retrieved ${boards.length} boards`);
+      console.log(`[HTTP] Retrieved ${boards.length} boards`);
       res.json(boards);
     } catch (err) {
-      console.error('Error fetching boards:', err);
+      console.error('[HTTP] Error fetching boards:', err);
       res.status(500).json({ error: true, message: "Failed to fetch boards" });
     }
   });
 
   app.post("/api/boards", async (req, res) => {
     try {
-      console.log('Creating board with data:', req.body);
+      console.log('[HTTP] Creating board with data:', req.body);
       const parseResult = insertBoardSchema.safeParse(req.body);
 
       if (!parseResult.success) {
-        console.error('Board validation error:', parseResult.error);
+        console.error('[HTTP] Board validation error:', parseResult.error);
         return res.status(400).json({ 
           error: true,
           message: parseResult.error.errors[0].message 
@@ -298,10 +175,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const board = await storage.createBoard(parseResult.data);
-      console.log('Successfully created board:', board.id);
+      console.log('[HTTP] Successfully created board:', board.id);
       res.json(board);
     } catch (err) {
-      console.error('Error creating board:', err);
+      console.error('[HTTP] Error creating board:', err);
       if (err instanceof ZodError) {
         return res.status(400).json({
           error: true,
@@ -314,46 +191,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/boards/:id", async (req, res) => {
     try {
-      console.log(`Fetching board with ID: ${req.params.id}`);
+      console.log(`[HTTP] Fetching board with ID: ${req.params.id}`);
       const board = await storage.getBoard(Number(req.params.id));
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
-      console.log(`Retrieved board: ${board.id}`);
+      console.log(`[HTTP] Retrieved board: ${board.id}`);
       res.json(board);
     } catch (err) {
-      console.error('Error fetching board:', err);
+      console.error('[HTTP] Error fetching board:', err);
       res.status(500).json({ error: true, message: "Failed to fetch board" });
     }
   });
 
   app.patch("/api/boards/:id", async (req, res) => {
     try {
-      console.log(`Updating board with ID: ${req.params.id}`);
+      console.log(`[HTTP] Updating board with ID: ${req.params.id}`);
       const board = await storage.updateBoard(Number(req.params.id), req.body);
-      console.log(`Successfully updated board: ${board.id}`);
+      console.log(`[HTTP] Successfully updated board: ${board.id}`);
       res.json(board);
     } catch (err) {
-      console.error('Error updating board:', err);
+      console.error('[HTTP] Error updating board:', err);
       res.status(500).json({ error: true, message: "Failed to update board" });
     }
   });
 
   app.delete("/api/boards/:id", async (req, res) => {
     try {
-      console.log(`Deleting board with ID: ${req.params.id}`);
+      console.log(`[HTTP] Deleting board with ID: ${req.params.id}`);
       await storage.deleteBoard(Number(req.params.id));
-      console.log(`Successfully deleted board: ${req.params.id}`);
+      console.log(`[HTTP] Successfully deleted board: ${req.params.id}`);
       res.status(204).send();
     } catch (err) {
-      console.error('Error deleting board:', err);
+      console.error('[HTTP] Error deleting board:', err);
       res.status(500).json({ error: true, message: "Failed to delete board" });
     }
   });
 
   app.get("/api/public/boards/:id", async (req, res) => {
     try {
-      console.log(`Fetching public board with ID: ${req.params.id}`);
+      console.log(`[HTTP] Fetching public board with ID: ${req.params.id}`);
       const board = await storage.getBoard(Number(req.params.id));
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
@@ -367,17 +244,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
       };
 
-      console.log(`Retrieved public board: ${publicBoard.id}`);
+      console.log(`[HTTP] Retrieved public board: ${publicBoard.id}`);
       res.json(publicBoard);
     } catch (err) {
-      console.error('Error fetching public board:', err);
+      console.error('[HTTP] Error fetching public board:', err);
       res.status(500).json({ error: true, message: "Failed to fetch board" });
     }
   });
 
   app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
     try {
-      console.log(`Adding comment to board ${req.params.boardId}, block ${req.params.blockId}`);
+      console.log(`[HTTP] Adding comment to board ${req.params.boardId}, block ${req.params.blockId}`);
       const { content, username } = req.body;
       if (!content) {
         return res.status(400).json({ 
@@ -414,17 +291,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: updatedBlocks
       });
-      console.log(`Successfully added comment to board ${updatedBoard.id}, block ${req.params.blockId}`);
+      console.log(`[HTTP] Successfully added comment to board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
     } catch (err) {
-      console.error('Error adding comment:', err);
+      console.error('[HTTP] Error adding comment:', err);
       res.status(500).json({ error: true, message: "Failed to add comment" });
     }
   });
 
   app.post("/api/boards/:boardId/blocks/:blockId/comments/clear", async (req, res) => {
     try {
-      console.log(`Clearing comments for board ${req.params.boardId}, block ${req.params.blockId}`);
+      console.log(`[HTTP] Clearing comments for board ${req.params.boardId}, block ${req.params.blockId}`);
       const board = await storage.getBoard(Number(req.params.boardId));
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
@@ -444,17 +321,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: updatedBlocks
       });
-      console.log(`Successfully cleared comments for board ${updatedBoard.id}, block ${req.params.blockId}`);
+      console.log(`[HTTP] Successfully cleared comments for board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
     } catch (err) {
-      console.error('Error clearing comments:', err);
+      console.error('[HTTP] Error clearing comments:', err);
       res.status(500).json({ error: true, message: "Failed to clear comments" });
     }
   });
 
   app.patch("/api/boards/:boardId/blocks/:blockId/comments/:commentId/toggle", async (req, res) => {
     try {
-      console.log(`Toggling comment completion for board ${req.params.boardId}, block ${req.params.blockId}, comment ${req.params.commentId}`);
+      console.log(`[HTTP] Toggling comment completion for board ${req.params.boardId}, block ${req.params.blockId}, comment ${req.params.commentId}`);
       const { completed } = req.body;
 
       const board = await storage.getBoard(Number(req.params.boardId));
@@ -484,10 +361,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: updatedBlocks
       });
-      console.log(`Successfully toggled comment completion for board ${updatedBoard.id}, block ${req.params.blockId}, comment ${req.params.commentId}`);
+      console.log(`[HTTP] Successfully toggled comment completion for board ${updatedBoard.id}, block ${req.params.blockId}, comment ${req.params.commentId}`);
       res.json(updatedBoard);
     } catch (err) {
-      console.error('Error toggling comment completion:', err);
+      console.error('[HTTP] Error toggling comment completion:', err);
       res.status(500).json({ error: true, message: "Failed to update comment" });
     }
   });
