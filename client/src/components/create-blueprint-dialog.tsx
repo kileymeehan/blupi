@@ -62,13 +62,11 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
       return response.json();
     },
     onSuccess: async (data) => {
-      // Prefetch and cache the board data
       await queryClient.prefetchQuery({
         queryKey: ['/api/boards', data.id],
         queryFn: async () => data
       });
 
-      // Update other caches
       queryClient.setQueryData(['/api/boards'], (oldData: any[] = []) => [...oldData, data]);
 
       if (projectId) {
@@ -76,17 +74,14 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
         queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
       }
 
-      // Close dialog and reset form
       onOpenChange(false);
       form.reset();
 
-      // Show success message
       toast({
         title: "Success",
         description: "Blueprint created successfully",
       });
 
-      // Navigate after ensuring data is cached
       navigate(`/board/${data.id}`);
     },
     onError: (error: Error) => {
@@ -155,7 +150,11 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createBlueprint.isPending}>
+              <Button 
+                type="submit" 
+                disabled={createBlueprint.isPending}
+                className="bg-amber-600 hover:bg-amber-700"
+              >
                 {createBlueprint.isPending ? "Creating..." : "Create Blueprint"}
               </Button>
             </div>

@@ -137,7 +137,7 @@ export default function AddToProjectDialog({ open, onOpenChange, boardId }: AddT
                 </Button>
 
                 <Button
-                  className="w-full"
+                  className="w-full bg-amber-600 hover:bg-amber-700"
                   onClick={handleSubmit}
                   disabled={!selectedProject || addToProjectMutation.isPending}
                 >
@@ -177,7 +177,7 @@ export default function AddToProjectDialog({ open, onOpenChange, boardId }: AddT
                 </Button>
 
                 <Button
-                  className="w-full"
+                  className="w-full bg-amber-600 hover:bg-amber-700"
                   onClick={handleSubmit}
                   disabled={!newProjectName.trim() || createProjectMutation.isPending}
                 >

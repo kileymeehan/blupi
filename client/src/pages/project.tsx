@@ -125,7 +125,7 @@ export default function Project() {
               <UserPlus className="mr-2 h-4 w-4" />
               Invite
             </Button>
-            <Button onClick={() => setCreateBlueprintOpen(true)}>
+            <Button onClick={() => setCreateBlueprintOpen(true)} className="bg-amber-600 hover:bg-amber-700">
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
