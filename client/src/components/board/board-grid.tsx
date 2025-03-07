@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -873,7 +873,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             onOpenChange={setCommentDialogOpen}
             block={selectedBlock}
             boardId={id}
-            onCommentAdd={(comment) => {              if (!onBlocksChange) return;
+            onCommentAdd={(comment) => {
+              if (!onBlocksChange) return;
               const blocks = board.blocks.map(b =>
                 b.id === selectedBlock.id
                   ? { ...b, comments: [...(b.comments || []), comment] }
