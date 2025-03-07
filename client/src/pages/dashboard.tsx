@@ -49,6 +49,14 @@ export default function Dashboard() {
     queryKey: ['/api/boards']
   });
 
+  // Sort boards by creation date (newest first) and filter for recent/unassigned
+  const sortedBoards = [...(boards || [])].sort((a, b) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  const recentBoards = sortedBoards.slice(0, 3);
+  const unassignedBoards = (boards || []).filter(board => !board.projectId);
+
   const updateProjectStatus = useMutation({
     mutationFn: async ({ projectId, status }: { projectId: number; status: string }) => {
       const res = await fetch(`/api/projects/${projectId}`, {
