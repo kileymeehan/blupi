@@ -95,9 +95,10 @@ async function initializeServer() {
         }
       });
 
-      const port = Number(process.env.PORT) || 3000; // Changed from 5000 to 3000
+      const port = Number(process.env.PORT) || 5000; // Using port 5000 as required
       const host = '0.0.0.0'; // Bind to all network interfaces
 
+      log('[INFO] Attempting to start server on port', port);
       server.listen(port, host, () => {
         log(`[INFO] Server running at http://${host}:${port}`);
       });
