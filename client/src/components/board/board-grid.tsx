@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, Minus } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +16,7 @@ import AddToProjectDialog from "./add-to-project-dialog";
 import { UsersPresence } from "./users-presence";
 import { StatusSelector } from "@/components/status-selector";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useToast, toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,57 +29,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { UserPlus, Link as LinkIcon } from "lucide-react";
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { Notifications } from "@/components/notifications/notifications";
-import { useNotifications } from "@/lib/notifications-provider";
-
-
-const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
-  const pdf = new jsPDF('landscape', 'pt', 'a4');
-
-  const canvas = await html2canvas(boardRef, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    allowTaint: true,
-    ignoreElements: (element) => {
-      return element.classList.contains('hide-in-pdf');
-    }
-  });
-
-  const imgWidth = 842; 
-  const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-  pdf.addImage(
-    canvas.toDataURL('image/png'),
-    'PNG',
-    0,
-    0,
-    imgWidth,
-    imgHeight
-  );
-
-  pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
-};
-
-export const LAYER_TYPES = [
-  { type: 'touchpoint', label: 'Touchpoint', color: 'bg-blue-600/20' },
-  { type: 'email', label: 'Email Touchpoint', color: 'bg-indigo-500/20' },
-  { type: 'pendo', label: 'Pendo Touchpoint', color: 'bg-cyan-600/20' },
-  { type: 'role', label: 'Role', color: 'bg-green-200' },
-  { type: 'process', label: 'Process', color: 'bg-pink-200' },
-  { type: 'friction', label: 'Friction', color: 'bg-red-200' },
-  { type: 'policy', label: 'Policy', color: 'bg-orange-200' },
-  { type: 'technology', label: 'Technology', color: 'bg-purple-200' },
-  { type: 'rationale', label: 'Rationale', color: 'bg-blue-200' },
-  { type: 'question', label: 'Question', color: 'bg-violet-200' },
-  { type: 'note', label: 'Note', color: 'bg-cyan-200' },
-  { type: 'hidden', label: 'Hidden Step', color: 'bg-gray-400' }
-] as const;
-
-interface Attachment {
-  type: 'link' | 'image' | 'video';
-  url: string;
-}
 
 interface BoardGridProps {
   id: string;
@@ -90,7 +39,6 @@ interface BoardGridProps {
 }
 
 export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange, connectedUsers }: BoardGridProps) {
-  const { notifications, markAsRead } = useNotifications();
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -219,7 +167,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           comments: [],
           attachments: [],
           notes: "",
-          emoji: "" 
+          emoji: ""
         };
 
         blocks.splice(destination.index, 0, newBlock);
@@ -423,6 +371,53 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     }
   };
 
+  const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
+    const pdf = new jsPDF('landscape', 'pt', 'a4');
+
+    const canvas = await html2canvas(boardRef, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      allowTaint: true,
+      ignoreElements: (element) => {
+        return element.classList.contains('hide-in-pdf');
+      }
+    });
+
+    const imgWidth = 842;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.addImage(
+      canvas.toDataURL('image/png'),
+      'PNG',
+      0,
+      0,
+      imgWidth,
+      imgHeight
+    );
+
+    pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
+  };
+
+  const LAYER_TYPES = [
+    { type: 'touchpoint', label: 'Touchpoint', color: 'bg-blue-600/20' },
+    { type: 'email', label: 'Email Touchpoint', color: 'bg-indigo-500/20' },
+    { type: 'pendo', label: 'Pendo Touchpoint', color: 'bg-cyan-600/20' },
+    { type: 'role', label: 'Role', color: 'bg-green-200' },
+    { type: 'process', label: 'Process', color: 'bg-pink-200' },
+    { type: 'friction', label: 'Friction', color: 'bg-red-200' },
+    { type: 'policy', label: 'Policy', color: 'bg-orange-200' },
+    { type: 'technology', label: 'Technology', color: 'bg-purple-200' },
+    { type: 'rationale', label: 'Rationale', color: 'bg-blue-200' },
+    { type: 'question', label: 'Question', color: 'bg-violet-200' },
+    { type: 'note', label: 'Note', color: 'bg-cyan-200' },
+    { type: 'hidden', label: 'Hidden Step', color: 'bg-gray-400' }
+  ] as const;
+
+  interface Attachment {
+    type: 'link' | 'image' | 'video';
+    url: string;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -488,10 +483,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           <UsersPresence users={connectedUsers} />
           <div className="w-px h-6 bg-gray-200 mx-3" />
           <div className="flex items-center gap-2">
-            <Notifications
-              notifications={notifications}
-              onMarkAsRead={markAsRead}
-            />
             <Button
               variant="ghost"
               size="sm"
@@ -539,6 +530,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
@@ -849,7 +841,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     onChange={(content) => handleBlockChange(block.id, content)}
                                                     onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
                                                     onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                                    onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
+                     onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
                                                     onCommentClick={() => handleCommentClick(block)}
                                                     projectId={board.projectId || undefined}
                                                     highlighted={block.id === highlightedBlockId}
@@ -883,115 +875,114 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   </Button>
                 </div>
               </div>
-            </div>
 
-          </DragDropContext>
+            </DragDropContext>
 
-          {selectedBlock && (
-            <CommentDialog
-              open={commentDialogOpen}
-              onOpenChange={setCommentDialogOpen}
-              block={selectedBlock}
+            {selectedBlock && (
+              <CommentDialog
+                open={commentDialogOpen}
+                onOpenChange={setCommentDialogOpen}
+                block={selectedBlock}
+                boardId={id}
+                onCommentAdd={(comment) => {
+                  if (!onBlocksChange) return;
+                  const blocks = board.blocks.map(b =>
+                    b.id === selectedBlock.id
+                      ? { ...b, comments: [...(b.comments || []), comment] }
+                      : b
+                  );
+                  onBlocksChange(blocks);
+                }}
+              />
+            )}
+            <AddToProjectDialog
+              open={addToProjectOpen}
+              onOpenChange={setAddToProjectOpen}
               boardId={id}
-              onCommentAdd={(comment) => {
-                if (!onBlocksChange) return;
-                const blocks = board.blocks.map(b =>
-                  b.id === selectedBlock.id
-                    ? { ...b, comments: [...(b.comments || []), comment] }
-                    : b
-                );
-                onBlocksChange(blocks);
-              }}
             />
-          )}
-          <AddToProjectDialog
-            open={addToProjectOpen}
-            onOpenChange={setAddToProjectOpen}
-            boardId={id}
-          />
-          {inviteOpen && (
-            <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
-                  <DialogDescription>
-                    Enter email addresses to invite team members
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <Input
-                    placeholder="Enter email addresses (comma separated)"
-                    className="w-full"
-                  />
-                  <Button className="w-full" onClick={() => setInviteOpen(false)}>
-                    Send Invites
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
+            {inviteOpen && (
+              <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
+                    <DialogDescription>
+                      Enter email addresses to invite team members
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <Input
+                      placeholder="Enter email addresses (comma separated)"
+                      className="w-full"
+                    />
+                    <Button className="w-full" onClick={() => setInviteOpen(false)}>
+                      Send Invites
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
 
-          {shareLinkOpen && (
-            <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Share Blueprint</DialogTitle>
-                  <DialogDescription>
-                    Choose how you want to share this blueprint
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-6 py-4">
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
-                    <div className="flex gap-2">
-                      <Input
-                        value={window.location.href}
-                        readOnly
-                        className="w-full"
-                      />
-                      <Button
-                        onClick={() => {
-                          navigator.clipboard.writeText(window.location.href);
-                          toast({
-                            title: "Link copied",
-                            description: "Team access link has been copied to clipboard"
-                          });
-                        }}
-                      >
-                        Copy
-                      </Button>
+            {shareLinkOpen && (
+              <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Share Blueprint</DialogTitle>
+                    <DialogDescription>
+                      Choose how you want to share this blueprint
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-6 py-4">
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          value={window.location.href}
+                          readOnly
+                          className="w-full"
+                        />
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(window.location.href);
+                            useToast({
+                              title: "Link copied",
+                              description: "Team access link has been copied to clipboard"
+                            });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          value={`${window.location.origin}/public/board/${id}`}
+                          readOnly
+                          className="w-full"
+                        />
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
+                            useToast({
+                              title: "Link copied",
+                              description: "Public access link has been copied to clipboard"
+                            });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Anyone with this link can view the blueprint in read-only mode
+                      </p>
                     </div>
                   </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
-                    <div className="flex gap-2">
-                      <Input
-                        value={`${window.location.origin}/public/board/${id}`}
-                        readOnly
-                        className="w-full"
-                      />
-                      <Button
-                        onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
-                          toast({
-                            title: "Link copied",
-                            description: "Public access link has been copied to clipboard"
-                          });
-                        }}
-                      >
-                        Copy
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Anyone with this link can view the blueprint in read-only mode
-                    </p>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

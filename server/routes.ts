@@ -94,22 +94,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             users: Array.from(boardUsers.get(boardId)!)
           });
         }
-
-        // Handle notifications for comments
-        else if (message.type === 'notification') {
-          console.log(`[WebSocket] Broadcasting notification to board ${currentBoardId}`);
-          broadcastToBoardUsers(currentBoardId!, {
-            type: 'notification',
-            notification: {
-              id: nanoid(),
-              title: message.title,
-              message: message.message,
-              timestamp: new Date().toISOString(),
-              read: false,
-              type: message.notificationType
-            }
-          });
-        }
         // Handle board updates
         else if (message.type === 'board_update' && currentBoardId) {
           console.log(`[WebSocket] Broadcasting board update for board ${currentBoardId}`);
@@ -391,44 +375,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/notifications", async (req, res) => {
-    try {
-      console.log('Fetching notifications for user');
-      const userId = 1; 
-      const userNotifications = notifications.get(userId) || [];
-      console.log(`Found ${userNotifications.length} notifications for user ${userId}`);
-      res.json(userNotifications);
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-      res.status(500).json({ error: true, message: "Failed to fetch notifications" });
-    }
-  });
-
-  app.patch("/api/notifications/:id/read", async (req, res) => {
-    try {
-      console.log(`Marking notification ${req.params.id} as read`);
-      const userId = 1; 
-      const userNotifications = notifications.get(userId);
-      if (!userNotifications) {
-        console.log(`No notifications found for user ${userId}`);
-        return res.status(404).json({ error: true, message: "No notifications found" });
-      }
-
-      const notification = userNotifications.find(n => n.id === req.params.id);
-      if (!notification) {
-        console.log(`Notification ${req.params.id} not found`);
-        return res.status(404).json({ error: true, message: "Notification not found" });
-      }
-
-      notification.read = true;
-      console.log(`Successfully marked notification ${req.params.id} as read`);
-      res.json(notification);
-    } catch (err) {
-      console.error('Error marking notification as read:', err);
-      res.status(500).json({ error: true, message: "Failed to update notification" });
-    }
-  });
-
   app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
     try {
       console.log(`Adding comment to board ${req.params.boardId}, block ${req.params.blockId}`);
@@ -455,13 +401,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             completed: false,
             createdAt: new Date().toISOString()
           };
-
-          addNotification(1, {
-            title: 'New Comment',
-            message: `${username || 'Anonymous'} commented on a block in "${board.name}"`,
-            type: 'comment',
-            link: `/board/${board.id}`
-          });
 
           return {
             ...block,
@@ -552,34 +491,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: true, message: "Failed to update comment" });
     }
   });
-
-  // Track notifications in memory since we're using MemStorage
-  const notifications = new Map<number, Array<{
-    id: string;
-    title: string;
-    message: string;
-    timestamp: string;
-    read: boolean;
-    type: 'comment' | 'invite';
-    link?: string;
-  }>>();
-
-  function addNotification(userId: number, notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) {
-    if (!notifications.has(userId)) {
-      notifications.set(userId, []);
-    }
-
-    const newNotification = {
-      ...notification,
-      id: nanoid(),
-      timestamp: new Date().toISOString(),
-      read: false
-    };
-
-    notifications.get(userId)!.unshift(newNotification);
-    return newNotification;
-  }
-
 
   return httpServer;
 }
