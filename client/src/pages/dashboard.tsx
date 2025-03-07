@@ -166,7 +166,7 @@ export default function Dashboard() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => (
+            {projects.filter(project => project.status !== 'archived').map((project) => (
               <Card key={project.id} className="relative overflow-hidden group hover:shadow-md transition-shadow">
                 <div 
                   className="absolute inset-y-0 left-0 w-1.5" 
@@ -211,7 +211,7 @@ export default function Dashboard() {
               </Card>
             ))}
 
-            {projects.length === 0 && (
+            {projects.filter(project => project.status !== 'archived').length === 0 && (
               <Card className="border-dashed">
                 <CardHeader>
                   <CardTitle>Get started with a project</CardTitle>

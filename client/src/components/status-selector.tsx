@@ -18,13 +18,18 @@ const getStatusColor = (status: string) => {
       return 'bg-yellow-100 text-yellow-700';
     case 'complete':
       return 'bg-green-100 text-green-700';
+    case 'archived':
+      return 'bg-red-100 text-red-700';
     default:
       return 'bg-gray-100 text-gray-700';
   }
 };
 
 export function StatusSelector({ value, onChange, type, disabled = false }: StatusSelectorProps) {
-  const statuses = type === 'project' ? projectStatuses : boardStatuses;
+  // Add archived status only for projects
+  const statuses = type === 'project' 
+    ? [...projectStatuses, 'archived']
+    : boardStatuses;
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
