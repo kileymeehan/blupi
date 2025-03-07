@@ -70,9 +70,11 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     if (process.env.NODE_ENV !== "production") {
       log('[INFO] Setting up Vite development middleware');
       await setupVite(app, server);
+      log('[INFO] Vite middleware setup complete');
     } else {
       log('[INFO] Setting up static file serving');
       serveStatic(app);
+      log('[INFO] Static file serving setup complete');
     }
 
     // API Error handling middleware - must be after all routes
@@ -87,9 +89,11 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     });
 
     const port = Number(process.env.PORT) || 5000;
+    const host = '0.0.0.0'; // Bind to all network interfaces
 
-    server.listen(port, () => {
-      log(`[INFO] Server running at http://localhost:${port}`);
+    server.listen(port, host, () => {
+      log(`[INFO] Server running at http://${host}:${port}`);
+      log(`[INFO] WebSocket server listening at ws://${host}:${port}/ws-blupi`);
     });
 
     server.on('error', (error: any) => {

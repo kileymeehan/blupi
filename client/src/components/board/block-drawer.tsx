@@ -1,4 +1,4 @@
-import { LAYER_TYPES } from "./board-grid";
+import { LAYER_TYPES } from "./constants";
 import { Draggable } from "react-beautiful-dnd";
 
 export default function BlockDrawer() {
