@@ -4,28 +4,33 @@ import { storage } from "./storage";
 import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
-import { WebSocketServer, WebSocket } from 'ws';
 import { sendProjectInvitation } from './utils/sendgrid';
 
-// Track active connections per board
-const boardConnections = new Map<number, Set<WebSocket>>();
-// Track user information per board
-const boardUsers = new Map<number, Set<{
+// Track notifications in memory since we're using MemStorage
+const notifications = new Map<number, Array<{
   id: string;
-  name: string;
-  color: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  type: 'comment' | 'invite';
+  link?: string;
 }>>();
 
-function broadcastToBoardUsers(boardId: number, message: any, excludeWs?: WebSocket) {
-  const connections = boardConnections.get(boardId);
-  if (!connections) return;
+function addNotification(userId: number, notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) {
+  if (!notifications.has(userId)) {
+    notifications.set(userId, []);
+  }
 
-  const messageStr = JSON.stringify(message);
-  connections.forEach(client => {
-    if (client !== excludeWs && client.readyState === WebSocket.OPEN) {
-      client.send(messageStr);
-    }
-  });
+  const newNotification = {
+    ...notification,
+    id: nanoid(),
+    timestamp: new Date().toISOString(),
+    read: false
+  };
+
+  notifications.get(userId)!.unshift(newNotification);
+  return newNotification;
 }
 
 // Generate a random color for user avatars
@@ -40,123 +45,6 @@ function getRandomColor() {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
-
-  // Create WebSocket server with custom path to avoid conflicts with Vite
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws-blupi',
-    perMessageDeflate: false
-  });
-
-  console.log('WebSocket server initialized on path: /ws-blupi');
-
-  wss.on('connection', (ws) => {
-    console.log('New WebSocket connection established');
-    let currentBoardId: number | null = null;
-    let currentUser: { id: string; name: string; color: string } | null = null;
-
-    ws.on('message', async (data) => {
-      try {
-        const message = JSON.parse(data.toString());
-        console.log('Received WebSocket message:', message);
-
-        // Handle board subscription
-        if (message.type === 'subscribe') {
-          const boardId = Number(message.boardId);
-          const userName = message.userName || 'Anonymous';
-          currentBoardId = boardId;
-
-          console.log(`User ${userName} subscribing to board ${boardId}`);
-
-          // Create unique user identity
-          currentUser = {
-            id: nanoid(),
-            name: userName,
-            color: getRandomColor()
-          };
-
-          // Add user to board connections and broadcast
-          if (!boardConnections.has(boardId)) {
-            boardConnections.set(boardId, new Set());
-          }
-          boardConnections.get(boardId)!.add(ws);
-
-          if (!boardUsers.has(boardId)) {
-            boardUsers.set(boardId, new Set());
-          }
-          boardUsers.get(boardId)!.add(currentUser);
-
-          // Send initial board state and broadcast updated user list
-          const board = await storage.getBoard(boardId);
-          if (board) {
-            ws.send(JSON.stringify({ type: 'board_update', board }));
-          }
-
-          broadcastToBoardUsers(boardId, {
-            type: 'users_update',
-            users: Array.from(boardUsers.get(boardId)!)
-          });
-        }
-
-        // Handle notifications for comments
-        else if (message.type === 'notification') {
-          console.log('Broadcasting notification:', message);
-          broadcastToBoardUsers(currentBoardId!, {
-            type: 'notification',
-            notification: {
-              id: nanoid(),
-              title: message.title,
-              message: message.message,
-              timestamp: new Date().toISOString(),
-              read: false,
-              type: message.notificationType
-            }
-          });
-        }
-        // Handle board updates
-        else if (message.type === 'board_update' && currentBoardId) {
-          console.log('Processing board update');
-          const updatedBoard = await storage.updateBoard(currentBoardId, message.board);
-          broadcastToBoardUsers(currentBoardId, { 
-            type: 'board_update',
-            board: updatedBoard 
-          }, ws);
-        }
-      } catch (err) {
-        console.error('WebSocket message error:', err);
-        ws.send(JSON.stringify({ 
-          type: 'error',
-          message: 'Failed to process message'
-        }));
-      }
-    });
-
-    ws.on('close', () => {
-      console.log('WebSocket connection closed');
-      if (currentBoardId && currentUser) {
-        // Remove user from board connections
-        if (boardConnections.has(currentBoardId)) {
-          boardConnections.get(currentBoardId)!.delete(ws);
-          if (boardConnections.get(currentBoardId)!.size === 0) {
-            boardConnections.delete(currentBoardId);
-          }
-        }
-
-        // Remove user from board users and broadcast update
-        if (boardUsers.has(currentBoardId)) {
-          boardUsers.get(currentBoardId)!.delete(currentUser);
-          broadcastToBoardUsers(currentBoardId, {
-            type: 'users_update',
-            users: Array.from(boardUsers.get(currentBoardId)!)
-          });
-        }
-      }
-    });
-
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
-    });
-  });
 
   // Project routes
   app.get("/api/projects", async (_req, res) => {
@@ -384,7 +272,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update the comments endpoint to emit notifications
+  // Add logging to notifications endpoint
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      console.log('Fetching notifications for user');
+      // For now, use a dummy user ID since we haven't implemented auth yet
+      const userId = 1;
+      const userNotifications = notifications.get(userId) || [];
+      console.log(`Found ${userNotifications.length} notifications for user ${userId}`);
+      res.json(userNotifications);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch notifications" });
+    }
+  });
+
+  // Add a health check endpoint
+  app.get("/api/ping", (_req, res) => {
+    res.json({ status: "ok" });
+  });
+
+  app.patch("/api/notifications/:id/read", async (req, res) => {
+    try {
+      console.log(`Marking notification ${req.params.id} as read`);
+      const userId = 1; // Dummy user ID
+      const userNotifications = notifications.get(userId);
+      if (!userNotifications) {
+        console.log(`No notifications found for user ${userId}`);
+        return res.status(404).json({ error: true, message: "No notifications found" });
+      }
+
+      const notification = userNotifications.find(n => n.id === req.params.id);
+      if (!notification) {
+        console.log(`Notification ${req.params.id} not found`);
+        return res.status(404).json({ error: true, message: "Notification not found" });
+      }
+
+      notification.read = true;
+      console.log(`Successfully marked notification ${req.params.id} as read`);
+      res.json(notification);
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+      res.status(500).json({ error: true, message: "Failed to update notification" });
+    }
+  });
+
+  // Update the comments endpoint to use addNotification instead of WebSocket broadcast
   app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
     try {
       const { content, username } = req.body;
@@ -412,18 +345,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             createdAt: new Date().toISOString()
           };
 
-          // Emit notification for new comment
-          broadcastToBoardUsers(board.id, {
-            type: 'notification',
-            notification: {
-              id: nanoid(),
-              title: 'New Comment',
-              message: `${username || 'Anonymous'} commented on a block in "${board.name}"`,
-              timestamp: new Date().toISOString(),
-              read: false,
-              type: 'comment',
-              link: `/board/${board.id}`
-            }
+          // Add notification for new comment
+          addNotification(1, {
+            title: 'New Comment',
+            message: `${username || 'Anonymous'} commented on a block in "${board.name}"`,
+            type: 'comment',
+            link: `/board/${board.id}`
           });
 
           return {

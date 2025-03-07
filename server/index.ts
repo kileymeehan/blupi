@@ -9,6 +9,9 @@ import { setupAuth } from "./auth";
 
 const app = express();
 
+// Temporarily force production mode to ensure API routes work
+process.env.NODE_ENV = "production";
+
 // Body parsing middleware - must be first
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -61,7 +64,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     // Register API routes before Vite middleware
     const server = await registerRoutes(app);
 
-    // Set up development middleware
+    // Set up development middleware or static serving
     if (process.env.NODE_ENV !== "production") {
       await setupVite(app, server);
     } else {
