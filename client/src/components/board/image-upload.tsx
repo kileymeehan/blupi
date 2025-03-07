@@ -1,10 +1,8 @@
 import { useState, useRef } from 'react';
 import { Image, X, Upload, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface ImageUploadProps {
   onImageChange: (image: string | null) => void;
@@ -13,16 +11,65 @@ interface ImageUploadProps {
 
 export default function ImageUpload({ onImageChange, currentImage }: ImageUploadProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+  const compressImage = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        onImageChange(reader.result as string);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // If image is larger than 2000px in any dimension, scale it down
+          const maxDimension = 2000;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = (height / width) * maxDimension;
+              width = maxDimension;
+            } else {
+              width = (width / height) * maxDimension;
+              height = maxDimension;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Use lower quality for larger files
+          const quality = file.size > 1024 * 1024 ? 0.7 : 0.9;
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
       };
+      reader.onerror = reject;
       reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const compressedImage = await compressImage(file);
+      onImageChange(compressedImage);
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: "Failed to process the image. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -86,8 +133,17 @@ export default function ImageUpload({ onImageChange, currentImage }: ImageUpload
           </>
         ) : (
           <>
-            <Image className="w-4 h-4 mb-1" />
-            <span className="text-xs">Add image</span>
+            {isUploading ? (
+              <div className="animate-pulse">
+                <Upload className="w-4 h-4 mb-1 animate-bounce" />
+                <span className="text-xs">Uploading...</span>
+              </div>
+            ) : (
+              <>
+                <Image className="w-4 h-4 mb-1" />
+                <span className="text-xs">Add image</span>
+              </>
+            )}
           </>
         )}
       </div>

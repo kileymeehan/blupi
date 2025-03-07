@@ -346,7 +346,7 @@ export default function Dashboard() {
               <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-accent hover:bg-accent/90">
+            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-amber-600 hover:bg-amber-700">
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>

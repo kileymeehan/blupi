@@ -19,7 +19,7 @@
 
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, Share2, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, Minus } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, Minus } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -547,7 +547,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                  <Share2 className="w-4 h-4" />
+                  <ArrowUpFromLine className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -558,6 +558,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 <DropdownMenuItem onSelect={() => setShareLinkOpen(true)}>
                   <LinkIcon className="w-4 h-4 mr-2" />
                   Generate Share Link
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={handleExportPDF}>
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Export as PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -598,34 +603,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            {/* Added PDF export button */}
-            <div className="flex items-center gap-1 mr-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleZoomOut}
-                className="h-9 w-9 p-0"
-              >
-                <Minus className="w-4 h-4" />
-              </Button>
-              <span className="text-sm">{Math.round(scale * 100)}%</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleZoomIn}
-                className="h-9 w-9 p-0"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleExportPDF}
-              className="h-9 w-9 p-0"
-            >
-              <FileDown className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       </header>
@@ -863,7 +840,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                         suppressContentEditableWarning={true}
                                       >
                                         {column.name}
-                                      </div>                                      <Button
+                                      </div>
+                                      <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
@@ -885,13 +863,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                           {...provided.droppableProps}
                                           className={`
                                             space-y-2 min-h-[100px] p-4
-                                            rounded-lg bg-white border
-                                            transition-all duration-200 ease-in-out
-                                            ${snapshot.isDraggingOver ? 'border-primary bg-primary/5' : 'border-gray-300'}
+                                            rounded-lg
+                                            ${snapshot.isDraggingOver ? 'bg-gray-100' : 'bg-white'}
+                                            transition-colors duration-200
                                           `}
-                                          style={{
-                                            minHeight: '100px',
-                                          }}
                                         >
                                           {board.blocks
                                             .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
@@ -908,26 +883,19 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     {...provided.dragHandleProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      relative rounded-lg z-10 border border-gray-400                                                      transition-all duration-200 ease-in-out
-                                                      transform
-                                                      ${snapshot.isDragging ? 'shadow-lg scale-[1.02] rotate-1 border-primary' : ''}
-                                                      ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2 border-primary' : ''}
+                                                      relative rounded-lg z-10 border border-gray-400
+                                                      transition-all duration-200 ease-in-out
+                                                      ${snapshot.isDragging ? 'shadow-lg scale-105' : ''}
+                                                      ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                     `}
-                                                    style={{
-                                                      ...provided.draggableProps.style,
-                                                      transition: snapshot.isDropAnimating
-                                                        ? 'all 0.2s cubic-bezier(0.2, 0, 0, 1)'
-                                                        : provided.draggableProps.style?.transition,
-                                                    }}
                                                   >
                                                     <Block
                                                       block={block}
-                                                      onChange={handleBlockChange}
-                                                      onAttachmentChange={handleAttachmentChange}
-                                                      onNotesChange={handleNotesChange}
-                                                      onEmojiChange={handleEmojiChange}
+                                                      onChange={(content) => handleBlockChange(block.id, content)}
+                                                      onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
+                                                      onNotesChange={(notes) => handleNotesChange(block.id, notes)}
+                                                      onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
                                                       onCommentClick={() => handleCommentClick(block)}
-                                                      projectId={board.projectId || undefined}
                                                     />
                                                   </div>
                                                 )}
@@ -985,7 +953,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               <DialogDescription>
                 Enter email addresses to invite team members
               </DialogDescription>
-            </DialogHeader>            <div className="space-y-4 py-4">
+            </DialogHeader>
+            <div className="space-y-4 py-4">
               <Input
                 placeholder="Enter email addresses (comma separated)"
                 className="w-full"
@@ -1058,6 +1027,28 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           </DialogContent>
         </Dialog>
       )}
+      {/* Add floating zoom controls */}
+      <div className="fixed bottom-8 right-8 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50 p-2 flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleZoomOut}
+          className="h-8 w-8 p-0 hover:bg-gray-100/80"
+        >
+          <Minus className="w-4 h-4" />
+        </Button>
+        <span className="text-sm font-medium min-w-[3rem] text-center">
+          {Math.round(scale * 100)}%
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleZoomIn}
+          className="h-8 w-8 p-0 hover:bg-gray-100/80"
+        >
+          <Plus className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 }
