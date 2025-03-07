@@ -861,7 +861,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                           ref={provided.innerRef}
                                           {...provided.droppableProps}
                                           className={`
-                                            group space-y-2 min-h-[100px] p-4
+                                                                                        group space-y-2 min-h-[100px] p4
                                             rounded-lg border-2
                                             ${snapshot.isDraggingOver 
                                               ? 'border-primary/50 bg-primary/5' 
@@ -891,7 +891,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                   >
                                                     <div 
                                                       {...provided.dragHandleProps}
-                                                      className="absolute left-3 top-2 p-1
+                                                      className="absolute left-3 top-1 p-1
                                                         rounded-sm opacity-0 group-hover:opacity-100
                                                         transition-opacity cursor-move bg-white/50
                                                         hover:bg-white/80"
