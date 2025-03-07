@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, LogOut, User, LayoutGrid, Folder, Trash2, Briefcase } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Plus, LogOut, User, LayoutGrid, Folder, Trash2, Briefcase, Archive } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
@@ -31,6 +31,8 @@ export default function Dashboard() {
   const [addToProjectOpen, setAddToProjectOpen] = useState(false);
   const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<{id: number, name: string} | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const [showArchivedBlueprints, setShowArchivedBlueprints] = useState(false);
   const { toast } = useToast();
 
   const { data: projects = [], refetch: refetchProjects } = useQuery<Project[]>({
@@ -57,8 +59,20 @@ export default function Dashboard() {
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  const recentBoards = sortedBoards.slice(0, 3);
-  const unassignedBoards = (boards || []).filter(board => !board.projectId);
+  const filteredProjects = projects.filter(project => 
+    showArchived ? project.status === 'archived' : project.status !== 'archived'
+  );
+
+  const filteredBoards = sortedBoards.filter(board => {
+    const project = projects.find(p => p.id === board.projectId);
+    if (showArchivedBlueprints) {
+      return project?.status === 'archived';
+    }
+    return !project || project.status !== 'archived';
+  });
+
+  const recentBoards = filteredBoards.slice(0, 3);
+  const unassignedBoards = filteredBoards.filter(board => !board.projectId);
 
   const updateProjectStatus = useMutation({
     mutationFn: async ({ projectId, status }: { projectId: number; status: string }) => {
@@ -155,9 +169,20 @@ export default function Dashboard() {
 
         <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <Folder className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-semibold">Projects</h2>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Folder className="h-6 w-6 text-primary" />
+                <h2 className="text-2xl font-semibold">Projects</h2>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowArchived(!showArchived)}
+                className="flex items-center gap-2"
+              >
+                <Archive className="h-4 w-4" />
+                {showArchived ? "Hide Archived" : "Show Archived"}
+              </Button>
             </div>
             <Button variant="outline" size="sm" onClick={() => setCreateProjectOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -166,7 +191,7 @@ export default function Dashboard() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {projects.filter(project => project.status !== 'archived').map((project) => (
+            {filteredProjects.map((project) => (
               <Card key={project.id} className="relative overflow-hidden group hover:shadow-md transition-shadow">
                 <div 
                   className="absolute inset-y-0 left-0 w-1.5" 
@@ -211,11 +236,17 @@ export default function Dashboard() {
               </Card>
             ))}
 
-            {projects.filter(project => project.status !== 'archived').length === 0 && (
+            {filteredProjects.length === 0 && (
               <Card className="border-dashed">
                 <CardHeader>
-                  <CardTitle>Get started with a project</CardTitle>
-                  <CardDescription>Create a project to organize your blueprints</CardDescription>
+                  <CardTitle>
+                    {showArchived ? "No archived projects" : "Get started with a project"}
+                  </CardTitle>
+                  <CardDescription>
+                    {showArchived 
+                      ? "When you archive projects, they'll appear here"
+                      : "Create a project to organize your blueprints"}
+                  </CardDescription>
                 </CardHeader>
               </Card>
             )}
@@ -224,9 +255,20 @@ export default function Dashboard() {
 
         <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <LayoutGrid className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <LayoutGrid className="h-6 w-6 text-primary" />
+                <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowArchivedBlueprints(!showArchivedBlueprints)}
+                className="flex items-center gap-2"
+              >
+                <Archive className="h-4 w-4" />
+                {showArchivedBlueprints ? "Hide Archived" : "Show Archived"}
+              </Button>
             </div>
             <Button variant="outline" size="sm" onClick={() => setCreateBlueprintOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
