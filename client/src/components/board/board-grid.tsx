@@ -611,461 +611,439 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}>
-            <div className="flex flex-col flex-grow bg-slate-50">
-              <div className="border-b border-gray-200 bg-white shadow-sm">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleContext}
-                  className={`
-                    w-full h-12 px-4
-                    flex items-center gap-2
-                    group
-                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showContext ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
-                  `}
-                >
-                  <Info className="w-5 h-5" />
-                  {isDrawerOpen && <span className="text-sm">Context</span>}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleBlocks}
-                  className={`
-                    w-full h-12 px-4
-                    flex items-center gap-2
-                    group
-                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showBlocks ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
-                  `}
-                >
-                  <LayoutGrid className="w-5 h-5" />
-                  {isDrawerOpen && <span className="text-sm">Available Boxes</span>}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleComments}
-                  className={`
-                    w-full h-12 px-4
-                    flex items-center gap-2
-                    group
-                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showComments ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
-                  `}
-                >
-                  <MessageSquare className="w-5 h-5" />
-                  {isDrawerOpen && <span className="text-sm">All Comments</span>}
-                </Button>
-              </div>
+        <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}>
+          <div className="flex flex-col flex-grow bg-slate-50">
+            <div className="border-b border-gray-200 bg-white shadow-sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleContext}
+                className={`
+                  w-full h-12 px-4
+                  flex items-center gap-2
+                  group
+                  ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                  ${showContext ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
+                `}
+              >
+                <Info className="w-5 h-5" />
+                {isDrawerOpen && <span className="text-sm">Context</span>}
+              </Button>
 
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={toggleSidebar}
-                className="absolute top-2 -right-4 w-8 h-8 rounded-full bg-white shadow-md z-50 hover:bg-gray-100"
+                onClick={toggleBlocks}
+                className={`
+                  w-full h-12 px-4
+                  flex items-center gap-2
+                  group
+                  ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                  ${showBlocks ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
+                `}
               >
-                {isDrawerOpen ? (
-                  <ChevronLeft className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
+                <LayoutGrid className="w-5 h-5" />
+                {isDrawerOpen && <span className="text-sm">Available Boxes</span>}
               </Button>
 
-              {isDrawerOpen && (
-                <div className="flex-1 flex flex-col bg-slate-50">
-                  <div className={`flex-1 ${showContext ? 'block' : 'hidden'}`}>
-                    <div className="p-4 space-y-4">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">
-                          Blueprint Details
-                        </label>
-                        <Textarea
-                          placeholder="Add key details about this blueprint..."
-                          value={blueprintDetails}
-                          onChange={(e) => setBlueprintDetails(e.target.value)}
-                          className="min-h-[150px] resize-none"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium block">
-                          Persona
-                        </label>
-                        <div
-                          className="w-full h-40 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
-                          onClick={() => document.getElementById('persona-image')?.click()}
-                        >
-                          {personaImage ? (
-                            <img
-                              src={personaImage}
-                              alt="Persona"
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                          ) : (
-                            <div className="text-center">
-                              <Upload className="w-8 h-8 mx-auto text-gray-400" />
-                              <span className="text-sm text-gray-500 mt-2 block">
-                                Upload persona image
-                              </span>
-                            </div>
-                          )}
-                          <input
-                            id="persona-image"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  setPersonaImage(reader.result as string);
-                                };
-                                reader.readAsDataURL(file);
-                              }
-                            }}
-                          />
-                        </div>
-                        <Textarea
-                          placeholder="Describe the persona..."
-                          value={personaDetails}
-                          onChange={(e) => setPersonaDetails(e.target.value)}
-                          className="min-h-[100px] resize-none mt-2"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={`flex-1 ${showBlocks ? 'block' : 'hidden'}`}>
-                    <Droppable droppableId="drawer">
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.droppableProps}
-                          className="p-4"
-                        >
-                          <BlockDrawer />
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </Droppable>
-                  </div>
-
-                  <div className={`flex-1 ${showComments ? 'block' : 'hidden'}`}>
-                    <CommentsOverview
-                      board={board}
-                      onCommentClick={(block) => {
-                        setSelectedBlock(block);
-                        setCommentDialogOpen(true);
-                        setHighlightedBlockId(block.id);
-                        setTimeout(() => setHighlightedBlockId(null), 2000);
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleComments}
+                className={`
+                  w-full h-12 px-4
+                  flex items-center gap-2
+                  group
+                  ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                  ${showComments ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
+                `}
+              >
+                <MessageSquare className="w-5 h-5" />
+                {isDrawerOpen && <span className="text-sm">All Comments</span>}
+              </Button>
             </div>
-          </div>
 
-          <div className="flex-1 overflow-x-auto">
-            <div ref={boardRef} className="min-w-[800px] p-8"
-              style={{
-                transform: `scale(${scale})`,
-                transformOrigin: 'top left',
-                transition: 'transform 0.2s ease-out'
-              }}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSidebar}
+              className="absolute top-2 -right-4 w-8 h-8 rounded-full bg-white shadow-md z-50 hover:bg-gray-100"
             >
-              <div className="flex items-start gap-8">
-                {board.phases.map((phase, phaseIndex) => (
-                  <div key={phase.id} className="flex-shrink-0 relative mr-8">
-                    {phaseIndex > 0 && (
-                      <div className="absolute -left-4 top-0 bottom-0 w-[1px] bg-gray-300" />
-                    )}
-                    <div className="px-4">
-                      <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <div
-                            contentEditable
-                            onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
-                            className="font-bold text-lg focus:outline-none focus:border-b border-primary"
-                            suppressContentEditableWarning={true}
-                          >
-                            {phase.name}
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleAddColumn(phaseIndex)}
-                            className="h-7 px-2 border border-gray-300 hide-in-pdf"
-                          >
-                            <Plus className="w-4 h-4 mr-1" />
-                            Step
-                          </Button>
-                        </div>
-                      </div>
+              {isDrawerOpen ? (
+                <ChevronLeft className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </Button>
 
-                      <Droppable droppableId={`phase-${phaseIndex}`} type="COLUMN" direction="horizontal">
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className="flex gap-8"
-                          >
-                            {phase.columns.map((column, columnIndex) => (
-                              <Draggable
-                                key={column.id}
-                                draggableId={`column-${column.id}`}
-                                index={columnIndex}
-                              >
-                                {(provided) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    className="flex-shrink-0 w-[225px]"
-                                  >
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <div
-                                        {...provided.dragHandleProps}
-                                        className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
-                                      >
-                                        <GripVertical className="w-4 h-4" />
-                                      </div>
-                                      <div
-                                        contentEditable
-                                        onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                                        className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex1"
-                                        suppressContentEditableWarning={true}
-                                      >
-                                        {column.name}
-                                      </div>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
-                                        className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </Button>
-                                    </div>
+            {isDrawerOpen && (
+              <div className="flex-1 flex flex-col bg-slate-50">
+                <div className={`flex-1 ${showContext ? 'block' : 'hidden'}`}>
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Blueprint Details
+                      </label>
+                      <Textarea
+                        placeholder="Add key details about this blueprint..."
+                        value={blueprintDetails}
+                        onChange={(e) => setBlueprintDetails(e.target.value)}
+                        className="min-h-[150px] resize-none"
+                      />
+                    </div>
 
-                                    <ImageUpload
-                                      currentImage={column.image}
-                                      onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
-                                    />
-
-                                    {/* Update the column droppable area styling */}
-                                    <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
-                                      {(provided, snapshot) => (
-                                        <div
-                                          ref={provided.innerRef}
-                                          {...provided.droppableProps}
-                                          className={`
-                                            space-y-4 min-h-[100px] p-4
-                                            rounded-lg border-2
-                                            ${snapshot.isDraggingOver 
-                                              ? 'border-primary/50 bg-primary/5' 
-                                              : 'border-gray-200 bg-white'
-                                            }
-                                            transition-colors duration-200
-                                          `}
-                                        >
-                                          {board.blocks
-                                            .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                                            .map((block, index) => (
-                                              <Draggable
-                                                key={block.id}
-                                                draggableId={block.id}
-                                                index={index}
-                                              >
-                                                {(provided, snapshot) => (
-                                                  <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    className={`
-                                                      ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      group relative rounded-lg border mb-2 p-2
-                                                      ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
-                                                      ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
-                                                    `}
-                                                  >
-                                                    <div 
-                                                      {...provided.dragHandleProps}
-                                                      className="absolute left-3 top-1 p-1
-                                                        rounded-sm opacity-0 group-hover:opacity-100
-                                                        transition-opacity cursor-move bg-white/50
-                                                        hover:bg-white/80"
-                                                    >
-                                                      <GripVertical className="w-4 h-4 text-gray-600" />
-                                                    </div>
-                                                    <Block
-                                                      block={block}
-                                                      onChange={(content) => handleBlockChange(block.id, content)}
-                                                      onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
-                                                      onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                                      onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
-                                                      onCommentClick={() => handleCommentClick(block)}
-                                                      projectId={board.projectId || undefined}
-                                                    />
-                                                  </div>
-                                                )}
-                                              </Draggable>
-                                            ))}
-                                          {provided.placeholder}
-                                        </div>
-                                      )}
-                                    </Droppable>
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium block">
+                        Persona
+                      </label>
+                      <div
+                        className="w-full h-40 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
+                        onClick={() => document.getElementById('persona-image')?.click()}
+                      >
+                        {personaImage ? (
+                          <img
+                            src={personaImage}
+                            alt="Persona"
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="text-center">
+                            <Upload className="w-8 h-8 mx-auto text-gray-400" />
+                            <span className="text-sm text-gray-500 mt-2 block">
+                              Upload persona image
+                            </span>
                           </div>
                         )}
-                      </Droppable>
+                        <input
+                          id="persona-image"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setPersonaImage(reader.result as string);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </div>
+                      <Textarea
+                        placeholder="Describe the persona..."
+                        value={personaDetails}
+                        onChange={(e) => setPersonaDetails(e.target.value)}
+                        className="min-h-[100px] resize-none mt-2"
+                      />
                     </div>
                   </div>
-                ))}
+                </div>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddPhase}
-                  className="mt-3 h-7 px-2 border border-gray-300 hide-in-pdf"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Phase
-                </Button>
+                <div className={`flex-1 ${showBlocks ? 'block' : 'hidden'}`}>
+                  <Droppable droppableId="drawer">
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className="p-4"
+                      >
+                        <BlockDrawer />
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </div>
+
+                <div className={`flex-1 ${showComments ? 'block' : 'hidden'}`}>
+                  <CommentsOverview
+                    board={board}
+                    onCommentClick={(block) => {
+                      setSelectedBlock(block);
+                      setCommentDialogOpen(true);
+                      setHighlightedBlockId(block.id);
+                      setTimeout(() => setHighlightedBlockId(null), 2000);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-x-auto">
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <div className="min-w-[800px] relative">
+              <div 
+                ref={boardRef}
+                className="p-8"
+                style={{
+                  transform: `scale(${scale})`,
+                  transformOrigin: 'top left',
+                  transition: 'transform 0.2s ease-out'
+                }}
+              >
+                <div className="flex items-start gap-8">
+                  {board.phases.map((phase, phaseIndex) => (
+                    <div key={phase.id} className="flex-shrink-0 relative mr-8">
+                      {phaseIndex > 0 && (
+                        <div className="absolute -left-4 top-0 bottom-0 w-[1px] bg-gray-300" />
+                      )}
+                      <div className="px-4">
+                        <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <div
+                              contentEditable
+                              onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
+                              className="font-bold text-lg focus:outline-none focus:border-b border-primary"
+                              suppressContentEditableWarning={true}
+                            >
+                              {phase.name}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAddColumn(phaseIndex)}
+                              className="h-7 px-2 border border-gray-300 hide-in-pdf"
+                            >
+                              <Plus className="w-4 h-4 mr-1" />
+                              Step
+                            </Button>
+                          </div>
+                        </div>
+
+                        <Droppable droppableId={`phase-${phaseIndex}`} type="COLUMN" direction="horizontal">
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              className="flex gap-8"
+                            >
+                              {phase.columns.map((column, columnIndex) => (
+                                <Draggable
+                                  key={column.id}
+                                  draggableId={`column-${column.id}`}
+                                  index={columnIndex}
+                                >
+                                  {(provided) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      style={provided.draggableProps.style}
+                                      className="flex-shrink-0 w-[225px]"
+                                    >
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <div
+                                          {...provided.dragHandleProps}
+                                          className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
+                                        >
+                                          <GripVertical className="w-4 h-4" />
+                                        </div>
+                                        <div
+                                          contentEditable
+                                          onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
+                                          className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
+                                          suppressContentEditableWarning={true}
+                                        >
+                                          {column.name}
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
+                                          className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      </div>
+
+                                      <ImageUpload
+                                        currentImage={column.image}
+                                        onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
+                                      />
+
+                                      <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
+                                        {(provided, snapshot) => (
+                                          <div
+                                            ref={provided.innerRef}
+                                            {...provided.droppableProps}
+                                            className={`
+                                              space-y-4 min-h-[100px] p-4
+                                              rounded-lg border-2
+                                              ${snapshot.isDraggingOver 
+                                                ? 'border-primary/50 bg-primary/5' 
+                                                : 'border-gray-200 hover:border-gray-300'
+                                              }
+                                              transition-colors duration-200
+                                            `}
+                                          >
+                                            {board.blocks
+                                              .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                              .map((block, index) => (
+                                                <Draggable
+                                                  key={block.id}
+                                                  draggableId={block.id}
+                                                  index={index}
+                                                >
+                                                  {(provided, snapshot) => (
+                                                    <div
+                                                      ref={provided.innerRef}
+                                                      {...provided.draggableProps}
+                                                      style={{ ...provided.draggableProps.style, transform: `scale(${scale})` }}
+                                                      className={`
+                                                        ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
+                                                        group relative rounded-lg border mb-2 p-2
+                                                        ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
+                                                        ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                      `}
+                                                    >
+                                                      <div 
+                                                        {...provided.dragHandleProps}
+                                                        className="absolute left-3 top-1 p-1
+                                                          rounded-sm opacity-0 group-hover:opacity-100
+                                                          transition-opacity cursor-move bg-white/50
+                                                          hover:bg-white/80"
+                                                      >
+                                                        <GripVertical className="w-4 h-4 text-gray-600" />
+                                                      </div>
+                                                      <Block
+                                                        block={block}
+                                                        onChange={(content) => handleBlockChange(block.id, content)}
+                                                        onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
+                                                        onNotesChange={(notes) => handleNotesChange(block.id, notes)}
+                                                        onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
+                                                        onCommentClick={() => handleCommentClick(block)}
+                                                        projectId={board.projectId || undefined}
+                                                      />
+                                                    </div>
+                                                  )}
+                                                </Draggable>
+                                              ))}
+                                            {provided.placeholder}
+                                          </div>
+                                        )}
+                                      </Droppable>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddPhase}
+                    className="mt-3 h-7 px-2 border border-gray-300 hide-in-pdf"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Phase
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </DragDropContext>
-      </div>
+          </DragDropContext>
+        </div>
 
-      {selectedBlock && (
-        <CommentDialog
-          open={commentDialogOpen}
-          onOpenChange={setCommentDialogOpen}
-          block={selectedBlock}
+        {selectedBlock && (
+          <CommentDialog
+            open={commentDialogOpen}
+            onOpenChange={setCommentDialogOpen}
+            block={selectedBlock}
+            boardId={board.id}
+          />
+        )}
+
+        <AddToProjectDialog
+          open={addToProjectOpen}
+          onOpenChange={setAddToProjectOpen}
           boardId={board.id}
         />
-      )}
+        {inviteOpen && (
+          <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
+                <DialogDescription>
+                  Enter email addresses to invite team members
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <Input
+                  placeholder="Enter email addresses (comma separated)"
+                  className="w-full"
+                />
+                <Button className="w-full" onClick={() => setInviteOpen(false)}>
+                  Send Invites
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
-      <AddToProjectDialog
-        open={addToProjectOpen}
-        onOpenChange={setAddToProjectOpen}
-        boardId={board.id}
-      />
-      {inviteOpen && (
-        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
-              <DialogDescription>
-                Enter email addresses to invite team members
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <Input
-                placeholder="Enter email addresses (comma separated)"
-                className="w-full"
-              />
-              <Button className="w-full" onClick={() => setInviteOpen(false)}>
-                Send Invites
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+        {shareLinkOpen && (
+          <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Share Blueprint</DialogTitle>
+                <DialogDescription>
+                  Choose how you want to share this blueprint
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6 py-4">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
+                  <div className="flex gap-2">
+                    <Input
+                      value={window.location.href}
+                      readOnly
+                      className="w-full"
+                    />
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast({
+                          title: "Link copied",
+                          description: "Team access link has been copied to clipboard"
+                        });
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
 
-      {shareLinkOpen && (
-        <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Share Blueprint</DialogTitle>
-              <DialogDescription>
-                Choose how you want to share this blueprint
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6 py-4">
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
-                <div className="flex gap-2">
-                  <Input
-                    value={window.location.href}
-                    readOnly
-                    className="w-full"
-                  />
-                  <Button
-                    onClick={() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      toast({
-                        title: "Link copied",
-                        description: "Team access link has been copied to clipboard"
-                      });
-                    }}
-                  >
-                    Copy
-                  </Button>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
+                  <div className="flex gap-2">
+                    <Input
+                      value={`${window.location.origin}/public/board/${id}`}
+                      readOnly
+                      className="w-full"
+                    />
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
+                        toast({
+                          title: "Link copied",
+                          description: "Public access link has been copied to clipboard"
+                        });
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Anyone with this link can view the blueprint in read-only mode
+                  </p>
                 </div>
               </div>
-
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
-                <div className="flex gap-2">
-                  <Input
-                    value={`${window.location.origin}/public/board/${id}`}
-                    readOnly
-                    className="w-full"
-                  />
-                  <Button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
-                      toast({
-                        title: "Link copied",
-                        description: "Public access link has been copied to clipboard"
-                      });
-                    }}
-                  >
-                    Copy
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Anyone with this link can view the blueprint in read-only mode
-                </p>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-      {/* Remove old zoom controls */}
-
-      {/* Add new zoom controls */}
-      <div className="fixed bottom-8 right-8 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50 p-2 flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleZoomOut}
-          className="h-8 w-8 p-0 hover:bg-gray-100/80"
-        >
-          <Minus className="w-4 h-4" />
-        </Button>
-        <span className="text-sm font-medium min-w-[3rem] text-center">
-          {Math.round(scale * 100)}%
-        </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleZoomIn}
-          className="h-8 w-8 p-0 hover:bg-gray-100/80"
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
-    </div>
-  );
-}
