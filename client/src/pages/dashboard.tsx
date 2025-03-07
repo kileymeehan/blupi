@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, LogOut, User, LayoutGrid, Folder, Trash2, Briefcase } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 import AddToProjectDialog from "@/components/board/add-to-project-dialog";
@@ -34,15 +33,13 @@ export default function Dashboard() {
   const [projectToDelete, setProjectToDelete] = useState<{id: number, name: string} | null>(null);
   const { toast } = useToast();
 
-  // Enable refetchOnWindowFocus for real-time updates
   const { data: projects = [], refetch: refetchProjects } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
     refetchOnWindowFocus: true,
-    staleTime: 0, // Always refetch when query is invalidated
+    staleTime: 0
   });
 
   useEffect(() => {
-    // Refetch projects when projectToDelete is cleared (dialog closed)
     if (!projectToDelete) {
       refetchProjects();
     }
@@ -51,13 +48,6 @@ export default function Dashboard() {
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
     queryKey: ['/api/boards']
   });
-
-  const sortedBoards = [...boards].sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-
-  const recentBoards = sortedBoards.slice(0, 3);
-  const unassignedBoards = boards.filter((board) => !board.projectId);
 
   const updateProjectStatus = useMutation({
     mutationFn: async ({ projectId, status }: { projectId: number; status: string }) => {
@@ -353,13 +343,13 @@ export default function Dashboard() {
           boardId={Number(selectedBoardId)}
         />
       )}
+
       {projectToDelete && (
         <DeleteProjectDialog
           open={projectToDelete !== null}
           onOpenChange={(open) => {
             if (!open) {
               setProjectToDelete(null);
-              // Force immediate refetch when dialog closes
               Promise.all([
                 queryClient.refetchQueries({ queryKey: ['/api/projects'] }),
                 queryClient.refetchQueries({ queryKey: ['/api/boards'] })
