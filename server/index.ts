@@ -4,11 +4,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import passport from "passport";
 import session from "express-session";
 import { storage } from "./storage";
+import { createServer } from "http";
 import { setupAuth } from "./auth";
-
-// Disable cartographer plugin and force production mode
-delete process.env.REPL_ID;
-process.env.NODE_ENV = "production";
 
 const app = express();
 
@@ -35,17 +32,13 @@ app.use(passport.session());
 // Setup authentication routes
 setupAuth(app);
 
-// Add test endpoint
-app.get('/api/test', (_req, res) => {
-  res.json({ status: 'ok', message: 'Server is running' });
-});
-
 // Logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
+  log(`[${new Date().toISOString()}] ${req.method} ${req.path} started`);
   res.on("finish", () => {
     const duration = Date.now() - start;
-    log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
+    log(`[${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} completed in ${duration}ms`);
   });
   next();
 });
@@ -59,6 +52,7 @@ app.use('/api', (req, res, next) => {
 // Error handling for JSON parsing
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof SyntaxError && 'body' in err) {
+    log(`[ERROR] JSON parsing error: ${err.message}`);
     return res.status(400).json({ error: true, message: 'Invalid JSON' });
   }
   next(err);
@@ -68,25 +62,17 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   try {
     log('[INFO] Starting server initialization...');
 
-    // Register API routes
+    // Register API routes before Vite middleware
     const server = await registerRoutes(app);
     log('[INFO] API routes registered successfully');
 
-    try {
-      // In production mode, only use static file serving
+    // Set up development middleware or static serving
+    if (process.env.NODE_ENV !== "production") {
+      log('[INFO] Setting up Vite development middleware');
+      await setupVite(app, server);
+    } else {
       log('[INFO] Setting up static file serving');
       serveStatic(app);
-      log('[INFO] Static file serving setup complete');
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('Could not find the build directory')) {
-        log('[WARN] Build directory not found, falling back to Vite middleware');
-        await setupVite(app, server);
-        log('[INFO] Vite fallback middleware setup complete');
-      } else {
-        log('[ERROR] Failed to setup middleware:');
-        console.error(error);
-        process.exit(1);
-      }
     }
 
     // API Error handling middleware - must be after all routes
@@ -100,12 +86,31 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
       }
     });
 
-    // Start the server
     const port = Number(process.env.PORT) || 5000;
-    const host = '0.0.0.0';
 
-    server.listen(port, host, () => {
-      log(`[INFO] Server running at http://${host}:${port}`);
+    server.listen(port, () => {
+      log(`[INFO] Server running at http://localhost:${port}`);
+    });
+
+    server.on('error', (error: any) => {
+      if (error.syscall !== 'listen') {
+        throw error;
+      }
+
+      const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+
+      switch (error.code) {
+        case 'EACCES':
+          console.error(`[ERROR] ${bind} requires elevated privileges`);
+          process.exit(1);
+          break;
+        case 'EADDRINUSE':
+          console.error(`[ERROR] ${bind} is already in use`);
+          process.exit(1);
+          break;
+        default:
+          throw error;
+      }
     });
 
   } catch (err) {

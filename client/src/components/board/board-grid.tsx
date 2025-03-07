@@ -1,25 +1,6 @@
-/**
- * The BoardGrid component is the heart of BLUPE's blueprint editor.
- * It provides a drag-and-drop interface for organizing customer journey steps
- * and allows real-time collaboration between team members.
- *
- * Features:
- * - Drag and drop interface for organizing content
- * - Real-time collaboration with team members
- * - Image uploads for visual context
- * - Comment system for team discussion
- * - Public sharing capabilities
- * - Project organization
- *
- * The layout is organized as:
- * - Left sidebar: Contains tools and context information
- * - Main area: Shows the blueprint with phases and columns
- * - Top bar: Navigation and sharing controls
- */
-
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, Minus } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, MessageSquare, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,7 +16,7 @@ import AddToProjectDialog from "./add-to-project-dialog";
 import { UsersPresence } from "./users-presence";
 import { StatusSelector } from "@/components/status-selector";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useToast, toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,72 +29,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { UserPlus, Link as LinkIcon } from "lucide-react";
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { Notifications } from "@/components/notifications/notifications";
-import { useNotifications } from "@/lib/notifications-provider";
 
-
-// Update the exportToPDF function
-const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
-  const pdf = new jsPDF('landscape', 'pt', 'a4');
-
-  // Convert the board to an image
-  const canvas = await html2canvas(boardRef, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    allowTaint: true,
-    ignoreElements: (element) => {
-      return element.classList.contains('hide-in-pdf');
-    }
-  });
-
-  // Calculate dimensions to fit the page
-  const imgWidth = 842; // A4 landscape width
-  const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-  // Add the image to PDF
-  pdf.addImage(
-    canvas.toDataURL('image/png'),
-    'PNG',
-    0,
-    0,
-    imgWidth,
-    imgHeight
-  );
-
-  // Save the PDF
-  pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
-};
-
-// Update LAYER_TYPES with new categories and colors
-export const LAYER_TYPES = [
-  { type: 'touchpoint', label: 'Touchpoint', color: 'bg-blue-600/20' },
-  { type: 'email', label: 'Email Touchpoint', color: 'bg-indigo-500/20' },
-  { type: 'pendo', label: 'Pendo Touchpoint', color: 'bg-cyan-600/20' },
-  { type: 'role', label: 'Role', color: 'bg-green-200' },
-  { type: 'process', label: 'Process', color: 'bg-pink-200' },
-  { type: 'friction', label: 'Friction', color: 'bg-red-200' },
-  { type: 'policy', label: 'Policy', color: 'bg-orange-200' },
-  { type: 'technology', label: 'Technology', color: 'bg-purple-200' },
-  { type: 'rationale', label: 'Rationale', color: 'bg-blue-200' },
-  { type: 'question', label: 'Question', color: 'bg-violet-200' },
-  { type: 'note', label: 'Note', color: 'bg-cyan-200' },
-  { type: 'hidden', label: 'Hidden Step', color: 'bg-gray-400' }
-] as const;
-
-interface Attachment {
-  type: 'link' | 'image' | 'video';
-  url: string;
-}
-
-/**
- * Main component for the blueprint editor
- * @param id - The ID of the current blueprint
- * @param onBlocksChange - Callback when blocks are updated
- * @param onPhasesChange - Callback when phases are updated
- * @param onBoardChange - Callback when board settings are updated
- * @param connectedUsers - Array of currently connected users
- */
 interface BoardGridProps {
   id: string;
   onBlocksChange: (blocks: BlockType[]) => void;
@@ -123,7 +39,6 @@ interface BoardGridProps {
 }
 
 export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange, connectedUsers }: BoardGridProps) {
-  const { notifications, markAsRead } = useNotifications();
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -252,7 +167,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           comments: [],
           attachments: [],
           notes: "",
-          emoji: "" // Added emoji property
+          emoji: ""
         };
 
         blocks.splice(destination.index, 0, newBlock);
@@ -274,9 +189,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     }
   };
 
-  /**
-   * Update handleBlockChange to properly handle text content
-   */
   const handleBlockChange = (blockId: string, content: string) => {
     const blocks = board.blocks.map(block =>
       block.id === blockId ? { ...block, content: content } : block
@@ -298,14 +210,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     onBlocksChange(blocks);
   };
 
-  // Add handleEmojiChange function
   const handleEmojiChange = (blockId: string, emoji: string) => {
     const blocks = board.blocks.map(block =>
       block.id === blockId ? { ...block, emoji } : block
     );
     onBlocksChange(blocks);
   };
-
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
@@ -450,7 +360,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const handleExportPDF = async () => {
     if (!boardRef.current) return;
 
-    // Temporarily hide UI elements
     const uiElements = boardRef.current.querySelectorAll('.hide-in-pdf');
     uiElements.forEach(el => (el.classList.add('opacity-0')));
 
@@ -458,11 +367,57 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     try {
       await exportToPDF(boardRef.current, board.name);
     } finally {
-      // Restore UI elements
       uiElements.forEach(el => el.classList.remove('opacity-0'));
     }
   };
 
+  const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
+    const pdf = new jsPDF('landscape', 'pt', 'a4');
+
+    const canvas = await html2canvas(boardRef, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      allowTaint: true,
+      ignoreElements: (element) => {
+        return element.classList.contains('hide-in-pdf');
+      }
+    });
+
+    const imgWidth = 842;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.addImage(
+      canvas.toDataURL('image/png'),
+      'PNG',
+      0,
+      0,
+      imgWidth,
+      imgHeight
+    );
+
+    pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
+  };
+
+  const LAYER_TYPES = [
+    { type: 'touchpoint', label: 'Touchpoint', color: 'bg-blue-600/20' },
+    { type: 'email', label: 'Email Touchpoint', color: 'bg-indigo-500/20' },
+    { type: 'pendo', label: 'Pendo Touchpoint', color: 'bg-cyan-600/20' },
+    { type: 'role', label: 'Role', color: 'bg-green-200' },
+    { type: 'process', label: 'Process', color: 'bg-pink-200' },
+    { type: 'friction', label: 'Friction', color: 'bg-red-200' },
+    { type: 'policy', label: 'Policy', color: 'bg-orange-200' },
+    { type: 'technology', label: 'Technology', color: 'bg-purple-200' },
+    { type: 'rationale', label: 'Rationale', color: 'bg-blue-200' },
+    { type: 'question', label: 'Question', color: 'bg-violet-200' },
+    { type: 'note', label: 'Note', color: 'bg-cyan-200' },
+    { type: 'hidden', label: 'Hidden Step', color: 'bg-gray-400' }
+  ] as const;
+
+  interface Attachment {
+    type: 'link' | 'image' | 'video';
+    url: string;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -528,10 +483,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           <UsersPresence users={connectedUsers} />
           <div className="w-px h-6 bg-gray-200 mx-3" />
           <div className="flex items-center gap-2">
-            <Notifications
-              notifications={notifications}
-              onMarkAsRead={markAsRead}
-            />
             <Button
               variant="ghost"
               size="sm"
@@ -579,6 +530,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
@@ -809,111 +761,100 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                               className="flex gap-8"
                             >
                               {phase.columns.map((column, columnIndex) => (
-                                <Draggable
+                                <div
                                   key={column.id}
-                                  draggableId={`column-${column.id}`}
-                                  index={columnIndex}
+                                  className="flex-shrink-0 w-[225px]"
                                 >
-                                  {(provided, snapshot) => (
+                                  <div className="flex items-center gap-2 mb-2">
                                     <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      style={provided.draggableProps.style}
-                                      className="flex-shrink-0 w-[225px]"
+                                      className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
                                     >
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <div
-                                          {...provided.dragHandleProps}
-                                          className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
-                                        >
-                                          <GripVertical className="w-4 h-4" />
-                                        </div>
-                                        <div
-                                          contentEditable
-                                          onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                                          className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
-                                          suppressContentEditableWarning={true}
-                                        >
-                                          {column.name}
-                                        </div>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
-                                          className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
-                                        >
-                                          <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                      </div>
-
-                                      <ImageUpload
-                                        currentImage={column.image}
-                                        onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
-                                      />
-
-                                      <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
-                                        {(provided, snapshot) => (
-                                          <div
-                                            ref={provided.innerRef}
-                                            {...provided.droppableProps}
-                                            className={`
-                                              space-y-4 min-h-[100px] p-4
-                                              rounded-lg border-2                                              ${snapshot.isDraggingOver
-                                                ? 'borderprimary/50 bg-primary/5'
-                                                : 'border-gray-200 hover:border-gray300'
-                                              }
-                                              transition-colors duration-200
-                                            `}
-                                          >
-                                            {board.blocks
-                                              .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                                              .map((block, index) => (
-                                                <Draggable
-                                                  key={block.id}
-                                                  draggableId={block.id}
-                                                  index={index}
-                                                >
-                                                  {(provided, snapshot) => (
-                                                    <div
-                                                      ref={provided.innerRef}
-                                                      {...provided.draggableProps}
-                                                      style={provided.draggableProps.style}
-                                                      className={`
-                                                        ${LAYER_TYPES.find(l => l.type === block.type)?.color}
-                                                        group relative rounded-lg border mb-2 p-2
-                                                        ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
-                                                        ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
-                                                      `}
-                                                    >
-                                                      <div
-                                                        {...provided.dragHandleProps}
-                                                        className="absolute left-3 top-1 p-1
-                                                          rounded-sm opacity-0 group-hover:opacity-100
-                                                          transition-opacity cursor-move bg-white/50
-                                                          hover:bg-white/80"
-                                                      >
-                                                        <GripVertical className="w-4 h-4 text-gray-600" />
-                                                      </div>
-                                                      <Block
-                                                        block={block}
-                                                        onChange={(content) => handleBlockChange(block.id, content)}
-                                                        onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
-                                                        onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                                        onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
-                                                        onCommentClick={() => handleCommentClick(block)}
-                                                        projectId={board.projectId || undefined}
-                                                      />
-                                                    </div>
-                                                  )}
-                                                </Draggable>
-                                              ))}
-                                            {provided.placeholder}
-                                          </div>
-                                        )}
-                                      </Droppable>
+                                      <GripVertical className="w-4 h-4" />
                                     </div>
-                                  )}
-                                </Draggable>
+                                    <div
+                                      contentEditable
+                                      onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
+                                      className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
+                                      suppressContentEditableWarning={true}
+                                    >
+                                      {column.name}
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
+                                      className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+
+                                  <ImageUpload
+                                    currentImage={column.image}
+                                    onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
+                                  />
+
+                                  <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
+                                    {(provided, snapshot) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.droppableProps}
+                                        className={`
+                                          space-y-4 min-h-[100px] p-4 rounded-lg border-2 
+                                          ${snapshot.isDraggingOver
+                                            ? 'border-primary/50 bg-primary/5'
+                                            : 'border-gray-200 hover:border-gray300'
+                                          }
+                                          transition-colors duration-200
+                                        `}
+                                      >
+                                        {board.blocks
+                                          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                          .map((block, index) => (
+                                            <Draggable
+                                              key={block.id}
+                                              draggableId={block.id}
+                                              index={index}
+                                            >
+                                              {(provided, snapshot) => (
+                                                <div
+                                                  ref={provided.innerRef}
+                                                  {...provided.draggableProps}
+                                                  {...provided.dragHandleProps}
+                                                  style={provided.draggableProps.style}
+                                                  className={`
+                                                    ${LAYER_TYPES.find(l => l.type === block.type)?.color}
+                                                    group relative rounded-lg border mb-2 p-2
+                                                    ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
+                                                    ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                  `}
+                                                >
+                                                  <div
+                                                    className="absolute left-3 top-1 p-1
+                                                      rounded-sm opacity-0 group-hover:opacity-100
+                                                      transition-opacity cursor-move bg-white/50 hover:bg-white/80"
+                                                  >
+                                                    <GripVertical className="w-4 h-4 text-gray-600" />
+                                                  </div>
+                                                  <Block
+                                                    block={block}
+                                                    onChange={(content) => handleBlockChange(block.id, content)}
+                                                    onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
+                                                    onNotesChange={(notes) => handleNotesChange(block.id, notes)}
+                     onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
+                                                    onCommentClick={() => handleCommentClick(block)}
+                                                    projectId={board.projectId || undefined}
+                                                    highlighted={block.id === highlightedBlockId}
+                                                  />
+                                                </div>
+                                              )}
+                                            </Draggable>
+                                          ))}
+                                        {provided.placeholder}
+                                      </div>
+                                    )}
+                                  </Droppable>
+                                </div>
                               ))}
                               {provided.placeholder}
                             </div>
@@ -934,115 +875,114 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   </Button>
                 </div>
               </div>
-            </div>
 
-          </DragDropContext>
+            </DragDropContext>
 
-          {selectedBlock && (
-            <CommentDialog
-              open={commentDialogOpen}
-              onOpenChange={setCommentDialogOpen}
-              block={selectedBlock}
-              boardId={board.id}
-              onCommentAdd={(comment) => {
-                if (!onBlocksChange) return;
-                const blocks = board.blocks.map(b =>
-                  b.id === selectedBlock.id
-                    ? { ...b, comments: [...(b.comments || []), comment] }
-                    : b
-                );
-                onBlocksChange(blocks);
-              }}
+            {selectedBlock && (
+              <CommentDialog
+                open={commentDialogOpen}
+                onOpenChange={setCommentDialogOpen}
+                block={selectedBlock}
+                boardId={id}
+                onCommentAdd={(comment) => {
+                  if (!onBlocksChange) return;
+                  const blocks = board.blocks.map(b =>
+                    b.id === selectedBlock.id
+                      ? { ...b, comments: [...(b.comments || []), comment] }
+                      : b
+                  );
+                  onBlocksChange(blocks);
+                }}
+              />
+            )}
+            <AddToProjectDialog
+              open={addToProjectOpen}
+              onOpenChange={setAddToProjectOpen}
+              boardId={id}
             />
-          )}
-          <AddToProjectDialog
-            open={addToProjectOpen}
-            onOpenChange={setAddToProjectOpen}
-            boardId={board.id}
-          />
-          {inviteOpen && (
-            <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
-                  <DialogDescription>
-                    Enter email addresses to invite team members
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <Input
-                    placeholder="Enter email addresses (comma separated)"
-                    className="w-full"
-                  />
-                  <Button className="w-full" onClick={() => setInviteOpen(false)}>
-                    Send Invites
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
+            {inviteOpen && (
+              <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
+                    <DialogDescription>
+                      Enter email addresses to invite team members
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <Input
+                      placeholder="Enter email addresses (comma separated)"
+                      className="w-full"
+                    />
+                    <Button className="w-full" onClick={() => setInviteOpen(false)}>
+                      Send Invites
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
 
-          {shareLinkOpen && (
-            <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Share Blueprint</DialogTitle>
-                  <DialogDescription>
-                    Choose how you want to share this blueprint
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-6 py-4">
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
-                    <div className="flex gap-2">
-                      <Input
-                        value={window.location.href}
-                        readOnly
-                        className="w-full"
-                      />
-                      <Button
-                        onClick={() => {
-                          navigator.clipboard.writeText(window.location.href);
-                          toast({
-                            title: "Link copied",
-                            description: "Team access link has been copied to clipboard"
-                          });
-                        }}
-                      >
-                        Copy
-                      </Button>
+            {shareLinkOpen && (
+              <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Share Blueprint</DialogTitle>
+                    <DialogDescription>
+                      Choose how you want to share this blueprint
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-6 py-4">
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          value={window.location.href}
+                          readOnly
+                          className="w-full"
+                        />
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(window.location.href);
+                            useToast({
+                              title: "Link copied",
+                              description: "Team access link has been copied to clipboard"
+                            });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          value={`${window.location.origin}/public/board/${id}`}
+                          readOnly
+                          className="w-full"
+                        />
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
+                            useToast({
+                              title: "Link copied",
+                              description: "Public access link has been copied to clipboard"
+                            });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Anyone with this link can view the blueprint in read-only mode
+                      </p>
                     </div>
                   </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
-                    <div className="flex gap-2">
-                      <Input
-                        value={`${window.location.origin}/public/board/${id}`}
-                        readOnly
-                        className="w-full"
-                      />
-                      <Button
-                        onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
-                          toast({
-                            title: "Link copied",
-                            description: "Public access link has been copied to clipboard"
-                          });
-                        }}
-                      >
-                        Copy
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Anyone with this link can view the blueprint in read-only mode
-                    </p>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

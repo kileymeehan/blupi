@@ -41,22 +41,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
 
-  // Create WebSocket server
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  // Create WebSocket server with custom path
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws-blupi' // Changed from '/ws' to avoid conflict with Vite
+  });
 
   wss.on('connection', (ws) => {
+    console.log('[WebSocket] New connection established');
     let currentBoardId: number | null = null;
     let currentUser: { id: string; name: string; color: string } | null = null;
 
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
+        console.log('[WebSocket] Received message:', message.type);
 
         // Handle board subscription
         if (message.type === 'subscribe') {
           const boardId = Number(message.boardId);
           const userName = message.userName || 'Anonymous';
           currentBoardId = boardId;
+          console.log(`[WebSocket] User ${userName} subscribing to board ${boardId}`);
 
           // Create unique user identity
           currentUser = {
@@ -65,33 +71,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
             color: getRandomColor()
           };
 
-          // Add user to board connections
+          // Add user to board connections and broadcast
           if (!boardConnections.has(boardId)) {
             boardConnections.set(boardId, new Set());
           }
           boardConnections.get(boardId)!.add(ws);
 
-          // Add user to board users
           if (!boardUsers.has(boardId)) {
             boardUsers.set(boardId, new Set());
           }
           boardUsers.get(boardId)!.add(currentUser);
 
-          // Send initial board state
+          // Send initial board state and broadcast updated user list
           const board = await storage.getBoard(boardId);
           if (board) {
+            console.log(`[WebSocket] Sending initial board state to user ${userName}`);
             ws.send(JSON.stringify({ type: 'board_update', board }));
           }
 
-          // Broadcast updated user list
           broadcastToBoardUsers(boardId, {
             type: 'users_update',
             users: Array.from(boardUsers.get(boardId)!)
           });
         }
-
         // Handle board updates
         else if (message.type === 'board_update' && currentBoardId) {
+          console.log(`[WebSocket] Broadcasting board update for board ${currentBoardId}`);
           const updatedBoard = await storage.updateBoard(currentBoardId, message.board);
           broadcastToBoardUsers(currentBoardId, { 
             type: 'board_update',
@@ -99,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }, ws);
         }
       } catch (err) {
-        console.error('WebSocket message error:', err);
+        console.error('[WebSocket] Message error:', err);
         ws.send(JSON.stringify({ 
           type: 'error',
           message: 'Failed to process message'
@@ -109,6 +114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     ws.on('close', () => {
       if (currentBoardId && currentUser) {
+        console.log(`[WebSocket] User ${currentUser.name} disconnected from board ${currentBoardId}`);
         // Remove user from board connections
         if (boardConnections.has(currentBoardId)) {
           boardConnections.get(currentBoardId)!.delete(ws);
@@ -127,6 +133,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
     });
+  });
+
+  // Add a health check endpoint
+  app.get("/api/ping", (_req, res) => {
+    res.json({ status: "ok" });
   });
 
   // Project routes
@@ -154,6 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const project = await storage.createProject(parseResult.data);
+      console.log('Successfully created project:', project.id);
       res.json(project);
     } catch (err) {
       console.error('Error creating project:', err);
@@ -169,10 +181,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/projects/:id", async (req, res) => {
     try {
+      console.log(`Fetching project with ID: ${req.params.id}`);
       const project = await storage.getProject(Number(req.params.id));
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
+      console.log(`Retrieved project: ${project.id}`);
       res.json(project);
     } catch (err) {
       console.error('Error fetching project:', err);
@@ -180,13 +194,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add PATCH endpoint for projects
   app.patch("/api/projects/:id", async (req, res) => {
     try {
+      console.log(`Updating project with ID: ${req.params.id}`);
       const project = await storage.updateProject(Number(req.params.id), req.body);
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
+      console.log(`Successfully updated project: ${project.id}`);
       res.json(project);
     } catch (err) {
       console.error('Error updating project:', err);
@@ -194,9 +209,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update the invite endpoint
   app.post("/api/projects/:id/invite", async (req, res) => {
     try {
+      console.log(`Sending invitation for project ID: ${req.params.id}`);
       const { email, role } = req.body;
 
       if (!email || !role) {
@@ -206,23 +221,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get the project details
       const project = await storage.getProject(Number(req.params.id));
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
 
-      // Get or create user
       let user = await storage.getUserByEmail(email);
       if (!user) {
         user = await storage.createUser({
           email,
           username: email.split('@')[0],
-          password: nanoid(), // temporary password
+          password: nanoid(), 
         });
       }
 
-      // Create project member
       const projectMember = await storage.inviteProjectMember({
         projectId: Number(req.params.id),
         userId: user.id,
@@ -230,12 +242,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending'
       });
 
-      // Send invitation email
       const emailSent = await sendProjectInvitation({
         to: email,
         projectName: project.name,
         role,
-        inviterName: "Team member" // In a real app, this would be the current user's name
+        inviterName: "Team member" 
       });
 
       if (!emailSent) {
@@ -246,6 +257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      console.log(`Invitation sent successfully to ${email} for project ${project.id}`);
       res.json({ 
         message: "Invitation sent successfully",
         projectMember
@@ -260,10 +272,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
-  // Board/Blueprint routes
   app.get("/api/boards", async (_req, res) => {
     try {
+      console.log('Fetching all boards');
       const boards = await storage.getBoards();
+      console.log(`Retrieved ${boards.length} boards`);
       res.json(boards);
     } catch (err) {
       console.error('Error fetching boards:', err);
@@ -285,6 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const board = await storage.createBoard(parseResult.data);
+      console.log('Successfully created board:', board.id);
       res.json(board);
     } catch (err) {
       console.error('Error creating board:', err);
@@ -300,10 +314,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/boards/:id", async (req, res) => {
     try {
+      console.log(`Fetching board with ID: ${req.params.id}`);
       const board = await storage.getBoard(Number(req.params.id));
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
+      console.log(`Retrieved board: ${board.id}`);
       res.json(board);
     } catch (err) {
       console.error('Error fetching board:', err);
@@ -313,7 +329,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/boards/:id", async (req, res) => {
     try {
+      console.log(`Updating board with ID: ${req.params.id}`);
       const board = await storage.updateBoard(Number(req.params.id), req.body);
+      console.log(`Successfully updated board: ${board.id}`);
       res.json(board);
     } catch (err) {
       console.error('Error updating board:', err);
@@ -323,7 +341,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/boards/:id", async (req, res) => {
     try {
+      console.log(`Deleting board with ID: ${req.params.id}`);
       await storage.deleteBoard(Number(req.params.id));
+      console.log(`Successfully deleted board: ${req.params.id}`);
       res.status(204).send();
     } catch (err) {
       console.error('Error deleting board:', err);
@@ -331,23 +351,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add this new endpoint for public board access
   app.get("/api/public/boards/:id", async (req, res) => {
     try {
+      console.log(`Fetching public board with ID: ${req.params.id}`);
       const board = await storage.getBoard(Number(req.params.id));
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
 
-      // Remove sensitive information for public view
       const publicBoard = {
         ...board,
         blocks: board.blocks.map(block => ({
           ...block,
-          comments: [] // Remove comments from public view
+          comments: [] 
         }))
       };
 
+      console.log(`Retrieved public board: ${publicBoard.id}`);
       res.json(publicBoard);
     } catch (err) {
       console.error('Error fetching public board:', err);
@@ -355,9 +375,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update the comments endpoint to remove authentication requirement temporarily
   app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
     try {
+      console.log(`Adding comment to board ${req.params.boardId}, block ${req.params.blockId}`);
       const { content, username } = req.body;
       if (!content) {
         return res.status(400).json({ 
@@ -371,22 +391,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
 
-      // Find and update the block with the new comment
       const updatedBlocks = board.blocks.map(block => {
         if (block.id === req.params.blockId) {
+          const newComment = {
+            id: nanoid(),
+            content,
+            userId: 1,
+            username: username || "Anonymous",
+            completed: false,
+            createdAt: new Date().toISOString()
+          };
+
           return {
             ...block,
-            comments: [
-              ...(block.comments || []),
-              {
-                id: nanoid(),
-                content,
-                userId: 1, // Default user ID for now
-                username: username || "Anonymous",
-                completed: false, // Add completed field
-                createdAt: new Date().toISOString()
-              }
-            ]
+            comments: [...(block.comments || []), newComment]
           };
         }
         return block;
@@ -396,7 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: updatedBlocks
       });
-
+      console.log(`Successfully added comment to board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
     } catch (err) {
       console.error('Error adding comment:', err);
@@ -404,15 +422,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update clear comments endpoint to remove auth requirement
   app.post("/api/boards/:boardId/blocks/:blockId/comments/clear", async (req, res) => {
     try {
+      console.log(`Clearing comments for board ${req.params.boardId}, block ${req.params.blockId}`);
       const board = await storage.getBoard(Number(req.params.boardId));
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
 
-      // Clear comments for the specified block
       const updatedBlocks = board.blocks.map(block => {
         if (block.id === req.params.blockId) {
           return {
@@ -427,7 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: updatedBlocks
       });
-
+      console.log(`Successfully cleared comments for board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
     } catch (err) {
       console.error('Error clearing comments:', err);
@@ -435,9 +452,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add this endpoint for toggling comment completion
   app.patch("/api/boards/:boardId/blocks/:blockId/comments/:commentId/toggle", async (req, res) => {
     try {
+      console.log(`Toggling comment completion for board ${req.params.boardId}, block ${req.params.blockId}, comment ${req.params.commentId}`);
       const { completed } = req.body;
 
       const board = await storage.getBoard(Number(req.params.boardId));
@@ -445,7 +462,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
 
-      // Update the comment's completion status
       const updatedBlocks = board.blocks.map(block => {
         if (block.id === req.params.blockId) {
           return {
@@ -468,7 +484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: updatedBlocks
       });
-
+      console.log(`Successfully toggled comment completion for board ${updatedBoard.id}, block ${req.params.blockId}, comment ${req.params.commentId}`);
       res.json(updatedBoard);
     } catch (err) {
       console.error('Error toggling comment completion:', err);
