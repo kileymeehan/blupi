@@ -70,14 +70,20 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     log('[INFO] API routes registered successfully');
 
     // Set up development middleware or static serving
-    if (process.env.NODE_ENV !== "production") {
-      log('[INFO] Setting up Vite development middleware');
-      await setupVite(app, server);
-      log('[INFO] Vite middleware setup complete');
-    } else {
-      log('[INFO] Setting up static file serving');
-      serveStatic(app);
-      log('[INFO] Static file serving setup complete');
+    try {
+      if (process.env.NODE_ENV !== "production") {
+        log('[INFO] Setting up Vite development middleware');
+        await setupVite(app, server);
+        log('[INFO] Vite middleware setup complete');
+      } else {
+        log('[INFO] Setting up static file serving');
+        serveStatic(app);
+        log('[INFO] Static file serving setup complete');
+      }
+    } catch (err) {
+      log('[ERROR] Failed to setup middleware:');
+      console.error(err);
+      throw err;
     }
 
     // API Error handling middleware - must be after all routes
