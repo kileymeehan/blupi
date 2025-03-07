@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, LogOut, User, LayoutGrid, Folder, Trash2, Briefcase, Archive } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { format } from "date-fns";
 import { StatusSelector } from "@/components/status-selector";
 import { Project, Board } from "@shared/schema"; 
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
@@ -76,11 +76,11 @@ export default function Dashboard() {
 
   const updateProjectStatus = useMutation({
     mutationFn: async ({ projectId, status }: { projectId: number; status: string }) => {
-      const res = await fetch(`/api/projects/${projectId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
+      const res = await apiRequest(
+        'PATCH',
+        `/api/projects/${projectId}`,
+        { status }
+      );
       if (!res.ok) throw new Error('Failed to update project status');
       return res.json();
     },
@@ -102,11 +102,11 @@ export default function Dashboard() {
 
   const updateBoardStatus = useMutation({
     mutationFn: async ({ boardId, status }: { boardId: number; status: string }) => {
-      const res = await fetch(`/api/boards/${boardId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
+      const res = await apiRequest(
+        'PATCH',
+        `/api/boards/${boardId}`,
+        { status }
+      );
       if (!res.ok) throw new Error('Failed to update blueprint status');
       return res.json();
     },
