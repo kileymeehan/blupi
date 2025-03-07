@@ -37,7 +37,6 @@ export function useWebSocket(boardId: number) {
 
     socket.addEventListener('open', () => {
       console.log('WS Connection opened');
-      // Subscribe to board updates with user info
       const userEmail = localStorage.getItem('userEmail') || 'Anonymous';
       sendMessage({ 
         type: 'subscribe', 
@@ -53,8 +52,6 @@ export function useWebSocket(boardId: number) {
         if (data.type === 'users_update') {
           setConnectedUsers(data.users);
         }
-        // Forward all messages to window for NotificationsProvider
-        window.postMessage(data, window.location.origin);
       } catch (error) {
         console.error('WS Message parsing error:', error);
       }

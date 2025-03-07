@@ -17,8 +17,8 @@ import { UsersPresence } from "./users-presence";
 import { StatusSelector } from "@/components/status-selector";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Notifications } from "@/components/notifications/notifications";
-import { useNotifications } from "@/lib/notifications-provider";
+//import { Notifications } from "@/components/notifications/notifications";
+//import { useNotifications } from "@/lib/notifications-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,8 +58,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [shareLinkOpen, setShareLinkOpen] = useState(false);
   const [shareLink, setShareLink] = useState("");
   const boardRef = useRef<HTMLDivElement>(null);
-  const { addToast } = useToast();
-  const { addNotification } = useNotifications();
+  const { toast } = useToast();
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -353,7 +352,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       if (!res.ok) throw new Error('Failed to delete blueprint');
       setLocation('/');
     } catch (error) {
-      addToast({
+      toast({
         title: "Error",
         description: error instanceof Error ? error.message : 'Failed to delete blueprint',
         variant: "destructive"
@@ -425,7 +424,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
   const handleShareLinkCopy = (link: string) => {
     navigator.clipboard.writeText(link);
-    addNotification({
+    toast({
       title: "Link copied",
       description: "Link has been copied to clipboard",
       type: "success"
@@ -848,7 +847,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                       rounded-sm opacity-0 group-hover:opacity-100
                                                       transition-opacity cursor-move bg-white/50 hover:bg-white/80"
                                                   >
-                                                    <GripVertical className="w-4 h-4 text-gray-600" />
+                                                    <<GripVertical className="w-4 h-4 text-gray-600" />
                                                   </div>
                                                   <Block
                                                     block={block}
@@ -899,7 +898,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 block={selectedBlock}
                 boardId={id}
                 onCommentAdd={(comment) => {
-                  if (!onBlocksChange) return;
                   const blocks = board.blocks.map(b =>
                     b.id === selectedBlock.id
                       ? { ...b, comments: [...(b.comments || []), comment] }
@@ -985,7 +983,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             )}
           </div>
         </div>
-        <Notifications />
       </div>
-    );
-  }
+    </div>
+  );
+}
