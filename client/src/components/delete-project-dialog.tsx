@@ -28,24 +28,30 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
           `/api/projects/${projectId}`,
           { blueprintAction }
         );
-        return res.ok;
+
+        if (!res.ok) {
+          throw new Error("Failed to delete project");
+        }
+
+        return true;
       } catch (error) {
         console.error('Delete project error:', error);
         throw error;
       }
     },
     onSuccess: () => {
-      // Force refetch both projects and boards after deletion
-      queryClient.refetchQueries({ queryKey: ["/api/projects"] });
-      queryClient.refetchQueries({ queryKey: ["/api/boards"] });
-
-      toast({
-        title: "Success",
-        description: "Project deleted successfully"
+      // Force immediate refetch
+      Promise.all([
+        queryClient.refetchQueries({ queryKey: ["/api/projects"] }),
+        queryClient.refetchQueries({ queryKey: ["/api/boards"] })
+      ]).then(() => {
+        toast({
+          title: "Success",
+          description: "Project deleted successfully"
+        });
+        onOpenChange(false);
+        setLocation("/");
       });
-
-      onOpenChange(false);
-      setLocation("/");
     },
     onError: (error: Error) => {
       toast({

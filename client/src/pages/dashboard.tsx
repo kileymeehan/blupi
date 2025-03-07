@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, LogOut, User, LayoutGrid, Folder, Trash2, Briefcase } from "lucide-react";
@@ -36,8 +36,15 @@ export default function Dashboard() {
   const { toast } = useToast();
 
   const { data: projects = [], refetch: refetchProjects } = useQuery<Project[]>({
-    queryKey: ['/api/projects']
+    queryKey: ['/api/projects'],
+    refetchOnWindowFocus: true
   });
+
+  useEffect(() => {
+    if (!projectToDelete) {
+      refetchProjects();
+    }
+  }, [projectToDelete, refetchProjects]);
 
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
     queryKey: ['/api/boards']
@@ -347,7 +354,13 @@ export default function Dashboard() {
       {projectToDelete && (
         <DeleteProjectDialog
           open={projectToDelete !== null}
-          onOpenChange={(open) => !open && setProjectToDelete(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setProjectToDelete(null);
+              // Force refetch when dialog closes
+              refetchProjects();
+            }
+          }}
           projectId={projectToDelete.id}
           projectName={projectToDelete.name}
         />
