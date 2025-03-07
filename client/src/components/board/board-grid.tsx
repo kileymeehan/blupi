@@ -30,7 +30,7 @@ import { UserPlus, Link as LinkIcon } from "lucide-react";
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const LAYER_TYPES = [
+export const LAYER_TYPES = [
   { type: 'touchpoint', label: 'Touchpoint', color: 'bg-blue-600/20' },
   { type: 'email', label: 'Email Touchpoint', color: 'bg-indigo-500/20' },
   { type: 'pendo', label: 'Pendo Touchpoint', color: 'bg-cyan-600/20' },
