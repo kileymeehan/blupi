@@ -115,7 +115,6 @@ interface Attachment {
 export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange, connectedUsers }: BoardGridProps) {
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
-  const [scale, setScale] = useState(1);
   const [isEditingName, setIsEditingName] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
@@ -437,14 +436,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     }
   };
 
-  const handleZoomIn = () => {
-    setScale(prev => Math.min(prev + 0.1, 2));
-  };
-
-  const handleZoomOut = () => {
-    setScale(prev => Math.max(prev - 0.1, 0.5));
-  };
-
   const handleExportPDF = async () => {
     if (!boardRef.current) return;
 
@@ -452,17 +443,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     const uiElements = boardRef.current.querySelectorAll('.hide-in-pdf');
     uiElements.forEach(el => (el.classList.add('opacity-0')));
 
-    // Reset zoom for export
-    const currentScale = scale;
-    setScale(1);
 
     try {
       await exportToPDF(boardRef.current, board.name);
     } finally {
       // Restore UI elements
       uiElements.forEach(el => el.classList.remove('opacity-0'));
-      // Restore zoom
-      setScale(currentScale);
     }
   };
 
@@ -774,9 +760,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           </div>
 
           <div className="flex-1 overflow-x-auto">
-            <div 
-              className="min-w-[800px] relative origin-top-left transition-transform duration-200"
-              style={{ transform: `scale(${scale})` }}
+            <div
+              className="min-w-[800px] relative"
             >
               <div ref={boardRef} className="p-8">
                 <div className="flex items-start gap-8">
@@ -808,11 +793,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                           </div>
                         </div>
 
-                        <Droppable 
-                          droppableId={`phase-${phaseIndex}`} 
-                          type="COLUMN" 
-                          direction="horizontal"
-                        >
+                        <Droppable droppableId={`phase-${phaseIndex}`} type="COLUMN" direction="horizontal">
                           {(provided) => (
                             <div
                               ref={provided.innerRef}
@@ -829,10 +810,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                     <div
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
-                                      style={{
-                                        ...provided.draggableProps.style,
-                                        transformOrigin: 'center center',
-                                      }}
+                                      style={provided.draggableProps.style}
                                       className="flex-shrink-0 w-[225px]"
                                     >
                                       <div className="flex items-center gap-2 mb-2">
@@ -873,8 +851,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                             className={`
                                               space-y-4 min-h-[100px] p-4
                                               rounded-lg border-2
-                                              ${snapshot.isDraggingOver 
-                                                ? 'border-primary/50 bg-primary/5' 
+                                              ${snapshot.isDraggingOver
+                                                ? 'border-primary/50 bg-primary/5'
                                                 : 'border-gray-200 hover:border-gray-300'
                                               }
                                               transition-colors duration-200
@@ -892,18 +870,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     <div
                                                       ref={provided.innerRef}
                                                       {...provided.draggableProps}
-                                                      style={{
-                                                        ...provided.draggableProps.style,
-                                                        transformOrigin: 'center center',
-                                                      }}
+                                                      style={provided.draggableProps.style}
                                                       className={`
-                                                        ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
+                                                        ${LAYER_TYPES.find(l => l.type === block.type)?.color}
                                                         group relative rounded-lg border mb-2 p-2
                                                         ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
                                                         ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                       `}
                                                     >
-                                                      <div 
+                                                      <div
                                                         {...provided.dragHandleProps}
                                                         className="absolute left-3 top-1 p-1
                                                           rounded-sm opacity-0 group-hover:opacity-100
@@ -951,29 +926,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     Add Phase
                   </Button>
                 </div>
-              </div>
-
-              {/* Zoom controls */}
-              <div className="fixed bottom-8 right-8 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50 p-2 flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleZoomOut}
-                  className="h-8 w-8 p-0 hover:bg-gray-100/80"
-                >
-                  <Minus className="w-4 h-4" />
-                </Button>
-                <span className="text-sm font-medium min-w-[3rem] text-center">
-                  {Math.round(scale * 100)}%
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleZoomIn}
-                  className="h-8 w-8 p-0 hover:bg-gray-100/80"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
               </div>
             </div>
           </div>
