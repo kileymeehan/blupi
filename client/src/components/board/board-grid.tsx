@@ -475,306 +475,306 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
-        <div className="flex items-center gap-4 pl-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClose}
-            className="h-10 px-3 -ml-3"
-          >
-            <Home className="w-5 h-5 mr-2" />
-            Home
-          </Button>
-
-          {project && (
-            <>
-              <div className="w-px h-6 bg-gray-200 mx-2" />
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="h-10 px-3"
-              >
-                <Link href={`/project/${project.id}`}>
-                  <div className="flex items-center">
-                    <Folder className="w-5 h-5 mr-2" />
-                    {project.name}
-                  </div>
-                </Link>
-              </Button>
-            </>
-          )}
-
-          <div className="w-px h-6 bg-gray-200 mx-2" />
-
-          <div className="group flex items-center gap-2">
-            <div
-              contentEditable
-              onFocus={() => setIsEditingName(true)}
-              onBlur={(e) => {
-                setIsEditingName(false);
-                handleBoardNameChange(e.currentTarget.textContent || '');
-              }}
-              className="text-2xl font-bold focus:outline-none focus:border-b border-primary"
-              suppressContentEditableWarning={true}
-            >
-              {board.name}
-            </div>
-            <Pencil className={`w-4 h-4 text-gray-400 transition-opacity duration-200 ${isEditingName ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
-          </div>
-
-          <div className="w-px h-6 bg-gray-200 mx-2" />
-
-          <StatusSelector
-            type="board"
-            value={board.status}
-            onChange={(status) => onBoardChange({ ...board, status })}
-          />
-        </div>
-
-        <div className="flex items-center">
-          <UsersPresence users={connectedUsers} />
-          <div className="w-px h-6 bg-gray-200 mx-3" />
-          <div className="flex items-center gap-2">
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="min-h-screen bg-background">
+        <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
+          <div className="flex items-center gap-4 pl-4">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setAddToProjectOpen(true)}
-              className="h-9 w-9 p-0"
+              onClick={handleClose}
+              className="h-10 px-3 -ml-3"
             >
-              <FolderPlus className="w-4 h-4" />
+              <Home className="w-5 h-5 mr-2" />
+              Home
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                  <ArrowUpFromLine className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onSelect={() => setInviteOpen(true)}>
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Invite Team Members
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setShareLinkOpen(true)}>
-                  <LinkIcon className="w-4 h-4 mr-2" />
-                  Generate Share Link
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={handleExportPDF}>
-                  <FileDown className="w-4 h-4 mr-2" />
-                  Export as PDF
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                  <UserCircle2 className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile Settings
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Blueprint</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this blueprint? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteBoard} className="bg-red-600 hover:bg-red-700">
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}>
-          <div className="flex flex-col flex-grow bg-slate-50">
-            <div className="border-b border-gray-200 bg-white shadow-sm">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleContext}
-                className={`
-                  w-full h-12 px-4
-                  flex items-center gap-2
-                  group
-                  ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                  ${showContext ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
-                `}
-              >
-                <Info className="w-5 h-5" />
-                {isDrawerOpen && <span className="text-sm">Context</span>}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleBlocks}
-                className={`
-                  w-full h-12 px-4
-                  flex items-center gap-2
-                  group
-                  ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                  ${showBlocks ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
-                `}
-              >
-                <LayoutGrid className="w-5 h-5" />
-                {isDrawerOpen && <span className="text-sm">Available Boxes</span>}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleComments}
-                className={`
-                  w-full h-12 px-4
-                  flex items-center gap-2
-                  group
-                  ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                  ${showComments ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
-                `}
-              >
-                <MessageSquare className="w-5 h-5" />
-                {isDrawerOpen && <span className="text-sm">All Comments</span>}
-              </Button>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleSidebar}
-              className="absolute top-2 -right-4 w-8 h-8 rounded-full bg-white shadow-md z-50 hover:bg-gray-100"
-            >
-              {isDrawerOpen ? (
-                <ChevronLeft className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
-            </Button>
-
-            {isDrawerOpen && (
-              <div className="flex-1 flex flex-col bg-slate-50">
-                <div className={`flex-1 ${showContext ? 'block' : 'hidden'}`}>
-                  <div className="p-4 space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Blueprint Details
-                      </label>
-                      <Textarea
-                        placeholder="Add key details about this blueprint..."
-                        value={blueprintDetails}
-                        onChange={(e) => setBlueprintDetails(e.target.value)}
-                        className="min-h-[150px] resize-none"
-                      />
+            {project && (
+              <>
+                <div className="w-px h-6 bg-gray-200 mx-2" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="h-10 px-3"
+                >
+                  <Link href={`/project/${project.id}`}>
+                    <div className="flex items-center">
+                      <Folder className="w-5 h-5 mr-2" />
+                      {project.name}
                     </div>
+                  </Link>
+                </Button>
+              </>
+            )}
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium block">
-                        Persona
-                      </label>
-                      <div
-                        className="w-full h-40 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
-                        onClick={() => document.getElementById('persona-image')?.click()}
-                      >
-                        {personaImage ? (
-                          <img
-                            src={personaImage}
-                            alt="Persona"
-                            className="w-full h-full object-cover rounded-lg"
-                          />
-                        ) : (
-                          <div className="text-center">
-                            <Upload className="w-8 h-8 mx-auto text-gray-400" />
-                            <span className="text-sm text-gray-500 mt-2 block">
-                              Upload persona image
-                            </span>
-                          </div>
-                        )}
-                        <input
-                          id="persona-image"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                setPersonaImage(reader.result as string);
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          }}
+            <div className="w-px h-6 bg-gray-200 mx-2" />
+
+            <div className="group flex items-center gap-2">
+              <div
+                contentEditable
+                onFocus={() => setIsEditingName(true)}
+                onBlur={(e) => {
+                  setIsEditingName(false);
+                  handleBoardNameChange(e.currentTarget.textContent || '');
+                }}
+                className="text-2xl font-bold focus:outline-none focus:border-b border-primary"
+                suppressContentEditableWarning={true}
+              >
+                {board.name}
+              </div>
+              <Pencil className={`w-4 h-4 text-gray-400 transition-opacity duration-200 ${isEditingName ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+            </div>
+
+            <div className="w-px h-6 bg-gray-200 mx-2" />
+
+            <StatusSelector
+              type="board"
+              value={board.status}
+              onChange={(status) => onBoardChange({ ...board, status })}
+            />
+          </div>
+
+          <div className="flex items-center">
+            <UsersPresence users={connectedUsers} />
+            <div className="w-px h-6 bg-gray-200 mx-3" />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAddToProjectOpen(true)}
+                className="h-9 w-9 p-0"
+              >
+                <FolderPlus className="w-4 h-4" />
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                    <ArrowUpFromLine className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onSelect={() => setInviteOpen(true)}>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Invite Team Members
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setShareLinkOpen(true)}>
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    Generate Share Link
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={handleExportPDF}>
+                    <FileDown className="w-4 h-4 mr-2" />
+                    Export as PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                    <UserCircle2 className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <User className="w-4 h-4 mr-2" />
+                      Profile Settings
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Blueprint</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this blueprint? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteBoard} className="bg-red-600 hover:bg-red-700">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        </header>
+
+        <div className="flex flex-1 overflow-hidden">
+          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}>
+            <div className="flex flex-col flex-grow bg-slate-50">
+              <div className="border-b border-gray-200 bg-white shadow-sm">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleContext}
+                  className={`
+                    w-full h-12 px-4
+                    flex items-center gap-2
+                    group
+                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                    ${showContext ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
+                  `}
+                >
+                  <Info className="w-5 h-5" />
+                  {isDrawerOpen && <span className="text-sm">Context</span>}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleBlocks}
+                  className={`
+                    w-full h-12 px-4
+                    flex items-center gap-2
+                    group
+                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                    ${showBlocks ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
+                  `}
+                >
+                  <LayoutGrid className="w-5 h-5" />
+                  {isDrawerOpen && <span className="text-sm">Available Boxes</span>}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleComments}
+                  className={`
+                    w-full h-12 px-4
+                    flex items-center gap-2
+                    group
+                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                    ${showComments ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
+                  `}
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  {isDrawerOpen && <span className="text-sm">All Comments</span>}
+                </Button>
+              </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleSidebar}
+                className="absolute top-2 -right-4 w-8 h-8 rounded-full bg-white shadow-md z-50 hover:bg-gray-100"
+              >
+                {isDrawerOpen ? (
+                  <ChevronLeft className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
+              </Button>
+
+              {isDrawerOpen && (
+                <div className="flex-1 flex flex-col bg-slate-50">
+                  <div className={`flex-1 ${showContext ? 'block' : 'hidden'}`}>
+                    <div className="p-4 space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Blueprint Details
+                        </label>
+                        <Textarea
+                          placeholder="Add key details about this blueprint..."
+                          value={blueprintDetails}
+                          onChange={(e) => setBlueprintDetails(e.target.value)}
+                          className="min-h-[150px] resize-none"
                         />
                       </div>
-                      <Textarea
-                        placeholder="Describe the persona..."
-                        value={personaDetails}
-                        onChange={(e) => setPersonaDetails(e.target.value)}
-                        className="min-h-[100px] resize-none mt-2"
-                      />
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium block">
+                          Persona
+                        </label>
+                        <div
+                          className="w-full h-40 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
+                          onClick={() => document.getElementById('persona-image')?.click()}
+                        >
+                          {personaImage ? (
+                            <img
+                              src={personaImage}
+                              alt="Persona"
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <Upload className="w-8 h-8 mx-auto text-gray-400" />
+                              <span className="text-sm text-gray-500 mt-2 block">
+                                Upload persona image
+                              </span>
+                            </div>
+                          )}
+                          <input
+                            id="persona-image"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setPersonaImage(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </div>
+                        <Textarea
+                          placeholder="Describe the persona..."
+                          value={personaDetails}
+                          onChange={(e) => setPersonaDetails(e.target.value)}
+                          className="min-h-[100px] resize-none mt-2"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className={`flex-1 ${showBlocks ? 'block' : 'hidden'}`}>
-                  <Droppable droppableId="drawer">
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        className="p-4"
-                      >
-                        <BlockDrawer />
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </div>
+                  <div className={`flex-1 ${showBlocks ? 'block' : 'hidden'}`}>
+                    <Droppable droppableId="drawer">
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className="p-4"
+                        >
+                          <BlockDrawer />
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  </div>
 
-                <div className={`flex-1 ${showComments ? 'block' : 'hidden'}`}>
-                  <CommentsOverview
-                    board={board}
-                    onCommentClick={(block) => {
-                      setSelectedBlock(block);
-                      setCommentDialogOpen(true);
-                      setHighlightedBlockId(block.id);
-                      setTimeout(() => setHighlightedBlockId(null), 2000);
-                    }}
-                  />
+                  <div className={`flex-1 ${showComments ? 'block' : 'hidden'}`}>
+                    <CommentsOverview
+                      board={board}
+                      onCommentClick={(block) => {
+                        setSelectedBlock(block);
+                        setCommentDialogOpen(true);
+                        setHighlightedBlockId(block.id);
+                        setTimeout(() => setHighlightedBlockId(null), 2000);
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="flex-1 overflow-x-auto">
-          <div className="min-w-[800px] relative">
-            <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="flex-1 overflow-x-auto">
+            <div className="min-w-[800px] relative">
               <div
                 ref={boardRef}
                 className="p-8"
@@ -832,7 +832,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                       {...provided.draggableProps}
                                       style={{
                                         ...provided.draggableProps.style,
-                                        transformOrigin: snapshot.isDragging ? 'center' : 'top left',
+                                        transformOrigin: snapshot.isDragging ? 'center' : 'top left'
                                       }}
                                       className="flex-shrink-0 w-[225px]"
                                     >
@@ -855,7 +855,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
-                                          className="h-6 w-6 p-0 hover:text-red-5000 hide-in-pdf"
+                                          className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
                                         >
                                           <Trash2 className="w-4 h-4" />
                                         </Button>
@@ -895,7 +895,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                       {...provided.draggableProps}
                                                       style={{
                                                         ...provided.draggableProps.style,
-                                                        transformOrigin: snapshot.isDragging ? 'center' : 'top left',
+                                                        transformOrigin: snapshot.isDragging ? 'center' : 'top left'
                                                       }}
                                                       className={`
                                                         ${LAYER_TYPES.find(l => l.type === block.type)?.color}
@@ -953,30 +953,29 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   </Button>
                 </div>
               </div>
-            </DragDropContext>
-          </div>
 
-          {/* Zoom controls */}
-          <div className="fixed bottom-8 right-8 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50 p-2 flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleZoomOut}
-              className="h-8 w-8 p-0 hover:bg-gray-100/80"
-            >
-              <Minus className="w-4 h-4" />
-            </Button>
-            <span className="text-sm font-medium min-w-[3rem] text-center">
-              {Math.round(scale * 100)}%
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleZoomIn}
-              className="h-8 w-8 p-0 hover:bg-gray-100/80"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
+              <div className="fixed bottom-8 right-8 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50 p-2 flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleZoomOut}
+                  className="h-8 w-8 p-0 hover:bg-gray-100/80"
+                >
+                  <Minus className="w-4 h-4" />
+                </Button>
+                <span className="text-sm font-medium min-w-[3rem] text-center">
+                  {Math.round(scale * 100)}%
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleZoomIn}
+                  className="h-8 w-8 p-0 hover:bg-gray-100/80"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -986,9 +985,17 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             onOpenChange={setCommentDialogOpen}
             block={selectedBlock}
             boardId={board.id}
+            onCommentAdd={(comment) => {
+              if (!onBlocksChange) return;
+              const blocks = board.blocks.map(b =>
+                b.id === selectedBlock.id
+                  ? { ...b, comments: [...(b.comments || []), comment] }
+                  : b
+              );
+              onBlocksChange(blocks);
+            }}
           />
         )}
-
         <AddToProjectDialog
           open={addToProjectOpen}
           onOpenChange={setAddToProjectOpen}
@@ -1076,6 +1083,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           </Dialog>
         )}
       </div>
-    </div>
+    </DragDropContext>
   );
 }
