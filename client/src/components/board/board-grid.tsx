@@ -775,13 +775,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
           <div className="flex-1 overflow-x-auto">
             <div className="min-w-[800px] relative">
+              {/* Scale wrapper - move scale transform here */}
               <div
-                style={{
-                  transformOrigin: 'top left',
-                  transition: 'transform 0.2s ease-out'
-                }}
+                ref={boardRef}
+                className="origin-top-left transition-transform duration-200"
+                style={{ transform: `scale(${scale})` }}
               >
-                <div ref={boardRef} className="p-8" style={{ transform: `scale(${scale})` }}>
+                <div className="p-8">
                   <div className="flex items-start gap-8">
                     {board.phases.map((phase, phaseIndex) => (
                       <div key={phase.id} className="flex-shrink-0 relative mr-8">
@@ -829,13 +829,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                         ref={provided.innerRef}
                                         {...provided.draggableProps}
                                         className="flex-shrink-0 w-[225px]"
-                                        style={{
-                                          ...provided.draggableProps.style,
-                                          transform: snapshot.isDragging
-                                            ? provided.draggableProps.style?.transform
-                                            : `scale(${1/scale}) ${provided.draggableProps.style?.transform || ''}`,
-                                          transformOrigin: 'top left'
-                                        }}
+                                        style={provided.draggableProps.style}
                                       >
                                         <div className="flex items-center gap-2 mb-2">
                                           <div
@@ -894,19 +888,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                       <div
                                                         ref={provided.innerRef}
                                                         {...provided.draggableProps}
+                                                        style={provided.draggableProps.style}
                                                         className={`
                                                           ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
                                                           group relative rounded-lg border mb-2 p-2
                                                           ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
                                                           ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                         `}
-                                                        style={{
-                                                          ...provided.draggableProps.style,
-                                                          transform: snapshot.isDragging
-                                                            ? provided.draggableProps.style?.transform
-                                                            : `scale(${1/scale}) ${provided.draggableProps.style?.transform || ''}`,
-                                                          transformOrigin: 'top left'
-                                                        }}
                                                       >
                                                         <div 
                                                           {...provided.dragHandleProps}
@@ -959,6 +947,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 </div>
               </div>
 
+              {/* Zoom controls */}
               <div className="fixed bottom-8 right-8 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50 p-2 flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -982,6 +971,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               </div>
             </div>
           </div>
+
         </DragDropContext>
 
         {selectedBlock && (
