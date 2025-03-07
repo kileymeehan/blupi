@@ -41,9 +41,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!projectToDelete) {
-      refetchProjects();
+      Promise.all([
+        queryClient.refetchQueries({ queryKey: ["/api/projects"] }),
+        queryClient.refetchQueries({ queryKey: ["/api/boards"] })
+      ]);
     }
-  }, [projectToDelete, refetchProjects]);
+  }, [projectToDelete]);
 
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
     queryKey: ['/api/boards']
@@ -358,10 +361,6 @@ export default function Dashboard() {
           onOpenChange={(open) => {
             if (!open) {
               setProjectToDelete(null);
-              Promise.all([
-                queryClient.refetchQueries({ queryKey: ['/api/projects'] }),
-                queryClient.refetchQueries({ queryKey: ['/api/boards'] })
-              ]);
             }
           }}
           projectId={projectToDelete.id}

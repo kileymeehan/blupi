@@ -23,14 +23,14 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
   const deleteProjectMutation = useMutation({
     mutationFn: async () => {
       try {
-        console.log('Deleting project:', projectId, 'with action:', blueprintAction);
-        const res = await apiRequest(
+        console.log('Delete project mutation started:', { projectId, blueprintAction });
+        const response = await apiRequest(
           "DELETE",
           `/api/projects/${projectId}`,
           { blueprintAction }
         );
 
-        if (!res.ok) {
+        if (!response.ok) {
           throw new Error("Failed to delete project");
         }
 
@@ -41,10 +41,7 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
       }
     },
     onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Project deleted successfully"
-      });
+      console.log('Delete project successful');
 
       // Close the dialog first
       onOpenChange(false);
@@ -52,6 +49,12 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
       // Then invalidate the queries
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+
+      // Show success message
+      toast({
+        title: "Success",
+        description: "Project deleted successfully"
+      });
 
       // Finally, navigate away
       setLocation("/");
