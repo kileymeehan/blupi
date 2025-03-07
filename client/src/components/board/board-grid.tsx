@@ -13,7 +13,6 @@ import ImageUpload from './image-upload';
 import { CommentsOverview } from "./comments-overview";
 import { useQuery } from '@tanstack/react-query';
 import AddToProjectDialog from "./add-to-project-dialog";
-import { UsersPresence } from "./users-presence";
 import { StatusSelector } from "@/components/status-selector";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -37,10 +36,9 @@ interface BoardGridProps {
   onBlocksChange: (blocks: BlockType[]) => void;
   onPhasesChange: (phases: Phase[]) => void;
   onBoardChange: (board: Board) => void;
-  connectedUsers: Array<{ id: string; name: string; color: string; }>;
 }
 
-export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange, connectedUsers }: BoardGridProps) {
+export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange }: BoardGridProps) {
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -493,7 +491,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         </div>
 
         <div className="flex items-center">
-          <UsersPresence users={connectedUsers} />
           <div className="w-px h-6 bg-gray-200 mx-3" />
           <div className="flex items-center gap-2">
             <Button
@@ -847,7 +844,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                       rounded-sm opacity-0 group-hover:opacity-100
                                                       transition-opacity cursor-move bg-white/50 hover:bg-white/80"
                                                   >
-                                                    <<GripVertical className="w-4 h-4 text-gray-600" />
+                                                    <GripVertical className="w4 h-4 text-gray-600" />
                                                   </div>
                                                   <Block
                                                     block={block}

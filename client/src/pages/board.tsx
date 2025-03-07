@@ -5,13 +5,10 @@ import BoardGrid from "@/components/board/board-grid";
 import type { Board, Block, Phase } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
-import { useWebSocket } from "@/hooks/use-websocket";
-import { Loader2 } from "lucide-react";
 
 export default function BoardPage() {
   const { id } = useParams();
   const { toast } = useToast();
-  const { sendMessage, connectedUsers } = useWebSocket(Number(id));
 
   const { data: board, isLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -53,10 +50,6 @@ export default function BoardPage() {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['/api/boards', id], data);
-      sendMessage({
-        type: 'board_update',
-        board: data
-      });
     },
     onError: (error: Error) => {
       toast({
@@ -104,11 +97,6 @@ export default function BoardPage() {
       onBlocksChange={handleBlocksChange}
       onPhasesChange={handlePhasesChange}
       onBoardChange={handleBoardChange}
-      connectedUsers={connectedUsers.map(userId => ({
-        id: String(userId),
-        name: String(userId),
-        color: '#4F46E5'
-      }))}
       project={project}
     />
   );

@@ -4,218 +4,11 @@ import { storage } from "./storage";
 import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
-import { WebSocketServer, WebSocket } from 'ws';
 import { sendProjectInvitation } from './utils/sendgrid';
-
-// Track active connections per board
-const boardConnections = new Map<number, Set<WebSocket>>();
-// Track user information per board
-const boardUsers = new Map<number, Set<{
-  id: string;
-  name: string;
-  color: string;
-}>>();
-
-// Track notifications in memory since we're using MemStorage
-const notifications = new Map<number, Array<{
-  id: string;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  type: 'comment' | 'invite';
-  link?: string;
-}>>();
-
-function addNotification(userId: number, notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) {
-  if (!notifications.has(userId)) {
-    notifications.set(userId, []);
-  }
-
-  const newNotification = {
-    ...notification,
-    id: nanoid(),
-    timestamp: new Date().toISOString(),
-    read: false
-  };
-
-  notifications.get(userId)!.unshift(newNotification);
-  return newNotification;
-}
-
-function broadcastToBoardUsers(boardId: number, message: any, excludeWs?: WebSocket) {
-  const connections = boardConnections.get(boardId);
-  if (!connections) return;
-
-  const messageStr = JSON.stringify(message);
-  connections.forEach(client => {
-    if (client !== excludeWs && client.readyState === WebSocket.OPEN) {
-      client.send(messageStr);
-    }
-  });
-}
-
-// Generate a random color for user avatars
-function getRandomColor() {
-  const colors = [
-    '#F87171', '#FB923C', '#FBBF24', '#34D399', 
-    '#60A5FA', '#818CF8', '#A78BFA', '#F472B6'
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
-
-  // Create WebSocket server with custom path
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws-blupi' // Changed from '/ws' to avoid conflict with Vite
-  });
-
-  wss.on('connection', (ws) => {
-    console.log('[WebSocket] New connection established');
-    let currentBoardId: number | null = null;
-    let currentUser: { id: string; name: string; color: string } | null = null;
-
-    ws.on('message', async (data) => {
-      try {
-        const message = JSON.parse(data.toString());
-        console.log('[WebSocket] Received message:', message.type);
-
-        // Handle board subscription
-        if (message.type === 'subscribe') {
-          const boardId = Number(message.boardId);
-          const userName = message.userName || 'Anonymous';
-          currentBoardId = boardId;
-          console.log(`[WebSocket] User ${userName} subscribing to board ${boardId}`);
-
-          // Create unique user identity
-          currentUser = {
-            id: nanoid(),
-            name: userName,
-            color: getRandomColor()
-          };
-
-          // Add user to board connections
-          if (!boardConnections.has(boardId)) {
-            boardConnections.set(boardId, new Set());
-          }
-          boardConnections.get(boardId)!.add(ws);
-
-          if (!boardUsers.has(boardId)) {
-            boardUsers.set(boardId, new Set());
-          }
-          boardUsers.get(boardId)!.add(currentUser);
-
-          // Send initial board state and broadcast updated user list
-          const board = await storage.getBoard(boardId);
-          if (board) {
-            console.log(`[WebSocket] Sending initial board state to user ${userName}`);
-            ws.send(JSON.stringify({ type: 'board_update', board }));
-          }
-
-          broadcastToBoardUsers(boardId, {
-            type: 'users_update',
-            users: Array.from(boardUsers.get(boardId)!)
-          });
-
-        }
-        // Handle notifications
-        else if (message.type === 'notification') {
-          console.log(`[WebSocket] Broadcasting notification to board ${currentBoardId}`);
-          broadcastToBoardUsers(currentBoardId!, {
-            type: 'notification',
-            notification: {
-              id: nanoid(),
-              title: message.title,
-              message: message.message,
-              timestamp: new Date().toISOString(),
-              read: false,
-              type: message.notificationType
-            }
-          });
-        }
-        // Handle board updates
-        else if (message.type === 'board_update' && currentBoardId) {
-          console.log(`[WebSocket] Broadcasting board update for board ${currentBoardId}`);
-          const updatedBoard = await storage.updateBoard(currentBoardId, message.board);
-          broadcastToBoardUsers(currentBoardId, { 
-            type: 'board_update',
-            board: updatedBoard 
-          }, ws);
-        }
-      } catch (err) {
-        console.error('[WebSocket] Message error:', err);
-        ws.send(JSON.stringify({ 
-          type: 'error',
-          message: 'Failed to process message'
-        }));
-      }
-    });
-
-    ws.on('close', () => {
-      if (currentBoardId && currentUser) {
-        console.log(`[WebSocket] User ${currentUser.name} disconnected from board ${currentBoardId}`);
-        // Remove user from board connections
-        if (boardConnections.has(currentBoardId)) {
-          boardConnections.get(currentBoardId)!.delete(ws);
-          if (boardConnections.get(currentBoardId)!.size === 0) {
-            boardConnections.delete(currentBoardId);
-          }
-        }
-
-        // Remove user from board users and broadcast update
-        if (boardUsers.has(currentBoardId)) {
-          boardUsers.get(currentBoardId)!.delete(currentUser);
-          broadcastToBoardUsers(currentBoardId, {
-            type: 'users_update',
-            users: Array.from(boardUsers.get(currentBoardId)!)
-          });
-        }
-      }
-    });
-  });
-
-  // Add notification routes
-  app.get("/api/notifications", async (req, res) => {
-    try {
-      console.log('Fetching notifications for user');
-      const userId = 1; // For now, hardcode user ID
-      const userNotifications = notifications.get(userId) || [];
-      console.log(`Found ${userNotifications.length} notifications for user ${userId}`);
-      res.json(userNotifications);
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-      res.status(500).json({ error: true, message: "Failed to fetch notifications" });
-    }
-  });
-
-  app.patch("/api/notifications/:id/read", async (req, res) => {
-    try {
-      console.log(`Marking notification ${req.params.id} as read`);
-      const userId = 1; // For now, hardcode user ID
-      const userNotifications = notifications.get(userId);
-      if (!userNotifications) {
-        console.log(`No notifications found for user ${userId}`);
-        return res.status(404).json({ error: true, message: "No notifications found" });
-      }
-
-      const notification = userNotifications.find(n => n.id === req.params.id);
-      if (!notification) {
-        console.log(`Notification ${req.params.id} not found`);
-        return res.status(404).json({ error: true, message: "Notification not found" });
-      }
-
-      notification.read = true;
-      console.log(`Successfully marked notification ${req.params.id} as read`);
-      res.json(notification);
-    } catch (err) {
-      console.error('Error marking notification as read:', err);
-      res.status(500).json({ error: true, message: "Failed to update notification" });
-    }
-  });
 
   // Add a health check endpoint
   app.get("/api/ping", (_req, res) => {
@@ -353,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
+  // Board routes
   app.get("/api/boards", async (_req, res) => {
     try {
       console.log('Fetching all boards');
@@ -433,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/public/boards/:id", async (req, res) => {
+  app.get("/api/boards/:id/public", async (req, res) => {
     try {
       console.log(`Fetching public board with ID: ${req.params.id}`);
       const board = await storage.getBoard(Number(req.params.id));
@@ -445,7 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: board.blocks.map(block => ({
           ...block,
-          comments: [] 
+          comments: []
         }))
       };
 
