@@ -1,7 +1,6 @@
-import { createContext, useContext, ReactNode, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useState, useCallback } from 'react';
 import type { Notification } from '@/components/notifications/notifications';
 import { useFirebaseAuth } from '@/hooks/use-firebase-auth';
-import { useWebSocket } from '@/hooks/use-websocket';
 
 interface NotificationsContextType {
   notifications: Notification[];
@@ -15,7 +14,6 @@ const NotificationsContext = createContext<NotificationsContextType | null>(null
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { user } = useFirebaseAuth();
-  const { sendMessage } = useWebSocket(0); 
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const newNotification: Notification = {
@@ -40,30 +38,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     setNotifications([]);
   }, []);
 
-  useEffect(() => {
-    if (!user) {
-      clearNotifications();
-    }
-  }, [user, clearNotifications]);
-
-  useEffect(() => {
-    const handleWebSocketMessage = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'notification') {
-          addNotification(data.notification);
-        }
-      } catch (error) {
-        console.error('Error processing notification message:', error);
-      }
-    };
-
-    window.addEventListener('message', handleWebSocketMessage);
-
-    return () => {
-      window.removeEventListener('message', handleWebSocketMessage);
-    };
-  }, [addNotification]);
+  // Clear notifications when user logs out
+  if (!user && notifications.length > 0) {
+    clearNotifications();
+  }
 
   return (
     <NotificationsContext.Provider value={{

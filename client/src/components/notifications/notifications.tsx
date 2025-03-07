@@ -6,9 +6,9 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { format } from "date-fns";
 
 export interface Notification {
   id: string;
@@ -46,7 +46,7 @@ export function Notifications({ notifications, onMarkAsRead }: NotificationsProp
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+        <SheetContent className="w-[400px] sm:w-[540px]">
           <SheetHeader>
             <SheetTitle>Notifications</SheetTitle>
           </SheetHeader>
@@ -61,7 +61,7 @@ export function Notifications({ notifications, onMarkAsRead }: NotificationsProp
                   <div
                     key={notification.id}
                     className={`
-                      p-4 rounded-lg border 
+                      p-4 rounded-lg border
                       ${notification.read ? 'bg-background' : 'bg-primary/5 border-primary/20'}
                       cursor-pointer hover:bg-accent
                       transition-colors
@@ -78,7 +78,7 @@ export function Notifications({ notifications, onMarkAsRead }: NotificationsProp
                     <div className="flex items-start justify-between">
                       <h4 className="font-medium">{notification.title}</h4>
                       <span className="text-xs text-muted-foreground">
-                        {format(new Date(notification.timestamp), 'MMM d, h:mm a')}
+                        {notification.timestamp}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">

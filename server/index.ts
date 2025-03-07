@@ -6,8 +6,9 @@ import session from "express-session";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 
-// Unset REPL_ID to disable cartographer plugin
+// Disable cartographer plugin and force production mode
 delete process.env.REPL_ID;
+process.env.NODE_ENV = "production";
 
 const app = express();
 
@@ -65,30 +66,32 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 (async () => {
   try {
-    // Register API routes before Vite middleware
+    log('[INFO] Starting server initialization...');
+
+    // Register API routes
     const server = await registerRoutes(app);
     log('[INFO] API routes registered successfully');
 
-    // Set up development middleware or static serving
     try {
-      if (process.env.NODE_ENV !== "production") {
-        log('[INFO] Setting up Vite development middleware');
+      // In production mode, only use static file serving
+      log('[INFO] Setting up static file serving');
+      serveStatic(app);
+      log('[INFO] Static file serving setup complete');
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Could not find the build directory')) {
+        log('[WARN] Build directory not found, falling back to Vite middleware');
         await setupVite(app, server);
-        log('[INFO] Vite middleware setup complete');
+        log('[INFO] Vite fallback middleware setup complete');
       } else {
-        log('[INFO] Setting up static file serving');
-        serveStatic(app);
-        log('[INFO] Static file serving setup complete');
+        log('[ERROR] Failed to setup middleware:');
+        console.error(error);
+        process.exit(1);
       }
-    } catch (err) {
-      log('[ERROR] Failed to setup middleware:');
-      console.error(err);
-      throw err;
     }
 
     // API Error handling middleware - must be after all routes
     app.use('/api', (err: any, req: Request, res: Response, next: NextFunction) => {
-      console.error('API Error:', err);
+      console.error('[ERROR] API Error:', err);
       if (!res.headersSent) {
         res.status(500).json({
           error: true,
@@ -97,14 +100,16 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
       }
     });
 
+    // Start the server
     const port = Number(process.env.PORT) || 5000;
-    const host = '0.0.0.0'; // Listen on all network interfaces
+    const host = '0.0.0.0';
 
     server.listen(port, host, () => {
-      log(`Server running at http://${host}:${port}`);
+      log(`[INFO] Server running at http://${host}:${port}`);
     });
+
   } catch (err) {
-    console.error('Failed to start server:', err);
+    console.error('[ERROR] Failed to start server:', err);
     process.exit(1);
   }
 })();

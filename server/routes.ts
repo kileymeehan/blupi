@@ -4,23 +4,138 @@ import { storage } from "./storage";
 import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
+import { WebSocketServer, WebSocket } from 'ws';
+import { sendProjectInvitation } from './utils/sendgrid';
+
+// Track active connections per board
+const boardConnections = new Map<number, Set<WebSocket>>();
+// Track user information per board
+const boardUsers = new Map<number, Set<{
+  id: string;
+  name: string;
+  color: string;
+}>>();
+
+function broadcastToBoardUsers(boardId: number, message: any, excludeWs?: WebSocket) {
+  const connections = boardConnections.get(boardId);
+  if (!connections) return;
+
+  const messageStr = JSON.stringify(message);
+  connections.forEach(client => {
+    if (client !== excludeWs && client.readyState === WebSocket.OPEN) {
+      client.send(messageStr);
+    }
+  });
+}
+
+// Generate a random color for user avatars
+function getRandomColor() {
+  const colors = [
+    '#F87171', '#FB923C', '#FBBF24', '#34D399', 
+    '#60A5FA', '#818CF8', '#A78BFA', '#F472B6'
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
 
+  // Create WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+  wss.on('connection', (ws) => {
+    let currentBoardId: number | null = null;
+    let currentUser: { id: string; name: string; color: string } | null = null;
+
+    ws.on('message', async (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+
+        // Handle board subscription
+        if (message.type === 'subscribe') {
+          const boardId = Number(message.boardId);
+          const userName = message.userName || 'Anonymous';
+          currentBoardId = boardId;
+
+          // Create unique user identity
+          currentUser = {
+            id: nanoid(),
+            name: userName,
+            color: getRandomColor()
+          };
+
+          // Add user to board connections
+          if (!boardConnections.has(boardId)) {
+            boardConnections.set(boardId, new Set());
+          }
+          boardConnections.get(boardId)!.add(ws);
+
+          // Add user to board users
+          if (!boardUsers.has(boardId)) {
+            boardUsers.set(boardId, new Set());
+          }
+          boardUsers.get(boardId)!.add(currentUser);
+
+          // Send initial board state
+          const board = await storage.getBoard(boardId);
+          if (board) {
+            ws.send(JSON.stringify({ type: 'board_update', board }));
+          }
+
+          // Broadcast updated user list
+          broadcastToBoardUsers(boardId, {
+            type: 'users_update',
+            users: Array.from(boardUsers.get(boardId)!)
+          });
+        }
+
+        // Handle board updates
+        else if (message.type === 'board_update' && currentBoardId) {
+          const updatedBoard = await storage.updateBoard(currentBoardId, message.board);
+          broadcastToBoardUsers(currentBoardId, { 
+            type: 'board_update',
+            board: updatedBoard 
+          }, ws);
+        }
+      } catch (err) {
+        console.error('WebSocket message error:', err);
+        ws.send(JSON.stringify({ 
+          type: 'error',
+          message: 'Failed to process message'
+        }));
+      }
+    });
+
+    ws.on('close', () => {
+      if (currentBoardId && currentUser) {
+        // Remove user from board connections
+        if (boardConnections.has(currentBoardId)) {
+          boardConnections.get(currentBoardId)!.delete(ws);
+          if (boardConnections.get(currentBoardId)!.size === 0) {
+            boardConnections.delete(currentBoardId);
+          }
+        }
+
+        // Remove user from board users and broadcast update
+        if (boardUsers.has(currentBoardId)) {
+          boardUsers.get(currentBoardId)!.delete(currentUser);
+          broadcastToBoardUsers(currentBoardId, {
+            type: 'users_update',
+            users: Array.from(boardUsers.get(currentBoardId)!)
+          });
+        }
+      }
+    });
+  });
+
   // Project routes
   app.get("/api/projects", async (_req, res) => {
     try {
-      console.log('[INFO] Fetching all projects');
       const projects = await storage.getProjects();
-      console.log(`[INFO] Retrieved ${projects.length} projects`);
       res.json(projects);
     } catch (err) {
-      console.error('[ERROR] Error fetching projects:', err);
-      if (err instanceof Error) {
-        console.error('[ERROR] Stack trace:', err.stack);
-      }
+      console.error('Error fetching projects:', err);
       res.status(500).json({ error: true, message: "Failed to fetch projects" });
     }
   });
@@ -145,55 +260,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
-  // Board routes
+  // Board/Blueprint routes
   app.get("/api/boards", async (_req, res) => {
-    const requestId = nanoid(6);
     try {
-      console.log(`[INFO] [${requestId}] Fetching all boards`);
       const boards = await storage.getBoards();
-      console.log(`[INFO] [${requestId}] Retrieved ${boards.length} boards`);
       res.json(boards);
     } catch (err) {
-      console.error(`[ERROR] [${requestId}] Error fetching boards:`, err);
-      if (err instanceof Error) {
-        console.error(`[ERROR] [${requestId}] Stack trace:`, err.stack);
-      }
-      res.status(500).json({ 
-        error: true, 
-        message: "Failed to fetch boards",
-        requestId
-      });
+      console.error('Error fetching boards:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch boards" });
     }
   });
 
   app.post("/api/boards", async (req, res) => {
-    const requestId = nanoid(6);
     try {
-      console.log(`[INFO] [${requestId}] Creating board with data:`, req.body);
+      console.log('Creating board with data:', req.body);
       const parseResult = insertBoardSchema.safeParse(req.body);
 
       if (!parseResult.success) {
-        console.error(`[ERROR] [${requestId}] Board validation error:`, parseResult.error);
+        console.error('Board validation error:', parseResult.error);
         return res.status(400).json({ 
           error: true,
-          message: parseResult.error.errors[0].message,
-          requestId
+          message: parseResult.error.errors[0].message 
         });
       }
 
       const board = await storage.createBoard(parseResult.data);
-      console.log(`[INFO] [${requestId}] Successfully created board:`, board.id);
       res.json(board);
     } catch (err) {
-      console.error(`[ERROR] [${requestId}] Error creating board:`, err);
-      if (err instanceof Error) {
-        console.error(`[ERROR] [${requestId}] Stack trace:`, err.stack);
+      console.error('Error creating board:', err);
+      if (err instanceof ZodError) {
+        return res.status(400).json({
+          error: true,
+          message: err.errors[0].message
+        });
       }
-      res.status(500).json({ 
-        error: true, 
-        message: "Failed to create board",
-        requestId
-      });
+      res.status(500).json({ error: true, message: "Failed to create board" });
     }
   });
 
@@ -254,7 +355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update the comments endpoint to emit notifications
+  // Update the comments endpoint to remove authentication requirement temporarily
   app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
     try {
       const { content, username } = req.body;
@@ -273,19 +374,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find and update the block with the new comment
       const updatedBlocks = board.blocks.map(block => {
         if (block.id === req.params.blockId) {
-          const newComment = {
-            id: nanoid(),
-            content,
-            userId: 1,
-            username: username || "Anonymous",
-            completed: false,
-            createdAt: new Date().toISOString()
-          };
-
-
           return {
             ...block,
-            comments: [...(block.comments || []), newComment]
+            comments: [
+              ...(block.comments || []),
+              {
+                id: nanoid(),
+                content,
+                userId: 1, // Default user ID for now
+                username: username || "Anonymous",
+                completed: false, // Add completed field
+                createdAt: new Date().toISOString()
+              }
+            ]
           };
         }
         return block;
@@ -373,11 +474,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error toggling comment completion:', err);
       res.status(500).json({ error: true, message: "Failed to update comment" });
     }
-  });
-
-  // Add a test endpoint
-  app.get("/api/healthcheck", (_req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
   return httpServer;

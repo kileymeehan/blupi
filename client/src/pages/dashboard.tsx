@@ -15,6 +15,8 @@ import { StatusSelector } from "@/components/status-selector";
 import { Project, Board } from "@shared/schema"; 
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { Notifications } from "@/components/notifications/notifications";
+import { useNotifications } from "@/lib/notifications-provider";
 
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
@@ -34,6 +36,7 @@ export default function Dashboard() {
   const [showArchived, setShowArchived] = useState(false);
   const [showArchivedBlueprints, setShowArchivedBlueprints] = useState(false);
   const { toast } = useToast();
+  const { notifications, markAsRead } = useNotifications();
 
   const { data: projects = [], refetch: refetchProjects, isLoading: projectLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
@@ -150,6 +153,10 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Notifications 
+              notifications={notifications}
+              onMarkAsRead={markAsRead}
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative flex items-center gap-2">
