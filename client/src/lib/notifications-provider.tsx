@@ -1,6 +1,7 @@
-import { createContext, useContext, ReactNode, useState, useCallback } from 'react';
+import { createContext, useContext, ReactNode, useState, useCallback, useEffect } from 'react';
 import type { Notification } from '@/components/notifications/notifications';
 import { useFirebaseAuth } from '@/hooks/use-firebase-auth';
+import { useWebSocket } from '@/hooks/use-websocket';
 
 interface NotificationsContextType {
   notifications: Notification[];
@@ -14,6 +15,7 @@ const NotificationsContext = createContext<NotificationsContextType | null>(null
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { user } = useFirebaseAuth();
+  const { sendMessage } = useWebSocket(0); // 0 is a dummy boardId, we'll handle global notifications
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const newNotification: Notification = {
@@ -38,10 +40,33 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     setNotifications([]);
   }, []);
 
-  // Clear notifications when user logs out
-  if (!user && notifications.length > 0) {
-    clearNotifications();
-  }
+  useEffect(() => {
+    if (!user) {
+      clearNotifications();
+    }
+  }, [user, clearNotifications]);
+
+  // Listen for WebSocket notifications
+  useEffect(() => {
+    const handleWebSocketMessage = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'notification') {
+        addNotification(data.notification);
+      }
+    };
+
+    // Get the WebSocket instance
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const socket = new WebSocket(wsUrl);
+
+    socket.addEventListener('message', handleWebSocketMessage);
+
+    return () => {
+      socket.removeEventListener('message', handleWebSocketMessage);
+      socket.close();
+    };
+  }, [addNotification]);
 
   return (
     <NotificationsContext.Provider value={{

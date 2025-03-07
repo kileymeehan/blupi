@@ -65,31 +65,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
             color: getRandomColor()
           };
 
-          // Add user to board connections
+          // Add user to board connections and broadcast
           if (!boardConnections.has(boardId)) {
             boardConnections.set(boardId, new Set());
           }
           boardConnections.get(boardId)!.add(ws);
 
-          // Add user to board users
           if (!boardUsers.has(boardId)) {
             boardUsers.set(boardId, new Set());
           }
           boardUsers.get(boardId)!.add(currentUser);
 
-          // Send initial board state
+          // Send initial board state and broadcast updated user list
           const board = await storage.getBoard(boardId);
           if (board) {
             ws.send(JSON.stringify({ type: 'board_update', board }));
           }
 
-          // Broadcast updated user list
           broadcastToBoardUsers(boardId, {
             type: 'users_update',
             users: Array.from(boardUsers.get(boardId)!)
           });
         }
 
+        // Handle notifications for comments
+        else if (message.type === 'notification') {
+          broadcastToBoardUsers(currentBoardId!, {
+            type: 'notification',
+            notification: {
+              id: nanoid(),
+              title: message.title,
+              message: message.message,
+              timestamp: new Date().toISOString(),
+              read: false,
+              type: message.notificationType
+            }
+          });
+        }
         // Handle board updates
         else if (message.type === 'board_update' && currentBoardId) {
           const updatedBoard = await storage.updateBoard(currentBoardId, message.board);
@@ -355,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update the comments endpoint to remove authentication requirement temporarily
+  // Update the comments endpoint to emit notifications
   app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
     try {
       const { content, username } = req.body;
@@ -374,19 +386,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find and update the block with the new comment
       const updatedBlocks = board.blocks.map(block => {
         if (block.id === req.params.blockId) {
+          const newComment = {
+            id: nanoid(),
+            content,
+            userId: 1,
+            username: username || "Anonymous",
+            completed: false,
+            createdAt: new Date().toISOString()
+          };
+
+          // Emit notification for new comment
+          broadcastToBoardUsers(board.id, {
+            type: 'notification',
+            notification: {
+              id: nanoid(),
+              title: 'New Comment',
+              message: `${username || 'Anonymous'} commented on a block in "${board.name}"`,
+              timestamp: new Date().toISOString(),
+              read: false,
+              type: 'comment',
+              link: `/board/${board.id}`
+            }
+          });
+
           return {
             ...block,
-            comments: [
-              ...(block.comments || []),
-              {
-                id: nanoid(),
-                content,
-                userId: 1, // Default user ID for now
-                username: username || "Anonymous",
-                completed: false, // Add completed field
-                createdAt: new Date().toISOString()
-              }
-            ]
+            comments: [...(block.comments || []), newComment]
           };
         }
         return block;
