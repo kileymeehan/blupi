@@ -5,12 +5,8 @@ import passport from "passport";
 import session from "express-session";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { createServer } from "http";
 
 const app = express();
-
-// Create HTTP server
-const server = createServer(app);
 
 // Body parsing middleware - must be first
 app.use(express.json());
@@ -35,14 +31,36 @@ app.use(passport.session());
 // Setup authentication routes
 setupAuth(app);
 
-// Logging middleware
+// Detailed request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
-  log(`[${new Date().toISOString()}] ${req.method} ${req.path} started`);
-  res.on("finish", () => {
+  const requestId = Math.random().toString(36).substring(7);
+
+  log(`[${requestId}] [${new Date().toISOString()}] ${req.method} ${req.path} started`);
+  log(`[${requestId}] Headers: ${JSON.stringify(req.headers)}`);
+  log(`[${requestId}] Query: ${JSON.stringify(req.query)}`);
+
+  // Log response
+  const oldWrite = res.write;
+  const oldEnd = res.end;
+
+  const chunks: Buffer[] = [];
+
+  res.write = function (chunk: any) {
+    chunks.push(Buffer.from(chunk));
+    return oldWrite.apply(res, arguments as any);
+  };
+
+  res.end = function (chunk: any) {
+    if (chunk) {
+      chunks.push(Buffer.from(chunk));
+    }
     const duration = Date.now() - start;
-    log(`[${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} completed in ${duration}ms`);
-  });
+    log(`[${requestId}] [${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} completed in ${duration}ms`);
+
+    return oldEnd.apply(res, arguments as any);
+  };
+
   next();
 });
 
@@ -62,6 +80,7 @@ app.use('/api', (req, res, next) => {
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof SyntaxError && 'body' in err) {
     log(`[ERROR] JSON parsing error: ${err.message}`);
+    log(`[ERROR] Stack trace: ${err.stack}`);
     return res.status(400).json({ error: true, message: 'Invalid JSON' });
   }
   next(err);
@@ -72,7 +91,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     log('[INFO] Starting server initialization...');
 
     // Register API routes before Vite middleware
-    await registerRoutes(app);
+    const server = await registerRoutes(app);
     log('[INFO] API routes registered successfully');
 
     // Set up development middleware or static serving
@@ -88,11 +107,18 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
     // API Error handling middleware - must be after all routes
     app.use('/api', (err: any, req: Request, res: Response, next: NextFunction) => {
-      console.error('[ERROR] API Error:', err);
+      const errorId = Math.random().toString(36).substring(7);
+      console.error(`[ERROR] [${errorId}] API Error:`, err);
+      console.error(`[ERROR] [${errorId}] Stack trace:`, err.stack);
+      console.error(`[ERROR] [${errorId}] Request headers:`, req.headers);
+      console.error(`[ERROR] [${errorId}] Request query:`, req.query);
+      console.error(`[ERROR] [${errorId}] Request body:`, req.body);
+
       if (!res.headersSent) {
         res.status(500).json({
           error: true,
-          message: err.message || "Internal Server Error"
+          message: err.message || "Internal Server Error",
+          errorId // Include error ID in response for correlation
         });
       }
     });
@@ -105,6 +131,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     });
 
     server.on('error', (error: any) => {
+      console.error('[ERROR] Server error:', error);
       if (error.syscall !== 'listen') {
         throw error;
       }
@@ -128,16 +155,24 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     // Handle uncaught exceptions
     process.on('uncaughtException', (err) => {
       console.error('[ERROR] Uncaught Exception:', err);
+      console.error('[ERROR] Stack trace:', err.stack);
       process.exit(1);
     });
 
     process.on('unhandledRejection', (reason, promise) => {
-      console.error('[ERROR] Unhandled Rejection at:', promise, 'reason:', reason);
+      console.error('[ERROR] Unhandled Rejection at:', promise);
+      console.error('[ERROR] Reason:', reason);
+      if (reason instanceof Error) {
+        console.error('[ERROR] Stack trace:', reason.stack);
+      }
       process.exit(1);
     });
 
   } catch (err) {
     console.error('[ERROR] Failed to start server:', err);
+    if (err instanceof Error) {
+      console.error('[ERROR] Stack trace:', err.stack);
+    }
     process.exit(1);
   }
 })();
