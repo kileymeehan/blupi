@@ -41,7 +41,7 @@ export default function Block({
   onNotesChange,
   onEmojiChange,
   isTemplate = false, 
-  onCommentClick, 
+  onCommentClick,
   projectId 
 }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -87,7 +87,7 @@ export default function Block({
   const attachmentCount = block.attachments?.length || 0;
 
   return (
-    <div className="group relative w-full h-full px-2">
+    <div className="w-full h-full px-2">
       {block.emoji && (
         <div className="absolute -top-2 -right-2 z-10 text-lg">
           {block.emoji}
@@ -99,11 +99,13 @@ export default function Block({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`
-          w-full min-h-[120px] rounded-lg px-3 py-3 text-sm
-          ${isTemplate ? 'flex items-center justify-center' : 'flex flex-col justify-center min-h-[120px] pt-10 pb-4'}
+          w-full min-h-[120px] rounded-lg px-3 py-6 text-sm
+          ${isTemplate ? 'flex items-center justify-center' : ''}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal text-center
-          focus:outline-none focus:ring-2 focus:ring-primary/20
+          focus:outline-none
+          focus:bg-white/50
+          transition-colors duration-200
         `}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}

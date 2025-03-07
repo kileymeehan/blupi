@@ -852,8 +852,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                     </div>
 
                                     <ImageUpload
-                                                                            currentImage={column.image}
-                                      onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
+                                      currentImage={column.image}                                      onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
                                     />
 
                                     <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
@@ -883,10 +882,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                   <div
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      relative rounded-lg z-10 border
+                                                      group relative rounded-lg z-10 border
                                                       ${snapshot.isDragging 
                                                         ? 'border-primary shadow-lg scale-[1.02]' 
                                                         : 'border-gray-200'
@@ -899,6 +897,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                       transition-transform duration-200
                                                     `}
                                                   >
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute left-2 top-2 opacity-0 group 
+                                                        group-hover:opacity-40 hover:!opacity-100 
+                                                        transition-opacity cursor-grab active:cursor-grabbing
+                                                        hover:bg-gray-100 rounded p-0.5"
+                                                    >
+                                                      <GripVertical className="w-4 h-4" />
+                                                    </div>
                                                     <Block
                                                       block={block}
                                                       onChange={(content) => handleBlockChange(block.id, content)}
