@@ -4,6 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { FirebaseProvider } from "@/lib/firebase-provider";
+import { NotificationsProvider } from "@/lib/notifications-provider";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Board from "@/pages/board";
@@ -39,8 +40,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <FirebaseProvider>
-        <Router />
-        <Toaster />
+        <NotificationsProvider>
+          <Router />
+          <Toaster />
+        </NotificationsProvider>
       </FirebaseProvider>
     </QueryClientProvider>
   );

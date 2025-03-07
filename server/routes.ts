@@ -16,6 +16,33 @@ const boardUsers = new Map<number, Set<{
   color: string;
 }>>();
 
+// Track notifications in memory since we're using MemStorage
+const notifications = new Map<number, Array<{
+  id: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  type: 'comment' | 'invite';
+  link?: string;
+}>>();
+
+function addNotification(userId: number, notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) {
+  if (!notifications.has(userId)) {
+    notifications.set(userId, []);
+  }
+
+  const newNotification = {
+    ...notification,
+    id: nanoid(),
+    timestamp: new Date().toISOString(),
+    read: false
+  };
+
+  notifications.get(userId)!.unshift(newNotification);
+  return newNotification;
+}
+
 function broadcastToBoardUsers(boardId: number, message: any, excludeWs?: WebSocket) {
   const connections = boardConnections.get(boardId);
   if (!connections) return;
@@ -71,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             color: getRandomColor()
           };
 
-          // Add user to board connections and broadcast
+          // Add user to board connections
           if (!boardConnections.has(boardId)) {
             boardConnections.set(boardId, new Set());
           }
@@ -92,6 +119,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           broadcastToBoardUsers(boardId, {
             type: 'users_update',
             users: Array.from(boardUsers.get(boardId)!)
+          });
+
+        }
+        // Handle notifications
+        else if (message.type === 'notification') {
+          console.log(`[WebSocket] Broadcasting notification to board ${currentBoardId}`);
+          broadcastToBoardUsers(currentBoardId!, {
+            type: 'notification',
+            notification: {
+              id: nanoid(),
+              title: message.title,
+              message: message.message,
+              timestamp: new Date().toISOString(),
+              read: false,
+              type: message.notificationType
+            }
           });
         }
         // Handle board updates
@@ -133,6 +176,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
     });
+  });
+
+  // Add notification routes
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      console.log('Fetching notifications for user');
+      const userId = 1; // For now, hardcode user ID
+      const userNotifications = notifications.get(userId) || [];
+      console.log(`Found ${userNotifications.length} notifications for user ${userId}`);
+      res.json(userNotifications);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.patch("/api/notifications/:id/read", async (req, res) => {
+    try {
+      console.log(`Marking notification ${req.params.id} as read`);
+      const userId = 1; // For now, hardcode user ID
+      const userNotifications = notifications.get(userId);
+      if (!userNotifications) {
+        console.log(`No notifications found for user ${userId}`);
+        return res.status(404).json({ error: true, message: "No notifications found" });
+      }
+
+      const notification = userNotifications.find(n => n.id === req.params.id);
+      if (!notification) {
+        console.log(`Notification ${req.params.id} not found`);
+        return res.status(404).json({ error: true, message: "Notification not found" });
+      }
+
+      notification.read = true;
+      console.log(`Successfully marked notification ${req.params.id} as read`);
+      res.json(notification);
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+      res.status(500).json({ error: true, message: "Failed to update notification" });
+    }
   });
 
   // Add a health check endpoint

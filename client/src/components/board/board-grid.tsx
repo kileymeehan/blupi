@@ -17,6 +17,8 @@ import { UsersPresence } from "./users-presence";
 import { StatusSelector } from "@/components/status-selector";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { Notifications } from "@/components/notifications/notifications";
+import { useNotifications } from "@/lib/notifications-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,6 +58,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [shareLinkOpen, setShareLinkOpen] = useState(false);
   const [shareLink, setShareLink] = useState("");
   const boardRef = useRef<HTMLDivElement>(null);
+  const { addToast } = useToast();
+  const { addNotification } = useNotifications();
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -349,7 +353,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       if (!res.ok) throw new Error('Failed to delete blueprint');
       setLocation('/');
     } catch (error) {
-      useToast({
+      addToast({
         title: "Error",
         description: error instanceof Error ? error.message : 'Failed to delete blueprint',
         variant: "destructive"
@@ -418,6 +422,16 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     type: 'link' | 'image' | 'video';
     url: string;
   }
+
+  const handleShareLinkCopy = (link: string) => {
+    navigator.clipboard.writeText(link);
+    addNotification({
+      title: "Link copied",
+      description: "Link has been copied to clipboard",
+      type: "success"
+    });
+  }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -841,7 +855,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     onChange={(content) => handleBlockChange(block.id, content)}
                                                     onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
                                                     onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                     onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
+                                                    onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
                                                     onCommentClick={() => handleCommentClick(block)}
                                                     projectId={board.projectId || undefined}
                                                     highlighted={block.id === highlightedBlockId}
@@ -940,13 +954,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                           className="w-full"
                         />
                         <Button
-                          onClick={() => {
-                            navigator.clipboard.writeText(window.location.href);
-                            useToast({
-                              title: "Link copied",
-                              description: "Team access link has been copied to clipboard"
-                            });
-                          }}
+                          onClick={() => handleShareLinkCopy(window.location.href)}
                         >
                           Copy
                         </Button>
@@ -962,13 +970,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                           className="w-full"
                         />
                         <Button
-                          onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
-                            useToast({
-                              title: "Link copied",
-                              description: "Public access link has been copied to clipboard"
-                            });
-                          }}
+                          onClick={() => handleShareLinkCopy(`${window.location.origin}/public/board/${id}`)}
                         >
                           Copy
                         </Button>
@@ -983,6 +985,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             )}
           </div>
         </div>
+        <Notifications />
       </div>
     );
   }
