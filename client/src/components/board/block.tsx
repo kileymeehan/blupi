@@ -34,9 +34,6 @@ const TYPE_LABELS = {
   hidden: 'Hidden Step'
 } as const;
 
-/**
- * Update Block component to handle text content properly
- */
 export default function Block({
   block,
   onChange,
@@ -73,6 +70,16 @@ export default function Block({
     if (!contentRef.current) return;
     const newContent = contentRef.current.textContent || '';
     setLocalContent(newContent);
+
+    // Preserve cursor position at end of text
+    if (contentRef.current) {
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(contentRef.current);
+      range.collapse(false);
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+    }
   };
 
   const handleBlur = () => {
@@ -113,7 +120,7 @@ export default function Block({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`
-          w-full min-h-[120px] px-3 py-6 pt-10 text-sm
+          w-full min-h-[100px] px-3 py-4 pt-8 text-sm
           ${isTemplate ? 'flex items-center justify-center' : ''}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal text-center
