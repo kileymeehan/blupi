@@ -475,143 +475,143 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   }
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="min-h-screen bg-background">
-        <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
-          <div className="flex items-center gap-4 pl-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-10 px-3 -ml-3"
-            >
-              <Home className="w-5 h-5 mr-2" />
-              Home
-            </Button>
+    <div className="min-h-screen bg-background">
+      <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
+        <div className="flex items-center gap-4 pl-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="h-10 px-3 -ml-3"
+          >
+            <Home className="w-5 h-5 mr-2" />
+            Home
+          </Button>
 
-            {project && (
-              <>
-                <div className="w-px h-6 bg-gray-200 mx-2" />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  className="h-10 px-3"
-                >
-                  <Link href={`/project/${project.id}`}>
-                    <div className="flex items-center">
-                      <Folder className="w-5 h-5 mr-2" />
-                      {project.name}
-                    </div>
-                  </Link>
-                </Button>
-              </>
-            )}
-
-            <div className="w-px h-6 bg-gray-200 mx-2" />
-
-            <div className="group flex items-center gap-2">
-              <div
-                contentEditable
-                onFocus={() => setIsEditingName(true)}
-                onBlur={(e) => {
-                  setIsEditingName(false);
-                  handleBoardNameChange(e.currentTarget.textContent || '');
-                }}
-                className="text-2xl font-bold focus:outline-none focus:border-b border-primary"
-                suppressContentEditableWarning={true}
-              >
-                {board.name}
-              </div>
-              <Pencil className={`w-4 h-4 text-gray-400 transition-opacity duration-200 ${isEditingName ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
-            </div>
-
-            <div className="w-px h-6 bg-gray-200 mx-2" />
-
-            <StatusSelector
-              type="board"
-              value={board.status}
-              onChange={(status) => onBoardChange({ ...board, status })}
-            />
-          </div>
-
-          <div className="flex items-center">
-            <UsersPresence users={connectedUsers} />
-            <div className="w-px h-6 bg-gray-200 mx-3" />
-            <div className="flex items-center gap-2">
+          {project && (
+            <>
+              <div className="w-px h-6 bg-gray-200 mx-2" />
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setAddToProjectOpen(true)}
-                className="h-9 w-9 p-0"
+                asChild
+                className="h-10 px-3"
               >
-                <FolderPlus className="w-4 h-4" />
+                <Link href={`/project/${project.id}`}>
+                  <div className="flex items-center">
+                    <Folder className="w-5 h-5 mr-2" />
+                    {project.name}
+                  </div>
+                </Link>
               </Button>
+            </>
+          )}
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                    <ArrowUpFromLine className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onSelect={() => setInviteOpen(true)}>
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Invite Team Members
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setShareLinkOpen(true)}>
-                    <LinkIcon className="w-4 h-4 mr-2" />
-                    Generate Share Link
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={handleExportPDF}>
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Export as PDF
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+          <div className="w-px h-6 bg-gray-200 mx-2" />
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                    <UserCircle2 className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User className="w-4 h-4 mr-2" />
-                      Profile Settings
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Blueprint</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this blueprint? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteBoard} className="bg-red-600 hover:bg-red-700">
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+          <div className="group flex items-center gap-2">
+            <div
+              contentEditable
+              onFocus={() => setIsEditingName(true)}
+              onBlur={(e) => {
+                setIsEditingName(false);
+                handleBoardNameChange(e.currentTarget.textContent || '');
+              }}
+              className="text-2xl font-bold focus:outline-none focus:border-b border-primary"
+              suppressContentEditableWarning={true}
+            >
+              {board.name}
             </div>
+            <Pencil className={`w-4 h-4 text-gray-400 transition-opacity duration-200 ${isEditingName ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
           </div>
-        </header>
 
-        <div className="flex flex-1 overflow-hidden">
+          <div className="w-px h-6 bg-gray-200 mx-2" />
+
+          <StatusSelector
+            type="board"
+            value={board.status}
+            onChange={(status) => onBoardChange({ ...board, status })}
+          />
+        </div>
+
+        <div className="flex items-center">
+          <UsersPresence users={connectedUsers} />
+          <div className="w-px h-6 bg-gray-200 mx-3" />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setAddToProjectOpen(true)}
+              className="h-9 w-9 p-0"
+            >
+              <FolderPlus className="w-4 h-4" />
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                  <ArrowUpFromLine className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onSelect={() => setInviteOpen(true)}>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Invite Team Members
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setShareLinkOpen(true)}>
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  Generate Share Link
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={handleExportPDF}>
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Export as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                  <UserCircle2 className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="w-4 h-4 mr-2" />
+                    Profile Settings
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Blueprint</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this blueprint? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteBoard} className="bg-red-600 hover:bg-red-700">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden">
+        <DragDropContext onDragEnd={handleDragEnd}>
           <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}>
             <div className="flex flex-col flex-grow bg-slate-50">
               <div className="border-b border-gray-200 bg-white shadow-sm">
@@ -776,181 +776,186 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           <div className="flex-1 overflow-x-auto">
             <div className="min-w-[800px] relative">
               <div
-                ref={boardRef}
-                className="p-8"
                 style={{
-                  transform: `scale(${scale})`,
                   transformOrigin: 'top left',
                   transition: 'transform 0.2s ease-out'
                 }}
               >
-                <div className="flex items-start gap-8">
-                  {board.phases.map((phase, phaseIndex) => (
-                    <div key={phase.id} className="flex-shrink-0 relative mr-8">
-                      {phaseIndex > 0 && (
-                        <div className="absolute -left-4 top-0 bottom-0 w-[1px] bg-gray-300" />
-                      )}
-                      <div className="px-4">
-                        <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <div
-                              contentEditable
-                              onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
-                              className="font-bold text-lg focus:outline-none focus:border-b border-primary"
-                              suppressContentEditableWarning={true}
-                            >
-                              {phase.name}
+                <div ref={boardRef} className="p-8" style={{ transform: `scale(${scale})` }}>
+                  <div className="flex items-start gap-8">
+                    {board.phases.map((phase, phaseIndex) => (
+                      <div key={phase.id} className="flex-shrink-0 relative mr-8">
+                        {phaseIndex > 0 && (
+                          <div className="absolute -left-4 top-0 bottom-0 w-[1px] bg-gray-300" />
+                        )}
+                        <div className="px-4">
+                          <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <div
+                                contentEditable
+                                onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
+                                className="font-bold text-lg focus:outline-none focus:border-b border-primary"
+                                suppressContentEditableWarning={true}
+                              >
+                                {phase.name}
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAddColumn(phaseIndex)}
+                                className="h-7 px-2 border border-gray-300 hide-in-pdf"
+                              >
+                                <Plus className="w-4 h-4 mr-1" />
+                                Step
+                              </Button>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleAddColumn(phaseIndex)}
-                              className="h-7 px-2 border border-gray-300 hide-in-pdf"
-                            >
-                              <Plus className="w-4 h-4 mr-1" />
-                              Step
-                            </Button>
                           </div>
-                        </div>
 
-                        <Droppable droppableId={`phase-${phaseIndex}`} type="COLUMN" direction="horizontal">
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.droppableProps}
-                              className="flex gap-8"
-                            >
-                              {phase.columns.map((column, columnIndex) => (
-                                <Draggable
-                                  key={column.id}
-                                  draggableId={`column-${column.id}`}
-                                  index={columnIndex}
-                                >
-                                  {(provided, snapshot) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      style={{
-                                        ...provided.draggableProps.style,
-                                        transformOrigin: snapshot.isDragging ? 'center' : 'top left'
-                                      }}
-                                      className="flex-shrink-0 w-[225px]"
-                                    >
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <div
-                                          {...provided.dragHandleProps}
-                                          className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
-                                        >
-                                          <GripVertical className="w-4 h-4" />
-                                        </div>
-                                        <div
-                                          contentEditable
-                                          onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                                          className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
-                                          suppressContentEditableWarning={true}
-                                        >
-                                          {column.name}
-                                        </div>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
-                                          className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
-                                        >
-                                          <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                      </div>
-
-                                      <ImageUpload
-                                        currentImage={column.image}
-                                        onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
-                                      />
-
-                                      <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
-                                        {(provided, snapshot) => (
+                          <Droppable droppableId={`phase-${phaseIndex}`} type="COLUMN" direction="horizontal">
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                                className="flex gap-8"
+                              >
+                                {phase.columns.map((column, columnIndex) => (
+                                  <Draggable
+                                    key={column.id}
+                                    draggableId={`column-${column.id}`}
+                                    index={columnIndex}
+                                  >
+                                    {(provided, snapshot) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        className="flex-shrink-0 w-[225px]"
+                                        style={{
+                                          ...provided.draggableProps.style,
+                                          transform: snapshot.isDragging
+                                            ? provided.draggableProps.style?.transform
+                                            : `scale(${1/scale}) ${provided.draggableProps.style?.transform || ''}`,
+                                          transformOrigin: 'top left'
+                                        }}
+                                      >
+                                        <div className="flex items-center gap-2 mb-2">
                                           <div
-                                            ref={provided.innerRef}
-                                            {...provided.droppableProps}
-                                            className={`
-                                              space-y-4 min-h-[100px] p-4
-                                              rounded-lg border-2
-                                              ${snapshot.isDraggingOver
-                                                ? 'border-primary/50 bg-primary/5'
-                                                : 'border-gray-200 hover:border-gray-300'
-                                              }
-                                              transition-colors duration-200
-                                            `}
+                                            {...provided.dragHandleProps}
+                                            className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
                                           >
-                                            {board.blocks
-                                              .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                                              .map((block, index) => (
-                                                <Draggable
-                                                  key={block.id}
-                                                  draggableId={block.id}
-                                                  index={index}
-                                                >
-                                                  {(provided, snapshot) => (
-                                                    <div
-                                                      ref={provided.innerRef}
-                                                      {...provided.draggableProps}
-                                                      style={{
-                                                        ...provided.draggableProps.style,
-                                                        transformOrigin: snapshot.isDragging ? 'center' : 'top left'
-                                                      }}
-                                                      className={`
-                                                        ${LAYER_TYPES.find(l => l.type === block.type)?.color}
-                                                        group relative rounded-lg border mb-2 p-2
-                                                        ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
-                                                        ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
-                                                      `}
-                                                    >
-                                                      <div
-                                                        {...provided.dragHandleProps}
-                                                        className="absolute left-3 top-1 p-1
-                                                          rounded-sm opacity-0 group-hover:opacity-100
-                                                          transition-opacity cursor-move bg-white/50
-                                                          hover:bg-white/80"
-                                                      >
-                                                        <GripVertical className="w-4 h-4 text-gray-600" />
-                                                      </div>
-                                                      <Block
-                                                        block={block}
-                                                        onChange={(content) => handleBlockChange(block.id, content)}
-                                                        onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
-                                                        onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                                        onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
-                                                        onCommentClick={() => handleCommentClick(block)}
-                                                        projectId={board.projectId || undefined}
-                                                      />
-                                                    </div>
-                                                  )}
-                                                </Draggable>
-                                              ))}
-                                            {provided.placeholder}
+                                            <GripVertical className="w-4 h-4" />
                                           </div>
-                                        )}
-                                      </Droppable>
-                                    </div>
-                                  )}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
-                      </div>
-                    </div>
-                  ))}
+                                          <div
+                                            contentEditable
+                                            onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
+                                            className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
+                                            suppressContentEditableWarning={true}
+                                          >
+                                            {column.name}
+                                          </div>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
+                                            className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </Button>
+                                        </div>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddPhase}
-                    className="mt-3 h-7 px-2 border border-gray-300 hide-in-pdf"
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Add Phase
-                  </Button>
+                                        <ImageUpload
+                                          currentImage={column.image}
+                                          onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
+                                        />
+
+                                        <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
+                                          {(provided, snapshot) => (
+                                            <div
+                                              ref={provided.innerRef}
+                                              {...provided.droppableProps}
+                                              className={`
+                                                space-y-4 min-h-[100px] p-4
+                                                rounded-lg border-2
+                                                ${snapshot.isDraggingOver 
+                                                  ? 'border-primary/50 bg-primary/5' 
+                                                  : 'border-gray-200 hover:border-gray-300'
+                                                }
+                                                transition-colors duration-200
+                                              `}
+                                            >
+                                              {board.blocks
+                                                .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                                .map((block, index) => (
+                                                  <Draggable
+                                                    key={block.id}
+                                                    draggableId={block.id}
+                                                    index={index}
+                                                  >
+                                                    {(provided, snapshot) => (
+                                                      <div
+                                                        ref={provided.innerRef}
+                                                        {...provided.draggableProps}
+                                                        className={`
+                                                          ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
+                                                          group relative rounded-lg border mb-2 p-2
+                                                          ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
+                                                          ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                        `}
+                                                        style={{
+                                                          ...provided.draggableProps.style,
+                                                          transform: snapshot.isDragging
+                                                            ? provided.draggableProps.style?.transform
+                                                            : `scale(${1/scale}) ${provided.draggableProps.style?.transform || ''}`,
+                                                          transformOrigin: 'top left'
+                                                        }}
+                                                      >
+                                                        <div 
+                                                          {...provided.dragHandleProps}
+                                                          className="absolute left-3 top-1 p-1
+                                                            rounded-sm opacity-0 group-hover:opacity-100
+                                                            transition-opacity cursor-move bg-white/50
+                                                            hover:bg-white/80"
+                                                        >
+                                                          <GripVertical className="w-4 h-4 text-gray-600" />
+                                                        </div>
+                                                        <Block
+                                                          block={block}
+                                                          onChange={(content) => handleBlockChange(block.id, content)}
+                                                          onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
+                                                          onNotesChange={(notes) => handleNotesChange(block.id, notes)}
+                                                          onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
+                                                          onCommentClick={() => handleCommentClick(block)}
+                                                          projectId={board.projectId || undefined}
+                                                        />
+                                                      </div>
+                                                    )}
+                                                  </Draggable>
+                                                ))}
+                                              {provided.placeholder}
+                                            </div>
+                                          )}
+                                        </Droppable>
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddPhase}
+                      className="mt-3 h-7 px-2 border border-gray-300 hide-in-pdf"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Phase
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -977,7 +982,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               </div>
             </div>
           </div>
-        </div>
+        </DragDropContext>
 
         {selectedBlock && (
           <CommentDialog
@@ -1083,6 +1088,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           </Dialog>
         )}
       </div>
-    </DragDropContext>
+    </div>
   );
 }
