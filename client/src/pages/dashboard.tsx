@@ -174,23 +174,14 @@ export default function Dashboard() {
                 <Folder className="h-6 w-6 text-primary" />
                 <h2 className="text-2xl font-semibold">Projects</h2>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowArchived(!showArchived)}
-                className="flex items-center gap-2"
-              >
-                <Archive className="h-4 w-4" />
-                {showArchived ? "Hide Archived" : "Show Archived"}
+              <Button variant="outline" size="sm" onClick={() => setCreateProjectOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create New Project
               </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setCreateProjectOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create New Project
-            </Button>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
             {filteredProjects.map((project) => (
               <Card key={project.id} className="relative overflow-hidden group hover:shadow-md transition-shadow">
                 <div 
@@ -251,24 +242,25 @@ export default function Dashboard() {
               </Card>
             )}
           </div>
+
+          <div className="flex justify-end mt-8 border-t pt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowArchived(!showArchived)}
+              className="flex items-center gap-2"
+            >
+              <Archive className="h-4 w-4" />
+              {showArchived ? "Hide Archived Projects" : "Show Archived Projects"}
+            </Button>
+          </div>
         </section>
 
         <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <LayoutGrid className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowArchivedBlueprints(!showArchivedBlueprints)}
-                className="flex items-center gap-2"
-              >
-                <Archive className="h-4 w-4" />
-                {showArchivedBlueprints ? "Hide Archived" : "Show Archived"}
-              </Button>
+            <div className="flex items-center gap-2">
+              <LayoutGrid className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
             </div>
             <Button variant="outline" size="sm" onClick={() => setCreateBlueprintOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -276,7 +268,7 @@ export default function Dashboard() {
             </Button>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
             {recentBoards.map((board) => {
               const project = projects.find(p => p.id === board.projectId);
               return (
@@ -324,6 +316,18 @@ export default function Dashboard() {
                 </Card>
               );
             })}
+          </div>
+
+          <div className="flex justify-end mt-8 border-t pt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowArchivedBlueprints(!showArchivedBlueprints)}
+              className="flex items-center gap-2"
+            >
+              <Archive className="h-4 w-4" />
+              {showArchivedBlueprints ? "Hide Archived Blueprints" : "Show Archived Blueprints"}
+            </Button>
           </div>
         </section>
 
