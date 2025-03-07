@@ -23,6 +23,7 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
   const deleteProjectMutation = useMutation({
     mutationFn: async () => {
       try {
+        console.log('Deleting project:', projectId, 'with action:', blueprintAction);
         const res = await apiRequest(
           "DELETE",
           `/api/projects/${projectId}`,
@@ -40,18 +41,20 @@ export function DeleteProjectDialog({ open, onOpenChange, projectId, projectName
       }
     },
     onSuccess: () => {
-      // Force immediate refetch
-      Promise.all([
-        queryClient.refetchQueries({ queryKey: ["/api/projects"] }),
-        queryClient.refetchQueries({ queryKey: ["/api/boards"] })
-      ]).then(() => {
-        toast({
-          title: "Success",
-          description: "Project deleted successfully"
-        });
-        onOpenChange(false);
-        setLocation("/");
+      toast({
+        title: "Success",
+        description: "Project deleted successfully"
       });
+
+      // Close the dialog first
+      onOpenChange(false);
+
+      // Then invalidate the queries
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+
+      // Finally, navigate away
+      setLocation("/");
     },
     onError: (error: Error) => {
       toast({

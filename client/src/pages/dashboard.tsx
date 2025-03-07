@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, LogOut, User, LayoutGrid, Folder, Trash2, Briefcase } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ import { queryClient } from "@/lib/queryClient";
 
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
-// Simple hash function to get consistent emoji for a user
 function getAnimalEmoji(id: string): string {
   const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return ANIMAL_EMOJIS[Math.abs(hash) % ANIMAL_EMOJIS.length];
@@ -35,12 +34,15 @@ export default function Dashboard() {
   const [projectToDelete, setProjectToDelete] = useState<{id: number, name: string} | null>(null);
   const { toast } = useToast();
 
+  // Enable refetchOnWindowFocus for real-time updates
   const { data: projects = [], refetch: refetchProjects } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch when query is invalidated
   });
 
   useEffect(() => {
+    // Refetch projects when projectToDelete is cleared (dialog closed)
     if (!projectToDelete) {
       refetchProjects();
     }
@@ -357,8 +359,11 @@ export default function Dashboard() {
           onOpenChange={(open) => {
             if (!open) {
               setProjectToDelete(null);
-              // Force refetch when dialog closes
-              refetchProjects();
+              // Force immediate refetch when dialog closes
+              Promise.all([
+                queryClient.refetchQueries({ queryKey: ['/api/projects'] }),
+                queryClient.refetchQueries({ queryKey: ['/api/boards'] })
+              ]);
             }
           }}
           projectId={projectToDelete.id}
