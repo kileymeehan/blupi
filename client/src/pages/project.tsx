@@ -13,6 +13,8 @@ import type { Board } from "@shared/schema";
 import { StatusSelector } from "@/components/status-selector";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
+import { Notifications } from "@/components/notifications/notifications";
+import { useNotifications } from "@/lib/notifications-provider";
 
 export default function Project() {
   const { id } = useParams();
@@ -20,6 +22,7 @@ export default function Project() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
   const { toast } = useToast();
+  const { notifications, markAsRead } = useNotifications();
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: ['/api/projects', id],
@@ -55,32 +58,6 @@ export default function Project() {
     }
   });
 
-  const updateBoardStatus = useMutation({
-    mutationFn: async ({ boardId, status }: { boardId: number; status: string }) => {
-      const res = await fetch(`/api/boards/${boardId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      if (!res.ok) throw new Error('Failed to update blueprint status');
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/boards'] });
-      toast({
-        title: "Success",
-        description: "Blueprint status updated"
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-
   if (projectLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -99,6 +76,10 @@ export default function Project() {
         }}
         rightContent={
           <div className="flex items-center gap-2">
+            <Notifications 
+              notifications={notifications}
+              onMarkAsRead={markAsRead}
+            />
             <StatusSelector
               type="project"
               value={project?.status}
