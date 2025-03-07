@@ -169,16 +169,14 @@ export default function Dashboard() {
 
         <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Folder className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-semibold">Projects</h2>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => setCreateProjectOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create New Project
-              </Button>
+            <div className="flex items-center gap-2">
+              <Folder className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-semibold">Projects</h2>
             </div>
+            <Button variant="default" size="sm" onClick={() => setCreateProjectOpen(true)} className="bg-amber-600 hover:bg-amber-700">
+              <Plus className="mr-2 h-4 w-4" />
+              Create New Project
+            </Button>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -262,7 +260,7 @@ export default function Dashboard() {
               <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setCreateBlueprintOpen(true)}>
+            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-amber-600 hover:bg-amber-700">
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
