@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, LogOut, User, LayoutGrid, Folder, Trash2, Briefcase, Archive } from "lucide-react";
+import { Plus, LogOut, User, LayoutGrid, Folder, Archive, Briefcase } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
@@ -208,10 +208,10 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setProjectToDelete({ id: project.id, name: project.name })}
+                        onClick={() => updateProjectStatus.mutate({ projectId: project.id, status: "archived" })}
                         className="text-muted-foreground hover:text-red-600 p-1 h-auto"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Archive className="h-4 w-4" />
                       </Button>
                     </div>
                     <StatusSelector
@@ -285,7 +285,25 @@ export default function Dashboard() {
                     <div className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: project.color || '#4F46E5', opacity: 1, zIndex: 10 }} />
                   )}
                   <CardHeader>
-                    <CardTitle>{board.name}</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>{board.name}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => updateBoardStatus.mutate({ boardId: board.id, status: "archived" })}
+                          className="text-muted-foreground hover:text-red-600 p-1 h-auto"
+                        >
+                          <Archive className="h-4 w-4" />
+                        </Button>
+                        <StatusSelector
+                          type="board"
+                          value={board.status}
+                          onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
+                          disabled={updateBoardStatus.isPending}
+                        />
+                      </div>
+                    </div>
                     <CardDescription>
                       {board.description}
                       {project && (
@@ -330,12 +348,22 @@ export default function Dashboard() {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle>{board.name}</CardTitle>
-                      <StatusSelector
-                        type="board"
-                        value={board.status}
-                        onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
-                        disabled={updateBoardStatus.isPending}
-                      />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => updateBoardStatus.mutate({ boardId: board.id, status: "archived" })}
+                          className="text-muted-foreground hover:text-red-600 p-1 h-auto"
+                        >
+                          <Archive className="h-4 w-4" />
+                        </Button>
+                        <StatusSelector
+                          type="board"
+                          value={board.status}
+                          onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
+                          disabled={updateBoardStatus.isPending}
+                        />
+                      </div>
                     </div>
                     <CardDescription>
                       {board.description}
