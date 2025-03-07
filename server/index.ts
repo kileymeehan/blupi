@@ -101,8 +101,18 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
       log('[INFO] Vite middleware setup complete');
     } else {
       log('[INFO] Setting up static file serving');
-      serveStatic(app);
-      log('[INFO] Static file serving setup complete');
+      try {
+        serveStatic(app);
+        log('[INFO] Static file serving setup complete');
+      } catch (err) {
+        if (err instanceof Error && err.message.includes('Could not find the build directory')) {
+          log('[WARN] Build directory not found, falling back to Vite middleware');
+          await setupVite(app, server);
+          log('[INFO] Vite fallback middleware setup complete');
+        } else {
+          throw err;
+        }
+      }
     }
 
     // API Error handling middleware - must be after all routes
