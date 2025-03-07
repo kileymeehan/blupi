@@ -776,11 +776,35 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           <div className="flex-1 overflow-x-auto">
             <div ref={boardRef} className="min-w-[800px] p-8"
               style={{
+                transform: `scale(${scale})`,
                 transformOrigin: 'top left',
                 transition: 'transform 0.2s ease-out'
               }}
             >
-              <div className="flex items-start">
+              <div className="flex items-start gap-8">
+                {/* Zoom controls */}
+                <div className="fixed bottom-4 right-4 flex gap-2 z-50">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleZoomOut}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <div className="flex items-center justify-center h-8 px-2 bg-white rounded-md border">
+                    {Math.round(scale * 100)}%
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleZoomIn}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
                 {board.phases.map((phase, phaseIndex) => (
                   <div key={phase.id} className="flex-shrink-0 relative mr-8">
                     {phaseIndex > 0 && (
@@ -838,7 +862,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                       <div
                                         contentEditable
                                         onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                                        className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
+                                        className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex1"
                                         suppressContentEditableWarning={true}
                                       >
                                         {column.name}
@@ -1041,28 +1065,30 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           </DialogContent>
         </Dialog>
       )}
-      {/* Add floating zoom controls */}
-      <div className="fixed bottom-8 right-8 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50 p-2 flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleZoomOut}
-          className="h-8 w-8 p-0 hover:bg-gray-100/80"
-        >
-          <Minus className="w-4 h-4" />
-        </Button>
-        <span className="text-sm font-medium min-w-[3rem] text-center">
-          {Math.round(scale * 100)}%
-        </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleZoomIn}
-          className="h-8 w-8 p-0 hover:bg-gray-100/80"
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
-      </div>
+      {/* Remove old zoom controls */}
+
+      {/* Add new zoom controls */}
+      <div className="fixed bottom-4 right-4 flex gap-2 z-50">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleZoomOut}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <div className="flex items-center justify-center h-8 px-2 bg-white rounded-md border">
+                    {Math.round(scale * 100)}%
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleZoomIn}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
     </div>
   );
 }
