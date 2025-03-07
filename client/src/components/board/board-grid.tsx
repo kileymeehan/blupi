@@ -264,9 +264,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     }
   };
 
+  /**
+   * Update handleBlockChange to properly handle text content
+   */
   const handleBlockChange = (blockId: string, content: string) => {
     const blocks = board.blocks.map(block =>
-      block.id === blockId ? { ...block, content } : block
+      block.id === blockId ? { ...block, content: content } : block
     );
     onBlocksChange(blocks);
   };
@@ -855,13 +858,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                       onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
                                     />
 
+                                    {/* Update the column droppable area styling */}
                                     <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
                                       {(provided, snapshot) => (
                                         <div
                                           ref={provided.innerRef}
                                           {...provided.droppableProps}
                                           className={`
-                                                                                        group space-y-2 min-h-[100px] p4
+                                            space-y-4 min-h-[100px] p-4
                                             rounded-lg border-2
                                             ${snapshot.isDraggingOver 
                                               ? 'border-primary/50 bg-primary/5' 
@@ -884,7 +888,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     {...provided.draggableProps}
                                                     className={`
                                                       ${LAYER_TYPES.find(l => l.type === block.type)?.color} 
-                                                      group relative rounded-lg border
+                                                      group relative rounded-lg border mb-2 p-2
                                                       ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
                                                       ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                     `}

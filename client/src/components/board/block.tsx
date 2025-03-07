@@ -10,7 +10,7 @@ import Picker from '@emoji-mart/react'
 
 interface BlockProps {
   block: BlockType;
-  onChange?: (id: string, content: string) => void;
+  onChange?: (content: string) => void;
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
   onEmojiChange?: (id: string, emoji: string) => void;
@@ -34,6 +34,9 @@ const TYPE_LABELS = {
   hidden: 'Hidden Step'
 } as const;
 
+/**
+ * Update Block component to handle text content properly
+ */
 export default function Block({
   block,
   onChange,
@@ -49,11 +52,13 @@ export default function Block({
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [notes, setNotes] = useState(block.notes || '');
+  const [localContent, setLocalContent] = useState(block.content || '');
 
-  // Update content when block changes
+  // Update content when block changes from external source
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
-      contentRef.current.innerText = block.content || '';
+      setLocalContent(block.content || '');
+      contentRef.current.textContent = block.content || '';
     }
   }, [block.content, isTemplate]);
 
@@ -64,11 +69,17 @@ export default function Block({
     }
   };
 
+  const handleInput = () => {
+    if (!contentRef.current) return;
+    const newContent = contentRef.current.textContent || '';
+    setLocalContent(newContent);
+  };
+
   const handleBlur = () => {
     if (!onChange || !contentRef.current) return;
-    const content = contentRef.current.innerText.trim();
+    const content = contentRef.current.textContent || '';
     if (content !== block.content) {
-      onChange(block.id, content);
+      onChange(content);
     }
   };
 
@@ -88,15 +99,17 @@ export default function Block({
   const attachmentCount = block.attachments?.length || 0;
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full p-2">
       {block.emoji && (
         <div className="absolute -top-2 -right-2 z-10 text-lg">
           {block.emoji}
         </div>
       )}
+
       <div
         ref={contentRef}
         contentEditable={!isTemplate}
+        onInput={handleInput}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`
@@ -111,7 +124,7 @@ export default function Block({
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
-        {isTemplate && TYPE_LABELS[block.type]}
+        {isTemplate ? TYPE_LABELS[block.type] : localContent}
       </div>
 
       {!isTemplate && (
