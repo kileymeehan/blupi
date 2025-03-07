@@ -47,13 +47,17 @@ export function useWebSocket(boardId: number) {
     });
 
     socket.addEventListener('message', (event) => {
-      const data = JSON.parse(event.data);
-      console.log('WS Received message:', data);
-      if (data.type === 'users_update') {
-        setConnectedUsers(data.users);
+      try {
+        const data = JSON.parse(event.data);
+        console.log('WS Received message:', data);
+        if (data.type === 'users_update') {
+          setConnectedUsers(data.users);
+        }
+        // Forward all messages to window for NotificationsProvider
+        window.postMessage(data, window.location.origin);
+      } catch (error) {
+        console.error('WS Message parsing error:', error);
       }
-      // Forward all messages to window for NotificationsProvider
-      window.postMessage(data, window.location.origin);
     });
 
     socket.addEventListener('error', (error) => {
