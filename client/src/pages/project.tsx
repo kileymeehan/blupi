@@ -8,7 +8,7 @@ import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 import { InviteProjectDialog } from "@/components/invite-project-dialog";
 import { PageHeader } from "@/components/page-header";
 import { useState } from "react";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Board } from "@shared/schema";
 import { StatusSelector } from "@/components/status-selector";
 import { useToast } from "@/hooks/use-toast";
@@ -52,6 +52,34 @@ export default function Project() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', id] });
+    }
+  });
+
+  const updateBoardStatus = useMutation({
+    mutationFn: async ({ boardId, status }: { boardId: number; status: string }) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/boards/${boardId}`,
+        { status }
+      );
+      if (!response.ok) {
+        throw new Error('Failed to update board status');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/boards'] });
+      toast({
+        title: "Success",
+        description: "Board status updated successfully"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 
