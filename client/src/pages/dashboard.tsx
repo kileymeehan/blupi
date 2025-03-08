@@ -38,9 +38,8 @@ export default function Dashboard() {
   // Update the projects query to ensure proper refetching
   const { data: projects = [], refetch: refetchProjects, isLoading: projectLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
-    refetchOnWindowFocus: true,
-    staleTime: 0,
-    retry: 3,
+    staleTime: 5000, // Consider data fresh for 5 seconds
+    gcTime: 300000, // Keep unused data in cache for 5 minutes
     onError: (error) => {
       toast({
         title: "Error loading projects",
@@ -61,6 +60,8 @@ export default function Dashboard() {
 
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
     queryKey: ['/api/boards'],
+    staleTime: 5000,
+    gcTime: 300000,
     onError: (error) => {
       toast({
         title: "Error loading boards",
