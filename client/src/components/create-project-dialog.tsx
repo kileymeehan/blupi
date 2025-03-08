@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { queryClient } from "@/lib/queryClient";
 import { insertProjectSchema, type InsertProject } from "@shared/schema";
 import { Paintbrush } from "lucide-react";
 
-// Predefined project colors - high contrast, visually distinct colors
+// Predefined project colors remain unchanged
 const projectColors = [
   "#4F46E5", // Indigo
   "#DC2626", // Red
@@ -31,6 +32,7 @@ interface CreateProjectDialogProps {
 
 export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogProps) {
   const { toast } = useToast();
+  const [_, setLocation] = useLocation();
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [currentColorIndex, setCurrentColorIndex] = useState(0);
@@ -79,13 +81,15 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({
         title: "Success",
         description: "Project created successfully",
       });
       onOpenChange(false);
+      // Navigate to the new project page after successful creation
+      setLocation(`/project/${data.id}`);
     },
     onError: (error: Error) => {
       toast({
