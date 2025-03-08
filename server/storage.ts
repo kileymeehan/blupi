@@ -1,8 +1,11 @@
 import { boards, users, projects, projectMembers, type Board, type InsertBoard, type User, type InsertUser, type Project, type InsertProject, type Block, type Phase, type ProjectMember, type InsertProjectMember } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
-const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   // Board methods
@@ -32,163 +35,132 @@ export interface IStorage {
   sessionStore: session.Store;
 }
 
-export class MemStorage implements IStorage {
-  private boards: Map<number, Board>;
-  private users: Map<number, User>;
-  private projects: Map<number, Project>;
-  private projectMembers: Map<number, ProjectMember>;
+export class DatabaseStorage implements IStorage {
   public sessionStore: session.Store;
-  private currentBoardId: number;
-  private currentUserId: number;
-  private currentProjectId: number;
-  private currentProjectMemberId: number;
 
   constructor() {
-    this.boards = new Map();
-    this.users = new Map();
-    this.projects = new Map();
-    this.projectMembers = new Map();
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true
     });
-    this.currentBoardId = 1;
-    this.currentUserId = 1;
-    this.currentProjectId = 1;
-    this.currentProjectMemberId = 1;
-  }
-
-  // Board methods
-  async getBoards(): Promise<Board[]> {
-    return Array.from(this.boards.values());
-  }
-
-  async getBoard(id: number): Promise<Board | undefined> {
-    return this.boards.get(id);
-  }
-
-  async createBoard(insertBoard: InsertBoard): Promise<Board> {
-    const id = this.currentBoardId++;
-    const createdAt = new Date();
-    const board: Board = {
-      ...insertBoard,
-      id,
-      createdAt,
-      userId: 1, // Default for now
-      projectId: insertBoard.projectId, // Ensure projectId is preserved from input
-      description: insertBoard.description || null,
-      blocks: (insertBoard.blocks || []) as Block[],
-      phases: (insertBoard.phases || []) as Phase[]
-    };
-    this.boards.set(id, board);
-    return board;
-  }
-
-  async updateBoard(id: number, updates: Partial<Board>): Promise<Board> {
-    const board = await this.getBoard(id);
-    if (!board) throw new Error("Board not found");
-
-    const updatedBoard = { ...board, ...updates };
-    this.boards.set(id, updatedBoard);
-    return updatedBoard;
-  }
-
-  async deleteBoard(id: number): Promise<void> {
-    this.boards.delete(id);
-  }
-
-  // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const createdAt = new Date();
-    const user: User = {
-      ...insertUser,
-      id,
-      createdAt
-    };
-    this.users.set(id, user);
-    return user;
   }
 
   // Project methods
   async getProjects(): Promise<Project[]> {
-    console.log('[Storage] Getting all projects, count:', this.projects.size);
-    return Array.from(this.projects.values());
+    console.log('[Storage] Getting all projects');
+    const results = await db.select().from(projects);
+    console.log('[Storage] Found projects:', results.length);
+    return results;
   }
 
   async getProject(id: number): Promise<Project | undefined> {
     console.log('[Storage] Getting project:', id);
-    return this.projects.get(id);
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project;
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {
-    const id = this.currentProjectId++;
-    const createdAt = new Date();
-    console.log('[Storage] Creating project:', { id, ...insertProject });
-
-    const project: Project = {
-      id,
-      name: insertProject.name,
-      description: insertProject.description || null,
-      color: insertProject.color || '#4F46E5',
+    console.log('[Storage] Creating project:', insertProject);
+    const [project] = await db.insert(projects).values({
+      ...insertProject,
+      userId: 1, // Default for now
       status: 'draft',
-      userId: 1,
-      createdAt
-    };
-
-    this.projects.set(id, project);
-    console.log('[Storage] Project created:', project);
-    console.log('[Storage] Total projects:', this.projects.size);
+      createdAt: new Date()
+    }).returning();
+    console.log('[Storage] Created project:', project);
     return project;
   }
 
   async updateProject(id: number, updates: Partial<Project>): Promise<Project> {
-    const project = await this.getProject(id);
-    if (!project) throw new Error("Project not found");
+    console.log('[Storage] Updating project:', id, updates);
+    const [project] = await db
+      .update(projects)
+      .set(updates)
+      .where(eq(projects.id, id))
+      .returning();
+    return project;
+  }
 
-    const updatedProject = { ...project, ...updates };
-    this.projects.set(id, updatedProject);
-    console.log('[Storage] Project updated:', updatedProject);
-    return updatedProject;
+  // Board methods
+  async getBoards(): Promise<Board[]> {
+    return await db.select().from(boards);
+  }
+
+  async getBoard(id: number): Promise<Board | undefined> {
+    const [board] = await db.select().from(boards).where(eq(boards.id, id));
+    return board;
+  }
+
+  async createBoard(insertBoard: InsertBoard): Promise<Board> {
+    const [board] = await db.insert(boards).values({
+      ...insertBoard,
+      userId: 1, // Default for now
+      status: 'draft',
+      createdAt: new Date()
+    }).returning();
+    return board;
+  }
+
+  async updateBoard(id: number, updates: Partial<Board>): Promise<Board> {
+    const [board] = await db
+      .update(boards)
+      .set(updates)
+      .where(eq(boards.id, id))
+      .returning();
+    return board;
+  }
+
+  async deleteBoard(id: number): Promise<void> {
+    await db.delete(boards).where(eq(boards.id, id));
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values({
+      ...insertUser,
+      createdAt: new Date()
+    }).returning();
+    return user;
   }
 
   // Project member methods
   async getProjectMembers(projectId: number): Promise<ProjectMember[]> {
-    return Array.from(this.projectMembers.values())
-      .filter(member => member.projectId === projectId);
+    return await db
+      .select()
+      .from(projectMembers)
+      .where(eq(projectMembers.projectId, projectId));
   }
 
   async inviteProjectMember(member: InsertProjectMember): Promise<ProjectMember> {
-    const id = this.currentProjectMemberId++;
-    const now = new Date();
-
-    const projectMember: ProjectMember = {
-      ...member,
-      id,
-      invitedAt: now,
-      acceptedAt: null,
-      status: member.status || 'pending'
-    };
-
-    this.projectMembers.set(id, projectMember);
+    const [projectMember] = await db
+      .insert(projectMembers)
+      .values({
+        ...member,
+        invitedAt: new Date(),
+        acceptedAt: null
+      })
+      .returning();
     return projectMember;
   }
 
   async updateProjectMember(id: number, updates: Partial<ProjectMember>): Promise<ProjectMember> {
-    const member = this.projectMembers.get(id);
-    if (!member) throw new Error("Project member not found");
-
-    const updatedMember = { ...member, ...updates };
-    this.projectMembers.set(id, updatedMember);
-    return updatedMember;
+    const [member] = await db
+      .update(projectMembers)
+      .set(updates)
+      .where(eq(projectMembers.id, id))
+      .returning();
+    return member;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
