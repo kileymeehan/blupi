@@ -1,6 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, MessageSquare } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
