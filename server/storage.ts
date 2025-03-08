@@ -119,26 +119,33 @@ export class MemStorage implements IStorage {
 
   // Project methods
   async getProjects(): Promise<Project[]> {
+    console.log('[Storage] Getting all projects, count:', this.projects.size);
     return Array.from(this.projects.values());
   }
 
   async getProject(id: number): Promise<Project | undefined> {
+    console.log('[Storage] Getting project:', id);
     return this.projects.get(id);
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {
     const id = this.currentProjectId++;
     const createdAt = new Date();
+    console.log('[Storage] Creating project:', { id, ...insertProject });
+
     const project: Project = {
-      ...insertProject,
       id,
-      createdAt,
-      userId: 1, // Default for now
-      color: insertProject.color || '#4F46E5', // Ensure color is never null
+      name: insertProject.name,
       description: insertProject.description || null,
-      status: insertProject.status || 'draft' // Ensure status has a default value
+      color: insertProject.color || '#4F46E5',
+      status: 'draft',
+      userId: 1,
+      createdAt
     };
+
     this.projects.set(id, project);
+    console.log('[Storage] Project created:', project);
+    console.log('[Storage] Total projects:', this.projects.size);
     return project;
   }
 
@@ -148,6 +155,7 @@ export class MemStorage implements IStorage {
 
     const updatedProject = { ...project, ...updates };
     this.projects.set(id, updatedProject);
+    console.log('[Storage] Project updated:', updatedProject);
     return updatedProject;
   }
 

@@ -131,6 +131,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const project = await storage.createProject(parseResult.data);
       console.log('[HTTP] Successfully created project:', project.id);
+
+      // Double check the project was stored
+      const storedProject = await storage.getProject(project.id);
+      if (!storedProject) {
+        throw new Error('Project creation failed - not found after creation');
+      }
+
       res.json(project);
     } catch (err) {
       console.error('[HTTP] Error creating project:', err);
