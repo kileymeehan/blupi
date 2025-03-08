@@ -35,10 +35,12 @@ export default function Dashboard() {
   const [showArchivedBlueprints, setShowArchivedBlueprints] = useState(false);
   const { toast } = useToast();
 
+  // Update the projects query to ensure proper refetching
   const { data: projects = [], refetch: refetchProjects, isLoading: projectLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
     refetchOnWindowFocus: true,
-    staleTime: 0
+    staleTime: 0,
+    retry: 3
   });
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function Dashboard() {
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
+  // Update the filtered projects logic to properly handle status
   const filteredProjects = projects.filter(project => 
     showArchived ? project.status === 'archived' : project.status !== 'archived'
   );
