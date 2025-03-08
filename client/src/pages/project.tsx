@@ -13,8 +13,6 @@ import type { Board } from "@shared/schema";
 import { StatusSelector } from "@/components/status-selector";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
-import { Notifications } from "@/components/notifications/notifications";
-import { useNotifications } from "@/lib/notifications-provider";
 
 export default function Project() {
   const { id } = useParams();
@@ -22,7 +20,6 @@ export default function Project() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
   const { toast } = useToast();
-  const { notifications, markAsRead } = useNotifications();
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: ['/api/projects', id],
@@ -76,10 +73,6 @@ export default function Project() {
         }}
         rightContent={
           <div className="flex items-center gap-2">
-            <Notifications 
-              notifications={notifications}
-              onMarkAsRead={markAsRead}
-            />
             <StatusSelector
               type="project"
               value={project?.status}
