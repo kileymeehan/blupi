@@ -98,7 +98,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
       // Show success message
       toast({
         title: "Success",
-        description: "Project created successfully",
+        description: "Project created successfully"
       });
 
       // Close dialog and navigate
