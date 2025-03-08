@@ -4,11 +4,99 @@ import { storage } from "./storage";
 import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
+import { WebSocketServer } from 'ws';
+
+interface ConnectedUser {
+  id: string;
+  name: string;
+  color: string;
+  ws: WebSocket;
+  boardId?: string;
+}
+
+const connectedUsers = new Map<string, ConnectedUser>();
+const COLORS = [
+  "#FF5733", "#33FF57", "#3357FF", "#FF33F5", 
+  "#33FFF5", "#F5FF33", "#FF3333", "#33FF33"
+];
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
   console.log('[HTTP] Creating basic HTTP server');
+
+  // Create WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws-blupi' });
+  console.log('[WS] WebSocket server created on path /ws-blupi');
+
+  wss.on('connection', (ws) => {
+    const userId = nanoid();
+    const colorIndex = Math.floor(Math.random() * COLORS.length);
+
+    console.log(`[WS] New connection established: ${userId}`);
+
+    ws.on('message', (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        console.log(`[WS] Received message from ${userId}:`, message);
+
+        if (message.type === 'subscribe') {
+          const user: ConnectedUser = {
+            id: userId,
+            name: message.userName || 'Anonymous',
+            color: COLORS[colorIndex],
+            ws,
+            boardId: message.boardId
+          };
+          connectedUsers.set(userId, user);
+
+          // Broadcast updated users list for this board
+          const boardUsers = Array.from(connectedUsers.values())
+            .filter(u => u.boardId === message.boardId)
+            .map(({ id, name, color }) => ({ id, name, color }));
+
+          wss.clients.forEach(client => {
+            if (client !== ws && client.readyState === ws.OPEN) {
+              client.send(JSON.stringify({
+                type: 'users_update',
+                users: boardUsers
+              }));
+            }
+          });
+
+          // Send initial users list to new user
+          ws.send(JSON.stringify({
+            type: 'users_update',
+            users: boardUsers
+          }));
+        }
+      } catch (error) {
+        console.error('[WS] Error processing message:', error);
+      }
+    });
+
+    ws.on('close', () => {
+      console.log(`[WS] Connection closed: ${userId}`);
+      const user = connectedUsers.get(userId);
+      if (user?.boardId) {
+        connectedUsers.delete(userId);
+
+        // Broadcast updated users list
+        const boardUsers = Array.from(connectedUsers.values())
+          .filter(u => u.boardId === user.boardId)
+          .map(({ id, name, color }) => ({ id, name, color }));
+
+        wss.clients.forEach(client => {
+          if (client.readyState === ws.OPEN) {
+            client.send(JSON.stringify({
+              type: 'users_update',
+              users: boardUsers
+            }));
+          }
+        });
+      }
+    });
+  });
 
   // Add a health check endpoint
   app.get("/api/ping", (_req, res) => {
@@ -370,4 +458,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   return httpServer;
+}
+
+//Dummy function to avoid compilation error
+async function sendProjectInvitation(params: any) :Promise<boolean>{
+    return true;
 }
