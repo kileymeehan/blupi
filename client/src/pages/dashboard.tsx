@@ -40,7 +40,14 @@ export default function Dashboard() {
     queryKey: ['/api/projects'],
     refetchOnWindowFocus: true,
     staleTime: 0,
-    retry: 3
+    retry: 3,
+    onError: (error) => {
+      toast({
+        title: "Error loading projects",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   });
 
   useEffect(() => {
@@ -53,7 +60,14 @@ export default function Dashboard() {
   }, [projectToDelete]);
 
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
-    queryKey: ['/api/boards']
+    queryKey: ['/api/boards'],
+    onError: (error) => {
+      toast({
+        title: "Error loading boards",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   });
 
   // Sort boards by creation date (newest first) and filter for recent/unassigned

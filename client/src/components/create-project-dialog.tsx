@@ -81,15 +81,29 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
 
       return response.json();
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    onSuccess: async (data) => {
+      // First invalidate the projects query to ensure fresh data
+      await queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+
+      // Wait for the project data to be available
+      const project = await queryClient.fetchQuery({
+        queryKey: ["/api/projects", data.id],
+        queryFn: async () => {
+          const response = await fetch(`/api/projects/${data.id}`);
+          if (!response.ok) throw new Error("Failed to fetch project");
+          return response.json();
+        }
+      });
+
+      // Show success message
       toast({
         title: "Success",
         description: "Project created successfully",
       });
+
+      // Close dialog and navigate
       onOpenChange(false);
-      // Navigate to the new project page after successful creation
-      setLocation(`/project/${data.id}`);
+      setLocation(`/project/${project.id}`);
     },
     onError: (error: Error) => {
       toast({
