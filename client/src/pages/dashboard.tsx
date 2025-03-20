@@ -106,8 +106,13 @@ export default function Dashboard() {
     return !board.projectId; 
   });
 
-  const recentBoards = filteredBoards
-    .filter(board => !board.projectId) 
+  const recentBoards = boards
+    .filter(board => !showArchivedBlueprints || board.status !== 'archived')
+    .sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt);
+      const dateB = new Date(b.updatedAt || b.createdAt);
+      return dateB.getTime() - dateA.getTime();
+    })
     .slice(0, 3);
 
   const unassignedBoards = filteredBoards.filter(board => !board.projectId);

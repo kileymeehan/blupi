@@ -12,7 +12,6 @@ export default function BoardPage() {
   const { id } = useParams();
   const { toast } = useToast();
 
-  // Ensure id is a string when passed to useWebSocket
   const { sendMessage, connectedUsers } = useWebSocket(id || '');
 
   const { data: board, isLoading, error } = useQuery({
@@ -25,7 +24,14 @@ export default function BoardPage() {
         }
         throw new Error('Failed to fetch board');
       }
-      return res.json();
+      // Update the board's updatedAt timestamp when accessed
+      const board = await res.json();
+      await apiRequest(
+        "PATCH",
+        `/api/boards/${id}`,
+        { updatedAt: new Date().toISOString() }
+      );
+      return board;
     },
     refetchInterval: 5000,
     retry: (failureCount, error) => {
