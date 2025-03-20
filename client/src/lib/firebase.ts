@@ -31,8 +31,8 @@ try {
 
         if (!response.ok) {
           console.error('Failed to sync auth state with backend');
-          // Force refresh the page to reset state
-          window.location.reload();
+          // Instead of reloading, we'll clear local storage
+          localStorage.removeItem('userEmail');
         }
       } catch (error) {
         console.error('Auth sync error:', error);

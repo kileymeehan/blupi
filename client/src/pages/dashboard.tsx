@@ -36,11 +36,9 @@ export default function Dashboard() {
   const { toast } = useToast();
 
   // Update the projects query configuration
-  const { data: projects = [], refetch: refetchProjects, isLoading: projectLoading } = useQuery<Project[]>({
+  const { data: projects = [], isLoading: projectLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    staleTime: 0, // Consider data stale immediately
+    staleTime: 30000, // Data stays fresh for 30 seconds
     gcTime: 1800000, // Keep unused data in cache for 30 minutes
     initialData: [],
     onError: (error) => {
@@ -55,9 +53,7 @@ export default function Dashboard() {
   // Update the boards query configuration
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
     queryKey: ['/api/boards'],
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    staleTime: 0, // Consider data stale immediately
+    staleTime: 30000, // Data stays fresh for 30 seconds
     gcTime: 1800000, // Keep unused data in cache for 30 minutes
     initialData: [],
     onError: (error) => {
@@ -69,19 +65,13 @@ export default function Dashboard() {
     }
   });
 
-  // Add effect to refetch data when component mounts
-  useEffect(() => {
-    refetchProjects();
-  }, [refetchProjects]);
-
   useEffect(() => {
     if (!projectToDelete) {
-      Promise.all([
-        queryClient.refetchQueries({ queryKey: ["/api/projects"] }),
-        queryClient.refetchQueries({ queryKey: ["/api/boards"] })
-      ]);
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
     }
   }, [projectToDelete]);
+
 
   // Sort boards by creation date (newest first) and filter for recent/unassigned
   const sortedBoards = [...(boards || [])].sort((a, b) =>
