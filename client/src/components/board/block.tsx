@@ -108,8 +108,10 @@ export default function Block({
   return (
     <div className="w-full h-full p-2">
       {block.emoji && (
-        <div className="absolute -top-2 -right-2 z-10 text-lg">
-          {block.emoji}
+        <div className="absolute -top-2 -right-2 z-10 text-lg cursor-default">
+          <span role="img" aria-label="emoji">
+            {block.emoji}
+          </span>
         </div>
       )}
 
