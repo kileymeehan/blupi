@@ -125,6 +125,7 @@ export class DatabaseStorage {
         return [];
       }
 
+      // Use the correct table reference and ensure strict equality check
       const boardResults = await db
         .select()
         .from(boardsTable)

@@ -33,10 +33,14 @@ export default function Project() {
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
     queryKey: ['/api/projects', id, 'boards'],
     queryFn: async () => {
+      console.log('Fetching boards for project:', id);
       const res = await fetch(`/api/projects/${id}/boards`);
       if (!res.ok) throw new Error('Failed to fetch boards');
-      return res.json();
-    }
+      const projectBoards = await res.json();
+      console.log('Received boards:', projectBoards);
+      return projectBoards;
+    },
+    enabled: !!id
   });
 
   const updateProjectMutation = useMutation({
