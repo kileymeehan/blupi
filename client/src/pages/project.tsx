@@ -13,6 +13,7 @@ import type { Board } from "@shared/schema";
 import { StatusSelector } from "@/components/status-selector";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
+import { ColorPicker } from "@/components/color-picker";
 
 export default function Project() {
   const { id } = useParams();
@@ -44,17 +45,28 @@ export default function Project() {
   });
 
   const updateProjectMutation = useMutation({
-    mutationFn: async (updates: { name?: string; status?: string }) => {
-      const res = await fetch(`/api/projects/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
+    mutationFn: async (updates: { name?: string; status?: string; color?: string }) => {
+      const res = await apiRequest(
+        'PATCH',
+        `/api/projects/${id}`,
+        updates
+      );
       if (!res.ok) throw new Error('Failed to update project');
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', id] });
+      toast({
+        title: "Success",
+        description: "Project updated successfully"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 
@@ -104,6 +116,10 @@ export default function Project() {
         }}
         rightContent={
           <div className="flex items-center gap-2">
+            <ColorPicker
+              color={project?.color || '#4F46E5'}
+              onChange={(color) => updateProjectMutation.mutateAsync({ color })}
+            />
             <StatusSelector
               type="project"
               value={project?.status}
@@ -139,7 +155,11 @@ export default function Project() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {boards.map((board) => (
-            <Card key={board.id}>
+            <Card key={board.id} className="relative overflow-hidden">
+              <div 
+                className="absolute inset-y-0 left-0 w-1.5" 
+                style={{ backgroundColor: project?.color || '#4F46E5' }} 
+              />
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>{board.name}</CardTitle>

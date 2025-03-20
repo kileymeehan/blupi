@@ -16,6 +16,7 @@ import { Project, Board } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { ProfileIcon } from "@/components/profile-icon";
+import { ColorPicker } from "@/components/color-picker";
 
 // Loading skeleton component for projects/boards
 function LoadingSkeleton({ count = 3 }) {
@@ -116,11 +117,11 @@ export default function Dashboard() {
   );
 
   const updateProjectStatus = useMutation({
-    mutationFn: async ({ projectId, status }: { projectId: number; status: string }) => {
+    mutationFn: async ({ projectId, status, color }: { projectId: number; status: string; color?: string }) => {
       const res = await apiRequest(
         'PATCH',
         `/api/projects/${projectId}`,
-        { status }
+        { status, color }
       );
       if (!res.ok) throw new Error('Failed to update project status');
       return res.json();
@@ -250,6 +251,16 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <CardTitle className="text-lg">{project.name}</CardTitle>
+                          <ColorPicker
+                            color={project.color || '#4F46E5'}
+                            onChange={(color) => {
+                              updateProjectStatus.mutate({
+                                projectId: project.id,
+                                status: project.status,
+                                color
+                              });
+                            }}
+                          />
                           <Button
                             variant="ghost"
                             size="sm"
