@@ -161,7 +161,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['/api/boards'] });
       toast({
         title: "Success",
-        description: "Blueprint status updated"
+        description: "Blueprint status updated. Look at you!"
       });
     },
     onError: (error: Error) => {
