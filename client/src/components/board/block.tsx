@@ -140,7 +140,7 @@ export default function Block({
       {!isTemplate && (
         <div className={`
           absolute bottom-0 inset-x-0 px-2 py-1
-          text-xs text-gray-500 bg-white/80
+          text-xs text-gray-500
           opacity-0 group-hover:opacity-100
           transition-opacity duration-200
           text-center whitespace-nowrap overflow-hidden text-ellipsis
