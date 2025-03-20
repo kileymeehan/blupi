@@ -280,7 +280,7 @@ export default function Dashboard() {
                       </div>
                     </CardHeader>
                     <CardContent className="mt-auto">
-                      <Button variant="ghost" asChild className="w-full">
+                      <Button variant="ghost" asChild className="w-full border-2 border-gray-900 hover:bg-gray-100">
                         <Link href={`/project/${project.id}`}>View Project</Link>
                       </Button>
                     </CardContent>
@@ -375,7 +375,7 @@ export default function Dashboard() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="mt-auto">
-                        <Button variant="ghost" asChild className="w-full">
+                        <Button variant="ghost" asChild className="w-full border-2 border-gray-900 hover:bg-gray-100">
                           <Link href={`/board/${board.id}`}>View Blueprint</Link>
                         </Button>
                       </CardContent>
@@ -446,7 +446,7 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent className="mt-auto">
                     <div className="flex flex-col gap-2">
-                      <Button variant="ghost" asChild className="w-full">
+                      <Button variant="ghost" asChild className="w-full border-2 border-gray-900 hover:bg-gray-100">
                         <Link href={`/board/${board.id}`}>View Blueprint</Link>
                       </Button>
                       <Button
