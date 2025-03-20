@@ -446,7 +446,7 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-col gap-2">
-                      <Button variant="outline" asChild className="w-full">
+                      <Button variant="ghost" asChild className="w-full">
                         <Link href={`/board/${board.id}`}>View Blueprint</Link>
                       </Button>
                       <Button

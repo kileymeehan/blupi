@@ -172,10 +172,13 @@ export default function Project() {
                 </div>
                 <CardDescription>{board.description}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Button variant="outline" asChild className="w-full border-gray-300 hover:bg-gray-50">
-                  <Link href={`/board/${board.id}`}>View Blueprint</Link>
-                </Button>
+              <CardContent className="flex flex-col h-full">
+                <div className="flex-grow"></div>
+                <div className="flex flex-col gap-2 mt-auto">
+                  <Button variant="ghost" asChild className="w-full">
+                    <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
