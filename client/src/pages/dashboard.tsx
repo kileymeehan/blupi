@@ -41,7 +41,7 @@ export default function Dashboard() {
     staleTime: 30000, // Data stays fresh for 30 seconds
     gcTime: 1800000, // Keep unused data in cache for 30 minutes
     initialData: [],
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error loading projects",
         description: error.message,
@@ -56,7 +56,7 @@ export default function Dashboard() {
     staleTime: 30000, // Data stays fresh for 30 seconds
     gcTime: 1800000, // Keep unused data in cache for 30 minutes
     initialData: [],
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error loading boards",
         description: error.message,

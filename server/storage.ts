@@ -63,7 +63,7 @@ export class DatabaseStorage implements IStorage {
     console.log('[Storage] Creating project:', insertProject);
     const [project] = await db.insert(projects).values({
       ...insertProject,
-      userId: 1, // Default for now
+      userId: 1, // Default for now until we implement proper user management
       status: insertProject.status || 'draft',
       createdAt: new Date()
     }).returning();
