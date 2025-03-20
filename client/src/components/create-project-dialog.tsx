@@ -12,7 +12,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertProjectSchema, type InsertProject } from "@shared/schema";
 import { Paintbrush } from "lucide-react";
 
-// Predefined project colors remain unchanged
+// Project colors remain unchanged
 const projectColors = [
   "#4F46E5", // Indigo
   "#DC2626", // Red
@@ -80,9 +80,8 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
       return response.json();
     },
     onSuccess: async (data) => {
-      // First invalidate the projects query to ensure fresh data
+      // First invalidate and refetch to ensure data is fresh
       await queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/projects"] });
 
       // Show success message
       toast({
@@ -90,7 +89,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
         description: "Project created successfully"
       });
 
-      // Close dialog and navigate
+      // Close dialog and navigate only after we have fresh data
       onOpenChange(false);
       setLocation(`/project/${data.id}`);
     },
@@ -126,7 +125,11 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter project name" {...field} />
+                    <Input 
+                      placeholder="Enter project name" 
+                      {...field} 
+                      autoFocus
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
