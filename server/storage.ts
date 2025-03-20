@@ -1,6 +1,6 @@
-import { boards, users, projects, projectMembers, type Board, type InsertBoard, type User, type InsertUser, type Project, type InsertProject, type Block, type Phase, type ProjectMember, type InsertProjectMember } from "@shared/schema";
+import { projects, boards, users, projectMembers, type Board, type InsertBoard, type User, type InsertUser, type Project, type InsertProject, type ProjectMember, type InsertProjectMember } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -8,6 +8,12 @@ import { pool } from "./db";
 const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
+  // Project methods
+  getProjects(): Promise<Project[]>;
+  getProject(id: number): Promise<Project | undefined>;
+  createProject(project: InsertProject): Promise<Project>;
+  updateProject(id: number, updates: Partial<Project>): Promise<Project>;
+
   // Board methods
   getBoards(): Promise<Board[]>;
   getBoard(id: number): Promise<Board | undefined>;
@@ -19,12 +25,6 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-
-  // Project methods
-  getProjects(): Promise<Project[]>;
-  getProject(id: number): Promise<Project | undefined>;
-  createProject(project: InsertProject): Promise<Project>;
-  updateProject(id: number, updates: Partial<Project>): Promise<Project>;
 
   // Project member methods
   getProjectMembers(projectId: number): Promise<ProjectMember[]>;
@@ -48,14 +48,21 @@ export class DatabaseStorage implements IStorage {
   // Project methods
   async getProjects(): Promise<Project[]> {
     console.log('[Storage] Getting all projects');
-    const results = await db.select().from(projects);
+    const results = await db
+      .select()
+      .from(projects)
+      .orderBy(desc(projects.createdAt));
     console.log('[Storage] Found projects:', results.length);
     return results;
   }
 
   async getProject(id: number): Promise<Project | undefined> {
     console.log('[Storage] Getting project:', id);
-    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    const [project] = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, id))
+      .orderBy(desc(projects.createdAt));
     return project;
   }
 
@@ -65,7 +72,8 @@ export class DatabaseStorage implements IStorage {
       ...insertProject,
       userId: 1, // Default for now until we implement proper user management
       status: insertProject.status || 'draft',
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     }).returning();
 
     if (!project) {
@@ -80,7 +88,10 @@ export class DatabaseStorage implements IStorage {
     console.log('[Storage] Updating project:', id, updates);
     const [project] = await db
       .update(projects)
-      .set(updates)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
       .where(eq(projects.id, id))
       .returning();
     return project;
@@ -88,11 +99,17 @@ export class DatabaseStorage implements IStorage {
 
   // Board methods
   async getBoards(): Promise<Board[]> {
-    return await db.select().from(boards);
+    return await db
+      .select()
+      .from(boards)
+      .orderBy(desc(boards.createdAt));
   }
 
   async getBoard(id: number): Promise<Board | undefined> {
-    const [board] = await db.select().from(boards).where(eq(boards.id, id));
+    const [board] = await db
+      .select()
+      .from(boards)
+      .where(eq(boards.id, id));
     return board;
   }
 
@@ -100,9 +117,10 @@ export class DatabaseStorage implements IStorage {
     console.log('[Storage] Creating board:', insertBoard);
     const [board] = await db.insert(boards).values({
       ...insertBoard,
-      userId: 1, // Default for now
+      userId: 1, // Default for now until we implement proper user management
       status: insertBoard.status || 'draft',
       createdAt: new Date(),
+      updatedAt: new Date(),
       blocks: [],
       phases: []
     }).returning();
@@ -119,7 +137,10 @@ export class DatabaseStorage implements IStorage {
     console.log('[Storage] Updating board:', id, updates);
     const [board] = await db
       .update(boards)
-      .set(updates)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
       .where(eq(boards.id, id))
       .returning();
     return board;

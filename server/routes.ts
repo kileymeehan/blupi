@@ -116,6 +116,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/projects", async (_req, res) => {
+    try {
+      console.log('[HTTP] Fetching all projects');
+      const projects = await storage.getProjects();
+      console.log(`[HTTP] Retrieved ${projects.length} projects:`, projects.map(p => ({ id: p.id, name: p.name })));
+      res.json(projects);
+    } catch (err) {
+      console.error('[HTTP] Error fetching projects:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch projects" });
+    }
+  });
+
   app.post("/api/projects", async (req, res) => {
     try {
       console.log('[HTTP] Creating project with data:', req.body);
