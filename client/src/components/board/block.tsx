@@ -139,9 +139,9 @@ export default function Block({
 
       {!isTemplate && (
         <div className={`
-          absolute bottom-0 right-0 px-2 py-1 
+          absolute bottom-0 left-1/2 -translate-x-1/2 px-2 py-1 
           text-xs text-gray-500 bg-white/80 
-          rounded-tl opacity-0 group-hover:opacity-100
+          rounded-t opacity-0 group-hover:opacity-100
           transition-opacity duration-200
         `}>
           {TYPE_LABELS[block.type]}
