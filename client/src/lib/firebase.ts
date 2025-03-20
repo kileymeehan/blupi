@@ -1,5 +1,5 @@
 import { initializeApp } from "@firebase/app";
-import { getAuth } from "@firebase/auth";
+import { getAuth, onAuthStateChanged } from "@firebase/auth";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -19,6 +19,29 @@ try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   auth.useDeviceLanguage();
+
+  // Initialize auth state listener
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        // When Firebase authenticates, sync with backend session
+        const response = await fetch('/api/auth/check', {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          console.error('Failed to sync auth state with backend');
+          // Force refresh the page to reset state
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('Auth sync error:', error);
+      }
+    } else {
+      // Clear any stored auth data
+      localStorage.removeItem('userEmail');
+    }
+  });
 } catch (error) {
   console.error('Firebase initialization error:', error);
   throw error;

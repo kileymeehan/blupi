@@ -36,6 +36,15 @@ declare global {
 }
 
 export function setupAuth(app: Express) {
+  // Add session check middleware
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (!req.session) {
+      console.error('[Auth] No session found');
+      return next(new Error('No session found'));
+    }
+    next();
+  });
+
   passport.use(
     new LocalStrategy(
       {
@@ -44,12 +53,16 @@ export function setupAuth(app: Express) {
       },
       async (email, password, done) => {
         try {
+          console.log('[Auth] Attempting login for:', email);
           const user = await storage.getUserByEmail(email);
           if (!user || !(await comparePasswords(password, user.password))) {
+            console.log('[Auth] Invalid credentials for:', email);
             return done(null, false, { message: "Invalid email or password" });
           }
+          console.log('[Auth] Login successful for:', email);
           return done(null, user);
         } catch (err) {
+          console.error('[Auth] Login error:', err);
           return done(err);
         }
       }
@@ -57,16 +70,70 @@ export function setupAuth(app: Express) {
   );
 
   passport.serializeUser((user, done) => {
+    console.log('[Auth] Serializing user:', user.id);
     done(null, user.id);
   });
 
   passport.deserializeUser(async (id: number, done) => {
     try {
+      console.log('[Auth] Deserializing user:', id);
       const user = await storage.getUser(id);
+      if (!user) {
+        console.error('[Auth] User not found during deserialization:', id);
+        return done(null, false);
+      }
       done(null, user);
     } catch (err) {
+      console.error('[Auth] Deserialization error:', err);
       done(err);
     }
+  });
+
+  // Update the auth check endpoint to handle Firebase tokens
+  app.get("/api/auth/check", (req: Request, res: Response) => {
+    console.log('[Auth] Checking auth status');
+    if (!req.session) {
+      console.error('[Auth] No session found during auth check');
+      return res.status(401).json({ 
+        error: true,
+        message: "No session found" 
+      });
+    }
+
+    if (!req.user) {
+      console.log('[Auth] No user found during auth check');
+      return res.status(401).json({ 
+        error: true,
+        message: "Not authenticated" 
+      });
+    }
+
+    console.log('[Auth] User authenticated:', req.user.id);
+    res.json({ 
+      authenticated: true,
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        username: req.user.username
+      }
+    });
+  });
+
+  app.post("/api/auth/logout", (req: Request, res: Response) => {
+    console.log('[Auth] Logging out user');
+    req.logout((err) => {
+      if (err) {
+        console.error('[Auth] Logout error:', err);
+        return res.status(500).json({ error: true, message: "Logout failed" });
+      }
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('[Auth] Session destruction error:', err);
+          return res.status(500).json({ error: true, message: "Session destruction failed" });
+        }
+        res.json({ message: "Logged out successfully" });
+      });
+    });
   });
 
   app.post("/api/register", async (req: Request, res: Response, next: NextFunction) => {
@@ -131,7 +198,10 @@ export function setupAuth(app: Express) {
   app.post("/api/logout", (req: Request, res: Response) => {
     req.logout((err) => {
       if (err) return res.status(500).json({ error: true, message: "Logout failed" });
-      res.json({ message: "Logged out successfully" });
+      req.session.destroy((err) => {
+        if (err) return res.status(500).json({ error: true, message: "Session destruction failed" });
+        res.json({ message: "Logged out successfully" });
+      });
     });
   });
 
@@ -144,4 +214,5 @@ export function setupAuth(app: Express) {
     }
     res.json(req.user);
   });
+  return app;
 }
