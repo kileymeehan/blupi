@@ -11,7 +11,7 @@ import { Loader2 } from "lucide-react";
 export default function BoardPage() {
   const { id } = useParams();
   const { toast } = useToast();
-  const { sendMessage, connectedUsers } = useWebSocket(Number(id));
+  const { sendMessage, connectedUsers } = useWebSocket(id);
 
   const { data: board, isLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -48,7 +48,23 @@ export default function BoardPage() {
 
   const updateBoardMutation = useMutation({
     mutationFn: async (updates: Partial<Board>) => {
-      const res = await apiRequest("PATCH", `/api/boards/${id}`, updates);
+      // Ensure dates are properly serialized
+      const sanitizedUpdates = {
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      const res = await apiRequest(
+        "PATCH",
+        `/api/boards/${id}`,
+        sanitizedUpdates
+      );
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to update board');
+      }
+
       return res.json();
     },
     onSuccess: (data) => {
@@ -59,6 +75,7 @@ export default function BoardPage() {
       });
     },
     onError: (error: Error) => {
+      console.error('Board update error:', error);
       toast({
         title: "Error saving changes",
         description: error.message,
@@ -70,7 +87,10 @@ export default function BoardPage() {
   if (isLoading || !board) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading project...</div>
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+          <div className="text-lg">Loading project...</div>
+        </div>
       </div>
     );
   }
@@ -104,11 +124,7 @@ export default function BoardPage() {
       onBlocksChange={handleBlocksChange}
       onPhasesChange={handlePhasesChange}
       onBoardChange={handleBoardChange}
-      connectedUsers={connectedUsers.map(userId => ({
-        id: String(userId),
-        name: String(userId),
-        color: '#4F46E5'
-      }))}
+      connectedUsers={connectedUsers}
       project={project}
     />
   );

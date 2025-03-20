@@ -11,7 +11,7 @@ interface ConnectedUser {
   id: string;
   name: string;
   color: string;
-  emoji?: string;
+  emoji?: string; // Add emoji field
 }
 
 export function useWebSocket(boardId: string) {
