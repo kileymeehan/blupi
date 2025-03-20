@@ -256,16 +256,6 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <CardTitle className="text-lg">{project.name}</CardTitle>
-                          <ColorPicker
-                            color={project.color || '#4F46E5'}
-                            onChange={(color) => {
-                              updateProjectStatus.mutate({
-                                projectId: project.id,
-                                status: project.status,
-                                color
-                              });
-                            }}
-                          />
                           <Button
                             variant="ghost"
                             size="sm"
@@ -354,7 +344,7 @@ export default function Dashboard() {
                       )}
                       <CardHeader>
                         <div className="flex items-center justify-between">
-                          <CardTitle>{board.name}</CardTitle>
+                          <CardTitle className="text-lg">{board.name}</CardTitle>
                           <div className="flex items-center gap-2">
                             <Button
                               variant="ghost"
