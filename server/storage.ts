@@ -64,9 +64,14 @@ export class DatabaseStorage implements IStorage {
     const [project] = await db.insert(projects).values({
       ...insertProject,
       userId: 1, // Default for now
-      status: 'draft',
+      status: insertProject.status || 'draft',
       createdAt: new Date()
     }).returning();
+
+    if (!project) {
+      throw new Error('Failed to create project');
+    }
+
     console.log('[Storage] Created project:', project);
     return project;
   }
@@ -92,16 +97,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBoard(insertBoard: InsertBoard): Promise<Board> {
+    console.log('[Storage] Creating board:', insertBoard);
     const [board] = await db.insert(boards).values({
       ...insertBoard,
       userId: 1, // Default for now
-      status: 'draft',
-      createdAt: new Date()
+      status: insertBoard.status || 'draft',
+      createdAt: new Date(),
+      blocks: [],
+      phases: []
     }).returning();
+
+    if (!board) {
+      throw new Error('Failed to create board');
+    }
+
+    console.log('[Storage] Created board:', board);
     return board;
   }
 
   async updateBoard(id: number, updates: Partial<Board>): Promise<Board> {
+    console.log('[Storage] Updating board:', id, updates);
     const [board] = await db
       .update(boards)
       .set(updates)

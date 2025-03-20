@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertProjectSchema, type InsertProject } from "@shared/schema";
 import { Paintbrush } from "lucide-react";
 
@@ -63,16 +63,14 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
 
   const createProject = useMutation({
     mutationFn: async (data: InsertProject) => {
-      const response = await fetch("/api/projects", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const response = await apiRequest(
+        'POST',
+        '/api/projects',
+        {
           ...data,
-          color: data.color || projectColors[currentColorIndex] // Ensure color is always sent
-        }),
-      });
+          color: data.color || projectColors[currentColorIndex]
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();
@@ -84,16 +82,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
     onSuccess: async (data) => {
       // First invalidate the projects query to ensure fresh data
       await queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-
-      // Wait for the project data to be available
-      const project = await queryClient.fetchQuery({
-        queryKey: ["/api/projects", data.id],
-        queryFn: async () => {
-          const response = await fetch(`/api/projects/${data.id}`);
-          if (!response.ok) throw new Error("Failed to fetch project");
-          return response.json();
-        }
-      });
+      await queryClient.refetchQueries({ queryKey: ["/api/projects"] });
 
       // Show success message
       toast({
@@ -103,7 +92,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
 
       // Close dialog and navigate
       onOpenChange(false);
-      setLocation(`/project/${project.id}`);
+      setLocation(`/project/${data.id}`);
     },
     onError: (error: Error) => {
       toast({
