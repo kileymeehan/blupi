@@ -124,11 +124,12 @@ export default function Block({
         className={`
           w-full min-h-[100px] px-3 py-4 pt-8 text-sm
           ${isTemplate ? 'flex items-center justify-center' : ''}
-          overflow-y-auto whitespace-pre-wrap break-words
+          overflow-y-auto whitespace-pre break-words
           leading-normal text-left
           focus:outline-none
           focus:bg-white/50
           transition-colors duration-200
+          resize-none
         `}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
