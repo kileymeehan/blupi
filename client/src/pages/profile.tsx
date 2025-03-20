@@ -6,6 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { updateProfile } from "firebase/auth";
 
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
@@ -13,7 +14,29 @@ export default function ProfilePage() {
   const { user, logout } = useFirebaseAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [selectedEmoji, setSelectedEmoji] = useState<string>(ANIMAL_EMOJIS[0]);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>(user?.photoURL || ANIMAL_EMOJIS[0]);
+
+  const handleEmojiChange = async (newEmoji: string) => {
+    try {
+      setSelectedEmoji(newEmoji);
+      if (user) {
+        await updateProfile(user, {
+          photoURL: newEmoji
+        });
+        toast({
+          title: "Success",
+          description: "Your emoji has been updated",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating emoji:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update emoji",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDeleteAccount = async () => {
     try {
@@ -63,21 +86,24 @@ export default function ProfilePage() {
 
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Choose Your Animal Avatar</h3>
-              <Select
-                value={selectedEmoji}
-                onValueChange={setSelectedEmoji}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue>{selectedEmoji}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {ANIMAL_EMOJIS.map((emoji) => (
-                    <SelectItem key={emoji} value={emoji}>
-                      {emoji}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-4">
+                <Select
+                  value={selectedEmoji}
+                  onValueChange={handleEmojiChange}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue>{selectedEmoji}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ANIMAL_EMOJIS.map((emoji) => (
+                      <SelectItem key={emoji} value={emoji}>
+                        {emoji}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">Current Avatar: {selectedEmoji}</p>
+              </div>
             </div>
           </CardContent>
 
