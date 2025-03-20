@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useFirebaseAuth } from '@/hooks/use-firebase-auth';
 
 type WebSocketMessage = {
   type: string;
@@ -10,6 +11,7 @@ interface ConnectedUser {
   id: string;
   name: string;
   color: string;
+  emoji?: string;
 }
 
 export function useWebSocket(boardId: string) {
@@ -17,6 +19,7 @@ export function useWebSocket(boardId: string) {
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const { toast } = useToast();
+  const { user } = useFirebaseAuth();
   const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttempts = useRef(0);
@@ -29,6 +32,14 @@ export function useWebSocket(boardId: string) {
       console.warn('[WS] Socket not ready (state:', socketRef.current?.readyState, '), message not sent:', message);
     }
   }, []);
+
+  // Reset connection when user profile changes
+  useEffect(() => {
+    if (socketRef.current && user?.photoURL) {
+      console.log('[WS] User profile updated, reconnecting...');
+      socketRef.current.close(1000, 'User profile updated');
+    }
+  }, [user?.photoURL]);
 
   useEffect(() => {
     console.log(`[WS] Initializing connection for board ${boardId}`);
@@ -47,11 +58,17 @@ export function useWebSocket(boardId: string) {
           reconnectAttempts.current = 0;
 
           // Subscribe to board updates with user info
-          const userEmail = localStorage.getItem('userEmail') || 'Anonymous';
+          const userEmail = user?.email || 'Anonymous';
+          console.log('[WS] Subscribing with user info:', { 
+            email: userEmail, 
+            emoji: user?.photoURL 
+          });
+
           sendMessage({ 
             type: 'subscribe', 
             boardId,
-            userName: userEmail 
+            userName: userEmail,
+            userEmoji: user?.photoURL // Send user's emoji from Firebase Auth
           });
         });
 
@@ -63,7 +80,6 @@ export function useWebSocket(boardId: string) {
             if (data.type === 'users_update') {
               setConnectedUsers(data.users);
             }
-            // Forward board updates to window
             window.postMessage(data, window.location.origin);
             setLastMessage(data);
           } catch (error) {
@@ -86,7 +102,6 @@ export function useWebSocket(boardId: string) {
           setIsConnected(false);
 
           if (event.code !== 1000) { // Not a normal closure
-            // Exponential backoff for reconnection attempts
             const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
             reconnectAttempts.current++;
 
@@ -105,7 +120,6 @@ export function useWebSocket(boardId: string) {
 
     connect();
 
-    // Handle visibility change to reconnect when tab becomes visible
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && !isConnected) {
         console.log('[WS] Tab became visible, attempting to reconnect');
@@ -126,7 +140,7 @@ export function useWebSocket(boardId: string) {
         socketRef.current.close(1000, 'Component unmounted');
       }
     };
-  }, [boardId, toast, sendMessage]);
+  }, [boardId, toast, sendMessage, user, user?.photoURL]); 
 
   return { isConnected, lastMessage, sendMessage, connectedUsers };
 }

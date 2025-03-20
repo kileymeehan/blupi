@@ -10,6 +10,7 @@ interface ConnectedUser {
   id: string;
   name: string;
   color: string;
+  emoji?: string;
   ws: WebSocket;
   boardId?: string;
 }
@@ -45,6 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: userId,
             name: message.userName || 'Anonymous',
             color: COLORS[colorIndex],
+            emoji: message.userEmoji,
             ws,
             boardId: message.boardId
           };
@@ -53,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Broadcast updated users list for this board
           const boardUsers = Array.from(connectedUsers.values())
             .filter(u => u.boardId === message.boardId)
-            .map(({ id, name, color }) => ({ id, name, color }));
+            .map(({ id, name, color, emoji }) => ({ id, name, color, emoji }));
 
           wss.clients.forEach(client => {
             if (client !== ws && client.readyState === ws.OPEN) {
@@ -84,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Broadcast updated users list
         const boardUsers = Array.from(connectedUsers.values())
           .filter(u => u.boardId === user.boardId)
-          .map(({ id, name, color }) => ({ id, name, color }));
+          .map(({ id, name, color, emoji }) => ({ id, name, color, emoji }));
 
         wss.clients.forEach(client => {
           if (client.readyState === ws.OPEN) {

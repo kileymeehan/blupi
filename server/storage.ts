@@ -189,10 +189,15 @@ export class DatabaseStorage {
         .update(boardsTable)
         .set({
           ...updates,
-          updatedAt: new Date()
+          updatedAt: new Date() // Ensure we always set a new Date object
         })
         .where(eq(boardsTable.id, id))
         .returning();
+
+      if (!board) {
+        throw new Error('Board not found');
+      }
+
       return board;
     } catch (error) {
       console.error('[Storage] Error updating board:', error);

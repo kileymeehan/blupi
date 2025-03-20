@@ -18,8 +18,16 @@ export function useFirebaseAuth() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+      if (user) {
+        // Force a refresh of the user object to get latest photoURL
+        user.reload().then(() => {
+          setUser(user);
+          setLoading(false);
+        }).catch(console.error);
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();
@@ -32,19 +40,15 @@ export function useFirebaseAuth() {
       provider.addScope('email');
       provider.setCustomParameters({
         prompt: 'select_account',
-        // Ensure mobile browsers are properly handled
         mobile: '1',
-        // Allow sign in from embedded browsers
         embedded: '1'
       });
 
       const result = await signInWithPopup(auth, provider);
-
       toast({
         title: "Success",
         description: "Successfully signed in with Google",
       });
-
       return result.user;
     } catch (error: any) {
       console.error('Sign-in error:', {
