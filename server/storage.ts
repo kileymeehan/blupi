@@ -120,6 +120,11 @@ export class DatabaseStorage {
   async getBoardsByProject(projectId: number): Promise<Board[]> {
     try {
       console.log('[Storage] Getting boards for project:', projectId);
+      if (!projectId) {
+        console.error('[Storage] Project ID is required to get boards');
+        return [];
+      }
+
       const boardResults = await db
         .select()
         .from(boardsTable)
@@ -150,6 +155,10 @@ export class DatabaseStorage {
   async createBoard(insertBoard: InsertBoard): Promise<Board> {
     try {
       console.log('[Storage] Creating board:', insertBoard);
+      if (!insertBoard.projectId) {
+        throw new Error('projectId is required when creating a board');
+      }
+
       const [board] = await db.insert(boardsTable).values({
         ...insertBoard,
         userId: 1, // Default for now until we implement proper user management

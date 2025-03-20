@@ -78,7 +78,7 @@ export const boards = pgTable("boards", {
   blocks: jsonb("blocks").$type<Block[]>().notNull().default([]),
   phases: jsonb("phases").$type<Phase[]>().notNull().default([]),
   status: text("status").notNull().default('draft'),
-  projectId: integer("project_id").references(() => projects.id),
+  projectId: integer("project_id").references(() => projects.id).notNull(), // Making projectId required
   userId: integer("user_id").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
