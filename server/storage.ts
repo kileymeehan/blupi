@@ -1,4 +1,11 @@
-import { projects, boards, users, projectMembers, type Board, type InsertBoard, type User, type InsertUser, type Project, type InsertProject, type ProjectMember, type InsertProjectMember } from "@shared/schema";
+import { 
+  projects, boards as boardsTable, 
+  users, projectMembers, 
+  type Board, type InsertBoard, 
+  type User, type InsertUser, 
+  type Project, type InsertProject, 
+  type ProjectMember, type InsertProjectMember 
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 import session from "express-session";
@@ -7,212 +14,267 @@ import { pool } from "./db";
 
 const PostgresSessionStore = connectPg(session);
 
-export interface IStorage {
-  // Project methods
-  getProjects(): Promise<Project[]>;
-  getProject(id: number): Promise<Project | undefined>;
-  createProject(project: InsertProject): Promise<Project>;
-  updateProject(id: number, updates: Partial<Project>): Promise<Project>;
-
-  // Board methods
-  getBoards(): Promise<Board[]>;
-  getBoard(id: number): Promise<Board | undefined>;
-  createBoard(board: InsertBoard): Promise<Board>;
-  updateBoard(id: number, board: Partial<Board>): Promise<Board>;
-  deleteBoard(id: number): Promise<void>;
-  getBoardsByProject(projectId: number): Promise<Board[]>;
-
-  // User methods
-  getUser(id: number): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-
-  // Project member methods
-  getProjectMembers(projectId: number): Promise<ProjectMember[]>;
-  inviteProjectMember(member: InsertProjectMember): Promise<ProjectMember>;
-  updateProjectMember(id: number, updates: Partial<ProjectMember>): Promise<ProjectMember>;
-
-  // Session store
-  sessionStore: session.Store;
-}
-
-export class DatabaseStorage implements IStorage {
+export class DatabaseStorage {
   public sessionStore: session.Store;
 
   constructor() {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL environment variable is required');
+    }
+
     this.sessionStore = new PostgresSessionStore({
       pool,
-      createTableIfMissing: true
+      createTableIfMissing: true,
+      tableName: 'session'
     });
   }
 
   // Project methods
   async getProjects(): Promise<Project[]> {
-    console.log('[Storage] Getting all projects');
-    const results = await db
-      .select()
-      .from(projects)
-      .orderBy(desc(projects.createdAt));
-    console.log('[Storage] Found projects:', results.length);
-    return results;
+    try {
+      console.log('[Storage] Getting all projects');
+      const results = await db
+        .select()
+        .from(projects)
+        .orderBy(desc(projects.createdAt));
+      console.log('[Storage] Found projects:', results.length);
+      return results;
+    } catch (error) {
+      console.error('[Storage] Error getting projects:', error);
+      throw error;
+    }
   }
 
   async getProject(id: number): Promise<Project | undefined> {
-    console.log('[Storage] Getting project:', id);
-    const [project] = await db
-      .select()
-      .from(projects)
-      .where(eq(projects.id, id))
-      .orderBy(desc(projects.createdAt));
-    return project;
+    try {
+      console.log('[Storage] Getting project:', id);
+      const [project] = await db
+        .select()
+        .from(projects)
+        .where(eq(projects.id, id))
+        .orderBy(desc(projects.createdAt));
+      return project;
+    } catch (error) {
+      console.error('[Storage] Error getting project:', error);
+      throw error;
+    }
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {
-    console.log('[Storage] Creating project:', insertProject);
-    const [project] = await db.insert(projects).values({
-      ...insertProject,
-      userId: 1, // Default for now until we implement proper user management
-      status: insertProject.status || 'draft',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }).returning();
+    try {
+      console.log('[Storage] Creating project:', insertProject);
+      const [project] = await db.insert(projects).values({
+        ...insertProject,
+        userId: 1, // Default for now until we implement proper user management
+        status: insertProject.status || 'draft',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
 
-    if (!project) {
-      throw new Error('Failed to create project');
+      if (!project) {
+        throw new Error('Failed to create project');
+      }
+
+      console.log('[Storage] Created project:', project);
+      return project;
+    } catch (error) {
+      console.error('[Storage] Error creating project:', error);
+      throw error;
     }
-
-    console.log('[Storage] Created project:', project);
-    return project;
   }
 
   async updateProject(id: number, updates: Partial<Project>): Promise<Project> {
-    console.log('[Storage] Updating project:', id, updates);
-    const [project] = await db
-      .update(projects)
-      .set({
-        ...updates,
-        updatedAt: new Date()
-      })
-      .where(eq(projects.id, id))
-      .returning();
-    return project;
+    try {
+      console.log('[Storage] Updating project:', id, updates);
+      const [project] = await db
+        .update(projects)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(projects.id, id))
+        .returning();
+      return project;
+    } catch (error) {
+      console.error('[Storage] Error updating project:', error);
+      throw error;
+    }
   }
 
   // Board methods
   async getBoards(): Promise<Board[]> {
-    console.log('[Storage] Getting all boards');
-    const boards = await db
-      .select()
-      .from(boards)
-      .orderBy(desc(boards.createdAt));
-
-    console.log('[Storage] Retrieved boards:', boards.length);
-    return boards;
+    try {
+      console.log('[Storage] Getting all boards');
+      const boardResults = await db
+        .select()
+        .from(boardsTable)
+        .orderBy(desc(boardsTable.createdAt));
+      console.log('[Storage] Retrieved boards:', boardResults.length);
+      return boardResults;
+    } catch (error) {
+      console.error('[Storage] Error getting boards:', error);
+      throw error;
+    }
   }
 
   async getBoardsByProject(projectId: number): Promise<Board[]> {
-    console.log('[Storage] Getting boards for project:', projectId);
-    const boards = await db
-      .select()
-      .from(boards)
-      .where(eq(boards.projectId, projectId))
-      .orderBy(desc(boards.createdAt));
+    try {
+      console.log('[Storage] Getting boards for project:', projectId);
+      const boardResults = await db
+        .select()
+        .from(boardsTable)
+        .where(eq(boardsTable.projectId, projectId))
+        .orderBy(desc(boardsTable.createdAt));
 
-    console.log('[Storage] Retrieved project boards:', boards.length);
-    return boards;
+      console.log('[Storage] Retrieved project boards:', boardResults.length);
+      return boardResults;
+    } catch (error) {
+      console.error('[Storage] Error getting boards by project:', error);
+      throw error;
+    }
   }
 
   async getBoard(id: number): Promise<Board | undefined> {
-    const [board] = await db
-      .select()
-      .from(boards)
-      .where(eq(boards.id, id));
-    return board;
+    try {
+      const [board] = await db
+        .select()
+        .from(boardsTable)
+        .where(eq(boardsTable.id, id));
+      return board;
+    } catch (error) {
+      console.error('[Storage] Error getting board:', error);
+      throw error;
+    }
   }
 
   async createBoard(insertBoard: InsertBoard): Promise<Board> {
-    console.log('[Storage] Creating board:', insertBoard);
-    const [board] = await db.insert(boards).values({
-      ...insertBoard,
-      userId: 1, // Default for now until we implement proper user management
-      status: insertBoard.status || 'draft',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      blocks: [],
-      phases: []
-    }).returning();
+    try {
+      console.log('[Storage] Creating board:', insertBoard);
+      const [board] = await db.insert(boardsTable).values({
+        ...insertBoard,
+        userId: 1, // Default for now until we implement proper user management
+        status: insertBoard.status || 'draft',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        blocks: [],
+        phases: []
+      }).returning();
 
-    if (!board) {
-      throw new Error('Failed to create board');
+      if (!board) {
+        throw new Error('Failed to create board');
+      }
+
+      console.log('[Storage] Created board:', board);
+      return board;
+    } catch (error) {
+      console.error('[Storage] Error creating board:', error);
+      throw error;
     }
-
-    console.log('[Storage] Created board:', board);
-    return board;
   }
 
   async updateBoard(id: number, updates: Partial<Board>): Promise<Board> {
-    console.log('[Storage] Updating board:', id, updates);
-    const [board] = await db
-      .update(boards)
-      .set({
-        ...updates,
-        updatedAt: new Date()
-      })
-      .where(eq(boards.id, id))
-      .returning();
-    return board;
+    try {
+      console.log('[Storage] Updating board:', id, updates);
+      const [board] = await db
+        .update(boardsTable)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(boardsTable.id, id))
+        .returning();
+      return board;
+    } catch (error) {
+      console.error('[Storage] Error updating board:', error);
+      throw error;
+    }
   }
 
   async deleteBoard(id: number): Promise<void> {
-    await db.delete(boards).where(eq(boards.id, id));
+    try {
+      await db.delete(boardsTable).where(eq(boardsTable.id, id));
+    } catch (error) {
+      console.error('[Storage] Error deleting board:', error);
+      throw error;
+    }
   }
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user;
+    } catch (error) {
+      console.error('[Storage] Error getting user:', error);
+      throw error;
+    }
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.email, email));
+      return user;
+    } catch (error) {
+      console.error('[Storage] Error getting user by email:', error);
+      throw error;
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values({
-      ...insertUser,
-      createdAt: new Date()
-    }).returning();
-    return user;
+    try {
+      const [user] = await db.insert(users).values({
+        ...insertUser,
+        createdAt: new Date()
+      }).returning();
+      return user;
+    } catch (error) {
+      console.error('[Storage] Error creating user:', error);
+      throw error;
+    }
   }
 
   // Project member methods
   async getProjectMembers(projectId: number): Promise<ProjectMember[]> {
-    return await db
-      .select()
-      .from(projectMembers)
-      .where(eq(projectMembers.projectId, projectId));
+    try {
+      return await db
+        .select()
+        .from(projectMembers)
+        .where(eq(projectMembers.projectId, projectId));
+    } catch (error) {
+      console.error('[Storage] Error getting project members:', error);
+      throw error;
+    }
   }
 
   async inviteProjectMember(member: InsertProjectMember): Promise<ProjectMember> {
-    const [projectMember] = await db
-      .insert(projectMembers)
-      .values({
-        ...member,
-        invitedAt: new Date(),
-        acceptedAt: null
-      })
-      .returning();
-    return projectMember;
+    try {
+      const [projectMember] = await db
+        .insert(projectMembers)
+        .values({
+          ...member,
+          invitedAt: new Date(),
+          acceptedAt: null
+        })
+        .returning();
+      return projectMember;
+    } catch (error) {
+      console.error('[Storage] Error inviting project member:', error);
+      throw error;
+    }
   }
 
   async updateProjectMember(id: number, updates: Partial<ProjectMember>): Promise<ProjectMember> {
-    const [member] = await db
-      .update(projectMembers)
-      .set(updates)
-      .where(eq(projectMembers.id, id))
-      .returning();
-    return member;
+    try {
+      const [member] = await db
+        .update(projectMembers)
+        .set(updates)
+        .where(eq(projectMembers.id, id))
+        .returning();
+      return member;
+    } catch (error) {
+      console.error('[Storage] Error updating project member:', error);
+      throw error;
+    }
   }
 }
 
