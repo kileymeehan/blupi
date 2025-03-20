@@ -73,26 +73,28 @@ export default function Dashboard() {
   }, [projectToDelete]);
 
 
+  // Filter boards by creation date and project
+  const filteredBoards = boards.filter(board => {
+    if (showArchivedBlueprints) {
+      const project = projects.find(p => p.id === board.projectId);
+      return project?.status === 'archived';
+    }
+    return !board.projectId; // Only show unassigned boards
+  });
+
+  const recentBoards = filteredBoards
+    .filter(board => !board.projectId) // Only show unassigned boards in recent
+    .slice(0, 3);
+
+  const unassignedBoards = filteredBoards.filter(board => !board.projectId);
+
   // Sort boards by creation date (newest first) and filter for recent/unassigned
-  const sortedBoards = [...(boards || [])].sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
 
   // Update the filtered projects logic to properly handle status
   const filteredProjects = projects.filter(project => 
     showArchived ? project.status === 'archived' : project.status !== 'archived'
   );
 
-  const filteredBoards = sortedBoards.filter(board => {
-    const project = projects.find(p => p.id === board.projectId);
-    if (showArchivedBlueprints) {
-      return project?.status === 'archived';
-    }
-    return !project || project.status !== 'archived';
-  });
-
-  const recentBoards = filteredBoards.slice(0, 3);
-  const unassignedBoards = filteredBoards.filter(board => !board.projectId);
 
   const updateProjectStatus = useMutation({
     mutationFn: async ({ projectId, status }: { projectId: number; status: string }) => {

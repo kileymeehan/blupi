@@ -20,6 +20,7 @@ export interface IStorage {
   createBoard(board: InsertBoard): Promise<Board>;
   updateBoard(id: number, board: Partial<Board>): Promise<Board>;
   deleteBoard(id: number): Promise<void>;
+  getBoardsByProject(projectId: number): Promise<Board[]>;
 
   // User methods
   getUser(id: number): Promise<User | undefined>;
@@ -99,10 +100,26 @@ export class DatabaseStorage implements IStorage {
 
   // Board methods
   async getBoards(): Promise<Board[]> {
-    return await db
+    console.log('[Storage] Getting all boards');
+    const boards = await db
       .select()
       .from(boards)
       .orderBy(desc(boards.createdAt));
+
+    console.log('[Storage] Retrieved boards:', boards.length);
+    return boards;
+  }
+
+  async getBoardsByProject(projectId: number): Promise<Board[]> {
+    console.log('[Storage] Getting boards for project:', projectId);
+    const boards = await db
+      .select()
+      .from(boards)
+      .where(eq(boards.projectId, projectId))
+      .orderBy(desc(boards.createdAt));
+
+    console.log('[Storage] Retrieved project boards:', boards.length);
+    return boards;
   }
 
   async getBoard(id: number): Promise<Board | undefined> {
