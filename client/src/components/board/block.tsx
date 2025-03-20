@@ -13,7 +13,7 @@ interface BlockProps {
   onChange?: (content: string) => void;
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
-  onEmojiChange?: (blockId: string, emoji: string) => void;
+  onEmojiChange?: (blockId: string, emojis: string[]) => void;
   isTemplate?: boolean;
   onCommentClick?: () => void;
   projectId?: number;
@@ -50,6 +50,7 @@ export default function Block({
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [notes, setNotes] = useState(block.notes || '');
   const [localContent, setLocalContent] = useState(block.content || '');
+  const [emojis, setEmojis] = useState<string[]>(block.emojis || []);
 
   // Update content when block changes from external source
   useEffect(() => {
@@ -60,7 +61,7 @@ export default function Block({
   }, [block.content, isTemplate]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       contentRef.current?.blur();
     }
@@ -98,8 +99,10 @@ export default function Block({
 
   const handleEmojiSelect = (emoji: any) => {
     if (!onEmojiChange) return;
-    // emoji-mart provides the actual emoji character in the native property
-    onEmojiChange(block.id, emoji.native);
+    // Add new emoji to the array
+    const updatedEmojis = [...emojis, emoji.native];
+    setEmojis(updatedEmojis);
+    onEmojiChange(block.id, updatedEmojis);
     setEmojiPickerOpen(false);
   };
 
@@ -108,11 +111,13 @@ export default function Block({
 
   return (
     <div className="w-full h-full p-2">
-      {block.emoji && (
-        <div className="absolute -top-2 -right-2 z-10 text-lg cursor-default">
-          <span role="img" aria-label="emoji" className="select-none">
-            {block.emoji}
-          </span>
+      {emojis.length > 0 && (
+        <div className="absolute -top-2 -right-2 z-10 text-lg cursor-default flex gap-1">
+          {emojis.map((emoji, index) => (
+            <span key={index} role="img" aria-label="emoji" className="select-none">
+              {emoji}
+            </span>
+          ))}
         </div>
       )}
 
@@ -131,7 +136,7 @@ export default function Block({
           focus:bg-white/50
           transition-colors duration-200
         `}
-        style={{ backgroundColor: 'inherit' }}
+        style={{ backgroundColor: 'inherit', whiteSpace: 'pre-wrap' }}
         suppressContentEditableWarning={true}
       >
         {isTemplate ? TYPE_LABELS[block.type] : localContent}
