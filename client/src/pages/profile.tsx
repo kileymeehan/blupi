@@ -40,6 +40,10 @@ export default function ProfilePage() {
     }
   };
 
+  const handleClose = () => {
+    window.history.back(); // Go back to previous page instead of always going to dashboard
+  };
+
   const handleDeleteAccount = async () => {
     try {
       // Here you would implement the account deletion logic
@@ -63,7 +67,7 @@ export default function ProfilePage() {
       <header className="border-b bg-white shadow-sm">
         <div className="container flex h-16 items-center px-8">
           <h1 className="text-4xl font-black tracking-tighter font-mono bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            BLUPE
+            Blupi
           </h1>
         </div>
       </header>
@@ -110,8 +114,8 @@ export default function ProfilePage() {
           </CardContent>
 
           <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => navigate("/")}>
-              Back to Dashboard
+            <Button variant="outline" onClick={handleClose}>
+              Close
             </Button>
 
             <AlertDialog>

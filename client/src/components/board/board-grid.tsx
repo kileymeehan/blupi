@@ -14,7 +14,6 @@ import { CommentsOverview } from "./comments-overview";
 import { useQuery } from '@tanstack/react-query';
 import AddToProjectDialog from "./add-to-project-dialog";
 import { UsersPresence } from "./users-presence";
-import { StatusSelector } from "@/components/status-selector";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -460,11 +459,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
           <div className="w-px h-6 bg-gray-200 mx-2" />
 
-          <StatusSelector
-            type="board"
-            value={board.status}
-            onChange={(status) => onBoardChange({ ...board, status })}
-          />
         </div>
 
         <div className="flex items-center">
@@ -866,7 +860,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 boardId={id}
                 onCommentAdd={(comment) => {
                   if (!onBlocksChange) return;
-                                    const blocks = board.blocks.map(b =>
+                  const blocks = board.blocks.map(b =>
                     b.id === selectedBlock.id
                       ? { ...b, comments: [...(b.comments || []), comment] }
                       : b
@@ -887,8 +881,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 <DialogContent>
                   <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
                     <DialogDescription>
-                      Enter email addresses to invite team members
-                    </DialogDescription>
+                      Enter email addresses to invite team members                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <Input
