@@ -60,10 +60,7 @@ export default function Block({
   }, [block.content, isTemplate]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      contentRef.current?.blur();
-    }
+    //No changes needed here.
   };
 
   const handleInput = () => {
