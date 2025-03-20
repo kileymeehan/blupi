@@ -35,11 +35,12 @@ export default function Dashboard() {
   const [showArchivedBlueprints, setShowArchivedBlueprints] = useState(false);
   const { toast } = useToast();
 
-  // Update the projects query to ensure proper refetching
+  // Update the projects query configuration
   const { data: projects = [], refetch: refetchProjects, isLoading: projectLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
-    staleTime: 5000, // Consider data fresh for 5 seconds
-    gcTime: 300000, // Keep unused data in cache for 5 minutes
+    staleTime: 300000, // Consider data fresh for 5 minutes
+    gcTime: 3600000, // Keep unused data in cache for 1 hour
+    initialData: [],
     onError: (error) => {
       toast({
         title: "Error loading projects",
@@ -58,10 +59,12 @@ export default function Dashboard() {
     }
   }, [projectToDelete]);
 
+  // Update the boards query configuration
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
     queryKey: ['/api/boards'],
-    staleTime: 5000,
-    gcTime: 300000,
+    staleTime: 300000, // Consider data fresh for 5 minutes
+    gcTime: 3600000, // Keep unused data in cache for 1 hour
+    initialData: [],
     onError: (error) => {
       toast({
         title: "Error loading boards",
