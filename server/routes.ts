@@ -256,6 +256,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+  app.get("/api/projects/:id/boards", async (req, res) => {
+    try {
+      console.log(`[HTTP] Fetching boards for project ID: ${req.params.id}`);
+      const boards = await storage.getBoardsByProject(Number(req.params.id));
+      console.log(`[HTTP] Retrieved ${boards.length} boards for project ${req.params.id}`);
+      res.json(boards);
+    } catch (err) {
+      console.error('[HTTP] Error fetching project boards:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch project boards" });
+    }
+  });
+
   app.get("/api/boards", async (_req, res) => {
     try {
       console.log('[HTTP] Fetching all boards');

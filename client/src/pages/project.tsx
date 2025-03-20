@@ -31,12 +31,11 @@ export default function Project() {
   });
 
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
-    queryKey: ['/api/boards'],
+    queryKey: ['/api/projects', id, 'boards'],
     queryFn: async () => {
-      const res = await fetch('/api/boards');
+      const res = await fetch(`/api/projects/${id}/boards`);
       if (!res.ok) throw new Error('Failed to fetch boards');
-      const allBoards = await res.json();
-      return allBoards.filter((board: Board) => board.projectId === Number(id));
+      return res.json();
     }
   });
 
@@ -68,7 +67,7 @@ export default function Project() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/boards'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', id, 'boards'] });
       toast({
         title: "Success",
         description: "Board status updated successfully"
