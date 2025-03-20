@@ -15,6 +15,7 @@ import { StatusSelector } from "@/components/status-selector";
 import { Project, Board } from "@shared/schema"; 
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { ProfileIcon } from "@/components/profile-icon";
 
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
@@ -35,11 +36,10 @@ export default function Dashboard() {
   const [showArchivedBlueprints, setShowArchivedBlueprints] = useState(false);
   const { toast } = useToast();
 
-  // Update the projects query configuration
   const { data: projects = [], isLoading: projectLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
-    staleTime: 30000, // Data stays fresh for 30 seconds
-    gcTime: 1800000, // Keep unused data in cache for 30 minutes
+    staleTime: 30000, 
+    gcTime: 1800000, 
     initialData: [],
     onError: (error: Error) => {
       toast({
@@ -50,11 +50,10 @@ export default function Dashboard() {
     }
   });
 
-  // Update the boards query configuration
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
     queryKey: ['/api/boards'],
-    staleTime: 30000, // Data stays fresh for 30 seconds
-    gcTime: 1800000, // Keep unused data in cache for 30 minutes
+    staleTime: 30000, 
+    gcTime: 1800000, 
     initialData: [],
     onError: (error: Error) => {
       toast({
@@ -73,28 +72,23 @@ export default function Dashboard() {
   }, [projectToDelete]);
 
 
-  // Filter boards by creation date and project
   const filteredBoards = boards.filter(board => {
     if (showArchivedBlueprints) {
       const project = projects.find(p => p.id === board.projectId);
       return project?.status === 'archived';
     }
-    return !board.projectId; // Only show unassigned boards
+    return !board.projectId; 
   });
 
   const recentBoards = filteredBoards
-    .filter(board => !board.projectId) // Only show unassigned boards in recent
+    .filter(board => !board.projectId) 
     .slice(0, 3);
 
   const unassignedBoards = filteredBoards.filter(board => !board.projectId);
 
-  // Sort boards by creation date (newest first) and filter for recent/unassigned
-
-  // Update the filtered projects logic to properly handle status
   const filteredProjects = projects.filter(project => 
     showArchived ? project.status === 'archived' : project.status !== 'archived'
   );
-
 
   const updateProjectStatus = useMutation({
     mutationFn: async ({ projectId, status }: { projectId: number; status: string }) => {
@@ -159,7 +153,6 @@ export default function Dashboard() {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-slate-50 animate-fade-in">
       <header className="border-b bg-white shadow-sm">
@@ -175,7 +168,7 @@ export default function Dashboard() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative flex items-center gap-2">
-                  <span className="text-xl">{user ? getAnimalEmoji(user.uid) : '👤'}</span>
+                  <ProfileIcon />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
