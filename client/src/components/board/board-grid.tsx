@@ -62,7 +62,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [shareLinkOpen, setShareLinkOpen] = useState(false);
   const [shareLink, setShareLink] = useState("");
   const boardRef = useRef<HTMLDivElement>(null);
-  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false); // Added state for emoji picker
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -217,14 +217,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     onBlocksChange(blocks);
   };
 
-  const handleEmojiSelect = (blockId: string, emoji: string) => { // Added blockId parameter
-    if (!onEmojiChange) return;
-    onEmojiChange(blockId, emoji);
-    setEmojiPickerOpen(false);
-  };
-
-
-  const handleEmojiChange = (blockId: string, emoji: string) => { // Kept original for potential future use
+  const handleEmojiChange = (blockId: string, emoji: string) => {
     const blocks = board.blocks.map(block =>
       block.id === blockId ? { ...block, emoji } : block
     );
@@ -795,10 +788,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                         className={`
-                                          space-y-4 min-h-[100px] p-4 rounded-lg border-2 
+                                          space-y-4 min-h-[100px] p-4 rounded-lg border-2 border-gray-300
                                           ${snapshot.isDraggingOver
                                             ? 'border-primary/50 bg-primary/5'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                            : 'hover:border-gray-300'
                                           }
                                           transition-colors duration-200
                                         `}
@@ -819,27 +812,19 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                   style={provided.draggableProps.style}
                                                   className={`
                                                     ${LAYER_TYPES.find(l => l.type === block.type)?.color}
-                                                    group relative rounded-lg border mb-2 p-2
-                                                    ${snapshot.isDragging ? 'shadow-lg' : 'border-gray-200'}
+                                                    group relative rounded-lg border-2 border-gray-300 mb-2 p-2
+                                                    ${snapshot.isDragging ? 'shadow-lg' : ''}
                                                     ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                   `}
                                                 >
-                                                  <div
-                                                    className="absolute left-3 top-1 p-1
-                                                      rounded-sm opacity-0 group-hover:opacity-100
-                                                      transition-opacity cursor-move bg-white/50 hover:bg-white80"
-                                                  >
-                                                    <GripVertical className="w-4 h-4 text-gray-600" />
-                                                  </div>
                                                   <Block
                                                     block={block}
                                                     onChange={(content) => handleBlockChange(block.id, content)}
                                                     onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
                                                     onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                                    onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)} // Kept original function for potential future use
+                                                    onEmojiChange={(blockId, emoji) => handleEmojiChange(blockId, emoji)}
                                                     onCommentClick={() => handleCommentClick(block)}
                                                     projectId={board.projectId || undefined}
-                                                    highlighted={block.id === highlightedBlockId}
                                                   />
                                                 </div>
                                               )}
@@ -872,114 +857,114 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 </div>
               </div>
             </div>
+
+            {selectedBlock && (
+              <CommentDialog
+                open={commentDialogOpen}
+                onOpenChange={setCommentDialogOpen}
+                block={selectedBlock}
+                boardId={id}
+                onCommentAdd={(comment) => {
+                  if (!onBlocksChange) return;
+                                    const blocks = board.blocks.map(b =>
+                    b.id === selectedBlock.id
+                      ? { ...b, comments: [...(b.comments || []), comment] }
+                      : b
+                  );
+                  onBlocksChange(blocks);
+                }}
+              />
+            )}
+
+            <AddToProjectDialog
+              open={addToProjectOpen}
+              onOpenChange={setAddToProjectOpen}
+              boardId={id}
+            />
+
+            {inviteOpen && (
+              <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
+                    <DialogDescription>
+                      Enter email addresses to invite team members
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <Input
+                      placeholder="Enter email addresses (comma separated)"
+                      className="w-full"
+                    />
+                    <Button className="w-full" onClick={() => setInviteOpen(false)}>
+                      Send Invites
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            {shareLinkOpen && (
+              <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Share Blueprint</DialogTitle>
+                    <DialogDescription>
+                      Choose how you want to share this blueprint
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-6 py-4">
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          value={window.location.href}
+                          readOnly
+                          className="w-full"
+                        />
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(window.location.href);
+                            useToast({
+                              title: "Link copied",
+                              description: "Team access link has been copied to clipboard"
+                            });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          value={`${window.location.origin}/public/board/${id}`}
+                          readOnly
+                          className="w-full"
+                        />
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
+                            useToast({
+                              title: "Link copied",
+                              description: "Public access link has been copied to clipboard"
+                            });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Anyone with this link can view the blueprint in read-only mode
+                      </p>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </DragDropContext>
-
-        {selectedBlock && (
-          <CommentDialog
-            open={commentDialogOpen}
-            onOpenChange={setCommentDialogOpen}
-            block={selectedBlock}
-            boardId={id}
-            onCommentAdd={(comment) => {
-              if (!onBlocksChange) return;
-              const blocks = board.blocks.map(b =>
-                b.id === selectedBlock.id
-                  ? { ...b, comments: [...(b.comments || []), comment] }
-                  : b
-              );
-              onBlocksChange(blocks);
-            }}
-          />
-        )}
-
-        <AddToProjectDialog
-          open={addToProjectOpen}
-          onOpenChange={setAddToProjectOpen}
-          boardId={id}
-        />
-
-        {inviteOpen && (
-          <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
-                <DialogDescription>
-                  Enter email addresses to invite team members
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <Input
-                  placeholder="Enter email addresses (comma separated)"
-                  className="w-full"
-                />
-                <Button className="w-full" onClick={() => setInviteOpen(false)}>
-                  Send Invites
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {shareLinkOpen && (
-          <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Share Blueprint</DialogTitle>
-                <DialogDescription>
-                  Choose how you want to share this blueprint
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-6 py-4">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
-                  <div className="flex gap-2">
-                    <Input
-                      value={window.location.href}
-                      readOnly
-                      className="w-full"
-                    />
-                    <Button
-                      onClick={() => {
-                        navigator.clipboard.writeText(window.location.href);
-                        useToast({
-                          title: "Link copied",
-                          description: "Team access link has been copied to clipboard"
-                        });
-                      }}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
-                  <div className="flex gap-2">
-                    <Input
-                      value={`${window.location.origin}/public/board/${id}`}
-                      readOnly
-                      className="w-full"
-                    />
-                    <Button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
-                        useToast({
-                          title: "Link copied",
-                          description: "Public access link has been copied to clipboard"
-                        });
-                      }}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Anyone with this link can view the blueprint in read-only mode
-                  </p>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
     </div>
   );

@@ -4,6 +4,6 @@
   "appearance": "light",
   "radius": 0.5,
   "accent": "hsl(31.5 97.3% 45.9%)",
-  "border": "hsl(214.3 31.8% 65%)", 
+  "border": "hsl(214.3 31.8% 25%)", 
   "mutedForeground": "hsl(215.4 16.3% 46.9%)"
 }

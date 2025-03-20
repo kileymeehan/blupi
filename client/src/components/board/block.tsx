@@ -13,7 +13,7 @@ interface BlockProps {
   onChange?: (content: string) => void;
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
-  onEmojiChange?: (id: string, emoji: string) => void;
+  onEmojiChange?: (blockId: string, emoji: string) => void;
   isTemplate?: boolean;
   onCommentClick?: () => void;
   projectId?: number;
@@ -98,7 +98,7 @@ export default function Block({
 
   const handleEmojiSelect = (emoji: any) => {
     if (!onEmojiChange) return;
-    console.log('Selected emoji:', emoji); // Debug log
+    // emoji-mart provides the actual emoji character in the native property
     onEmojiChange(block.id, emoji.native);
     setEmojiPickerOpen(false);
   };
@@ -110,7 +110,7 @@ export default function Block({
     <div className="w-full h-full p-2">
       {block.emoji && (
         <div className="absolute -top-2 -right-2 z-10 text-lg cursor-default">
-          <span role="img" aria-label="emoji">
+          <span role="img" aria-label="emoji" className="select-none">
             {block.emoji}
           </span>
         </div>
