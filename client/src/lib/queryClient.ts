@@ -16,7 +16,7 @@ export async function apiRequest(
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: "include", // Important: Include credentials for session persistence
   });
 
   await throwIfResNotOk(res);
@@ -30,7 +30,7 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
+      credentials: "include", // Important: Include credentials for session persistence
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
@@ -45,12 +45,12 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
-      staleTime: 5000, // Consider data fresh for 5 seconds
-      gcTime: 300000, // Keep unused data in cache for 5 minutes
-      refetchOnWindowFocus: false, // Don't refetch on window focus
-      refetchOnMount: true,
-      retry: 1, // Only retry once
-      retryDelay: 1000,
+      staleTime: 0, // Consider data stale immediately
+      gcTime: 1800000, // Keep unused data in cache for 30 minutes
+      refetchOnWindowFocus: true, // Refetch when window gains focus
+      refetchOnMount: true, // Refetch when component mounts
+      retry: 2, // Retry failed requests twice
+      retryDelay: 1000, // Wait 1 second between retries
     },
     mutations: {
       retry: false,
