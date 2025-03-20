@@ -6,7 +6,9 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  type User
+  type User,
+  getAuth,
+  onIdTokenChanged
 } from '@firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -17,20 +19,41 @@ export function useFirebaseAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    // Listen for both auth state changes and token changes to catch profile updates
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Force a refresh of the user object to get latest photoURL
-        user.reload().then(() => {
-          setUser(user);
-          setLoading(false);
-        }).catch(console.error);
+        try {
+          // Force a reload to get the latest profile data
+          await user.reload();
+          // Get the fresh user object after reload
+          const freshUser = auth.currentUser;
+          setUser(freshUser);
+        } catch (error) {
+          console.error('Error reloading user:', error);
+        }
       } else {
         setUser(null);
-        setLoading(false);
+      }
+      setLoading(false);
+    });
+
+    // Listen for token changes which happen on profile updates
+    const unsubscribeToken = onIdTokenChanged(auth, async (user) => {
+      if (user) {
+        try {
+          await user.reload();
+          const freshUser = auth.currentUser;
+          setUser(freshUser);
+        } catch (error) {
+          console.error('Error reloading user after token change:', error);
+        }
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      unsubscribeToken();
+    };
   }, []);
 
   const signInWithGoogle = async () => {

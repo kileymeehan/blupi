@@ -118,10 +118,12 @@ export function useWebSocket(boardId: string) {
       }
     };
 
-    connect();
+    if (boardId) {
+      connect();
+    }
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !isConnected) {
+      if (document.visibilityState === 'visible' && !isConnected && boardId) {
         console.log('[WS] Tab became visible, attempting to reconnect');
         connect();
       }

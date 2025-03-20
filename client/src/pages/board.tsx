@@ -11,7 +11,9 @@ import { Loader2 } from "lucide-react";
 export default function BoardPage() {
   const { id } = useParams();
   const { toast } = useToast();
-  const { sendMessage, connectedUsers } = useWebSocket(id);
+
+  // Ensure id is a string when passed to useWebSocket
+  const { sendMessage, connectedUsers } = useWebSocket(id || '');
 
   const { data: board, isLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -121,6 +123,7 @@ export default function BoardPage() {
   return (
     <BoardGrid
       id={id!}
+      board={board}
       onBlocksChange={handleBlocksChange}
       onPhasesChange={handlePhasesChange}
       onBoardChange={handleBoardChange}
