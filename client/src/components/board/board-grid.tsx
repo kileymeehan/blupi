@@ -62,6 +62,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [shareLinkOpen, setShareLinkOpen] = useState(false);
   const [shareLink, setShareLink] = useState("");
   const boardRef = useRef<HTMLDivElement>(null);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false); // Added state for emoji picker
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -216,7 +217,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     onBlocksChange(blocks);
   };
 
-  const handleEmojiChange = (blockId: string, emoji: string) => {
+  const handleEmojiSelect = (blockId: string, emoji: string) => { // Added blockId parameter
+    if (!onEmojiChange) return;
+    onEmojiChange(blockId, emoji);
+    setEmojiPickerOpen(false);
+  };
+
+
+  const handleEmojiChange = (blockId: string, emoji: string) => { // Kept original for potential future use
     const blocks = board.blocks.map(block =>
       block.id === blockId ? { ...block, emoji } : block
     );
@@ -828,7 +836,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     onChange={(content) => handleBlockChange(block.id, content)}
                                                     onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
                                                     onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                                    onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
+                                                    onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)} // Kept original function for potential future use
                                                     onCommentClick={() => handleCommentClick(block)}
                                                     projectId={board.projectId || undefined}
                                                     highlighted={block.id === highlightedBlockId}

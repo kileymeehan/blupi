@@ -98,6 +98,7 @@ export default function Block({
 
   const handleEmojiSelect = (emoji: any) => {
     if (!onEmojiChange) return;
+    console.log('Selected emoji:', emoji); // Debug log
     onEmojiChange(block.id, emoji.native);
     setEmojiPickerOpen(false);
   };
