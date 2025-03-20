@@ -2,7 +2,7 @@ import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, UserPlus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Link } from "wouter";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 import { InviteProjectDialog } from "@/components/invite-project-dialog";
@@ -175,7 +175,7 @@ export default function Project() {
               <CardContent className="flex flex-col h-full">
                 <div className="flex-grow"></div>
                 <div className="flex flex-col gap-2 mt-auto">
-                  <Button variant="ghost" asChild className="w-full">
+                  <Button variant="ghost" asChild className="w-full border-2"> {/* Added border-2 */}
                     <Link href={`/board/${board.id}`}>View Blueprint</Link>
                   </Button>
                 </div>

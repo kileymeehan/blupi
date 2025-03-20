@@ -243,7 +243,7 @@ export default function Dashboard() {
             <>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
                 {filteredProjects.map((project) => (
-                  <Card key={project.id} className="relative overflow-hidden group hover:shadow-md transition-shadow">
+                  <Card key={project.id} className="relative overflow-hidden group hover:shadow-md transition-shadow border-2 border-gray-200"> {/* Added border */}
                     <div 
                       className="absolute inset-y-0 left-0 w-1.5" 
                       style={{ 
@@ -279,10 +279,13 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <Button asChild className="w-full">
-                        <Link href={`/project/${project.id}`}>View Project</Link>
-                      </Button>
+                    <CardContent className="flex flex-col h-full">
+                      <div className="flex-grow"></div>
+                      <div className="flex flex-col gap-2 mt-auto">
+                        <Button variant="ghost" asChild className="w-full border-2 border-gray-300"> {/* Added border */}
+                          <Link href={`/project/${project.id}`}>View Project</Link>
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -338,7 +341,7 @@ export default function Dashboard() {
                 {recentBoards.map((board) => {
                   const project = projects.find(p => p.id === board.projectId);
                   return (
-                    <Card key={board.id} className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow">
+                    <Card key={board.id} className="relative overflow-hidden border-l-4 border-gray-200 hover:shadow-md transition-shadow"> {/* Added border */}
                       {project && (
                         <div className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: project.color || '#4F46E5', opacity: 1, zIndex: 10 }} />
                       )}
@@ -374,10 +377,13 @@ export default function Dashboard() {
                           </div>
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <Button variant="outline" asChild className="w-full">
-                          <Link href={`/board/${board.id}`}>View Blueprint</Link>
-                        </Button>
+                      <CardContent className="flex flex-col h-full">
+                        <div className="flex-grow"></div>
+                        <div className="flex flex-col gap-2 mt-auto">
+                          <Button variant="ghost" asChild className="w-full border-2 border-gray-300"> {/* Added border */}
+                            <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );
@@ -416,7 +422,7 @@ export default function Dashboard() {
               const assignedProject = projects.find(p => p.id === board.projectId);
 
               return (
-                <Card key={board.id} className="hover:shadow-md transition-shadow">
+                <Card key={board.id} className="hover:shadow-md transition-shadow border-2 border-gray-200"> {/* Added border */}
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle>{board.name}</CardTitle>
@@ -444,22 +450,11 @@ export default function Dashboard() {
                       </div>
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col gap-2">
-                      <Button variant="ghost" asChild className="w-full">
+                  <CardContent className="flex flex-col h-full">
+                    <div className="flex-grow"></div>
+                    <div className="flex flex-col gap-2 mt-auto">
+                      <Button variant="ghost" asChild className="w-full border-2 border-gray-300"> {/* Added border */}
                         <Link href={`/board/${board.id}`}>View Blueprint</Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full text-muted-foreground hover:text-foreground"
-                        onClick={() => {
-                          setSelectedBoardId(String(board.id));
-                          setAddToProjectOpen(true);
-                        }}
-                      >
-                        <Briefcase className="w-4 h-4 mr-2" />
-                        {assignedProject ? `Assigned to ${assignedProject.name}` : 'Add to Project'}
                       </Button>
                     </div>
                   </CardContent>
