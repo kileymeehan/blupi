@@ -209,7 +209,11 @@ export default function Block({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setEmojiPickerOpen(true);
+              if (block.emoji) {
+                onEmojiChange?.(block.id, '');
+              } else {
+                setEmojiPickerOpen(true);
+              }
             }}
             className={`
               flex items-center gap-1 p-1
@@ -217,8 +221,10 @@ export default function Block({
               text-xs text-gray-600 hover:text-gray-900
               shadow-sm hover:shadow
               opacity-0 group-hover:opacity-100
+              ${block.emoji ? 'text-yellow-600' : ''}
               transition-all duration-150
             `}
+            title={block.emoji ? "Remove emoji" : "Add emoji"}
           >
             <Smile className="w-4 h-4" />
           </button>
