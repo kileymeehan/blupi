@@ -155,14 +155,14 @@ export default function Project() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {boards.map((board) => (
-            <Card key={board.id} className="relative overflow-hidden">
+            <Card key={board.id} className="relative overflow-hidden flex flex-col">
               <div 
                 className="absolute inset-y-0 left-0 w-1.5" 
                 style={{ backgroundColor: project?.color || '#4F46E5' }} 
               />
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>{board.name}</CardTitle>
+                  <CardTitle className="text-lg">{board.name}</CardTitle>
                   <StatusSelector
                     type="board"
                     value={board.status}
@@ -172,10 +172,10 @@ export default function Project() {
                 </div>
                 <CardDescription>{board.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col h-full">
+              <CardContent className="flex flex-col h-full mt-auto">
                 <div className="flex-grow"></div>
-                <div className="flex flex-col gap-2 mt-auto">
-                  <Button variant="ghost" asChild className="w-full">
+                <div className="flex flex-col gap-2">
+                  <Button variant="ghost" asChild className="w-full border-2 border-gray-900 hover:bg-gray-100">
                     <Link href={`/board/${board.id}`}>View Blueprint</Link>
                   </Button>
                 </div>
