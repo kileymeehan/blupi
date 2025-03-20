@@ -11,7 +11,7 @@ interface ConnectedUser {
   id: string;
   name: string;
   color: string;
-  emoji?: string; // Add emoji field
+  emoji?: string;
 }
 
 export function useWebSocket(boardId: string) {
@@ -109,16 +109,23 @@ export function useWebSocket(boardId: string) {
           }
         });
 
-        // Ping the server periodically to keep the connection alive
-        const pingInterval = setInterval(() => {
+        // Listen for user profile updates
+        const handleProfileUpdate = (event: CustomEvent) => {
           if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ type: 'ping' }));
+            sendMessage({
+              type: 'subscribe',
+              boardId,
+              userName: user?.email || 'Anonymous',
+              userEmoji: event.detail.photoURL
+            });
           }
-        }, 30000);
+        };
 
-        socket.addEventListener('close', () => {
-          clearInterval(pingInterval);
-        });
+        window.addEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
+
+        return () => {
+          window.removeEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
+        };
 
       } catch (error) {
         console.error('[WS] Failed to create WebSocket connection:', error);

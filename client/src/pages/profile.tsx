@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,19 +13,22 @@ export default function ProfilePage() {
   const { user, logout, updateUserProfile } = useFirebaseAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [selectedEmoji, setSelectedEmoji] = useState<string>(user?.photoURL || ANIMAL_EMOJIS[0]);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>(ANIMAL_EMOJIS[0]);
+
+  // Update selected emoji when user data changes
+  useEffect(() => {
+    if (user?.photoURL) {
+      setSelectedEmoji(user.photoURL);
+    }
+  }, [user?.photoURL]);
 
   const handleEmojiChange = async (newEmoji: string) => {
     try {
-      setSelectedEmoji(newEmoji);
       if (user) {
         await updateUserProfile({
           photoURL: newEmoji
         });
-        toast({
-          title: "Success",
-          description: "Your emoji has been updated",
-        });
+        setSelectedEmoji(newEmoji);
       }
     } catch (error) {
       console.error('Error updating emoji:', error);

@@ -45,7 +45,15 @@ export function useFirebaseAuth() {
       await updateProfile(auth.currentUser, updates);
       // Force a reload to ensure we have the latest data
       await auth.currentUser.reload();
-      setUser(auth.currentUser);
+      // Get fresh user object and update state
+      const freshUser = auth.currentUser;
+      setUser(freshUser);
+
+      // Broadcast a custom event to notify other components
+      window.dispatchEvent(new CustomEvent('userProfileUpdated', { 
+        detail: { photoURL: freshUser.photoURL } 
+      }));
+
       toast({
         title: "Success",
         description: "Profile updated successfully",
