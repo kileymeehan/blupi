@@ -60,7 +60,9 @@ export default function Block({
   }, [block.content, isTemplate]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    //No changes needed here.
+    if (e.key === 'Enter' && e.shiftKey) {
+      e.stopPropagation();
+    }
   };
 
   const handleInput = () => {
@@ -123,7 +125,7 @@ export default function Block({
           w-full min-h-[100px] px-3 py-4 pt-8 text-sm
           ${isTemplate ? 'flex items-center justify-center' : ''}
           overflow-y-auto whitespace-pre-wrap break-words
-          leading-normal text-center
+          leading-normal text-left
           focus:outline-none
           focus:bg-white/50
           transition-colors duration-200
