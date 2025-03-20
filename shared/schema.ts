@@ -141,7 +141,6 @@ export const attachmentSchema = z.object({
 
 export type Attachment = z.infer<typeof attachmentSchema>;
 
-// Block schemas
 export const blockSchema = z.object({
   id: z.string(),
   type: z.enum(['touchpoint', 'email', 'pendo', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden']),
@@ -151,7 +150,7 @@ export const blockSchema = z.object({
   comments: z.array(commentSchema).optional().default([]),
   attachments: z.array(attachmentSchema).optional().default([]),
   notes: z.string().optional(),
-  emojis: z.array(z.string()).optional().default([])
+  emoji: z.string().optional()
 });
 
 export type Block = z.infer<typeof blockSchema>;

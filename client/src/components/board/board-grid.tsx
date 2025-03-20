@@ -174,7 +174,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           comments: [],
           attachments: [],
           notes: "",
-          emojis: []
+          emoji: ""
         };
 
         blocks.splice(destination.index, 0, newBlock);
@@ -217,9 +217,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     onBlocksChange(blocks);
   };
 
-  const handleEmojiChange = (blockId: string, emojis: string[]) => {
+  const handleEmojiChange = (blockId: string, emoji: string) => {
     const blocks = board.blocks.map(block =>
-      block.id === blockId ? { ...block, emojis } : block
+      block.id === blockId ? { ...block, emoji } : block
     );
     onBlocksChange(blocks);
   };
@@ -788,11 +788,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                         className={`
-                                          space-y-6 min-h-[100px] p-6 rounded-lg border-2 border-gray-300
-                                          flex flex-col items-center
+                                          space-y-4 min-h-[100px] p-4 rounded-lg border-2 border-gray-300
                                           ${snapshot.isDraggingOver
                                             ? 'border-primary/50 bg-primary/5'
-                                            : 'hover:border-gray-400'
+                                            : 'hover:border-gray-300'
                                           }
                                           transition-colors duration-200
                                         `}
@@ -813,8 +812,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                   style={provided.draggableProps.style}
                                                   className={`
                                                     ${LAYER_TYPES.find(l => l.type === block.type)?.color}
-                                                    group relative rounded-lg border-2 border-gray-300
-                                                    w-full mb-2 p-2
+                                                    group relative rounded-lg border-2 border-gray-300 mb-2 p-2
                                                     ${snapshot.isDragging ? 'shadow-lg' : ''}
                                                     ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                   `}
@@ -824,7 +822,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     onChange={(content) => handleBlockChange(block.id, content)}
                                                     onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
                                                     onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                                    onEmojiChange={handleEmojiChange}
+                                                    onEmojiChange={(blockId, emoji) => handleEmojiChange(blockId, emoji)}
                                                     onCommentClick={() => handleCommentClick(block)}
                                                     projectId={board.projectId || undefined}
                                                   />
@@ -868,7 +866,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 boardId={id}
                 onCommentAdd={(comment) => {
                   if (!onBlocksChange) return;
-                  const blocks = board.blocks.map(b =>
+                                    const blocks = board.blocks.map(b =>
                     b.id === selectedBlock.id
                       ? { ...b, comments: [...(b.comments || []), comment] }
                       : b
