@@ -17,6 +17,31 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { ProfileIcon } from "@/components/profile-icon";
 
+// Loading skeleton component for projects/boards
+function LoadingSkeleton({ count = 3 }) {
+  return (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {Array(count).fill(null).map((_, i) => (
+        <Card key={i} className="relative overflow-hidden">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+              <div className="h-6 w-24 bg-gray-200 rounded animate-pulse" />
+            </div>
+            <div className="space-y-2 mt-2">
+              <div className="h-4 w-full bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-9 w-full bg-gray-200 rounded animate-pulse" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
 function getAnimalEmoji(id: string): string {
@@ -206,79 +231,85 @@ export default function Dashboard() {
             </Button>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-            {filteredProjects.map((project) => (
-              <Card key={project.id} className="relative overflow-hidden group hover:shadow-md transition-shadow">
-                <div 
-                  className="absolute inset-y-0 left-0 w-1.5" 
-                  style={{ 
-                    backgroundColor: project.color || '#4F46E5',
-                    opacity: 1,
-                    zIndex: 10 
-                  }} 
-                />
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg">{project.name}</CardTitle>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => updateProjectStatus.mutate({ projectId: project.id, status: "archived" })}
-                        className="text-muted-foreground hover:text-red-600 p-1 h-auto"
-                      >
-                        <Archive className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <StatusSelector
-                      type="project"
-                      value={project.status}
-                      onChange={(status) => updateProjectStatus.mutate({ projectId: project.id, status })}
-                      disabled={updateProjectStatus.isPending}
+          {projectLoading ? (
+            <LoadingSkeleton count={3} />
+          ) : (
+            <>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+                {filteredProjects.map((project) => (
+                  <Card key={project.id} className="relative overflow-hidden group hover:shadow-md transition-shadow">
+                    <div 
+                      className="absolute inset-y-0 left-0 w-1.5" 
+                      style={{ 
+                        backgroundColor: project.color || '#4F46E5',
+                        opacity: 1,
+                        zIndex: 10 
+                      }} 
                     />
-                  </div>
-                  <div className="mt-2">
-                    <div className="text-sm text-muted-foreground">{project.description}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      Created on {format(new Date(project.createdAt), 'MMM d, yyyy')}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Button asChild className="w-full">
-                    <Link href={`/project/${project.id}`}>View Project</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-lg">{project.name}</CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => updateProjectStatus.mutate({ projectId: project.id, status: "archived" })}
+                            className="text-muted-foreground hover:text-red-600 p-1 h-auto"
+                          >
+                            <Archive className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <StatusSelector
+                          type="project"
+                          value={project.status}
+                          onChange={(status) => updateProjectStatus.mutate({ projectId: project.id, status })}
+                          disabled={updateProjectStatus.isPending}
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <div className="text-sm text-muted-foreground">{project.description}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          Created on {format(new Date(project.createdAt), 'MMM d, yyyy')}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <Button asChild className="w-full">
+                        <Link href={`/project/${project.id}`}>View Project</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
 
-            {filteredProjects.length === 0 && (
-              <Card className="border-dashed">
-                <CardHeader>
-                  <CardTitle>
-                    {showArchived ? "No archived projects" : "Get started with a project"}
-                  </CardTitle>
-                  <CardDescription>
-                    {showArchived 
-                      ? "When you archive projects, they'll appear here"
-                      : "Create a project to organize your blueprints"}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            )}
-          </div>
+                {filteredProjects.length === 0 && (
+                  <Card className="border-dashed">
+                    <CardHeader>
+                      <CardTitle>
+                        {showArchived ? "No archived projects" : "Get started with a project"}
+                      </CardTitle>
+                      <CardDescription>
+                        {showArchived 
+                          ? "When you archive projects, they'll appear here"
+                          : "Create a project to organize your blueprints"}
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                )}
+              </div>
 
-          <div className="flex justify-end mt-8 border-t pt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowArchived(!showArchived)}
-              className="flex items-center gap-2"
-            >
-              <Archive className="h-4 w-4" />
-              {showArchived ? "Hide Archived Projects" : "Show Archived Projects"}
-            </Button>
-          </div>
+              <div className="flex justify-end mt-8 border-t pt-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowArchived(!showArchived)}
+                  className="flex items-center gap-2"
+                >
+                  <Archive className="h-4 w-4" />
+                  {showArchived ? "Hide Archived Projects" : "Show Archived Projects"}
+                </Button>
+              </div>
+            </>
+          )}
         </section>
 
         <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
@@ -293,67 +324,73 @@ export default function Dashboard() {
             </Button>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-            {recentBoards.map((board) => {
-              const project = projects.find(p => p.id === board.projectId);
-              return (
-                <Card key={board.id} className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow">
-                  {project && (
-                    <div className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: project.color || '#4F46E5', opacity: 1, zIndex: 10 }} />
-                  )}
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>{board.name}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => updateBoardStatus.mutate({ boardId: board.id, status: "archived" })}
-                          className="text-muted-foreground hover:text-red-600 p-1 h-auto"
-                        >
-                          <Archive className="h-4 w-4" />
-                        </Button>
-                        <StatusSelector
-                          type="board"
-                          value={board.status}
-                          onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
-                          disabled={updateBoardStatus.isPending}
-                        />
-                      </div>
-                    </div>
-                    <CardDescription>
-                      {board.description}
+          {boardsLoading ? (
+            <LoadingSkeleton count={3} />
+          ) : (
+            <>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+                {recentBoards.map((board) => {
+                  const project = projects.find(p => p.id === board.projectId);
+                  return (
+                    <Card key={board.id} className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow">
                       {project && (
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          Project: {project.name}
-                        </div>
+                        <div className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: project.color || '#4F46E5', opacity: 1, zIndex: 10 }} />
                       )}
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        Created on {format(new Date(board.createdAt), 'MMM d, yyyy')}
-                      </div>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button variant="outline" asChild className="w-full">
-                      <Link href={`/board/${board.id}`}>View Blueprint</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle>{board.name}</CardTitle>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => updateBoardStatus.mutate({ boardId: board.id, status: "archived" })}
+                              className="text-muted-foreground hover:text-red-600 p-1 h-auto"
+                            >
+                              <Archive className="h-4 w-4" />
+                            </Button>
+                            <StatusSelector
+                              type="board"
+                              value={board.status}
+                              onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
+                              disabled={updateBoardStatus.isPending}
+                            />
+                          </div>
+                        </div>
+                        <CardDescription>
+                          {board.description}
+                          {project && (
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              Project: {project.name}
+                            </div>
+                          )}
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            Created on {format(new Date(board.createdAt), 'MMM d, yyyy')}
+                          </div>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button variant="outline" asChild className="w-full">
+                          <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
 
-          <div className="flex justify-end mt-8 border-t pt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowArchivedBlueprints(!showArchivedBlueprints)}
-              className="flex items-center gap-2"
-            >
-              <Archive className="h-4 w-4" />
-              {showArchivedBlueprints ? "Hide Archived Blueprints" : "Show Archived Blueprints"}
-            </Button>
-          </div>
+              <div className="flex justify-end mt-8 border-t pt-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowArchivedBlueprints(!showArchivedBlueprints)}
+                  className="flex items-center gap-2"
+                >
+                  <Archive className="h-4 w-4" />
+                  {showArchivedBlueprints ? "Hide Archived Blueprints" : "Show Archived Blueprints"}
+                </Button>
+              </div>
+            </>
+          )}
         </section>
 
         <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
