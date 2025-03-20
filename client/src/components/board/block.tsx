@@ -60,8 +60,9 @@ export default function Block({
   }, [block.content, isTemplate]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' && e.shiftKey) {
-      e.stopPropagation();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      contentRef.current?.blur();
     }
   };
 
@@ -124,12 +125,11 @@ export default function Block({
         className={`
           w-full min-h-[100px] px-3 py-4 pt-8 text-sm
           ${isTemplate ? 'flex items-center justify-center' : ''}
-          overflow-y-auto whitespace-pre break-words
-          leading-normal text-left
+          overflow-y-auto whitespace-pre-wrap break-words
+          leading-normal text-center
           focus:outline-none
           focus:bg-white/50
           transition-colors duration-200
-          resize-none
         `}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
