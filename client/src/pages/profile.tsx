@@ -6,12 +6,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { updateProfile } from "firebase/auth";
 
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
 export default function ProfilePage() {
-  const { user, logout } = useFirebaseAuth();
+  const { user, logout, updateUserProfile } = useFirebaseAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [selectedEmoji, setSelectedEmoji] = useState<string>(user?.photoURL || ANIMAL_EMOJIS[0]);
@@ -20,7 +19,7 @@ export default function ProfilePage() {
     try {
       setSelectedEmoji(newEmoji);
       if (user) {
-        await updateProfile(user, {
+        await updateUserProfile({
           photoURL: newEmoji
         });
         toast({

@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws';
 
 interface ConnectedUser {
   id: string;
@@ -17,18 +17,17 @@ interface ConnectedUser {
 
 const connectedUsers = new Map<string, ConnectedUser>();
 const COLORS = [
-  "#FF5733", "#33FF57", "#3357FF", "#FF33F5", 
+  "#FF5733", "#33FF57", "#3357FF", "#FF33F5",
   "#33FFF5", "#F5FF33", "#FF3333", "#33FF33"
 ];
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Create HTTP server
   const httpServer = createServer(app);
   console.log('[HTTP] Creating basic HTTP server');
 
-  // Create WebSocket server
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws-blupi' });
-  console.log('[WS] WebSocket server created on path /ws-blupi');
+  // Create WebSocket server with proper path
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  console.log('[WS] WebSocket server created on path /ws');
 
   wss.on('connection', (ws) => {
     const userId = nanoid();
@@ -52,25 +51,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
           connectedUsers.set(userId, user);
 
-          // Broadcast updated users list for this board
+          // Send initial users list to new user
           const boardUsers = Array.from(connectedUsers.values())
             .filter(u => u.boardId === message.boardId)
             .map(({ id, name, color, emoji }) => ({ id, name, color, emoji }));
 
-          wss.clients.forEach(client => {
-            if (client !== ws && client.readyState === ws.OPEN) {
-              client.send(JSON.stringify({
-                type: 'users_update',
-                users: boardUsers
-              }));
-            }
-          });
-
-          // Send initial users list to new user
           ws.send(JSON.stringify({
             type: 'users_update',
             users: boardUsers
           }));
+
+          // Broadcast to other users in the same board
+          for (const [, connectedUser] of connectedUsers) {
+            if (connectedUser.ws !== ws && 
+                connectedUser.boardId === message.boardId && 
+                connectedUser.ws.readyState === WebSocket.OPEN) {
+              connectedUser.ws.send(JSON.stringify({
+                type: 'users_update',
+                users: boardUsers
+              }));
+            }
+          }
         }
       } catch (error) {
         console.error('[WS] Error processing message:', error);
@@ -83,20 +84,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user?.boardId) {
         connectedUsers.delete(userId);
 
-        // Broadcast updated users list
+        // Broadcast updated users list to remaining users in the same board
         const boardUsers = Array.from(connectedUsers.values())
           .filter(u => u.boardId === user.boardId)
           .map(({ id, name, color, emoji }) => ({ id, name, color, emoji }));
 
-        wss.clients.forEach(client => {
-          if (client.readyState === ws.OPEN) {
-            client.send(JSON.stringify({
+        for (const [, connectedUser] of connectedUsers) {
+          if (connectedUser.boardId === user.boardId && 
+              connectedUser.ws.readyState === WebSocket.OPEN) {
+            connectedUser.ws.send(JSON.stringify({
               type: 'users_update',
               users: boardUsers
             }));
           }
-        });
+        }
       }
+    });
+
+    // Send heartbeat to keep connection alive
+    const heartbeat = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+      }
+    }, 30000);
+
+    ws.on('close', () => {
+      clearInterval(heartbeat);
     });
   });
 
@@ -137,9 +150,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!parseResult.success) {
         console.error('[HTTP] Project validation error:', parseResult.error);
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: true,
-          message: parseResult.error.errors[0].message 
+          message: parseResult.error.errors[0].message
         });
       }
 
@@ -201,9 +214,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, role } = req.body;
 
       if (!email || !role) {
-        return res.status(400).json({ 
-          error: true, 
-          message: "Email and role are required" 
+        return res.status(400).json({
+          error: true,
+          message: "Email and role are required"
         });
       }
 
@@ -217,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.createUser({
           email,
           username: email.split('@')[0],
-          password: nanoid(), 
+          password: nanoid(),
         });
       }
 
@@ -232,27 +245,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         to: email,
         projectName: project.name,
         role,
-        inviterName: "Team member" 
+        inviterName: "Team member"
       });
 
       if (!emailSent) {
         console.error('[HTTP] Failed to send invitation email to:', email);
-        return res.status(500).json({ 
-          error: true, 
-          message: "Failed to send invitation email. Please try again." 
+        return res.status(500).json({
+          error: true,
+          message: "Failed to send invitation email. Please try again."
         });
       }
 
       console.log(`[HTTP] Invitation sent successfully to ${email} for project ${project.id}`);
-      res.json({ 
+      res.json({
         message: "Invitation sent successfully",
         projectMember
       });
     } catch (err) {
       console.error('[HTTP] Error sending invitation:', err);
-      res.status(500).json({ 
-        error: true, 
-        message: "Failed to send invitation" 
+      res.status(500).json({
+        error: true,
+        message: "Failed to send invitation"
       });
     }
   });
@@ -289,9 +302,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!parseResult.success) {
         console.error('[HTTP] Board validation error:', parseResult.error);
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: true,
-          message: parseResult.error.errors[0].message 
+          message: parseResult.error.errors[0].message
         });
       }
 
@@ -361,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: board.blocks.map(block => ({
           ...block,
-          comments: [] 
+          comments: []
         }))
       };
 
@@ -378,9 +391,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[HTTP] Adding comment to board ${req.params.boardId}, block ${req.params.blockId}`);
       const { content, username } = req.body;
       if (!content) {
-        return res.status(400).json({ 
-          error: true, 
-          message: "Comment content is required" 
+        return res.status(400).json({
+          error: true,
+          message: "Comment content is required"
         });
       }
 
@@ -494,6 +507,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }
 
 //Dummy function to avoid compilation error
-async function sendProjectInvitation(params: any) :Promise<boolean>{
-    return true;
+async function sendProjectInvitation(params: any): Promise<boolean> {
+  return true;
 }

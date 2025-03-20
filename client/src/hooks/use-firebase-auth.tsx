@@ -7,8 +7,8 @@ import {
   signOut,
   onAuthStateChanged,
   type User,
-  getAuth,
-  onIdTokenChanged
+  updateProfile,
+  getAuth
 } from '@firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -19,15 +19,13 @@ export function useFirebaseAuth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Listen for both auth state changes and token changes to catch profile updates
-    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
           // Force a reload to get the latest profile data
           await user.reload();
           // Get the fresh user object after reload
-          const freshUser = auth.currentUser;
-          setUser(freshUser);
+          setUser(auth.currentUser);
         } catch (error) {
           console.error('Error reloading user:', error);
         }
@@ -37,24 +35,31 @@ export function useFirebaseAuth() {
       setLoading(false);
     });
 
-    // Listen for token changes which happen on profile updates
-    const unsubscribeToken = onIdTokenChanged(auth, async (user) => {
-      if (user) {
-        try {
-          await user.reload();
-          const freshUser = auth.currentUser;
-          setUser(freshUser);
-        } catch (error) {
-          console.error('Error reloading user after token change:', error);
-        }
-      }
-    });
-
-    return () => {
-      unsubscribeAuth();
-      unsubscribeToken();
-    };
+    return () => unsubscribe();
   }, []);
+
+  const updateUserProfile = async (updates: { photoURL?: string }) => {
+    if (!auth.currentUser) return;
+
+    try {
+      await updateProfile(auth.currentUser, updates);
+      // Force a reload to ensure we have the latest data
+      await auth.currentUser.reload();
+      setUser(auth.currentUser);
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
 
   const signInWithGoogle = async () => {
     try {
@@ -74,26 +79,7 @@ export function useFirebaseAuth() {
       });
       return result.user;
     } catch (error: any) {
-      console.error('Sign-in error:', {
-        code: error.code,
-        message: error.message,
-        domain: window.location.hostname
-      });
-
-      let errorMessage = "Failed to sign in with Google";
-      if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = "This app needs to be verified by Google. Please try again in a moment.";
-      } else if (error.code === 'auth/popup-blocked') {
-        errorMessage = "Please allow popups for this site to sign in with Google.";
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        errorMessage = "Sign in was cancelled. Please try again.";
-      }
-
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      console.error('Sign-in error:', error);
       throw error;
     }
   };
@@ -157,6 +143,7 @@ export function useFirebaseAuth() {
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
-    logout
+    logout,
+    updateUserProfile
   };
 }

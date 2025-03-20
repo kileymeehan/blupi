@@ -44,7 +44,7 @@ export function useWebSocket(boardId: string) {
   useEffect(() => {
     console.log(`[WS] Initializing connection for board ${boardId}`);
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws-blupi`;
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
     console.log('[WS] Connecting to:', wsUrl);
 
     const connect = () => {
@@ -90,11 +90,6 @@ export function useWebSocket(boardId: string) {
         socket.addEventListener('error', (error) => {
           console.error('[WS] Connection error:', error);
           setIsConnected(false);
-          toast({
-            title: "Connection Error",
-            description: "Failed to connect to collaboration server. Retrying...",
-            variant: "destructive"
-          });
         });
 
         socket.addEventListener('close', (event) => {
@@ -113,6 +108,18 @@ export function useWebSocket(boardId: string) {
             }, backoffTime);
           }
         });
+
+        // Ping the server periodically to keep the connection alive
+        const pingInterval = setInterval(() => {
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ type: 'ping' }));
+          }
+        }, 30000);
+
+        socket.addEventListener('close', () => {
+          clearInterval(pingInterval);
+        });
+
       } catch (error) {
         console.error('[WS] Failed to create WebSocket connection:', error);
       }
@@ -131,7 +138,6 @@ export function useWebSocket(boardId: string) {
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      console.log('[WS] Cleaning up connection');
       document.removeEventListener('visibilitychange', handleVisibilityChange);
 
       if (reconnectTimeoutRef.current) {
