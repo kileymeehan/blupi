@@ -66,8 +66,8 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-white shadow-sm">
         <div className="container flex h-16 items-center px-8">
-          <h1 className="text-4xl font-black tracking-tighter font-mono bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Blupi
+          <h1 className="text-4xl">
+            <img src="/logo.png" alt="Blupi" className="h-8" />
           </h1>
         </div>
       </header>
