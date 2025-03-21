@@ -17,6 +17,7 @@ interface BlockProps {
   isTemplate?: boolean;
   onCommentClick?: () => void;
   projectId?: number;
+  isHighlighted?: boolean;
 }
 
 const TYPE_LABELS = {
@@ -42,7 +43,8 @@ export default function Block({
   onEmojiChange,
   isTemplate = false,
   onCommentClick,
-  projectId
+  projectId,
+  isHighlighted = false
 }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
@@ -125,6 +127,7 @@ export default function Block({
         className={`
           w-full min-h-[100px] px-3 py-4 pt-8 text-sm
           ${isTemplate ? 'flex items-center justify-center' : ''}
+          ${isHighlighted ? 'ring-2 ring-primary ring-offset-2 bg-primary/5' : ''}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal text-center
           focus:outline-none

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import { CommentDialog } from "./comment-dialog";
-import type { Board, Block as BlockType, Phase } from "@shared/schema";
+import type { Board, Block as BlockType, Phase, Tag } from "@shared/schema";
 import { nanoid } from "nanoid";
 import ImageUpload from './image-upload';
 import { CommentsOverview } from "./comments-overview";
@@ -62,6 +62,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [shareLink, setShareLink] = useState("");
   const boardRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [selectedTagId, setSelectedTagId] = useState<number | undefined>();
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -405,6 +406,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
   };
 
+  const shouldHighlightBlock = (block: BlockType, tagId: number | undefined) => {
+    if (!tagId) return false;
+    return block.tags?.includes(tagId) ?? false;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -678,7 +683,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                           {...provided.droppableProps}
                           className="p-4"
                         >
-                          <BlockDrawer />
+                          <BlockDrawer 
+                            boardId={Number(id)} 
+                            selectedTagId={selectedTagId}
+                            onTagSelect={setSelectedTagId}
+                          />
                           {provided.placeholder}
                         </div>
                       )}
@@ -808,7 +817,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     ${LAYER_TYPES.find(l => l.type === block.type)?.color}
                                                     group relative rounded-lg border-2 border-gray-300 mb-2 p-2
                                                     ${snapshot.isDragging ? 'shadow-lg' : ''}
-                                                    ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                    ${shouldHighlightBlock(block, selectedTagId) ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                   `}
                                                 >
                                                   <Block
@@ -819,6 +828,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     onEmojiChange={(blockId, emoji) => handleEmojiChange(blockId, emoji)}
                                                     onCommentClick={() => handleCommentClick(block)}
                                                     projectId={board.projectId || undefined}
+                                                    isHighlighted={shouldHighlightBlock(block, selectedTagId)}
                                                   />
                                                 </div>
                                               )}

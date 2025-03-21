@@ -63,8 +63,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Broadcast to other users in the same board
           for (const [, connectedUser] of connectedUsers) {
-            if (connectedUser.ws !== ws && 
-                connectedUser.boardId === message.boardId && 
+            if (connectedUser.ws !== ws &&
+                connectedUser.boardId === message.boardId &&
                 connectedUser.ws.readyState === WebSocket.OPEN) {
               connectedUser.ws.send(JSON.stringify({
                 type: 'users_update',
@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .map(({ id, name, color, emoji }) => ({ id, name, color, emoji }));
 
         for (const [, connectedUser] of connectedUsers) {
-          if (connectedUser.boardId === user.boardId && 
+          if (connectedUser.boardId === user.boardId &&
               connectedUser.ws.readyState === WebSocket.OPEN) {
             connectedUser.ws.send(JSON.stringify({
               type: 'users_update',
@@ -500,6 +500,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error('[HTTP] Error toggling comment completion:', err);
       res.status(500).json({ error: true, message: "Failed to update comment" });
+    }
+  });
+
+  // Add after the existing board-related routes:
+
+  // Tag routes
+  app.post("/api/boards/:boardId/tags", async (req, res) => {
+    try {
+      console.log(`[HTTP] Creating tag for board ${req.params.boardId}`);
+      const parseResult = insertTagSchema.safeParse({
+        ...req.body,
+        boardId: Number(req.params.boardId)
+      });
+
+      if (!parseResult.success) {
+        console.error('[HTTP] Tag validation error:', parseResult.error);
+        return res.status(400).json({
+          error: true,
+          message: parseResult.error.errors[0].message
+        });
+      }
+
+      const tag = await storage.createTag(parseResult.data);
+      console.log('[HTTP] Successfully created tag:', tag.id);
+      res.json(tag);
+    } catch (err) {
+      console.error('[HTTP] Error creating tag:', err);
+      res.status(500).json({ error: true, message: "Failed to create tag" });
+    }
+  });
+
+  app.get("/api/boards/:boardId/tags", async (req, res) => {
+    try {
+      console.log(`[HTTP] Fetching tags for board ${req.params.boardId}`);
+      const tags = await storage.getTagsByBoard(Number(req.params.boardId));
+      console.log(`[HTTP] Retrieved ${tags.length} tags for board ${req.params.boardId}`);
+      res.json(tags);
+    } catch (err) {
+      console.error('[HTTP] Error fetching tags:', err);
+      res.status(500).json({ error: true, message: "Failed to fetch tags" });
+    }
+  });
+
+  app.post("/api/boards/:boardId/blocks/:blockId/tags/:tagId", async (req, res) => {
+    try {
+      console.log(`[HTTP] Adding tag ${req.params.tagId} to block ${req.params.blockId}`);
+      const blockTag = await storage.createBlockTag({
+        tagId: Number(req.params.tagId),
+        blockId: req.params.blockId,
+        boardId: Number(req.params.boardId)
+      });
+      console.log('[HTTP] Successfully added tag to block');
+      res.json(blockTag);
+    } catch (err) {
+      console.error('[HTTP] Error adding tag to block:', err);
+      res.status(500).json({ error: true, message: "Failed to add tag to block" });
+    }
+  });
+
+  app.delete("/api/boards/:boardId/blocks/:blockId/tags/:tagId", async (req, res) => {
+    try {
+      console.log(`[HTTP] Removing tag ${req.params.tagId} from block ${req.params.blockId}`);
+      await storage.deleteBlockTag({
+        tagId: Number(req.params.tagId),
+        blockId: req.params.blockId,
+        boardId: Number(req.params.boardId)
+      });
+      console.log('[HTTP] Successfully removed tag from block');
+      res.status(204).send();
+    } catch (err) {
+      console.error('[HTTP] Error removing tag from block:', err);
+      res.status(500).json({ error: true, message: "Failed to remove tag from block" });
     }
   });
 
