@@ -506,7 +506,7 @@ export default function Dashboard() {
             }
           }}
           projectId={projectToDelete.id}
-          projectName={projectToDelete.name}
+          projectName={project.name}
         />
       )}
     </div>
