@@ -61,7 +61,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/3 bg-blue-600 text-white p-12 flex-col justify-between">
         <div>
           <h1 className="mb-6">
-            <img src="/logo.png" alt="Blupi" className="h-12" />
+            <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-12" />
           </h1>
           <p className="text-xl font-light leading-relaxed opacity-90 max-w-md">
             A simple way to create and collaborate on your customer journeys.
