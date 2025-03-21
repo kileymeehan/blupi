@@ -135,7 +135,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       const [movedColumn] = sourcePhase.columns.splice(source.index, 1);
       destPhase.columns.splice(destination.index, 0, movedColumn);
 
-      // Update block positions
       const blocks = Array.from(board.blocks);
       blocks.forEach(block => {
         if (block.phaseIndex === sourcePhaseIndex && block.columnIndex === source.index) {
@@ -157,13 +156,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     }
 
     if (!type || type === 'DEFAULT') {
-      // Handle block dragging
-      const blocks = Array.from(board.blocks);
+      let blocks = Array.from(board.blocks);
 
       // Handle dropping block in drawer (delete)
       if (destination.droppableId === 'drawer') {
-        const updatedBlocks = blocks.filter(b => b.id !== result.draggableId);
-        onBlocksChange(updatedBlocks);
+        blocks = blocks.filter(b => b.id !== result.draggableId);
+        onBlocksChange(blocks);
         return;
       }
 
@@ -186,35 +184,69 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           customDepartment: ""
         };
 
-        blocks.splice(destination.index, 0, newBlock);
+        // Get blocks in destination column to determine insertion point
+        const blocksInDestColumn = blocks
+          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+          .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
+
+        // Find the correct insertion index
+        const insertIndex = destination.index === 0 ?
+          blocks.findIndex(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex) :
+          blocks.findIndex(b => b === blocksInDestColumn[destination.index - 1]) + 1;
+
+        if (insertIndex === -1) {
+          blocks.push(newBlock);
+        } else {
+          blocks.splice(insertIndex, 0, newBlock);
+        }
+
         onBlocksChange(blocks);
         return;
       }
 
       // Handle moving existing block
-      const sourcePhaseCol = source.droppableId.split('-').map(Number);
-      const destPhaseCol = destination.droppableId.split('-').map(Number);
-      const [sourcePhase, sourceColumn] = sourcePhaseCol;
-      const [destPhase, destColumn] = destPhaseCol;
+      const [sourcePhase, sourceColumn] = source.droppableId.split('-').map(Number);
+      const [destPhase, destColumn] = destination.droppableId.split('-').map(Number);
+
+      // Get ordered blocks in both columns
+      const blocksInSourceColumn = blocks
+        .filter(b => b.phaseIndex === sourcePhase && b.columnIndex === sourceColumn)
+        .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
 
       // Find the block being moved
-      const blockIndex = blocks.findIndex(b => 
-        b.phaseIndex === sourcePhase && 
-        b.columnIndex === sourceColumn && 
-        b.id === result.draggableId
-      );
+      const blockToMove = blocksInSourceColumn[source.index];
+      if (!blockToMove || blockToMove.id !== result.draggableId) return;
 
-      if (blockIndex === -1) return;
+      // Remove the block from its current position
+      blocks = blocks.filter(b => b.id !== blockToMove.id);
 
-      // Remove block from its current position
-      const [movedBlock] = blocks.splice(blockIndex, 1);
+      // Special handling for same column moves
+      if (sourcePhase === destPhase && sourceColumn === destColumn) {
+        const sameColumnBlocks = blocks
+          .filter(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
+          .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
 
-      // Update block's phase and column
-      movedBlock.phaseIndex = destPhase;
-      movedBlock.columnIndex = destColumn;
+        const insertAt = destination.index === 0 ? 0 :
+          blocks.findIndex(b => b === sameColumnBlocks[destination.index - 1]) + 1;
 
-      // Insert block at new position
-      blocks.splice(destination.index, 0, movedBlock);
+        blocks.splice(insertAt >= 0 ? insertAt : blocks.length, 0, blockToMove);
+      } else {
+        // Moving to a different column
+        const destColumnBlocks = blocks
+          .filter(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
+          .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
+
+        // Update block's phase and column
+        blockToMove.phaseIndex = destPhase;
+        blockToMove.columnIndex = destColumn;
+
+        // Find insertion point
+        const insertAt = destination.index === 0 ?
+          blocks.findIndex(b => b.phaseIndex === destPhase && b.columnIndex === destColumn) :
+          blocks.findIndex(b => b === destColumnBlocks[destination.index - 1]) + 1;
+
+        blocks.splice(insertAt >= 0 ? insertAt : blocks.length, 0, blockToMove);
+      }
 
       onBlocksChange(blocks);
     }
