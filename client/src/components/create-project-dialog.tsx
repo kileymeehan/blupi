@@ -12,17 +12,17 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertProjectSchema, type InsertProject } from "@shared/schema";
 import { Paintbrush } from "lucide-react";
 
-// Project colors remain unchanged
+// Project colors with 75% opacity
 const projectColors = [
-  "#4F46E5", // Indigo
-  "#DC2626", // Red
-  "#059669", // Emerald
-  "#7C3AED", // Purple
-  "#D97706", // Amber
-  "#2563EB", // Blue
-  "#BE185D", // Pink
-  "#15803D", // Green
-  "#9333EA", // Violet
+  "#4F46E5C0", // Indigo
+  "#DC2626C0", // Red
+  "#059669C0", // Emerald
+  "#7C3AEDC0", // Purple
+  "#D97706C0", // Amber
+  "#2563EBC0", // Blue
+  "#BE185DC0", // Pink
+  "#15803DC0", // Green
+  "#9333EAC0", // Violet
 ];
 
 interface CreateProjectDialogProps {
