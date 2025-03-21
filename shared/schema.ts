@@ -17,7 +17,6 @@ export const usersRelations = relations(users, ({ many }) => ({
   boards: many(boards)
 }));
 
-// Add the missing user schema exports
 export const insertUserSchema = createInsertSchema(users)
   .extend({
     password: z.string().min(8, "Password must be at least 8 characters")
@@ -78,7 +77,7 @@ export const boards = pgTable("boards", {
   blocks: jsonb("blocks").$type<Block[]>().notNull().default([]),
   phases: jsonb("phases").$type<Phase[]>().notNull().default([]),
   status: text("status").notNull().default('draft'),
-  projectId: integer("project_id").references(() => projects.id).notNull(), // Making projectId required
+  projectId: integer("project_id").references(() => projects.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
@@ -94,6 +93,74 @@ export const boardsRelations = relations(boards, ({ one }) => ({
     references: [users.id],
   })
 }));
+
+// Define these schemas first as they are dependencies
+export const commentSchema = z.object({
+  id: z.string(),
+  content: z.string(),
+  userId: z.number(),
+  createdAt: z.string(),
+  username: z.string(),
+  completed: z.boolean().default(false)
+});
+
+export type Comment = z.infer<typeof commentSchema>;
+
+export const attachmentSchema = z.object({
+  id: z.string(),
+  type: z.enum(['link', 'image', 'video']),
+  url: z.string().url('Invalid URL'),
+  title: z.string().optional()
+});
+
+export type Attachment = z.infer<typeof attachmentSchema>;
+
+export const columnSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  image: z.string().optional()
+});
+
+export type Column = z.infer<typeof columnSchema>;
+
+export const phaseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  columns: z.array(columnSchema)
+});
+
+export type Phase = z.infer<typeof phaseSchema>;
+
+// Department schema
+export const departmentSchema = z.enum([
+  'Engineering',
+  'Marketing',
+  'Product',
+  'Design',
+  'Brand',
+  'Support',
+  'Sales',
+  'Custom'
+]);
+
+export type Department = z.infer<typeof departmentSchema>;
+
+// Now we can define blockSchema since its dependencies are defined
+export const blockSchema = z.object({
+  id: z.string(),
+  type: z.enum(['touchpoint', 'email', 'pendo', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden']),
+  content: z.string(),
+  phaseIndex: z.number(),
+  columnIndex: z.number(),
+  comments: z.array(commentSchema).optional().default([]),
+  attachments: z.array(attachmentSchema).optional().default([]),
+  notes: z.string().optional(),
+  emoji: z.string().optional(),
+  department: departmentSchema.optional(),
+  customDepartment: z.string().optional() // For when department is 'Custom'
+});
+
+export type Block = z.infer<typeof blockSchema>;
 
 // Project schemas
 export const projectStatuses = ["draft", "in-progress", "review", "complete"] as const;
@@ -119,54 +186,3 @@ export const insertBoardSchema = createInsertSchema(boards)
 
 export type InsertBoard = z.infer<typeof insertBoardSchema>;
 export type Board = typeof boards.$inferSelect;
-
-// Other schemas remain unchanged
-export const commentSchema = z.object({
-  id: z.string(),
-  content: z.string(),
-  userId: z.number(),
-  createdAt: z.string(),
-  username: z.string(),
-  completed: z.boolean().default(false)
-});
-
-export type Comment = z.infer<typeof commentSchema>;
-
-export const attachmentSchema = z.object({
-  id: z.string(),
-  type: z.enum(['link', 'image', 'video']),
-  url: z.string().url('Invalid URL'),
-  title: z.string().optional()
-});
-
-export type Attachment = z.infer<typeof attachmentSchema>;
-
-export const blockSchema = z.object({
-  id: z.string(),
-  type: z.enum(['touchpoint', 'email', 'pendo', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden']),
-  content: z.string(),
-  phaseIndex: z.number(),
-  columnIndex: z.number(),
-  comments: z.array(commentSchema).optional().default([]),
-  attachments: z.array(attachmentSchema).optional().default([]),
-  notes: z.string().optional(),
-  emoji: z.string().optional()
-});
-
-export type Block = z.infer<typeof blockSchema>;
-
-export const columnSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  image: z.string().optional()
-});
-
-export type Column = z.infer<typeof columnSchema>;
-
-export const phaseSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  columns: z.array(columnSchema)
-});
-
-export type Phase = z.infer<typeof phaseSchema>;

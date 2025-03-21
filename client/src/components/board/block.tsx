@@ -1,6 +1,6 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote, Smile } from "lucide-react";
-import type { Block as BlockType, Attachment } from "@shared/schema";
+import { MessageSquare, Paperclip, StickyNote, Smile, Tag } from "lucide-react";
+import type { Block as BlockType, Attachment, Department } from "@shared/schema";
 import { AttachmentDialog } from "./attachment-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,7 @@ interface BlockProps {
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
   onEmojiChange?: (blockId: string, emoji: string) => void;
+  onDepartmentChange?: (blockId: string, department: Department | undefined, customDepartment?: string) => void;
   isTemplate?: boolean;
   onCommentClick?: () => void;
   projectId?: number;
@@ -34,12 +35,24 @@ const TYPE_LABELS = {
   hidden: 'Hidden Step'
 } as const;
 
+const DEPARTMENTS = [
+  'Engineering',
+  'Marketing',
+  'Product',
+  'Design',
+  'Brand',
+  'Support',
+  'Sales',
+  'Custom'
+] as const;
+
 export default function Block({
   block,
   onChange,
   onAttachmentChange,
   onNotesChange,
   onEmojiChange,
+  onDepartmentChange,
   isTemplate = false,
   onCommentClick,
   projectId
@@ -47,6 +60,8 @@ export default function Block({
   const contentRef = useRef<HTMLDivElement>(null);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [departmentDialogOpen, setDepartmentDialogOpen] = useState(false);
+  const [customDepartment, setCustomDepartment] = useState(block.customDepartment || '');
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [notes, setNotes] = useState(block.notes || '');
   const [localContent, setLocalContent] = useState(block.content || '');
@@ -96,9 +111,25 @@ export default function Block({
     setNotesDialogOpen(false);
   };
 
+  const handleDepartmentChange = (department: Department | undefined) => {
+    if (!onDepartmentChange) return;
+    if (department === 'Custom') {
+      // Keep the dialog open for custom input
+      return;
+    }
+    onDepartmentChange(block.id, department, department === 'Custom' ? customDepartment : undefined);
+    setDepartmentDialogOpen(false);
+    setCustomDepartment('');
+  };
+
+  const handleCustomDepartmentSave = () => {
+    if (!onDepartmentChange || !customDepartment) return;
+    onDepartmentChange(block.id, 'Custom', customDepartment);
+    setDepartmentDialogOpen(false);
+  };
+
   const handleEmojiSelect = (emoji: any) => {
     if (!onEmojiChange) return;
-    // emoji-mart provides the actual emoji character in the native property
     onEmojiChange(block.id, emoji.native);
     setEmojiPickerOpen(false);
   };
@@ -113,6 +144,13 @@ export default function Block({
           <span role="img" aria-label="emoji" className="select-none">
             {block.emoji}
           </span>
+        </div>
+      )}
+
+      {/* Show department tag if set */}
+      {block.department && (
+        <div className="absolute -top-2 -left-2 z-10 px-2 py-1 text-xs bg-white rounded-md shadow-sm border border-gray-200">
+          {block.customDepartment || block.department}
         </div>
       )}
 
@@ -210,6 +248,24 @@ export default function Block({
           <button
             onClick={(e) => {
               e.stopPropagation();
+              setDepartmentDialogOpen(true);
+            }}
+            className={`
+              flex items-center gap-1 p-1
+              rounded bg-white/80 backdrop-blur-sm
+              text-xs text-gray-600 hover:text-gray-900
+              shadow-sm hover:shadow
+              opacity-0 group-hover:opacity-100
+              ${block.department ? '!opacity-100 text-purple-600' : ''}
+              transition-all duration-150
+            `}
+          >
+            <Tag className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
               if (block.emoji) {
                 onEmojiChange?.(block.id, '');
               } else {
@@ -255,6 +311,53 @@ export default function Block({
             <Button onClick={handleNotesChange} className="w-full">
               Save Notes
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={departmentDialogOpen} onOpenChange={setDepartmentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Department</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              {DEPARTMENTS.map((dept) => (
+                <Button
+                  key={dept}
+                  variant={block.department === dept ? "default" : "outline"}
+                  onClick={() => handleDepartmentChange(dept as Department)}
+                  className="w-full"
+                >
+                  {dept}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                onClick={() => handleDepartmentChange(undefined)}
+                className="w-full col-span-2 text-red-600 hover:text-red-700"
+              >
+                Clear Department
+              </Button>
+            </div>
+
+            {block.department === 'Custom' && (
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Enter custom department name..."
+                  value={customDepartment}
+                  onChange={(e) => setCustomDepartment(e.target.value)}
+                  className="min-h-[80px]"
+                />
+                <Button 
+                  onClick={handleCustomDepartmentSave}
+                  className="w-full"
+                  disabled={!customDepartment}
+                >
+                  Save Custom Department
+                </Button>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

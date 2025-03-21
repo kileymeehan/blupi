@@ -35,6 +35,11 @@ interface Attachment {
   url: string;
 }
 
+interface Department {
+  id: string;
+  name: string;
+}
+
 interface BoardGridProps {
   id: string;
   onBlocksChange: (blocks: BlockType[]) => void;
@@ -173,7 +178,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           comments: [],
           attachments: [],
           notes: "",
-          emoji: ""
+          emoji: "",
+          department: undefined,
+          customDepartment: ""
         };
 
         blocks.splice(destination.index, 0, newBlock);
@@ -222,6 +229,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     );
     onBlocksChange(blocks);
   };
+
+  const handleDepartmentChange = (blockId: string, department: Department | undefined, customDepartment?: string) => {
+    const blocks = board.blocks.map(block =>
+      block.id === blockId ? { ...block, department, customDepartment } : block
+    );
+    onBlocksChange(blocks);
+  };
+
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
@@ -817,6 +832,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
                                                     onNotesChange={(notes) => handleNotesChange(block.id, notes)}
                                                     onEmojiChange={(blockId, emoji) => handleEmojiChange(blockId, emoji)}
+                                                    onDepartmentChange={handleDepartmentChange}
                                                     onCommentClick={() => handleCommentClick(block)}
                                                     projectId={board.projectId || undefined}
                                                   />
