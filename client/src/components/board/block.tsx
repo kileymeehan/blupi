@@ -149,7 +149,7 @@ export default function Block({
 
       {/* Show department tag if set */}
       {block.department && (
-        <div className="absolute -top-2 -left-2 z-10 px-2 py-1 text-xs bg-white rounded-md shadow-sm border border-gray-200">
+        <div className="absolute bottom-1 left-1 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
           {block.customDepartment || block.department}
         </div>
       )}
@@ -256,7 +256,6 @@ export default function Block({
               text-xs text-gray-600 hover:text-gray-900
               shadow-sm hover:shadow
               opacity-0 group-hover:opacity-100
-              ${block.department ? '!opacity-100 text-purple-600' : ''}
               transition-all duration-150
             `}
           >
