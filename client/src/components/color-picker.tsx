@@ -7,18 +7,18 @@ import {
 import { Circle } from "lucide-react";
 
 const COLOR_PALETTE = [
-  "#FFB3B380", // Pastel Pink with 50% opacity
-  "#B3FFB380", // Pastel Green with 50% opacity
-  "#B3B3FF80", // Pastel Blue with 50% opacity
-  "#FFE6B380", // Pastel Orange with 50% opacity
-  "#E6B3FF80", // Pastel Purple with 50% opacity
-  "#B3FFE680", // Pastel Mint with 50% opacity
-  "#FFB3E680", // Pastel Rose with 50% opacity
-  "#E6FFB380", // Pastel Lime with 50% opacity
-  "#B3E6FF80", // Pastel Sky with 50% opacity
-  "#FFE6E680", // Soft Pink with 50% opacity
-  "#E6FFE680", // Soft Mint with 50% opacity
-  "#E6E6FF80", // Soft Lavender with 50% opacity
+  "#FFB3B3C0", // Pastel Pink with 75% opacity
+  "#B3FFB3C0", // Pastel Green with 75% opacity
+  "#B3B3FFC0", // Pastel Blue with 75% opacity
+  "#FFE6B3C0", // Pastel Orange with 75% opacity
+  "#E6B3FFC0", // Pastel Purple with 75% opacity
+  "#B3FFE6C0", // Pastel Mint with 75% opacity
+  "#FFB3E6C0", // Pastel Rose with 75% opacity
+  "#E6FFB3C0", // Pastel Lime with 75% opacity
+  "#B3E6FFC0", // Pastel Sky with 75% opacity
+  "#FFE6E6C0", // Soft Pink with 75% opacity
+  "#E6FFE6C0", // Soft Mint with 75% opacity
+  "#E6E6FFC0", // Soft Lavender with 75% opacity
 ];
 
 interface ColorPickerProps {
