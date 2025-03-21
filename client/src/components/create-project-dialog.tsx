@@ -14,15 +14,18 @@ import { Paintbrush } from "lucide-react";
 
 // Project colors with 75% opacity
 const projectColors = [
-  "#4F46E5C0", // Indigo
-  "#DC2626C0", // Red
-  "#059669C0", // Emerald
-  "#7C3AEDC0", // Purple
-  "#D97706C0", // Amber
-  "#2563EBC0", // Blue
-  "#BE185DC0", // Pink
-  "#15803DC0", // Green
-  "#9333EAC0", // Violet
+  "#FFB3B3C0", // Pastel Pink with 75% opacity
+  "#B3FFB3C0", // Pastel Green with 75% opacity
+  "#B3B3FFC0", // Pastel Blue with 75% opacity
+  "#FFE6B3C0", // Pastel Orange with 75% opacity
+  "#E6B3FFC0", // Pastel Purple with 75% opacity
+  "#B3FFE6C0", // Pastel Mint with 75% opacity
+  "#FFB3E6C0", // Pastel Rose with 75% opacity
+  "#E6FFB3C0", // Pastel Lime with 75% opacity
+  "#B3E6FFC0", // Pastel Sky with 75% opacity
+  "#FFE6E6C0", // Soft Pink with 75% opacity
+  "#E6FFE6C0", // Soft Mint with 75% opacity
+  "#E6E6FFC0", // Soft Lavender with 75% opacity
 ];
 
 interface CreateProjectDialogProps {
