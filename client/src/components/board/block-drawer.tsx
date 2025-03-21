@@ -25,7 +25,7 @@ export default function BlockDrawer() {
                   zIndex: snapshot.isDragging ? 9999 : 'auto'
                 }}
               >
-                <div className="font-bold text-gray-700/75 text-center text-sm">
+                <div className="font-bold text-gray-700/75 text-center text-[0.9em]">
                   {layer.label}
                 </div>
               </div>
