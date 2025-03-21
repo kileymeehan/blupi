@@ -782,7 +782,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   {board.phases.map((phase, phaseIndex) => (
                     <div key={phase.id} className="flex-shrink-0 relative mr-8">
                       {phaseIndex > 0 && (
-                        <div className="absolute -left-4 top-0 bottom-0 w-[1px] bg-gray-300" />
+                        <div className="absolute -left-[0.5px] top-0 bottom-0 w-[1px] bg-gray-300" />
                       )}
                       <div className="px-4">
                         <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
