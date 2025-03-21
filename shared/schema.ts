@@ -167,7 +167,7 @@ export const projectStatuses = ["draft", "in-progress", "review", "complete"] as
 
 export const insertProjectSchema = createInsertSchema(projects)
   .extend({
-    color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color"),
+    color: z.string().regex(/^#[0-9A-F]{6}([0-9A-F]{2})?$/i, "Invalid hex color"),
     status: z.enum(projectStatuses).optional(),
   })
   .omit({ id: true, userId: true, createdAt: true, updatedAt: true });
