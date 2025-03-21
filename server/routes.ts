@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
+import { insertBoardSchema, insertProjectSchema, insertTagSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -25,8 +25,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   console.log('[HTTP] Creating basic HTTP server');
 
-  // Change WebSocket server initialization
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws-collab' });
+  // Initialize WebSocket server with explicit path
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws-collab',
+    clientTracking: true 
+  });
+
   console.log('[WS] WebSocket server created on path /ws-collab');
 
   wss.on('connection', (ws) => {
@@ -68,16 +73,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }));
 
           // Broadcast to other users in the same board
-          for (const [, connectedUser] of connectedUsers) {
-            if (connectedUser.ws !== ws &&
-                connectedUser.boardId === message.boardId &&
+          Array.from(connectedUsers.values()).forEach((connectedUser) => {
+            if (connectedUser.ws !== ws && 
+                connectedUser.boardId === message.boardId && 
                 connectedUser.ws.readyState === WebSocket.OPEN) {
               connectedUser.ws.send(JSON.stringify({
                 type: 'users_update',
                 users: boardUsers
               }));
             }
-          }
+          });
         }
       } catch (error) {
         console.error('[WS] Error processing message:', error);
@@ -99,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .filter(u => u.boardId === user.boardId)
           .map(({ id, name, color, emoji }) => ({ id, name, color, emoji }));
 
-        for (const [, connectedUser] of connectedUsers) {
+        Array.from(connectedUsers.values()).forEach((connectedUser) => {
           if (connectedUser.boardId === user.boardId &&
               connectedUser.ws.readyState === WebSocket.OPEN) {
             connectedUser.ws.send(JSON.stringify({
@@ -107,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               users: boardUsers
             }));
           }
-        }
+        });
       }
     });
 
