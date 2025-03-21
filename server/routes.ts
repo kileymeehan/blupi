@@ -25,9 +25,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   console.log('[HTTP] Creating basic HTTP server');
 
-  // Create WebSocket server with proper path
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  console.log('[WS] WebSocket server created on path /ws');
+  // Change WebSocket server initialization
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws-collab' });
+  console.log('[WS] WebSocket server created on path /ws-collab');
 
   wss.on('connection', (ws) => {
     const userId = nanoid();
@@ -50,6 +50,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             boardId: message.boardId
           };
           connectedUsers.set(userId, user);
+
+          console.log(`[WS] User subscribed to board ${message.boardId}:`, {
+            userId,
+            name: user.name,
+            emoji: user.emoji
+          });
 
           // Send initial users list to new user
           const boardUsers = Array.from(connectedUsers.values())
@@ -78,8 +84,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
 
-    ws.on('close', () => {
-      console.log(`[WS] Connection closed: ${userId}`);
+    ws.on('error', (error) => {
+      console.error(`[WS] Connection error for user ${userId}:`, error);
+    });
+
+    ws.on('close', (code, reason) => {
+      console.log(`[WS] Connection closed for user ${userId}. Code: ${code}, Reason: ${reason}`);
       const user = connectedUsers.get(userId);
       if (user?.boardId) {
         connectedUsers.delete(userId);

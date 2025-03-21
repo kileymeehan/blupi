@@ -33,18 +33,10 @@ export function useWebSocket(boardId: string) {
     }
   }, []);
 
-  // Reset connection when user profile changes
-  useEffect(() => {
-    if (socketRef.current && user?.photoURL) {
-      console.log('[WS] User profile updated, reconnecting...');
-      socketRef.current.close(1000, 'User profile updated');
-    }
-  }, [user?.photoURL]);
-
   useEffect(() => {
     console.log(`[WS] Initializing connection for board ${boardId}`);
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const wsUrl = `${protocol}//${window.location.host}/ws-collab`; // Updated path
     console.log('[WS] Connecting to:', wsUrl);
 
     const connect = () => {
@@ -53,22 +45,22 @@ export function useWebSocket(boardId: string) {
         socketRef.current = socket;
 
         socket.addEventListener('open', () => {
-          console.log('[WS] Connection opened');
+          console.log('[WS] Connection opened successfully');
           setIsConnected(true);
           reconnectAttempts.current = 0;
 
           // Subscribe to board updates with user info
           const userEmail = user?.email || 'Anonymous';
-          console.log('[WS] Subscribing with user info:', { 
-            email: userEmail, 
-            emoji: user?.photoURL 
+          console.log('[WS] Subscribing with user info:', {
+            email: userEmail,
+            emoji: user?.photoURL
           });
 
-          sendMessage({ 
-            type: 'subscribe', 
+          sendMessage({
+            type: 'subscribe',
             boardId,
             userName: userEmail,
-            userEmoji: user?.photoURL // Send user's emoji from Firebase Auth
+            userEmoji: user?.photoURL
           });
         });
 
@@ -109,24 +101,11 @@ export function useWebSocket(boardId: string) {
           }
         });
 
-        // Listen for user profile updates
-        const handleProfileUpdate = (event: CustomEvent) => {
+        return () => {
           if (socket.readyState === WebSocket.OPEN) {
-            sendMessage({
-              type: 'subscribe',
-              boardId,
-              userName: user?.email || 'Anonymous',
-              userEmoji: event.detail.photoURL
-            });
+            socket.close(1000, 'Component unmounted');
           }
         };
-
-        window.addEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
-
-        return () => {
-          window.removeEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
-        };
-
       } catch (error) {
         console.error('[WS] Failed to create WebSocket connection:', error);
       }
@@ -155,7 +134,7 @@ export function useWebSocket(boardId: string) {
         socketRef.current.close(1000, 'Component unmounted');
       }
     };
-  }, [boardId, toast, sendMessage, user, user?.photoURL]); 
+  }, [boardId, sendMessage, user?.email, user?.photoURL]);
 
   return { isConnected, lastMessage, sendMessage, connectedUsers };
 }
