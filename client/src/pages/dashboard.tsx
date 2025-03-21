@@ -225,13 +225,13 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Manage your blueprints and projects</p>
         </div>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
+        <section className="bg-white rounded-lg p-8 shadow-sm border-2 border-gray-300">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <Folder className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Projects</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateProjectOpen(true)} className="bg-amber-600 hover:bg-amber-700">
+            <Button variant="default" size="sm" onClick={() => setCreateProjectOpen(true)} className="bg-[#e27f95] hover:bg-[#c76276]">
               <Plus className="mr-2 h-4 w-4" />
               Create New Project
             </Button>
@@ -318,13 +318,13 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
+        <section className="bg-white rounded-lg p-8 shadow-sm border-2 border-gray-300">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-amber-600 hover:bg-amber-700">
+            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-[#e27f95] hover:bg-[#c76276]">
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
@@ -399,13 +399,13 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
+        <section className="bg-white rounded-lg p-8 shadow-sm border-2 border-gray-300">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-amber-600 hover:bg-amber-700">
+            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-[#e27f95] hover:bg-[#c76276]">
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
@@ -477,6 +477,7 @@ export default function Dashboard() {
             )}
           </div>
         </section>
+
       </main>
 
       <CreateProjectDialog 
