@@ -190,9 +190,8 @@ export default function Dashboard() {
         <div className="max-w-[1440px] mx-auto flex h-14 items-center px-6">
           <div className="flex-1 flex items-center gap-6">
             <Link href="/" className="flex items-center">
-              <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-6" />
+              <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7" />
             </Link>
-            <h2 className="text-base font-semibold text-muted-foreground">Dashboard</h2>
           </div>
 
           <div className="flex items-center gap-2">
