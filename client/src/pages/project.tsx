@@ -146,7 +146,7 @@ export default function Project() {
                 <UserPlus className="mr-1.5 h-3.5 w-3.5" />
                 Invite
               </Button>
-              <Button onClick={() => setCreateBlueprintOpen(true)} className="bg-[#e27f95] hover:bg-[#c76276] h-8 text-sm">
+              <Button onClick={() => setCreateBlueprintOpen(true)} className="bg-[#C05C28] hover:bg-[#A04922] h-8 text-sm">
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
                 Create New Blueprint
               </Button>
@@ -184,6 +184,7 @@ export default function Project() {
             ))}
           </div>
         
+
         {boards.length === 0 && !boardsLoading && (
           <Card className="border-2 border-dashed border-gray-300">
             <CardHeader>

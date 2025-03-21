@@ -231,7 +231,7 @@ export default function Dashboard() {
               <Folder className="h-5 w-5 text-primary" />
               <h2 className="text-xl font-semibold">Projects</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateProjectOpen(true)} className="bg-[#e27f95] hover:bg-[#c76276] h-8 text-sm">
+            <Button variant="default" size="sm" onClick={() => setCreateProjectOpen(true)} className="bg-[#C05C28] hover:bg-[#A04922] h-8 text-sm">
               <Plus className="mr-1.5 h-3.5 w-3.5" />
               Create New Project
             </Button>
@@ -324,7 +324,7 @@ export default function Dashboard() {
               <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-[#e27f95] hover:bg-[#c76276]">
+            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-[#C05C28] hover:bg-[#A04922]">
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
@@ -405,7 +405,7 @@ export default function Dashboard() {
               <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-[#e27f95] hover:bg-[#c76276]">
+            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-[#C05C28] hover:bg-[#A04922]">
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
