@@ -189,9 +189,9 @@ export default function Dashboard() {
       <header className="border-b bg-white shadow-sm">
         <div className="max-w-[1440px] mx-auto flex h-16 items-center px-8">
           <div className="flex-1 flex items-center gap-8">
-            <h1 className="text-4xl">
-              <img src="/logo.png" alt="Blupi" className="h-8" />
-            </h1>
+            <Link href="/" className="flex items-center">
+              <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-8" />
+            </Link>
             <h2 className="text-lg font-semibold text-muted-foreground">Dashboard</h2>
           </div>
 

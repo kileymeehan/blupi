@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -66,9 +66,9 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-white shadow-sm">
         <div className="container flex h-16 items-center px-8">
-          <h1 className="text-4xl">
-            <img src="/logo.png" alt="Blupi" className="h-8" />
-          </h1>
+          <Link href="/" className="flex items-center">
+            <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-8" />
+          </Link>
         </div>
       </header>
 
