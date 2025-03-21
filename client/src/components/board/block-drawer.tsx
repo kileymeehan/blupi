@@ -19,7 +19,7 @@ export default function BlockDrawer() {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-[205px] h-[100px] relative flex items-center justify-center`}
+                className={`${layer.color} rounded-lg w-[205px] h-[70px] relative flex items-center justify-center`}
                 style={{
                   ...provided.draggableProps.style,
                   zIndex: snapshot.isDragging ? 9999 : 'auto'
