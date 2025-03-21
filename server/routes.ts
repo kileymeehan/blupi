@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBoardSchema, insertProjectSchema, insertTagSchema } from "@shared/schema";
+import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -25,14 +25,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   console.log('[HTTP] Creating basic HTTP server');
 
-  // Initialize WebSocket server with explicit path
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws-collab',
-    clientTracking: true 
-  });
-
-  console.log('[WS] WebSocket server created on path /ws-collab');
+  // Create WebSocket server with proper path
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  console.log('[WS] WebSocket server created on path /ws');
 
   wss.on('connection', (ws) => {
     const userId = nanoid();
@@ -56,12 +51,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
           connectedUsers.set(userId, user);
 
-          console.log(`[WS] User subscribed to board ${message.boardId}:`, {
-            userId,
-            name: user.name,
-            emoji: user.emoji
-          });
-
           // Send initial users list to new user
           const boardUsers = Array.from(connectedUsers.values())
             .filter(u => u.boardId === message.boardId)
@@ -73,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }));
 
           // Broadcast to other users in the same board
-          Array.from(connectedUsers.values()).forEach((connectedUser) => {
+          for (const [, connectedUser] of connectedUsers) {
             if (connectedUser.ws !== ws && 
                 connectedUser.boardId === message.boardId && 
                 connectedUser.ws.readyState === WebSocket.OPEN) {
@@ -82,19 +71,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 users: boardUsers
               }));
             }
-          });
+          }
         }
       } catch (error) {
         console.error('[WS] Error processing message:', error);
       }
     });
 
-    ws.on('error', (error) => {
-      console.error(`[WS] Connection error for user ${userId}:`, error);
-    });
-
-    ws.on('close', (code, reason) => {
-      console.log(`[WS] Connection closed for user ${userId}. Code: ${code}, Reason: ${reason}`);
+    ws.on('close', () => {
+      console.log(`[WS] Connection closed: ${userId}`);
       const user = connectedUsers.get(userId);
       if (user?.boardId) {
         connectedUsers.delete(userId);
@@ -104,15 +89,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .filter(u => u.boardId === user.boardId)
           .map(({ id, name, color, emoji }) => ({ id, name, color, emoji }));
 
-        Array.from(connectedUsers.values()).forEach((connectedUser) => {
-          if (connectedUser.boardId === user.boardId &&
+        for (const [, connectedUser] of connectedUsers) {
+          if (connectedUser.boardId === user.boardId && 
               connectedUser.ws.readyState === WebSocket.OPEN) {
             connectedUser.ws.send(JSON.stringify({
               type: 'users_update',
               users: boardUsers
             }));
           }
-        });
+        }
       }
     });
 
@@ -515,78 +500,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error('[HTTP] Error toggling comment completion:', err);
       res.status(500).json({ error: true, message: "Failed to update comment" });
-    }
-  });
-
-  // Add after the existing board-related routes:
-
-  // Tag routes
-  app.post("/api/boards/:boardId/tags", async (req, res) => {
-    try {
-      console.log(`[HTTP] Creating tag for board ${req.params.boardId}`);
-      const parseResult = insertTagSchema.safeParse({
-        ...req.body,
-        boardId: Number(req.params.boardId)
-      });
-
-      if (!parseResult.success) {
-        console.error('[HTTP] Tag validation error:', parseResult.error);
-        return res.status(400).json({
-          error: true,
-          message: parseResult.error.errors[0].message
-        });
-      }
-
-      const tag = await storage.createTag(parseResult.data);
-      console.log('[HTTP] Successfully created tag:', tag.id);
-      res.json(tag);
-    } catch (err) {
-      console.error('[HTTP] Error creating tag:', err);
-      res.status(500).json({ error: true, message: "Failed to create tag" });
-    }
-  });
-
-  app.get("/api/boards/:boardId/tags", async (req, res) => {
-    try {
-      console.log(`[HTTP] Fetching tags for board ${req.params.boardId}`);
-      const tags = await storage.getTagsByBoard(Number(req.params.boardId));
-      console.log(`[HTTP] Retrieved ${tags.length} tags for board ${req.params.boardId}`);
-      res.json(tags);
-    } catch (err) {
-      console.error('[HTTP] Error fetching tags:', err);
-      res.status(500).json({ error: true, message: "Failed to fetch tags" });
-    }
-  });
-
-  app.post("/api/boards/:boardId/blocks/:blockId/tags/:tagId", async (req, res) => {
-    try {
-      console.log(`[HTTP] Adding tag ${req.params.tagId} to block ${req.params.blockId}`);
-      const blockTag = await storage.createBlockTag({
-        tagId: Number(req.params.tagId),
-        blockId: req.params.blockId,
-        boardId: Number(req.params.boardId)
-      });
-      console.log('[HTTP] Successfully added tag to block');
-      res.json(blockTag);
-    } catch (err) {
-      console.error('[HTTP] Error adding tag to block:', err);
-      res.status(500).json({ error: true, message: "Failed to add tag to block" });
-    }
-  });
-
-  app.delete("/api/boards/:boardId/blocks/:blockId/tags/:tagId", async (req, res) => {
-    try {
-      console.log(`[HTTP] Removing tag ${req.params.tagId} from block ${req.params.blockId}`);
-      await storage.deleteBlockTag({
-        tagId: Number(req.params.tagId),
-        blockId: req.params.blockId,
-        boardId: Number(req.params.boardId)
-      });
-      console.log('[HTTP] Successfully removed tag from block');
-      res.status(204).send();
-    } catch (err) {
-      console.error('[HTTP] Error removing tag from block:', err);
-      res.status(500).json({ error: true, message: "Failed to remove tag from block" });
     }
   });
 

@@ -1,12 +1,10 @@
 import { 
   projects, boards as boardsTable, 
-  users, projectMembers, tags, blockTags,
+  users, projectMembers, 
   type Board, type InsertBoard, 
   type User, type InsertUser, 
   type Project, type InsertProject, 
-  type ProjectMember, type InsertProjectMember,
-  type Tag, type InsertTag,
-  type BlockTag, type InsertBlockTag
+  type ProjectMember, type InsertProjectMember 
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -29,74 +27,6 @@ export class DatabaseStorage {
       createTableIfMissing: true,
       tableName: 'session'
     });
-  }
-
-  // Tag methods
-  async createTag(insertTag: InsertTag): Promise<Tag> {
-    try {
-      console.log('[Storage] Creating tag:', insertTag);
-      const [tag] = await db.insert(tags).values(insertTag).returning();
-
-      if (!tag) {
-        throw new Error('Failed to create tag');
-      }
-
-      console.log('[Storage] Created tag:', tag);
-      return tag;
-    } catch (error) {
-      console.error('[Storage] Error creating tag:', error);
-      throw error;
-    }
-  }
-
-  async getTagsByBoard(boardId: number): Promise<Tag[]> {
-    try {
-      console.log('[Storage] Getting tags for board:', boardId);
-      const results = await db
-        .select()
-        .from(tags)
-        .where(eq(tags.boardId, boardId))
-        .orderBy(desc(tags.createdAt));
-
-      console.log('[Storage] Found tags:', results.length);
-      return results;
-    } catch (error) {
-      console.error('[Storage] Error getting tags:', error);
-      throw error;
-    }
-  }
-
-  async createBlockTag(insertBlockTag: InsertBlockTag): Promise<BlockTag> {
-    try {
-      console.log('[Storage] Creating block tag:', insertBlockTag);
-      const [blockTag] = await db.insert(blockTags).values(insertBlockTag).returning();
-
-      if (!blockTag) {
-        throw new Error('Failed to create block tag');
-      }
-
-      console.log('[Storage] Created block tag:', blockTag);
-      return blockTag;
-    } catch (error) {
-      console.error('[Storage] Error creating block tag:', error);
-      throw error;
-    }
-  }
-
-  async deleteBlockTag(params: { tagId: number; blockId: string; boardId: number }): Promise<void> {
-    try {
-      console.log('[Storage] Deleting block tag:', params);
-      await db
-        .delete(blockTags)
-        .where(eq(blockTags.tagId, params.tagId))
-        .where(eq(blockTags.blockId, params.blockId))
-        .where(eq(blockTags.boardId, params.boardId));
-
-      console.log('[Storage] Deleted block tag');
-    } catch (error) {
-      console.error('[Storage] Error deleting block tag:', error);
-      throw error;
-    }
   }
 
   // Project methods

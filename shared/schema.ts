@@ -27,34 +27,6 @@ export const insertUserSchema = createInsertSchema(users)
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-// Tags schema
-export const tags = pgTable("tags", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  color: text("color").notNull().default('#E2E8F0'),
-  boardId: integer("board_id").references(() => boards.id).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
-});
-
-export const tagsRelations = relations(tags, ({ many }) => ({
-  blockTags: many(blockTags)
-}));
-
-export const blockTags = pgTable("block_tags", {
-  id: serial("id").primaryKey(),
-  tagId: integer("tag_id").references(() => tags.id).notNull(),
-  blockId: text("block_id").notNull(),
-  boardId: integer("board_id").references(() => boards.id).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
-});
-
-export const blockTagsRelations = relations(blockTags, ({ one }) => ({
-  tag: one(tags, {
-    fields: [blockTags.tagId],
-    references: [tags.id],
-  })
-}));
-
 // Project schema
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
@@ -169,7 +141,6 @@ export const attachmentSchema = z.object({
 
 export type Attachment = z.infer<typeof attachmentSchema>;
 
-// Update the block schema to include a reference to tags
 export const blockSchema = z.object({
   id: z.string(),
   type: z.enum(['touchpoint', 'email', 'pendo', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden']),
@@ -179,8 +150,7 @@ export const blockSchema = z.object({
   comments: z.array(commentSchema).optional().default([]),
   attachments: z.array(attachmentSchema).optional().default([]),
   notes: z.string().optional(),
-  emoji: z.string().optional(),
-  tags: z.array(z.number()).optional().default([]) // Array of tag IDs
+  emoji: z.string().optional()
 });
 
 export type Block = z.infer<typeof blockSchema>;
@@ -200,19 +170,3 @@ export const phaseSchema = z.object({
 });
 
 export type Phase = z.infer<typeof phaseSchema>;
-
-// Add tag schemas
-export const insertTagSchema = createInsertSchema(tags)
-  .extend({
-    color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color").optional(),
-  })
-  .omit({ id: true, createdAt: true });
-
-export type InsertTag = z.infer<typeof insertTagSchema>;
-export type Tag = typeof tags.$inferSelect;
-
-export const insertBlockTagSchema = createInsertSchema(blockTags)
-  .omit({ id: true, createdAt: true });
-
-export type InsertBlockTag = z.infer<typeof insertBlockTagSchema>;
-export type BlockTag = typeof blockTags.$inferSelect;

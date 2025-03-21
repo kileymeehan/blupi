@@ -1,13 +1,13 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, MessageSquare, Tag } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, MessageSquare } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import { CommentDialog } from "./comment-dialog";
-import type { Board, Block as BlockType, Phase, Tag as TagType } from "@shared/schema";
+import type { Board, Block as BlockType, Phase } from "@shared/schema";
 import { nanoid } from "nanoid";
 import ImageUpload from './image-upload';
 import { CommentsOverview } from "./comments-overview";
@@ -29,8 +29,6 @@ import { UserPlus, Link as LinkIcon } from "lucide-react";
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { LAYER_TYPES } from "./constants";
-import TagManager from "./tag-manager"; // Import TagManager component
-
 
 interface Attachment {
   type: 'link' | 'image' | 'video';
@@ -64,9 +62,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [shareLink, setShareLink] = useState("");
   const boardRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
-  const [selectedTagId, setSelectedTagId] = useState<number | undefined>();
-  const [showTags, setShowTags] = useState(false); // Added showTags state
-
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -312,7 +307,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       setShowContext(true);
       setShowBlocks(false);
       setShowComments(false);
-      setShowTags(false); //added
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -326,7 +320,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       setShowBlocks(true);
       setShowContext(false);
       setShowComments(false);
-      setShowTags(false); //added
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -340,7 +333,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       setShowComments(true);
       setShowContext(false);
       setShowBlocks(false);
-      setShowTags(false); //added
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -352,7 +344,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     if (!isDrawerOpen) {
       setShowComments(false);
       setShowBlocks(false);
-      setShowTags(false); //added
     }
   };
 
@@ -414,24 +405,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
   };
 
-  const shouldHighlightBlock = (block: BlockType, tagId: number | undefined) => {
-    if (!tagId) return false;
-    return block.tags?.includes(tagId) ?? false;
-  };
-
-  const toggleTags = () => { // Added toggleTags function
-    if (showTags) {
-      setShowTags(false);
-    } else {
-      setShowTags(true);
-      setShowContext(false);
-      setShowBlocks(false);
-      setShowComments(false);
-      if (!isDrawerOpen) {
-        setIsDrawerOpen(true);
-      }
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -617,22 +590,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   <MessageSquare className="w-5 h-5" />
                   {isDrawerOpen && <span className="text-sm">All Comments</span>}
                 </Button>
-
-                <Button // Added Tags button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleTags}
-                  className={`
-                    w-full h-12 px-4
-                    flex items-center gap-2
-                    group
-                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showTags ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
-                  `}
-                >
-                  <Tag className="w-5 h-5" />
-                  {isDrawerOpen && <span className="text-sm">All Tags</span>}
-                </Button>
               </div>
 
               <Button
@@ -721,11 +678,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                           {...provided.droppableProps}
                           className="p-4"
                         >
-                          <BlockDrawer
-                            boardId={Number(id)}
-                            selectedTagId={selectedTagId}
-                            onTagSelect={setSelectedTagId}
-                          />
+                          <BlockDrawer />
                           {provided.placeholder}
                         </div>
                       )}
@@ -741,14 +694,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                         setHighlightedBlockId(block.id);
                         setTimeout(() => setHighlightedBlockId(null), 2000);
                       }}
-                    />
-                  </div>
-
-                  <div className={`flex-1 ${showTags ? 'block' : 'hidden'}`}> {/* Added Tags section */}
-                    <TagManager
-                      boardId={Number(id)}
-                      selectedTagId={selectedTagId}
-                      onTagSelect={setSelectedTagId}
                     />
                   </div>
                 </div>
@@ -863,18 +808,17 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     ${LAYER_TYPES.find(l => l.type === block.type)?.color}
                                                     group relative rounded-lg border-2 border-gray-300 mb-2 p-2
                                                     ${snapshot.isDragging ? 'shadow-lg' : ''}
-                                                    ${shouldHighlightBlock(block, selectedTagId) ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                    ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
                                                   `}
                                                 >
                                                   <Block
                                                     block={block}
-                                                    onChange={(content) =>handleBlockChange(block.id, content)}
+                                                    onChange={(content) => handleBlockChange(block.id, content)}
                                                     onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
                                                     onNotesChange={(notes) => handleNotesChange(block.id, notes)}
                                                     onEmojiChange={(blockId, emoji) => handleEmojiChange(blockId, emoji)}
                                                     onCommentClick={() => handleCommentClick(block)}
                                                     projectId={board.projectId || undefined}
-                                                    isHighlighted={shouldHighlightBlock(block, selectedTagId)}
                                                   />
                                                 </div>
                                               )}
