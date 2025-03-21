@@ -63,8 +63,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b bg-white shadow-sm">
+    <div className="min-h-screen bg-[#D5D7CB]">
+      <header className="border-b bg-[#E1CFBE] shadow-sm">
         <div className="container flex h-16 items-center px-8">
           <Link href="/" className="flex items-center">
             <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-8" />
@@ -73,7 +73,7 @@ export default function ProfilePage() {
       </header>
 
       <main className="container px-8 py-8">
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-2xl mx-auto bg-[#E1CFBE]">
           <CardHeader>
             <CardTitle>Profile Settings</CardTitle>
             <CardDescription>Manage your account settings and preferences</CardDescription>
