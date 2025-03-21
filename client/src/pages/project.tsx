@@ -139,59 +139,59 @@ export default function Project() {
       />
 
       <main className="max-w-[1440px] mx-auto px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold">Blueprints</h2>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setInviteOpen(true)}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Invite
-            </Button>
-            <Button onClick={() => setCreateBlueprintOpen(true)} className="bg-amber-600 hover:bg-amber-700">
-              <Plus className="mr-2 h-4 w-4" />
-              Create New Blueprint
-            </Button>
+        <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Blueprints</h2>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setInviteOpen(true)} className="h-8 text-sm">
+                <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                Invite
+              </Button>
+              <Button onClick={() => setCreateBlueprintOpen(true)} className="bg-[#e27f95] hover:bg-[#c76276] h-8 text-sm">
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Create New Blueprint
+              </Button>
+            </div>
           </div>
-        </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {boards.map((board) => (
-            <Card key={board.id} className="relative overflow-hidden flex flex-col">
-              <div 
-                className="absolute inset-y-0 left-0 w-1.5" 
-                style={{ backgroundColor: project?.color || '#4F46E5' }} 
-              />
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{board.name}</CardTitle>
-                  <StatusSelector
-                    type="board"
-                    value={board.status}
-                    onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
-                    disabled={updateBoardStatus.isPending}
-                  />
-                </div>
-                <CardDescription>{board.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col h-full mt-auto">
-                <div className="flex-grow"></div>
-                <div className="flex flex-col gap-2">
-                  <Button variant="ghost" asChild className="w-full border-2 border-gray-900 hover:bg-gray-100">
-                    <Link href={`/board/${board.id}`}>View Blueprint</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {boards.length === 0 && !boardsLoading && (
-            <Card className="border-2 border-dashed border-gray-300">
-              <CardHeader>
-                <CardTitle>No blueprints yet</CardTitle>
-                <CardDescription>Create your first blueprint for this project</CardDescription>
-              </CardHeader>
-            </Card>
-          )}
-        </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {boards.map((board) => (
+              <Card key={board.id} className="relative overflow-hidden flex flex-col">
+                <div 
+                  className="absolute inset-y-0 left-0 w-1" 
+                  style={{ backgroundColor: project?.color || '#4F46E5' }} 
+                />
+                <CardHeader className="p-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">{board.name}</CardTitle>
+                    <StatusSelector
+                      type="board"
+                      value={board.status}
+                      onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
+                      disabled={updateBoardStatus.isPending}
+                    />
+                  </div>
+                  <CardDescription className="text-sm">{board.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="p-4 pt-0 flex flex-col h-full mt-auto">
+                  <div className="flex-grow"></div>
+                  <div className="flex flex-col gap-2">
+                    <Button variant="ghost" asChild className="w-full border-2 border-gray-900 hover:bg-gray-100 h-8 text-sm">
+                      <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        
+        {boards.length === 0 && !boardsLoading && (
+          <Card className="border-2 border-dashed border-gray-300">
+            <CardHeader>
+              <CardTitle>No blueprints yet</CardTitle>
+              <CardDescription>Create your first blueprint for this project</CardDescription>
+            </CardHeader>
+          </Card>
+        )}
       </main>
 
       <CreateBlueprintDialog

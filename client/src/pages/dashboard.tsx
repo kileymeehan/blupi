@@ -187,30 +187,30 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50 animate-fade-in">
       <header className="border-b bg-white shadow-sm">
-        <div className="max-w-[1440px] mx-auto flex h-16 items-center px-8">
-          <div className="flex-1 flex items-center gap-8">
+        <div className="max-w-[1440px] mx-auto flex h-14 items-center px-6">
+          <div className="flex-1 flex items-center gap-6">
             <Link href="/" className="flex items-center">
-              <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-8" />
+              <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-6" />
             </Link>
-            <h2 className="text-lg font-semibold text-muted-foreground">Dashboard</h2>
+            <h2 className="text-base font-semibold text-muted-foreground">Dashboard</h2>
           </div>
 
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative flex items-center gap-2">
+                <Button variant="ghost" className="relative flex items-center gap-2 h-8">
                   <ProfileIcon />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild className="text-sm py-1.5">
                   <Link href="/profile">
-                    <User className="mr-2 h-4 w-4" />
+                    <User className="mr-2 h-3.5 w-3.5" />
                     Profile Settings
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout} className="cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
+                <DropdownMenuItem onClick={logout} className="cursor-pointer text-sm py-1.5">
+                  <LogOut className="mr-2 h-3.5 w-3.5" />
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -219,20 +219,20 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-[1440px] mx-auto px-8 py-8 space-y-8">
-        <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
-          <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
-          <p className="text-muted-foreground">Manage your blueprints and projects</p>
+      <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+          <h1 className="text-2xl font-bold mb-1.5">Welcome back!</h1>
+          <p className="text-sm text-muted-foreground">Manage your blueprints and projects</p>
         </div>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border-2 border-gray-300">
-          <div className="flex justify-between items-center mb-6">
+        <section className="bg-white rounded-lg p-6 shadow-sm border-2 border-gray-300">
+          <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
-              <Folder className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-semibold">Projects</h2>
+              <Folder className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-semibold">Projects</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateProjectOpen(true)} className="bg-[#e27f95] hover:bg-[#c76276]">
-              <Plus className="mr-2 h-4 w-4" />
+            <Button variant="default" size="sm" onClick={() => setCreateProjectOpen(true)} className="bg-[#e27f95] hover:bg-[#c76276] h-8 text-sm">
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
               Create New Project
             </Button>
           </div>
