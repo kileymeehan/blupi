@@ -135,6 +135,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       const [movedColumn] = sourcePhase.columns.splice(source.index, 1);
       destPhase.columns.splice(destination.index, 0, movedColumn);
 
+      // Update block positions
       const blocks = Array.from(board.blocks);
       blocks.forEach(block => {
         if (block.phaseIndex === sourcePhaseIndex && block.columnIndex === source.index) {
@@ -156,14 +157,17 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     }
 
     if (!type || type === 'DEFAULT') {
+      // Handle block dragging
       const blocks = Array.from(board.blocks);
 
+      // Handle dropping block in drawer (delete)
       if (destination.droppableId === 'drawer') {
         const updatedBlocks = blocks.filter(b => b.id !== result.draggableId);
         onBlocksChange(updatedBlocks);
         return;
       }
 
+      // Handle dragging from drawer (create new)
       if (source.droppableId === 'drawer') {
         const blockType = result.draggableId.replace('drawer-', '');
         const [phaseIndex, columnIndex] = destination.droppableId.split('-').map(Number);
@@ -187,16 +191,31 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         return;
       }
 
-      const [movedBlock] = blocks.splice(source.index, 1);
-      const [phaseIndex, columnIndex] = destination.droppableId.split('-').map(Number);
+      // Handle moving existing block
+      const sourcePhaseCol = source.droppableId.split('-').map(Number);
+      const destPhaseCol = destination.droppableId.split('-').map(Number);
+      const [sourcePhase, sourceColumn] = sourcePhaseCol;
+      const [destPhase, destColumn] = destPhaseCol;
 
-      const updatedBlock = {
-        ...movedBlock,
-        phaseIndex,
-        columnIndex
-      };
+      // Find the block being moved
+      const blockIndex = blocks.findIndex(b => 
+        b.phaseIndex === sourcePhase && 
+        b.columnIndex === sourceColumn && 
+        b.id === result.draggableId
+      );
 
-      blocks.splice(destination.index, 0, updatedBlock);
+      if (blockIndex === -1) return;
+
+      // Remove block from its current position
+      const [movedBlock] = blocks.splice(blockIndex, 1);
+
+      // Update block's phase and column
+      movedBlock.phaseIndex = destPhase;
+      movedBlock.columnIndex = destColumn;
+
+      // Insert block at new position
+      blocks.splice(destination.index, 0, movedBlock);
+
       onBlocksChange(blocks);
     }
   };
