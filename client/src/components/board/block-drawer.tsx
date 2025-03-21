@@ -4,10 +4,10 @@ import { Draggable } from "react-beautiful-dnd";
 export default function BlockDrawer() {
   return (
     <div className="w-full p-4">
-      <div className="flex items-center mb-4">
+      <div className="mb-4">
         <h2 className="font-semibold text-gray-700">Available Boxes</h2>
       </div>
-      <div className="space-y-4 flex flex-col items-center">
+      <div className="space-y-4 flex flex-col">
         {LAYER_TYPES.map((layer, index) => (
           <Draggable
             key={layer.type}
