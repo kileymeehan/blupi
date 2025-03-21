@@ -1,13 +1,13 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, MessageSquare } from "lucide-react";
+import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, MessageSquare, Filter } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import { CommentDialog } from "./comment-dialog";
-import type { Board, Block as BlockType, Phase } from "@shared/schema";
+import type { Board, Block as BlockType, Phase, Department } from "@shared/schema";
 import { nanoid } from "nanoid";
 import ImageUpload from './image-upload';
 import { CommentsOverview } from "./comments-overview";
@@ -29,16 +29,13 @@ import { UserPlus, Link as LinkIcon } from "lucide-react";
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { LAYER_TYPES } from "./constants";
+import { DepartmentFilter } from "./department-filter";
 
 interface Attachment {
   type: 'link' | 'image' | 'video';
   url: string;
 }
 
-interface Department {
-  id: string;
-  name: string;
-}
 
 interface BoardGridProps {
   id: string;
@@ -67,6 +64,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [shareLink, setShareLink] = useState("");
   const boardRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [showDepartments, setShowDepartments] = useState(false);
+  const [departmentFilter, setDepartmentFilter] = useState<Department | undefined>(undefined);
 
   const { data: board, isLoading: boardLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -322,6 +321,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       setShowContext(true);
       setShowBlocks(false);
       setShowComments(false);
+      setShowDepartments(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -335,6 +335,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       setShowBlocks(true);
       setShowContext(false);
       setShowComments(false);
+      setShowDepartments(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -348,6 +349,21 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       setShowComments(true);
       setShowContext(false);
       setShowBlocks(false);
+      setShowDepartments(false);
+      if (!isDrawerOpen) {
+        setIsDrawerOpen(true);
+      }
+    }
+  };
+
+  const toggleDepartments = () => {
+    if (showDepartments) {
+      setShowDepartments(false);
+    } else {
+      setShowDepartments(true);
+      setShowContext(false);
+      setShowBlocks(false);
+      setShowComments(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -359,6 +375,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     if (!isDrawerOpen) {
       setShowComments(false);
       setShowBlocks(false);
+      setShowDepartments(false);
     }
   };
 
@@ -605,6 +622,21 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   <MessageSquare className="w-5 h-5" />
                   {isDrawerOpen && <span className="text-sm">All Comments</span>}
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleDepartments}
+                  className={`
+                    w-full h-12 px-4
+                    flex items-center gap-2
+                    group
+                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
+                    ${showDepartments ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}
+                  `}
+                >
+                  <Filter className="w-5 h-5" />
+                  {isDrawerOpen && <span className="text-sm">Department Filter</span>}
+                </Button>
               </div>
 
               <Button
@@ -711,6 +743,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                       }}
                     />
                   </div>
+                  <div className={`flex-1 ${showDepartments ? 'block' : 'hidden'}`}>
+                    <DepartmentFilter
+                      blocks={board.blocks}
+                      onFilterByDepartment={setDepartmentFilter}
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -806,6 +844,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                         `}
                                       >
                                         {board.blocks
+                                          .filter(b => !departmentFilter || b.department === departmentFilter)
                                           .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
                                           .map((block, index) => (
                                             <Draggable
@@ -823,7 +862,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     ${LAYER_TYPES.find(l => l.type === block.type)?.color}
                                                     group relative rounded-lg border-2 border-gray-300 mb-2 p-2
                                                     ${snapshot.isDragging ? 'shadow-lg' : ''}
-                                                    ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                    ${highlightedBlockId === block.id ? 'ring-2ring-primary ring-offset-2' : ''}
                                                   `}
                                                 >
                                                   <Block

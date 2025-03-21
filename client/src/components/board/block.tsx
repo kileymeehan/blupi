@@ -181,7 +181,7 @@ export default function Block({
           text-xs text-gray-500
           opacity-0 group-hover:opacity-100
           transition-opacity duration-200
-          text-center whitespace-nowrap overflow-hidden text-ellipsis
+          text-right mr-2 whitespace-nowrap overflow-hidden text-ellipsis
         `}>
           {TYPE_LABELS[block.type]}
         </div>
@@ -348,7 +348,7 @@ export default function Block({
                   onChange={(e) => setCustomDepartment(e.target.value)}
                   className="min-h-[80px]"
                 />
-                <Button 
+                <Button
                   onClick={handleCustomDepartmentSave}
                   className="w-full"
                   disabled={!customDepartment}
