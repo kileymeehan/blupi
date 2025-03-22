@@ -673,6 +673,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   <MessageSquare className="w-5 h-5" />
                   {isDrawerOpen && <span className="text-sm">All Comments</span>}
                 </Button>
+
                 <Button
                   variant="ghost"
                   size="sm"
@@ -857,7 +858,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                     <div
                                       contentEditable
                                       onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                                      className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
+                                      className="font-medium text-sm focus:outline-none focus-visible:border-b focusvisible:border-primary flex-1"
                                       suppressContentEditableWarning={true}
                                     >
                                       {column.name}
