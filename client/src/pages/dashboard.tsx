@@ -1,18 +1,38 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, LogOut, User, LayoutGrid, Folder, Archive, Briefcase, Loader2 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Plus,
+  LogOut,
+  User,
+  LayoutGrid,
+  Folder,
+  Archive,
+  Briefcase,
+  Loader2,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 import AddToProjectDialog from "@/components/board/add-to-project-dialog";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
 import { format } from "date-fns";
 import { StatusSelector } from "@/components/status-selector";
-import { Project, Board } from "@shared/schema"; 
+import { Project, Board } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { ProfileIcon } from "@/components/profile-icon";
@@ -22,31 +42,49 @@ import { ColorPicker } from "@/components/color-picker";
 function LoadingSkeleton({ count = 3 }) {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {Array(count).fill(null).map((_, i) => (
-        <Card key={i} className="relative overflow-hidden">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
-              <div className="h-6 w-24 bg-gray-200 rounded animate-pulse" />
-            </div>
-            <div className="space-y-2 mt-2">
-              <div className="h-4 w-full bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-9 w-full bg-gray-200 rounded animate-pulse" />
-          </CardContent>
-        </Card>
-      ))}
+      {Array(count)
+        .fill(null)
+        .map((_, i) => (
+          <Card key={i} className="relative overflow-hidden">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+                <div className="h-6 w-24 bg-gray-200 rounded animate-pulse" />
+              </div>
+              <div className="space-y-2 mt-2">
+                <div className="h-4 w-full bg-gray-200 rounded animate-pulse" />
+                <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-9 w-full bg-gray-200 rounded animate-pulse" />
+            </CardContent>
+          </Card>
+        ))}
     </div>
   );
 }
 
-const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
+const ANIMAL_EMOJIS = [
+  "🦊",
+  "🐼",
+  "🦁",
+  "🐯",
+  "🐨",
+  "🐮",
+  "🐷",
+  "🐸",
+  "🐙",
+  "🦒",
+  "🦘",
+  "🦔",
+  "🦦",
+  "🦥",
+  "🦡",
+];
 
 function getAnimalEmoji(id: string): string {
-  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return ANIMAL_EMOJIS[Math.abs(hash) % ANIMAL_EMOJIS.length];
 }
 
@@ -57,37 +95,42 @@ export default function Dashboard() {
   const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
   const [addToProjectOpen, setAddToProjectOpen] = useState(false);
   const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
-  const [projectToDelete, setProjectToDelete] = useState<{id: number, name: string} | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [showArchivedBlueprints, setShowArchivedBlueprints] = useState(false);
   const { toast } = useToast();
 
-  const { data: projects = [], isLoading: projectLoading } = useQuery<Project[]>({
-    queryKey: ['/api/projects'],
-    staleTime: 30000, 
-    gcTime: 1800000, 
+  const { data: projects = [], isLoading: projectLoading } = useQuery<
+    Project[]
+  >({
+    queryKey: ["/api/projects"],
+    staleTime: 30000,
+    gcTime: 1800000,
     initialData: [],
     onError: (error: Error) => {
       toast({
         title: "Error loading projects",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
-    queryKey: ['/api/boards'],
-    staleTime: 30000, 
-    gcTime: 1800000, 
+    queryKey: ["/api/boards"],
+    staleTime: 30000,
+    gcTime: 1800000,
     initialData: [],
     onError: (error: Error) => {
       toast({
         title: "Error loading boards",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   useEffect(() => {
@@ -97,17 +140,16 @@ export default function Dashboard() {
     }
   }, [projectToDelete]);
 
-
-  const filteredBoards = boards.filter(board => {
+  const filteredBoards = boards.filter((board) => {
     if (showArchivedBlueprints) {
-      const project = projects.find(p => p.id === board.projectId);
-      return project?.status === 'archived';
+      const project = projects.find((p) => p.id === board.projectId);
+      return project?.status === "archived";
     }
-    return !board.projectId; 
+    return !board.projectId;
   });
 
   const recentBoards = boards
-    .filter(board => !showArchivedBlueprints || board.status !== 'archived')
+    .filter((board) => !showArchivedBlueprints || board.status !== "archived")
     .sort((a, b) => {
       const dateA = new Date(a.updatedAt || a.createdAt);
       const dateB = new Date(b.updatedAt || b.createdAt);
@@ -115,62 +157,75 @@ export default function Dashboard() {
     })
     .slice(0, 3);
 
-  const unassignedBoards = filteredBoards.filter(board => !board.projectId);
+  const unassignedBoards = filteredBoards.filter((board) => !board.projectId);
 
-  const filteredProjects = projects.filter(project => 
-    showArchived ? project.status === 'archived' : project.status !== 'archived'
+  const filteredProjects = projects.filter((project) =>
+    showArchived
+      ? project.status === "archived"
+      : project.status !== "archived",
   );
 
   const updateProjectStatus = useMutation({
-    mutationFn: async ({ projectId, status, color }: { projectId: number; status: string; color?: string }) => {
-      const res = await apiRequest(
-        'PATCH',
-        `/api/projects/${projectId}`,
-        { status, color }
-      );
-      if (!res.ok) throw new Error('Failed to update project status');
+    mutationFn: async ({
+      projectId,
+      status,
+      color,
+    }: {
+      projectId: number;
+      status: string;
+      color?: string;
+    }) => {
+      const res = await apiRequest("PATCH", `/api/projects/${projectId}`, {
+        status,
+        color,
+      });
+      if (!res.ok) throw new Error("Failed to update project status");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({
         title: "Success",
-        description: "Project status updated"
+        description: "Project status updated",
       });
     },
     onError: (error: Error) => {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   const updateBoardStatus = useMutation({
-    mutationFn: async ({ boardId, status }: { boardId: number; status: string }) => {
-      const res = await apiRequest(
-        'PATCH',
-        `/api/boards/${boardId}`,
-        { status }
-      );
-      if (!res.ok) throw new Error('Failed to update blueprint status');
+    mutationFn: async ({
+      boardId,
+      status,
+    }: {
+      boardId: number;
+      status: string;
+    }) => {
+      const res = await apiRequest("PATCH", `/api/boards/${boardId}`, {
+        status,
+      });
+      if (!res.ok) throw new Error("Failed to update blueprint status");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/boards'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
       toast({
         title: "Success",
-        description: "Blueprint status updated. Look at you!"
+        description: "Blueprint status updated. Look at you!",
       });
     },
     onError: (error: Error) => {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   if (projectLoading || boardsLoading) {
@@ -197,7 +252,10 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative flex items-center gap-2 h-8">
+                <Button
+                  variant="ghost"
+                  className="relative flex items-center gap-2 h-8"
+                >
                   <ProfileIcon />
                 </Button>
               </DropdownMenuTrigger>
@@ -208,7 +266,10 @@ export default function Dashboard() {
                     Profile Settings
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout} className="cursor-pointer text-sm py-1.5">
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="cursor-pointer text-sm py-1.5"
+                >
                   <LogOut className="mr-2 h-3.5 w-3.5" />
                   Logout
                 </DropdownMenuItem>
@@ -221,7 +282,9 @@ export default function Dashboard() {
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <h1 className="text-2xl font-bold mb-1.5">Welcome back!</h1>
-          <p className="text-sm text-muted-foreground">Manage your blueprints and projects</p>
+          <p className="text-sm text-muted-foreground">
+            Manage your blueprints and projects
+          </p>
         </div>
 
         <section className="bg-white rounded-lg p-6 shadow-sm border-2 border-gray-300">
@@ -230,7 +293,12 @@ export default function Dashboard() {
               <Folder className="h-5 w-5 text-primary" />
               <h2 className="text-xl font-semibold">Projects</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateProjectOpen(true)} className="bg-[#C05C28] hover:bg-[#A04922] h-8 text-sm">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setCreateProjectOpen(true)}
+              className="bg-[#302E87] hover:bg-[#A04922] h-8 text-sm"
+            >
               <Plus className="mr-1.5 h-3.5 w-3.5" />
               Create New Project
             </Button>
@@ -242,23 +310,33 @@ export default function Dashboard() {
             <>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
                 {filteredProjects.map((project) => (
-                  <Card key={project.id} className="relative overflow-hidden group hover:shadow-md transition-shadow flex flex-col">
-                    <div 
-                      className="absolute inset-y-0 left-0 w-1.5" 
-                      style={{ 
-                        backgroundColor: project.color || '#4F46E5',
+                  <Card
+                    key={project.id}
+                    className="relative overflow-hidden group hover:shadow-md transition-shadow flex flex-col"
+                  >
+                    <div
+                      className="absolute inset-y-0 left-0 w-1.5"
+                      style={{
+                        backgroundColor: project.color || "#4F46E5",
                         opacity: 1,
-                        zIndex: 10 
-                      }} 
+                        zIndex: 10,
+                      }}
                     />
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <CardTitle className="text-lg">{project.name}</CardTitle>
+                          <CardTitle className="text-lg">
+                            {project.name}
+                          </CardTitle>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => updateProjectStatus.mutate({ projectId: project.id, status: "archived" })}
+                            onClick={() =>
+                              updateProjectStatus.mutate({
+                                projectId: project.id,
+                                status: "archived",
+                              })
+                            }
                             className="text-muted-foreground hover:text-red-600 p-1 h-auto"
                           >
                             <Archive className="h-4 w-4" />
@@ -267,20 +345,34 @@ export default function Dashboard() {
                         <StatusSelector
                           type="project"
                           value={project.status}
-                          onChange={(status) => updateProjectStatus.mutate({ projectId: project.id, status })}
+                          onChange={(status) =>
+                            updateProjectStatus.mutate({
+                              projectId: project.id,
+                              status,
+                            })
+                          }
                           disabled={updateProjectStatus.isPending}
                         />
                       </div>
                       <div className="mt-2">
-                        <div className="text-sm text-muted-foreground">{project.description}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {project.description}
+                        </div>
                         <div className="mt-1 text-xs text-muted-foreground">
-                          Created on {format(new Date(project.createdAt), 'MMM d, yyyy')}
+                          Created on{" "}
+                          {format(new Date(project.createdAt), "MMM d, yyyy")}
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="mt-auto">
-                      <Button variant="ghost" asChild className="w-full border-2 border-gray-900 hover:bg-gray-100">
-                        <Link href={`/project/${project.id}`}>View Project</Link>
+                      <Button
+                        variant="ghost"
+                        asChild
+                        className="w-full border-2 border-gray-900 hover:bg-gray-100"
+                      >
+                        <Link href={`/project/${project.id}`}>
+                          View Project
+                        </Link>
                       </Button>
                     </CardContent>
                   </Card>
@@ -290,10 +382,12 @@ export default function Dashboard() {
                   <Card className="border-dashed">
                     <CardHeader>
                       <CardTitle>
-                        {showArchived ? "No archived projects" : "Get started with a project"}
+                        {showArchived
+                          ? "No archived projects"
+                          : "Get started with a project"}
                       </CardTitle>
                       <CardDescription>
-                        {showArchived 
+                        {showArchived
                           ? "When you archive projects, they'll appear here"
                           : "Create a project to organize your blueprints"}
                       </CardDescription>
@@ -310,7 +404,9 @@ export default function Dashboard() {
                   className="flex items-center gap-2"
                 >
                   <Archive className="h-4 w-4" />
-                  {showArchived ? "Hide Archived Projects" : "Show Archived Projects"}
+                  {showArchived
+                    ? "Hide Archived Projects"
+                    : "Show Archived Projects"}
                 </Button>
               </div>
             </>
@@ -323,7 +419,12 @@ export default function Dashboard() {
               <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-[#302E87] hover:bg-[#252170]">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setCreateBlueprintOpen(true)}
+              className="bg-[#302E87] hover:bg-[#252170]"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
@@ -335,20 +436,39 @@ export default function Dashboard() {
             <>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
                 {recentBoards.map((board) => {
-                  const project = projects.find(p => p.id === board.projectId);
+                  const project = projects.find(
+                    (p) => p.id === board.projectId,
+                  );
                   return (
-                    <Card key={board.id} className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow flex flex-col">
+                    <Card
+                      key={board.id}
+                      className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow flex flex-col"
+                    >
                       {project && (
-                        <div className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: project.color || '#4F46E5', opacity: 1, zIndex: 10 }} />
+                        <div
+                          className="absolute inset-y-0 left-0 w-1.5"
+                          style={{
+                            backgroundColor: project.color || "#4F46E5",
+                            opacity: 1,
+                            zIndex: 10,
+                          }}
+                        />
                       )}
                       <CardHeader>
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">{board.name}</CardTitle>
+                          <CardTitle className="text-lg">
+                            {board.name}
+                          </CardTitle>
                           <div className="flex items-center gap-2">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => updateBoardStatus.mutate({ boardId: board.id, status: "archived" })}
+                              onClick={() =>
+                                updateBoardStatus.mutate({
+                                  boardId: board.id,
+                                  status: "archived",
+                                })
+                              }
                               className="text-muted-foreground hover:text-red-600 p-1 h-auto"
                             >
                               <Archive className="h-4 w-4" />
@@ -356,7 +476,12 @@ export default function Dashboard() {
                             <StatusSelector
                               type="board"
                               value={board.status}
-                              onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
+                              onChange={(status) =>
+                                updateBoardStatus.mutate({
+                                  boardId: board.id,
+                                  status,
+                                })
+                              }
                               disabled={updateBoardStatus.isPending}
                             />
                           </div>
@@ -369,13 +494,20 @@ export default function Dashboard() {
                             </div>
                           )}
                           <div className="mt-1 text-xs text-muted-foreground">
-                            Created on {format(new Date(board.createdAt), 'MMM d, yyyy')}
+                            Created on{" "}
+                            {format(new Date(board.createdAt), "MMM d, yyyy")}
                           </div>
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="mt-auto">
-                        <Button variant="ghost" asChild className="w-full border-2 border-gray-900 hover:bg-gray-100">
-                          <Link href={`/board/${board.id}`}>View Blueprint</Link>
+                        <Button
+                          variant="ghost"
+                          asChild
+                          className="w-full border-2 border-gray-900 hover:bg-gray-100"
+                        >
+                          <Link href={`/board/${board.id}`}>
+                            View Blueprint
+                          </Link>
                         </Button>
                       </CardContent>
                     </Card>
@@ -387,11 +519,15 @@ export default function Dashboard() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowArchivedBlueprints(!showArchivedBlueprints)}
+                  onClick={() =>
+                    setShowArchivedBlueprints(!showArchivedBlueprints)
+                  }
                   className="flex items-center gap-2"
                 >
                   <Archive className="h-4 w-4" />
-                  {showArchivedBlueprints ? "Hide Archived Blueprints" : "Show Archived Blueprints"}
+                  {showArchivedBlueprints
+                    ? "Hide Archived Blueprints"
+                    : "Show Archived Blueprints"}
                 </Button>
               </div>
             </>
@@ -404,7 +540,12 @@ export default function Dashboard() {
               <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
             </div>
-            <Button variant="default" size="sm" onClick={() => setCreateBlueprintOpen(true)} className="bg-[#C05C28] hover:bg-[#A04922]">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setCreateBlueprintOpen(true)}
+              className="bg-[#302E87] hover:bg-[#A04922]"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
@@ -412,10 +553,15 @@ export default function Dashboard() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
             {unassignedBoards.map((board) => {
-              const assignedProject = projects.find(p => p.id === board.projectId);
+              const assignedProject = projects.find(
+                (p) => p.id === board.projectId,
+              );
 
               return (
-                <Card key={board.id} className="hover:shadow-md transition-shadow flex flex-col">
+                <Card
+                  key={board.id}
+                  className="hover:shadow-md transition-shadow flex flex-col"
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle>{board.name}</CardTitle>
@@ -423,7 +569,12 @@ export default function Dashboard() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => updateBoardStatus.mutate({ boardId: board.id, status: "archived" })}
+                          onClick={() =>
+                            updateBoardStatus.mutate({
+                              boardId: board.id,
+                              status: "archived",
+                            })
+                          }
                           className="text-muted-foreground hover:text-red-600 p-1 h-auto"
                         >
                           <Archive className="h-4 w-4" />
@@ -431,7 +582,12 @@ export default function Dashboard() {
                         <StatusSelector
                           type="board"
                           value={board.status}
-                          onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
+                          onChange={(status) =>
+                            updateBoardStatus.mutate({
+                              boardId: board.id,
+                              status,
+                            })
+                          }
                           disabled={updateBoardStatus.isPending}
                         />
                       </div>
@@ -439,13 +595,18 @@ export default function Dashboard() {
                     <CardDescription>
                       {board.description}
                       <div className="mt-1 text-xs text-muted-foreground">
-                        Created on {format(new Date(board.createdAt), 'MMM d, yyyy')}
+                        Created on{" "}
+                        {format(new Date(board.createdAt), "MMM d, yyyy")}
                       </div>
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="mt-auto">
                     <div className="flex flex-col gap-2">
-                      <Button variant="ghost" asChild className="w-full border-2 border-gray-900 hover:bg-gray-100">
+                      <Button
+                        variant="ghost"
+                        asChild
+                        className="w-full border-2 border-gray-900 hover:bg-gray-100"
+                      >
                         <Link href={`/board/${board.id}`}>View Blueprint</Link>
                       </Button>
                       <Button
@@ -458,7 +619,9 @@ export default function Dashboard() {
                         }}
                       >
                         <Briefcase className="w-4 h-4 mr-2" />
-                        {assignedProject ? `Assigned to ${assignedProject.name}` : 'Add to Project'}
+                        {assignedProject
+                          ? `Assigned to ${assignedProject.name}`
+                          : "Add to Project"}
                       </Button>
                     </div>
                   </CardContent>
@@ -470,16 +633,17 @@ export default function Dashboard() {
               <Card className="border-dashed">
                 <CardHeader>
                   <CardTitle>Create your first blueprint</CardTitle>
-                  <CardDescription>Start designing your workflow</CardDescription>
+                  <CardDescription>
+                    Start designing your workflow
+                  </CardDescription>
                 </CardHeader>
               </Card>
             )}
           </div>
         </section>
-
       </main>
 
-      <CreateProjectDialog 
+      <CreateProjectDialog
         open={createProjectOpen}
         onOpenChange={setCreateProjectOpen}
       />
