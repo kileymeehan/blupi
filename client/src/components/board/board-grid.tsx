@@ -488,7 +488,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
   };
 
-
   return (
     <div className="min-h-screen bg-background">
       <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
@@ -633,7 +632,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group
+                    group rounded-none border-none
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
                     ${showContext ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
@@ -649,7 +648,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group
+                    group rounded-none border-none
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
                     ${showBlocks ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
@@ -665,7 +664,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group
+                    group rounded-none border-none
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
                     ${showComments ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
@@ -681,7 +680,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group
+                    group rounded-none border-none
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
                     ${showDepartments ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
@@ -787,14 +786,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   <div className={`flex-1 ${showComments ? 'block' : 'hidden'}`}>
                     <CommentsOverview
                       board={board}
-                      onCommentClick={(block) => {
-                        setSelectedBlock(block);
-                        setCommentDialogOpen(true);
-                        setHighlightedBlockId(block.id);
-                        setTimeout(() => setHighlightedBlockId(null), 2000);
-                      }}
+                      onCommentClick={handleCommentClick}
                     />
                   </div>
+
                   <div className={`flex-1 ${showDepartments ? 'block' : 'hidden'}`}>
                     <DepartmentFilter
                       blocks={board.blocks}
@@ -858,7 +853,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                     <div
                                       contentEditable
                                       onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
-                                      className="font-medium text-sm focus:outline-none focus-visible:border-b focusvisible:border-primary flex-1"
+                                      className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
                                       suppressContentEditableWarning={true}
                                     >
                                       {column.name}
