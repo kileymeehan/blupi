@@ -1,3 +1,4 @@
+tsx
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, MessageSquare, Filter } from "lucide-react";
@@ -632,7 +633,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group rounded-none border-none
+                    rounded-none
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
                     ${showContext ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
@@ -648,7 +649,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group rounded-none border-none
+                    rounded-none
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
                     ${showBlocks ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
@@ -664,7 +665,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group rounded-none border-none
+                    rounded-none
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
                     ${showComments ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
@@ -680,7 +681,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group rounded-none border-none
+                    rounded-none
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
                     ${showDepartments ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
@@ -705,70 +706,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
               {isDrawerOpen && (
                 <div className="flex-1 flex flex-col bg-gray-50">
-                  <div className={`flex-1 ${showContext ? 'block' : 'hidden'}`}>
+                  <div className={`flex-1 ${showContext ? 'block' : 'hidden'} bg-gray-50`}>
                     <div className="p-4 space-y-4">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">
-                          Blueprint Details
-                        </label>
-                        <Textarea
-                          placeholder="Add key details about this blueprint..."
-                          value={blueprintDetails}
-                          onChange={(e) => setBlueprintDetails(e.target.value)}
-                          className="min-h-[150px] resize-none"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium block">
-                          Persona
-                        </label>
-                        <div
-                          className="w-full h-40 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
-                          onClick={() => document.getElementById('persona-image')?.click()}
-                        >
-                          {personaImage ? (
-                            <img
-                              src={personaImage}
-                              alt="Persona"
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                          ) : (
-                            <div className="text-center">
-                              <Upload className="w-8 h-8 mx-auto text-gray-400" />
-                              <span className="text-sm text-gray-500 mt-2 block">
-                                Upload persona image
-                              </span>
-                            </div>
-                          )}
-                          <input
-                            id="persona-image"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  setPersonaImage(reader.result as string);
-                                };
-                                reader.readAsDataURL(file);
-                              }
-                            }}
-                          />
-                        </div>
-                        <Textarea
-                          placeholder="Describe the persona..."
-                          value={personaDetails}
-                          onChange={(e) => setPersonaDetails(e.target.value)}
-                          className="min-h-[100px] resize-none mt-2"
-                        />
-                      </div>
+                      {/* Context content */}
                     </div>
                   </div>
 
-                  <div className={`flex-1 ${showBlocks ? 'block' : 'hidden'}`}>
+                  <div className={`flex-1 ${showBlocks ? 'block' : 'hidden'} bg-gray-50`}>
                     <Droppable droppableId="drawer">
                       {(provided) => (
                         <div
@@ -783,14 +727,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </Droppable>
                   </div>
 
-                  <div className={`flex-1 ${showComments ? 'block' : 'hidden'}`}>
+                  <div className={`flex-1 ${showComments ? 'block' : 'hidden'} bg-gray-50`}>
                     <CommentsOverview
                       board={board}
                       onCommentClick={handleCommentClick}
                     />
                   </div>
 
-                  <div className={`flex-1 ${showDepartments ? 'block' : 'hidden'}`}>
+                  <div className={`flex-1 ${showDepartments ? 'block' : 'hidden'} bg-gray-50`}>
                     <DepartmentFilter
                       blocks={board.blocks}
                       onFilterByDepartment={setDepartmentFilter}
@@ -903,7 +847,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                   {...provided.dragHandleProps}
                                                   style={provided.draggableProps.style}
                                                   className={`
-                                                    ${LAYER_TYPES.find(l => l.type === block.type)?.color}
+                                                    ${LAYER_TYPES.find(l => l.type=== block.type)?.color}
                                                     group relative rounded-lg border-2 border-gray-300 mb-2 p-2
                                                     ${snapshot.isDragging ? 'shadow-lg' : ''}
                                                     ${highlightedBlockId === block.id ? 'ring-2ring-primary ring-offset-2' : ''}
@@ -949,115 +893,116 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   </div>
                 </div>
               </div>
-            </div>
 
-            {selectedBlock && (
-              <CommentDialog
-                open={commentDialogOpen}
-                onOpenChange={setCommentDialogOpen}
-                block={selectedBlock}
+              {selectedBlock && (
+                <CommentDialog
+                  open={commentDialogOpen}
+                  onOpenChange={setCommentDialogOpen}
+                  block={selectedBlock}
+                  boardId={id}
+                  onCommentAdd={(comment) => {
+                    if (!onBlocksChange) return;
+                    const blocks = board.blocks.map(b =>
+                      b.id === selectedBlock.id
+                        ? { ...b, comments: [...(b.comments || []), comment] }
+                        : b
+                    );
+                    onBlocksChange(blocks);
+                  }}
+                />
+              )}
+
+              <AddToProjectDialog
+                open={addToProjectOpen}
+                onOpenChange={setAddToProjectOpen}
                 boardId={id}
-                onCommentAdd={(comment) => {
-                  if (!onBlocksChange) return;
-                  const blocks = board.blocks.map(b =>
-                    b.id === selectedBlock.id
-                      ? { ...b, comments: [...(b.comments || []), comment] }
-                      : b
-                  );
-                  onBlocksChange(blocks);
-                }}
               />
-            )}
 
-            <AddToProjectDialog
-              open={addToProjectOpen}
-              onOpenChange={setAddToProjectOpen}
-              boardId={id}
-            />
+              {inviteOpen && (
+                <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
+                      <DialogDescription>
+                        Enter email addresses to invite team members                    </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <Input
+                        placeholder="Enter email addresses (comma separated)"
+                        className="w-full"
+                      />
+                      <Button className="w-full" onClick={() => setInviteOpen(false)}>
+                        Send Invites
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
 
-            {inviteOpen && (
-              <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
-                    <DialogDescription>
-                      Enter email addresses to invite team members                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <Input
-                      placeholder="Enter email addresses (comma separated)"
-                      className="w-full"
-                    />
-                    <Button className="w-full" onClick={() => setInviteOpen(false)}>
-                      Send Invites
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
+              {shareLinkOpen && (
+                <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Share Blueprint</DialogTitle>
+                      <DialogDescription>
+                        Choose how you want to share this blueprint
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-6 py-4">
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
+                        <div className="flex gap-2">
+                          <Input
+                            value={window.location.href}
+                            readOnly
+                            className="w-full"
+                          />
+                          <Button
+                            onClick={() => {
+                              navigator.clipboard.writeText(window.location.href);
+                              useToast({
+                                title: "Link copied",
+                                description: "Team access link has been copied to clipboard"
+                              });
+                            }}
+                          >
+                            Copy
+                          </Button>
+                        </div>
+                      </div>
 
-            {shareLinkOpen && (
-              <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Share Blueprint</DialogTitle>
-                    <DialogDescription>
-                      Choose how you want to share this blueprint
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-6 py-4">
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
-                      <div className="flex gap-2">
-                        <Input
-                          value={window.location.href}
-                          readOnly
-                          className="w-full"
-                        />
-                        <Button
-                          onClick={() => {
-                            navigator.clipboard.writeText(window.location.href);
-                            useToast({
-                              title: "Link copied",
-                              description: "Team access link has been copied to clipboard"
-                            });
-                          }}
-                        >
-                          Copy
-                        </Button>
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
+                        <div className="flex gap-2">
+                          <Input
+                            value={`${window.location.origin}/public/board/${id}`}
+                            readOnly
+                            className="w-full"
+                          />
+                          <Button
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
+                              useToast({
+                                title: "Link copied",
+                                description: "Public access link has been copied to clipboard"
+                              });
+                            }}
+                          >
+                            Copy
+                          </Button>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Anyone with this link can view the blueprint in read-only mode
+                        </p>
                       </div>
                     </div>
-
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
-                      <div className="flex gap-2">
-                        <Input
-                          value={`${window.location.origin}/public/board/${id}`}
-                          readOnly
-                          className="w-full"
-                        />
-                        <Button
-                          onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
-                            useToast({
-                              title: "Link copied",
-                              description: "Public access link has been copied to clipboard"
-                            });
-                          }}
-                        >
-                          Copy
-                        </Button>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Anyone with this link can view the blueprint in read-only mode
-                      </p>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-        </DragDropContext>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+          </DragDropContext>
+        </div>
       </div>
+
     </div>
   );
 }
