@@ -635,7 +635,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     flex items-center gap-2
                     group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showContext ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
+                    ${showContext ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
                 >
                   <Info className="w-5 h-5" />
@@ -651,7 +651,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     flex items-center gap-2
                     group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showBlocks ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
+                    ${showBlocks ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
                 >
                   <LayoutGrid className="w-5 h-5" />
@@ -667,7 +667,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     flex items-center gap-2
                     group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showComments ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
+                    ${showComments ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
                 >
                   <MessageSquare className="w-5 h-5" />
@@ -682,7 +682,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     flex items-center gap-2
                     group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showDepartments ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
+                    ${showDepartments ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
                   `}
                 >
                   <Filter className="w-5 h-5" />
@@ -704,7 +704,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               </Button>
 
               {isDrawerOpen && (
-                <div className="flex-1 flex flex-col bg-blue-50">
+                <div className="flex-1 flex flex-col bg-gray-50">
                   <div className={`flex-1 ${showContext ? 'block' : 'hidden'}`}>
                     <div className="p-4 space-y-4">
                       <div>
