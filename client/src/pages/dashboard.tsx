@@ -240,7 +240,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF4EB] animate-fade-in">
+    <div className="min-h-screen bg-[#F8F8F8] animate-fade-in">
       <header className="border-b bg-white shadow-sm">
         <div className="max-w-[1440px] mx-auto flex h-24 items-center px-6">
           <div className="flex-1 flex items-center gap-6">
@@ -280,7 +280,7 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-600">
+        <div className="bg-white rounded-lg p-6 shadow-md border border-gray-0">
           {" "}
           {/* Modified */}
           <h1 className="text-2xl font-bold mb-1.5">Welcome back!</h1>
@@ -289,7 +289,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8">
+        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-0">
           {" "}
           {/* Modified */}
           <div className="flex justify-between items-center mb-4">
@@ -371,7 +371,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         asChild
-                        className="w-full border border-gray-600 hover:bg-gray-100"
+                        className="border border-gray-600 hover:bg-gray-100"
                       >
                         <Link href={`/project/${project.id}`}>
                           View Project
@@ -416,7 +416,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8">
+        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-0">
           {" "}
           {/* Modified */}
           <div className="flex justify-between items-center mb-6">
@@ -507,7 +507,7 @@ export default function Dashboard() {
                         <Button
                           variant="ghost"
                           asChild
-                          className="w-full border border-gray-600 hover:bg-gray-100"
+                          className="border border-gray-600 hover:bg-gray-100"
                         >
                           <Link href={`/board/${board.id}`}>
                             View Blueprint
@@ -538,7 +538,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8">
+        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-0">
           {" "}
           {/* Modified */}
           <div className="flex justify-between items-center mb-6">
@@ -610,14 +610,14 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         asChild
-                        className="w-full border border-gray-600 hover:bg-gray-100"
+                        className="border border-gray-600 hover:bg-gray-100"
                       >
                         <Link href={`/board/${board.id}`}>View Blueprint</Link>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="w-full text-muted-foreground hover:text-foreground"
+                        className=" text-muted-foreground hover:text-foreground"
                         onClick={() => {
                           setSelectedBoardId(String(board.id));
                           setAddToProjectOpen(true);
