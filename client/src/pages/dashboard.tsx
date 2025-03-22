@@ -242,7 +242,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen tiled-bg animate-fade-in">
       <header className="border-b bg-white shadow-sm">
-        <div className="max-w-[1440px] mx-auto flex h-14 items-center px-6">
+        <div className="max-w-[1440px] mx-auto flex h-24 items-center px-6">
           <div className="flex-1 flex items-center gap-6">
             <Link href="/" className="flex items-center">
               <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7" />
@@ -280,14 +280,18 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-600"> {/* Modified */}
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-600">
+          {" "}
+          {/* Modified */}
           <h1 className="text-2xl font-bold mb-1.5">Welcome back!</h1>
           <p className="text-sm text-muted-foreground">
             Manage your blueprints and projects
           </p>
         </div>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8"> {/* Modified */}
+        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8">
+          {" "}
+          {/* Modified */}
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <Folder className="h-5 w-5 text-primary" />
@@ -303,7 +307,6 @@ export default function Dashboard() {
               Create New Project
             </Button>
           </div>
-
           {projectLoading ? (
             <LoadingSkeleton count={3} />
           ) : (
@@ -413,7 +416,9 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8"> {/* Modified */}
+        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8">
+          {" "}
+          {/* Modified */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -429,7 +434,6 @@ export default function Dashboard() {
               Create New Blueprint
             </Button>
           </div>
-
           {boardsLoading ? (
             <LoadingSkeleton count={3} />
           ) : (
@@ -534,7 +538,9 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8"> {/* Modified */}
+        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8">
+          {" "}
+          {/* Modified */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -550,7 +556,6 @@ export default function Dashboard() {
               Create New Blueprint
             </Button>
           </div>
-
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
             {unassignedBoards.map((board) => {
               const assignedProject = projects.find(
