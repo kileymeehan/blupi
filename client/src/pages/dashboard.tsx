@@ -45,7 +45,7 @@ function LoadingSkeleton({ count = 3 }) {
       {Array(count)
         .fill(null)
         .map((_, i) => (
-          <Card key={i} className="relative overflow-hidden">
+          <Card key={i} className="relative overflow-hidden border border-gray-100">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
@@ -280,18 +280,14 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
-        <div className="bg-white rounded-lg p-6 shadow-md border border-gray-0">
-          {" "}
-          {/* Modified */}
+        <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
           <h1 className="text-2xl font-bold mb-1.5">Welcome back!</h1>
           <p className="text-sm text-muted-foreground">
             Manage your blueprints and projects
           </p>
         </div>
 
-        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-0">
-          {" "}
-          {/* Modified */}
+        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <Folder className="h-5 w-5 text-primary" />
@@ -315,7 +311,7 @@ export default function Dashboard() {
                 {filteredProjects.map((project) => (
                   <Card
                     key={project.id}
-                    className="relative overflow-hidden group hover:shadow-md transition-shadow flex flex-col border border-gray-600"
+                    className="relative overflow-hidden group hover:shadow-md transition-shadow flex flex-col border border-gray-100"
                   >
                     <div
                       className="absolute inset-y-0 left-0 w-1"
@@ -371,7 +367,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         asChild
-                        className="border border-gray-600 hover:bg-gray-100"
+                        className="border border-gray-100 hover:bg-gray-100"
                       >
                         <Link href={`/project/${project.id}`}>
                           View Project
@@ -382,7 +378,7 @@ export default function Dashboard() {
                 ))}
 
                 {filteredProjects.length === 0 && (
-                  <Card className="border-dashed border border-gray-600">
+                  <Card className="border-dashed border border-gray-100">
                     <CardHeader>
                       <CardTitle>
                         {showArchived
@@ -416,9 +412,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-0">
-          {" "}
-          {/* Modified */}
+        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -446,7 +440,7 @@ export default function Dashboard() {
                   return (
                     <Card
                       key={board.id}
-                      className="relative overflow-hidden border border-gray-600 hover:shadow-md transition-shadow flex flex-col"
+                      className="relative overflow-hidden border border-gray-100 hover:shadow-md transition-shadow flex flex-col"
                     >
                       {project && (
                         <div
@@ -507,7 +501,7 @@ export default function Dashboard() {
                         <Button
                           variant="ghost"
                           asChild
-                          className="border border-gray-600 hover:bg-gray-100"
+                          className="border border-gray-100 hover:bg-gray-100"
                         >
                           <Link href={`/board/${board.id}`}>
                             View Blueprint
@@ -538,9 +532,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-0">
-          {" "}
-          {/* Modified */}
+        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -565,7 +557,7 @@ export default function Dashboard() {
               return (
                 <Card
                   key={board.id}
-                  className="hover:shadow-md transition-shadow flex flex-col border border-gray-600"
+                  className="hover:shadow-md transition-shadow flex flex-col border border-gray-100"
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -610,7 +602,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         asChild
-                        className="border border-gray-600 hover:bg-gray-100"
+                        className="border border-gray-100 hover:bg-gray-100"
                       >
                         <Link href={`/board/${board.id}`}>View Blueprint</Link>
                       </Button>
@@ -635,7 +627,7 @@ export default function Dashboard() {
             })}
 
             {unassignedBoards.length === 0 && !boardsLoading && (
-              <Card className="border-dashed border border-gray-600">
+              <Card className="border-dashed border border-gray-100">
                 <CardHeader>
                   <CardTitle>Create your first blueprint</CardTitle>
                   <CardDescription>
