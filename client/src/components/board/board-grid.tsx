@@ -890,20 +890,39 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                               (!departmentFilter || block.department === departmentFilter)
                                           )
                                           .map((block, index) => (
-                                            <Block
+                                            <Draggable
                                               key={block.id}
-                                              block={block}
+                                              draggableId={block.id}
                                               index={index}
-                                              isHighlighted={block.id === highlightedBlockId}
-                                              onContentChange={(content) => handleBlockChange(block.id, content)}
-                                              onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
-                                              onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                              onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
-                                              onDepartmentChange={(department, customDepartment) =>
-                                                handleDepartmentChange(block.id, department, customDepartment)
-                                              }
-                                              onCommentClick={() => handleCommentClick(block)}
-                                            />
+                                            >
+                                              {(provided, snapshot) => (
+                                                <div
+                                                  ref={provided.innerRef}
+                                                  {...provided.draggableProps}
+                                                  {...provided.dragHandleProps}
+                                                  style={provided.draggableProps.style}
+                                                  className={`
+                                                    ${LAYER_TYPES.find(l => l.type === block.type)?.color}
+                                                    group relative rounded-lg p-2
+                                                    ${snapshot.isDragging ? 'shadow-lg' : ''}
+                                                    ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                  `}
+                                                >
+                                                  <Block
+                                                    block={block}
+                                                    onChange={(content) => handleBlockChange(block.id, content)}
+                                                    onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
+                                                    onNotesChange={(notes) => handleNotesChange(block.id, notes)}
+                                                    onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
+                                                    onDepartmentChange={(department, customDepartment) =>
+                                                      handleDepartmentChange(block.id, department, customDepartment)
+                                                    }
+                                                    onCommentClick={() => handleCommentClick(block)}
+                                                    projectId={board.projectId}
+                                                  />
+                                                </div>
+                                              )}
+                                            </Draggable>
                                           ))}
                                         {provided.placeholder}
                                       </div>
