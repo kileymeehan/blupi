@@ -288,6 +288,7 @@ export default function Dashboard() {
         </div>
 
         <section className="bg-white rounded-lg p-10 shadow-md border border-gray-100">
+          {/* Project section header */}
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <Folder className="h-5 w-5 text-primary" />
@@ -297,7 +298,7 @@ export default function Dashboard() {
               variant="primary-cta"
               size="sm"
               onClick={() => setCreateProjectOpen(true)}
-              className="h-8 text-sm"
+              className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm"
             >
               <Plus className="mr-1.5 h-3.5 w-3.5" />
               Create New Project
@@ -413,6 +414,7 @@ export default function Dashboard() {
         </section>
 
         <section className="bg-white rounded-lg p-10 shadow-md border border-gray-100">
+          {/* Blueprint section header */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -422,7 +424,7 @@ export default function Dashboard() {
               variant="primary-cta"
               size="sm"
               onClick={() => setCreateBlueprintOpen(true)}
-              className=""
+              className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm"
             >
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
@@ -542,7 +544,7 @@ export default function Dashboard() {
               variant="primary-cta"
               size="sm"
               onClick={() => setCreateBlueprintOpen(true)}
-              className=""
+              className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm"
             >
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint

@@ -146,7 +146,7 @@ export default function Project() {
                 <UserPlus className="mr-1.5 h-3.5 w-3.5" />
                 Invite
               </Button>
-              <Button onClick={() => setCreateBlueprintOpen(true)} variant="primary-cta" className="h-8 text-sm">
+              <Button onClick={() => setCreateBlueprintOpen(true)} variant="primary-cta" className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm">
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
                 Create New Blueprint
               </Button>
