@@ -108,6 +108,7 @@ export default function Project() {
 
   return (
     <div className="min-h-screen bg-[#F8F8F8] animate-fade-in">
+      <div>
       <PageHeader
         title={project?.name || 'Loading...'}
         description={project?.description}
@@ -137,6 +138,7 @@ export default function Project() {
           </div>
         }
       />
+      </div>
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
         <section className="bg-white rounded-lg p-10 shadow-md border border-gray-100">
