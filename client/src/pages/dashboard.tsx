@@ -294,10 +294,10 @@ export default function Dashboard() {
               <h2 className="text-xl font-semibold">Projects</h2>
             </div>
             <Button
-              variant="default"
+              variant="primary-cta"
               size="sm"
               onClick={() => setCreateProjectOpen(true)}
-              className="bg-[#302E87] hover:bg-[#A04922] h-8 text-sm"
+              className="h-8 text-sm"
             >
               <Plus className="mr-1.5 h-3.5 w-3.5" />
               Create New Project
@@ -419,10 +419,10 @@ export default function Dashboard() {
               <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
             </div>
             <Button
-              variant="default"
+              variant="primary-cta"
               size="sm"
               onClick={() => setCreateBlueprintOpen(true)}
-              className="bg-[#302E87] hover:bg-[#252170]"
+              className=""
             >
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
@@ -539,10 +539,10 @@ export default function Dashboard() {
               <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
             </div>
             <Button
-              variant="default"
+              variant="primary-cta"
               size="sm"
               onClick={() => setCreateBlueprintOpen(true)}
-              className="bg-[#302E87] hover:bg-[#A04922]"
+              className=""
             >
               <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
