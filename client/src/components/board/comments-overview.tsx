@@ -36,7 +36,7 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
   });
 
   return (
-    <div className="p-4 bg-gray-50 h-full">
+    <div className="p-4 bg-blue-50 h-full">
       <div className="flex items-center mb-4">
         <h2 className="font-semibold text-gray-700">All Comments</h2>
       </div>
