@@ -287,7 +287,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <section className="bg-white rounded-lg p-6 shadow-sm border-2 border-gray-300">
+        <section className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <Folder className="h-5 w-5 text-primary" />
@@ -320,7 +320,7 @@ export default function Dashboard() {
                         backgroundColor: project.color || "#4F46E5",
                         opacity: 1,
                         zIndex: 10,
-              
+
                       }}
                     />
                     <CardHeader>
@@ -414,7 +414,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border-2 border-gray-300">
+        <section className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -535,7 +535,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border-2 border-gray-300">
+        <section className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
