@@ -4,7 +4,7 @@
   "primary": "hsl(222.2 47.4% 11.2%)",
   "appearance": "light",
   "radius": 0.5,
-  "accent": "#F2918C",
+  "accent": "#302E87",
   "border": "hsl(214.3 31.8% 25%)",
   "mutedForeground": "hsl(215.4 16.3% 46.9%)"
 }
