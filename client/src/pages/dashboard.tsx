@@ -368,7 +368,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         asChild
-                        className="border border-gray-100 hover:bg-gray-100"
+                        className="w-full hover:bg-gray-100 h-9 text-sm"
                       >
                         <Link href={`/project/${project.id}`}>
                           View Project
@@ -503,7 +503,7 @@ export default function Dashboard() {
                         <Button
                           variant="ghost"
                           asChild
-                          className="border border-gray-100 hover:bg-gray-100"
+                          className="w-full hover:bg-gray-100 h-9 text-sm"
                         >
                           <Link href={`/board/${board.id}`}>
                             View Blueprint
@@ -604,7 +604,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         asChild
-                        className="border border-gray-100 hover:bg-gray-100"
+                        className="w-full hover:bg-gray-100 h-9 text-sm"
                       >
                         <Link href={`/board/${board.id}`}>View Blueprint</Link>
                       </Button>
