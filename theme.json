@@ -1,9 +1,10 @@
+
 {
   "variant": "professional",
   "primary": "hsl(222.2 47.4% 11.2%)",
   "appearance": "light",
   "radius": 0.5,
-  "accent": "#e27f95",
+  "accent": "#F2918C",
   "border": "hsl(214.3 31.8% 25%)",
   "mutedForeground": "hsl(215.4 16.3% 46.9%)"
 }
