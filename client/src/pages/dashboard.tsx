@@ -280,14 +280,14 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
-        <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
+        <div className="bg-white rounded-lg p-10 shadow-md border border-gray-100">
           <h1 className="text-2xl font-bold mb-1.5">Welcome back!</h1>
           <p className="text-sm text-muted-foreground">
             Manage your blueprints and projects
           </p>
         </div>
 
-        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
+        <section className="bg-white rounded-lg p-10 shadow-md border border-gray-100">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <Folder className="h-5 w-5 text-primary" />
@@ -412,7 +412,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
+        <section className="bg-white rounded-lg p-10 shadow-md border border-gray-100">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -532,7 +532,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
+        <section className="bg-white rounded-lg p-10 shadow-md border border-gray-100">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />

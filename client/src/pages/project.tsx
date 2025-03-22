@@ -138,7 +138,7 @@ export default function Project() {
         }
       />
 
-      <main className="max-w-[1440px] mx-auto px-8 py-8">
+      <main className="max-w-[1440px] mx-auto px-10 py-10">
         <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Blueprints</h2>
             <div className="flex gap-2">
