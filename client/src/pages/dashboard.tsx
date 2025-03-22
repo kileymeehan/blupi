@@ -280,14 +280,14 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-600"> {/* Modified */}
           <h1 className="text-2xl font-bold mb-1.5">Welcome back!</h1>
           <p className="text-sm text-muted-foreground">
             Manage your blueprints and projects
           </p>
         </div>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border-2 border-gray-300 mb-8"> {/* Modified */}
+        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8"> {/* Modified */}
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <Folder className="h-5 w-5 text-primary" />
@@ -312,10 +312,10 @@ export default function Dashboard() {
                 {filteredProjects.map((project) => (
                   <Card
                     key={project.id}
-                    className="relative overflow-hidden group hover:shadow-md transition-shadow flex flex-col"
+                    className="relative overflow-hidden group hover:shadow-md transition-shadow flex flex-col border border-gray-600"
                   >
                     <div
-                      className="absolute inset-y-0 left-0 w-1.5"
+                      className="absolute inset-y-0 left-0 w-1"
                       style={{
                         backgroundColor: project.color || "#4F46E5",
                         opacity: 1,
@@ -368,7 +368,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         asChild
-                        className="w-full border-2 border-gray-900 hover:bg-gray-100"
+                        className="w-full border border-gray-600 hover:bg-gray-100"
                       >
                         <Link href={`/project/${project.id}`}>
                           View Project
@@ -379,7 +379,7 @@ export default function Dashboard() {
                 ))}
 
                 {filteredProjects.length === 0 && (
-                  <Card className="border-dashed">
+                  <Card className="border-dashed border border-gray-600">
                     <CardHeader>
                       <CardTitle>
                         {showArchived
@@ -413,7 +413,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border-2 border-gray-300 mb-8"> {/* Added */}
+        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8"> {/* Modified */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -442,11 +442,11 @@ export default function Dashboard() {
                   return (
                     <Card
                       key={board.id}
-                      className="relative overflow-hidden border-l-4 hover:shadow-md transition-shadow flex flex-col"
+                      className="relative overflow-hidden border border-gray-600 hover:shadow-md transition-shadow flex flex-col"
                     >
                       {project && (
                         <div
-                          className="absolute inset-y-0 left-0 w-1.5"
+                          className="absolute inset-y-0 left-0 w-1"
                           style={{
                             backgroundColor: project.color || "#4F46E5",
                             opacity: 1,
@@ -503,7 +503,7 @@ export default function Dashboard() {
                         <Button
                           variant="ghost"
                           asChild
-                          className="w-full border-2 border-gray-900 hover:bg-gray-100"
+                          className="w-full border border-gray-600 hover:bg-gray-100"
                         >
                           <Link href={`/board/${board.id}`}>
                             View Blueprint
@@ -534,7 +534,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-8 shadow-sm border-2 border-gray-300 mb-8"> {/* Added */}
+        <section className="bg-white rounded-lg p-8 shadow-sm border border-gray-600 mb-8"> {/* Modified */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -560,7 +560,7 @@ export default function Dashboard() {
               return (
                 <Card
                   key={board.id}
-                  className="hover:shadow-md transition-shadow flex flex-col"
+                  className="hover:shadow-md transition-shadow flex flex-col border border-gray-600"
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -605,7 +605,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         asChild
-                        className="w-full border-2 border-gray-900 hover:bg-gray-100"
+                        className="w-full border border-gray-600 hover:bg-gray-100"
                       >
                         <Link href={`/board/${board.id}`}>View Blueprint</Link>
                       </Button>
@@ -630,7 +630,7 @@ export default function Dashboard() {
             })}
 
             {unassignedBoards.length === 0 && !boardsLoading && (
-              <Card className="border-dashed">
+              <Card className="border-dashed border border-gray-600">
                 <CardHeader>
                   <CardTitle>Create your first blueprint</CardTitle>
                   <CardDescription>

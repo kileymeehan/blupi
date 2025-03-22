@@ -175,7 +175,7 @@ export default function Project() {
                 <CardContent className="p-4 pt-0 flex flex-col h-full mt-auto">
                   <div className="flex-grow"></div>
                   <div className="flex flex-col gap-2">
-                    <Button variant="ghost" asChild className="w-full border-2 border-gray-900 hover:bg-gray-100 h-8 text-sm">
+                    <Button variant="ghost" asChild className="w-full border border-gray-600 hover:bg-gray-100 h-8 text-sm">
                       <Link href={`/board/${board.id}`}>View Blueprint</Link>
                     </Button>
                   </div>
