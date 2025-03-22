@@ -4,12 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.tiled-bg {
-  background-image: url('/double-bubble-outline.webp');
-  background-repeat: repeat;
-  background-size: 400px;
-}
-
 @layer base {
   * {
     @apply border-border;
