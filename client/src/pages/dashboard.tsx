@@ -238,9 +238,9 @@ export default function Dashboard() {
       </div>
     );
   }
-
+  //this changes the background colour of the page
   return (
-    <div className="min-h-screen bg-[#FFFFFF] animate-fade-in">
+    <div className="min-h-screen bg-[#000000] animate-fade-in">
       <header className="border-b bg-white shadow-sm">
         <div className="max-w-[1440px] mx-auto flex h-14 items-center px-6">
           <div className="flex-1 flex items-center gap-6">
@@ -320,7 +320,6 @@ export default function Dashboard() {
                         backgroundColor: project.color || "#4F46E5",
                         opacity: 1,
                         zIndex: 10,
-
                       }}
                     />
                     <CardHeader>
