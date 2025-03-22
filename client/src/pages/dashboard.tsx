@@ -320,6 +320,7 @@ export default function Dashboard() {
                         backgroundColor: project.color || "#4F46E5",
                         opacity: 1,
                         zIndex: 10,
+              
                       }}
                     />
                     <CardHeader>
