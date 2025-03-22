@@ -45,7 +45,7 @@ function LoadingSkeleton({ count = 3 }) {
       {Array(count)
         .fill(null)
         .map((_, i) => (
-          <Card key={i} className="relative overflow-hidden border border-gray-100">
+          <Card key={i} className="relative overflow-hidden border border-gray-500">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
