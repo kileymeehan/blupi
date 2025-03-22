@@ -488,6 +488,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
   };
 
+
   return (
     <div className="min-h-screen bg-background">
       <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
@@ -623,18 +624,6 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       <div className="flex flex-1 overflow-hidden">
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleSidebar}
-              className="absolute top-2 -right-4 w-8 h-8 rounded-full bg-white shadow-md z-50 hover:bg-gray-50"
-            >
-              {isDrawerOpen ? (
-                <ChevronLeft className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
-            </Button>
             <div className="flex flex-col flex-grow">
               <div className="border-b border-gray-200 bg-white shadow-sm">
                 <Button
@@ -644,9 +633,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group rounded-none border-none
+                    group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showContext ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
+                    ${showContext ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
                   `}
                 >
                   <Info className="w-5 h-5" />
@@ -660,9 +649,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group rounded-none border-none
+                    group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showBlocks ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
+                    ${showBlocks ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
                   `}
                 >
                   <LayoutGrid className="w-5 h-5" />
@@ -676,15 +665,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group rounded-none border-none
+                    group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showComments ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
+                    ${showComments ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
                   `}
                 >
                   <MessageSquare className="w-5 h-5" />
                   {isDrawerOpen && <span className="text-sm">All Comments</span>}
                 </Button>
-
                 <Button
                   variant="ghost"
                   size="sm"
@@ -692,9 +680,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   className={`
                     w-full h-12 px-4
                     flex items-center gap-2
-                    group rounded-none border-none
+                    group
                     ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showDepartments ? 'bg-gray-50 font-semibold' : 'hover:bg-gray-50'}
+                    ${showDepartments ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
                   `}
                 >
                   <Filter className="w-5 h-5" />
@@ -702,9 +690,22 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 </Button>
               </div>
 
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleSidebar}
+                className="absolute top-2 -right-4 w-8 h-8 rounded-full bg-white shadow-md z-50 hover:bg-gray-100"
+              >
+                {isDrawerOpen ? (
+                  <ChevronLeft className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
+              </Button>
+
               {isDrawerOpen && (
-                <div className="flex-1 flex flex-col">
-                  <div className={`flex-1 ${showContext ? 'block' : 'hidden'} bg-gray-50`}>
+                <div className="flex-1 flex flex-col bg-blue-50">
+                  <div className={`flex-1 ${showContext ? 'block' : 'hidden'}`}>
                     <div className="p-4 space-y-4">
                       <div>
                         <label className="text-sm font-medium mb-2 block">
@@ -767,7 +768,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </div>
                   </div>
 
-                  <div className={`flex-1 ${showBlocks ? 'block' : 'hidden'} bg-gray-50`}>
+                  <div className={`flex-1 ${showBlocks ? 'block' : 'hidden'}`}>
                     <Droppable droppableId="drawer">
                       {(provided) => (
                         <div
@@ -782,14 +783,18 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </Droppable>
                   </div>
 
-                  <div className={`flex-1 ${showComments ? 'block' : 'hidden'} bg-gray-50`}>
+                  <div className={`flex-1 ${showComments ? 'block' : 'hidden'}`}>
                     <CommentsOverview
                       board={board}
-                      onCommentClick={handleCommentClick}
+                      onCommentClick={(block) => {
+                        setSelectedBlock(block);
+                        setCommentDialogOpen(true);
+                        setHighlightedBlockId(block.id);
+                        setTimeout(() => setHighlightedBlockId(null), 2000);
+                      }}
                     />
                   </div>
-
-                  <div className={`flex-1 ${showDepartments ? 'block' : 'hidden'} bg-gray-50`}>
+                  <div className={`flex-1 ${showDepartments ? 'block' : 'hidden'}`}>
                     <DepartmentFilter
                       blocks={board.blocks}
                       onFilterByDepartment={setDepartmentFilter}
@@ -878,17 +883,17 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                         className={`
-                                          min-h-[100px] rounded-lg p-2
-                                          ${snapshot.isDraggingOver ? 'bg-gray-100' : 'bg-gray-50'}
+                                          space-y-4 min-h-[100px] p-4 rounded-lg border-2 border-gray-300
+                                          ${snapshot.isDraggingOver
+                                            ? 'border-primary/50 bg-primary/5'
+                                            : 'hover:border-gray-300'
+                                          }
+                                          transition-colors duration-200
                                         `}
                                       >
                                         {board.blocks
-                                          .filter(
-                                            (block) =>
-                                              block.phaseIndex === phaseIndex &&
-                                              block.columnIndex === columnIndex &&
-                                              (!departmentFilter || block.department === departmentFilter)
-                                          )
+                                          .filter(b => !departmentFilter || b.department === departmentFilter)
+                                          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
                                           .map((block, index) => (
                                             <Draggable
                                               key={block.id}
@@ -903,9 +908,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                   style={provided.draggableProps.style}
                                                   className={`
                                                     ${LAYER_TYPES.find(l => l.type === block.type)?.color}
-                                                    group relative rounded-lg p-2
+                                                    group relative rounded-lg border-2 border-gray-300 mb-2 p-2
                                                     ${snapshot.isDragging ? 'shadow-lg' : ''}
-                                                    ${highlightedBlockId === block.id ? 'ring-2 ring-primary ring-offset-2' : ''}
+                                                    ${highlightedBlockId === block.id ? 'ring-2ring-primary ring-offset-2' : ''}
                                                   `}
                                                 >
                                                   <Block
@@ -913,12 +918,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                     onChange={(content) => handleBlockChange(block.id, content)}
                                                     onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
                                                     onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                                    onEmojiChange={(emoji) => handleEmojiChange(block.id, emoji)}
-                                                    onDepartmentChange={(department, customDepartment) =>
-                                                      handleDepartmentChange(block.id, department, customDepartment)
-                                                    }
+                                                    onEmojiChange={(blockId, emoji) => handleEmojiChange(blockId, emoji)}
+                                                    onDepartmentChange={handleDepartmentChange}
                                                     onCommentClick={() => handleCommentClick(block)}
-                                                    projectId={board.projectId}
+                                                    projectId={board.projectId || undefined}
                                                   />
                                                 </div>
                                               )}

@@ -58,8 +58,8 @@ export function PageHeader({
   };
 
   return (
-    <div className="border-b bg-white shadow-sm">
-      <div className="max-w-[1440px] mx-auto  px-8 py-4">
+    <div className="border-b">
+      <div className="max-w-[1440px] mx-auto px-8 py-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" asChild className="p-2">
             <Link href={backTo}>

@@ -252,8 +252,11 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                  <UserCircle2 className="w-4 h-4" />
+                <Button
+                  variant="ghost"
+                  className="relative flex items-center gap-2 h-8"
+                >
+                  <ProfileIcon />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -365,7 +368,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         asChild
-                        className="w-full hover:bg-gray-100 h-9 text-sm"
+                        className="border border-gray-100 hover:bg-gray-100"
                       >
                         <Link href={`/project/${project.id}`}>
                           View Project
@@ -500,7 +503,7 @@ export default function Dashboard() {
                         <Button
                           variant="ghost"
                           asChild
-                          className="w-full hover:bg-gray-100 h-9 text-sm"
+                          className="border border-gray-100 hover:bg-gray-100"
                         >
                           <Link href={`/board/${board.id}`}>
                             View Blueprint
@@ -601,7 +604,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         asChild
-                        className="w-full hover:bg-gray-100 h-9 text-sm"
+                        className="border border-gray-100 hover:bg-gray-100"
                       >
                         <Link href={`/board/${board.id}`}>View Blueprint</Link>
                       </Button>

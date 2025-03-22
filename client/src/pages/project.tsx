@@ -108,7 +108,6 @@ export default function Project() {
 
   return (
     <div className="min-h-screen bg-[#F8F8F8] animate-fade-in">
-      <div>
       <PageHeader
         title={project?.name || 'Loading...'}
         description={project?.description}
@@ -138,7 +137,6 @@ export default function Project() {
           </div>
         }
       />
-      </div>
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
         <section className="bg-white rounded-lg p-10 shadow-md border border-gray-100">
@@ -158,7 +156,7 @@ export default function Project() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {boards.map((board) => (
-              <Card key={board.id} className="relative overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+              <Card key={board.id} className="relative overflow-hidden flex flex-col border border-gray-100 hover:shadow-md transition-shadow">
                 <div 
                   className="absolute inset-y-0 left-0 w-1" 
                   style={{ backgroundColor: project?.color || '#4F46E5' }} 
@@ -178,7 +176,7 @@ export default function Project() {
                 <CardContent className="p-4 pt-0 flex flex-col h-full mt-auto">
                   <div className="flex-grow"></div>
                   <div className="flex flex-col gap-2">
-                    <Button variant="ghost" asChild className="w-full hover:bg-gray-100 h-9 text-sm">
+                    <Button variant="ghost" asChild className="w-full border border-gray-100 hover:bg-gray-100 h-9 text-sm">
                       <Link href={`/board/${board.id}`}>View Blueprint</Link>
                     </Button>
                   </div>
