@@ -107,7 +107,7 @@ export default function Project() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#FFE8D6]">
       <PageHeader
         title={project?.name || 'Loading...'}
         description={project?.description}

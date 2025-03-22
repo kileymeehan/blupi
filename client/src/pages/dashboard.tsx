@@ -240,7 +240,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 animate-fade-in">
+    <div className="min-h-screen bg-[#FFE8D6] animate-fade-in">
       <header className="border-b bg-white shadow-sm">
         <div className="max-w-[1440px] mx-auto flex h-14 items-center px-6">
           <div className="flex-1 flex items-center gap-6">
