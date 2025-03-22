@@ -252,11 +252,8 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative flex items-center gap-2 h-8"
-                >
-                  <ProfileIcon />
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                  <UserCircle2 className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
