@@ -107,7 +107,7 @@ export default function Project() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF4EB]">
+    <div className="min-h-screen bg-[#F8F8F8] animate-fade-in">
       <PageHeader
         title={project?.name || 'Loading...'}
         description={project?.description}
@@ -130,7 +130,7 @@ export default function Project() {
               variant="ghost"
               size="sm"
               onClick={() => setDeleteProjectOpen(true)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -138,11 +138,12 @@ export default function Project() {
         }
       />
 
-      <main className="max-w-[1440px] mx-auto px-10 py-10">
-        <div className="flex justify-between items-center mb-4">
+      <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
+        <section className="bg-white rounded-lg p-10 shadow-md border border-gray-100">
+          <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Blueprints</h2>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setInviteOpen(true)} className="h-8 text-sm">
+              <Button variant="outline" onClick={() => setInviteOpen(true)} className="h-9 text-sm">
                 <UserPlus className="mr-1.5 h-3.5 w-3.5" />
                 Invite
               </Button>
@@ -155,7 +156,7 @@ export default function Project() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {boards.map((board) => (
-              <Card key={board.id} className="relative overflow-hidden flex flex-col">
+              <Card key={board.id} className="relative overflow-hidden flex flex-col border border-gray-100 hover:shadow-md transition-shadow">
                 <div 
                   className="absolute inset-y-0 left-0 w-1" 
                   style={{ backgroundColor: project?.color || '#4F46E5' }} 
@@ -175,7 +176,7 @@ export default function Project() {
                 <CardContent className="p-4 pt-0 flex flex-col h-full mt-auto">
                   <div className="flex-grow"></div>
                   <div className="flex flex-col gap-2">
-                    <Button variant="ghost" asChild className="w-full border border-gray-600 hover:bg-gray-100 h-8 text-sm">
+                    <Button variant="ghost" asChild className="w-full border border-gray-100 hover:bg-gray-100 h-9 text-sm">
                       <Link href={`/board/${board.id}`}>View Blueprint</Link>
                     </Button>
                   </div>
@@ -183,16 +184,16 @@ export default function Project() {
               </Card>
             ))}
           </div>
-        
 
-        {boards.length === 0 && !boardsLoading && (
-          <Card className="border-2 border-dashed border-gray-300">
-            <CardHeader>
-              <CardTitle>No blueprints yet</CardTitle>
-              <CardDescription>Create your first blueprint for this project</CardDescription>
-            </CardHeader>
-          </Card>
-        )}
+          {boards.length === 0 && !boardsLoading && (
+            <Card className="border-2 border-dashed border-gray-300">
+              <CardHeader>
+                <CardTitle>No blueprints yet</CardTitle>
+                <CardDescription>Create your first blueprint for this project</CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+        </section>
       </main>
 
       <CreateBlueprintDialog
