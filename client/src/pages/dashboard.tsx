@@ -238,9 +238,9 @@ export default function Dashboard() {
       </div>
     );
   }
-  //this changes the background colour of the page
+
   return (
-    <div className="min-h-screen bg-[#000000] animate-fade-in">
+    <div className="min-h-screen tiled-bg animate-fade-in">
       <header className="border-b bg-white shadow-sm">
         <div className="max-w-[1440px] mx-auto flex h-14 items-center px-6">
           <div className="flex-1 flex items-center gap-6">
