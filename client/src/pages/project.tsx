@@ -139,7 +139,7 @@ export default function Project() {
       />
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
-        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-200">
+        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Blueprints</h2>
             <div className="flex gap-2">
@@ -156,7 +156,7 @@ export default function Project() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {boards.map((board) => (
-              <Card key={board.id} className="relative overflow-hidden flex flex-col border border-gray-200 hover:shadow-lg transition-all duration-200">
+              <Card key={board.id} className="relative overflow-hidden flex flex-col border border-gray-300 hover:shadow-lg transition-all duration-200">
                 <div
                   className="absolute inset-y-0 left-0 w-1"
                   style={{ backgroundColor: project?.color || '#4F46E5' }}

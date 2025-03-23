@@ -280,14 +280,14 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
-        <div className="bg-white rounded-lg p-10 shadow-md border border-gray-200">
+        <div className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
           <h1 className="text-2xl font-bold mb-1.5">Welcome back!</h1>
           <p className="text-sm text-muted-foreground">
             Manage your blueprints and projects
           </p>
         </div>
 
-        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-200">
+        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
           {/* Project section header */}
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
@@ -312,7 +312,7 @@ export default function Dashboard() {
                 {filteredProjects.map((project) => (
                   <Card
                     key={project.id}
-                    className="relative overflow-hidden group hover:shadow-lg transition-all duration-200 flex flex-col border border-gray-200"
+                    className="relative overflow-hidden group hover:shadow-lg transition-all duration-200 flex flex-col border border-gray-300"
                   >
                     <div
                       className="absolute inset-y-0 left-0 w-1"
@@ -413,7 +413,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-200">
+        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
           {/* Blueprint section header */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
@@ -442,7 +442,7 @@ export default function Dashboard() {
                   return (
                     <Card
                       key={board.id}
-                      className="relative overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col border border-gray-200"
+                      className="relative overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col border border-gray-300"
                     >
                       {project && (
                         <div
@@ -534,7 +534,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-200">
+        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
@@ -559,7 +559,7 @@ export default function Dashboard() {
               return (
                 <Card
                   key={board.id}
-                  className="hover:shadow-lg transition-all duration-200 flex flex-col border border-gray-200"
+                  className="hover:shadow-lg transition-all duration-200 flex flex-col border border-gray-300"
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between">
