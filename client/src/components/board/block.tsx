@@ -46,6 +46,21 @@ const DEPARTMENTS = [
   'Custom'
 ] as const;
 
+const TYPE_COLORS = {
+  touchpoint: 'bg-sky-50',
+  email: 'bg-blue-50',
+  pendo: 'bg-violet-50',
+  role: 'bg-emerald-50',
+  process: 'bg-teal-50',
+  friction: 'bg-red-50',
+  policy: 'bg-amber-50',
+  technology: 'bg-indigo-50',
+  rationale: 'bg-orange-50',
+  question: 'bg-purple-50',
+  note: 'bg-gray-50',
+  hidden: 'bg-gray-50'
+} as const;
+
 export default function Block({
   block,
   onChange,
@@ -126,7 +141,7 @@ export default function Block({
   const attachmentCount = block.attachments?.length || 0;
 
   return (
-    <div className="w-full h-full p-2 bg-white rounded-lg border border-gray-300 group relative hover:shadow-md transition-shadow">
+    <div className={`w-full h-full p-2 rounded-lg border border-gray-300 group relative hover:shadow-md transition-shadow ${TYPE_COLORS[block.type]}`}>
       {block.emoji && (
         <div className="absolute -top-2 -right-2 z-10 text-lg cursor-default">
           {block.emoji}
