@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { Board } from "@shared/schema";
-import { Loader2 } from "lucide-react";
+import { Loader2, Info } from "lucide-react";
+import Block from "@/components/board/block";
 
 export default function PublicBoard() {
   const { id } = useParams<{ id: string }>();
@@ -58,70 +59,98 @@ export default function PublicBoard() {
         </div>
       </header>
 
-      <main className="min-w-[800px] p-8">
-        <div className="flex items-start gap-8">
-          {board.phases.map((phase, phaseIndex) => (
-            <div key={phase.id} className="flex-shrink-0 relative mr-8">
-              <div className="px-4">
-                <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="font-bold text-lg">
-                      {phase.name}
-                    </div>
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-72 bg-white border-r border-gray-300 flex-shrink-0 shadow-md min-h-[calc(100vh-4rem)] flex flex-col">
+          <div className="flex flex-col flex-grow">
+            <div className="border-b border-gray-200 bg-white shadow-sm">
+              <div className="w-full h-12 px-4 flex items-center gap-2 bg-blue-50 font-semibold">
+                <Info className="w-5 h-5" />
+                <span className="text-sm">Context</span>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col bg-blue-50">
+              <div className="p-4 space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Blueprint Details
+                  </label>
+                  <div className="min-h-[150px] bg-white rounded-lg border border-gray-300 p-3 text-sm">
+                    {board.blueprintDetails || "No details available"}
                   </div>
                 </div>
 
-                <div className="flex gap-8">
-                  {phase.columns.map((column, columnIndex) => (
-                    <div
-                      key={column.id}
-                      className="flex-shrink-0 w-[225px]"
-                    >
-                      <div className="mb-2">
-                        <div className="font-medium text-sm">
-                          {column.name}
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        {board.blocks
-                          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                          .map(block => (
-                            <div
-                              key={block.id}
-                              className="p-3 rounded-md bg-white border border-gray-200 shadow-sm relative"
-                              style={{
-                                borderLeftWidth: '4px',
-                                borderLeftColor: 
-                                  block.department === 'Design' ? '#FF8BAE' :
-                                  block.department === 'Engineering' ? '#98E2C6' :
-                                  block.department === 'Product' ? '#93C5FD' :
-                                  block.department === 'Sales' ? '#C4B5FD' :
-                                  block.department === 'Marketing' ? '#FCD34D' :
-                                  '#E5E7EB'
-                              }}
-                            >
-                              <div className="flex items-start gap-2">
-                                <div className="flex-1">
-                                  <div className="text-sm font-medium mb-1">{block.content}</div>
-                                  {block.department && (
-                                    <div className="text-xs font-medium text-gray-500">
-                                      {block.department}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block">
+                    Persona
+                  </label>
+                  {board.personaImage && (
+                    <div className="w-full h-40 bg-white rounded-lg border border-gray-300">
+                      <img
+                        src={board.personaImage}
+                        alt="Persona"
+                        className="w-full h-full object-cover rounded-lg"
+                      />
                     </div>
-                  ))}
+                  )}
+                  <div className="min-h-[100px] bg-white rounded-lg border border-gray-300 p-3 text-sm">
+                    {board.personaDetails || "No persona details available"}
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
+          </div>
         </div>
-      </main>
+
+        <div className="flex-1 overflow-x-auto">
+          <div className="min-w-[800px]">
+            <div className="p-8">
+              <div className="flex items-start gap-8">
+                {board.phases.map((phase, phaseIndex) => (
+                  <div key={phase.id} className="flex-shrink-0 relative mr-8">
+                    <div className="px-4">
+                      <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="font-bold text-lg">
+                            {phase.name}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-8">
+                        {phase.columns.map((column, columnIndex) => (
+                          <div
+                            key={column.id}
+                            className="flex-shrink-0 w-[225px]"
+                          >
+                            <div className="mb-2">
+                              <div className="font-medium text-sm">
+                                {column.name}
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              {board.blocks
+                                .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                .map(block => (
+                                  <Block
+                                    key={block.id}
+                                    block={block}
+                                    isTemplate={false}
+                                  />
+                                ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
