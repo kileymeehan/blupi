@@ -1,11 +1,10 @@
-// AttachmentDialog handles file attachments (images, links, and board references) for blocks
-// It provides a tabbed interface for different types of attachments and manages their states
+// AttachmentDialog: Manages file attachments for blocks (images, links, board references)
 import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Link as LinkIcon, Image as ImageIcon, Video, FileText, X, Plus, Loader2 } from "lucide-react";
+import { Link as LinkIcon, Image as ImageIcon, FileText, X, Plus, Loader2, Paperclip } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { Board, Attachment } from "@shared/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,13 +27,20 @@ export function AttachmentDialog({
   currentAttachments = [],
   onAttach
 }: AttachmentDialogProps) {
-  // State management for different attachment types and UI states
+  // Tab and form state
   const [selectedTab, setSelectedTab] = useState('link');
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
+
+  // Upload state
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // References
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
+
+  // UI state
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -42,51 +48,62 @@ export function AttachmentDialog({
   useEffect(() => {
     if (!open) {
       setIsUploading(false);
+      setUploadError(null);
       setUrl('');
       setTitle('');
     }
   }, [open]);
 
-  // Handles the image upload process including validation and conversion
-  const handleImageUpload = async (file: File) => {
-    console.log('Starting image upload process');
-
+  // File validation
+  const validateFile = (file: File): boolean => {
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
         description: "Please upload an image file",
         variant: "destructive"
       });
+      return false;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  // Handle image upload
+  const handleImageUpload = async (file: File) => {
+    setUploadError(null);
+
+    if (!validateFile(file)) {
       return;
     }
 
     setIsUploading(true);
 
     try {
-      // Create a promise to handle the FileReader
-      const base64Data = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
+      // Create a new FileReader instance for each upload
+      const reader = new FileReader();
 
+      const base64Data = await new Promise<string>((resolve, reject) => {
         reader.onload = () => {
-          try {
-            const result = reader.result;
-            if (typeof result === 'string') {
-              resolve(result);
-            } else {
-              reject(new Error('Failed to convert image to base64'));
-            }
-          } catch (error) {
-            reject(error);
+          if (typeof reader.result === 'string') {
+            resolve(reader.result);
+          } else {
+            reject(new Error('Failed to read file as base64'));
           }
         };
-
-        reader.onerror = () => reject(reader.error);
+        reader.onerror = () => reject(new Error('Error reading file'));
         reader.readAsDataURL(file);
       });
 
-      console.log('Image successfully converted to base64');
-
-      // Create the attachment object
+      // Create new attachment
       const newAttachment: Attachment = {
         id: nanoid(),
         type: 'image',
@@ -94,20 +111,21 @@ export function AttachmentDialog({
         title: file.name
       };
 
-      // Update attachments
+      // Update attachments and close dialog
       onAttach([...currentAttachments, newAttachment]);
-      onOpenChange(false);
 
       toast({
         title: "Success",
-        description: "Image uploaded successfully",
+        description: "Image uploaded successfully"
       });
 
+      onOpenChange(false);
     } catch (error) {
-      console.error('Image upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image';
+      setUploadError(errorMessage);
       toast({
         title: "Upload failed",
-        description: "Failed to process the image. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -115,7 +133,7 @@ export function AttachmentDialog({
     }
   };
 
-  // Handle drag and drop functionality
+  // Handle drag and drop
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
@@ -138,7 +156,7 @@ export function AttachmentDialog({
     }
   };
 
-  // Handle file selection from input
+  // Handle file input change
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -147,14 +165,16 @@ export function AttachmentDialog({
   };
 
   // Handle link attachment
-  const handleAddAttachment = () => {
+  const handleAddLink = () => {
     if (!url) return;
+
     const newAttachment: Attachment = {
       id: nanoid(),
-      type: selectedTab as 'link' | 'image' | 'video',
+      type: 'link',
       url,
       title: title || url
     };
+
     onAttach([...currentAttachments, newAttachment]);
     setUrl('');
     setTitle('');
@@ -165,7 +185,7 @@ export function AttachmentDialog({
     onAttach(currentAttachments.filter(a => a.id !== id));
   };
 
-  // Fetch project boards for board linking
+  // Fetch project boards for linking
   const { data: projectBoards } = useQuery<Board[]>({
     queryKey: ['/api/projects', projectId, 'boards'],
     queryFn: async () => {
@@ -185,7 +205,6 @@ export function AttachmentDialog({
             <DialogTitle>Attachments</DialogTitle>
           </DialogHeader>
 
-          {/* Attachment type tabs */}
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mt-4">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="link">
@@ -218,7 +237,7 @@ export function AttachmentDialog({
               </div>
               <Button
                 className="w-full"
-                onClick={handleAddAttachment}
+                onClick={handleAddLink}
                 disabled={!url}
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -234,9 +253,10 @@ export function AttachmentDialog({
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 className={`
-                  border-2 border-dashed border-gray-300 rounded-lg p-6 
-                  text-center hover:border-primary transition-colors
-                  ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+                  border-2 border-dashed rounded-lg p-6 
+                  text-center transition-all duration-200
+                  ${isUploading ? 'border-gray-300 bg-gray-50 cursor-not-allowed' : 'border-gray-300 hover:border-primary'}
+                  ${uploadError ? 'border-red-300' : ''}
                 `}
               >
                 {isUploading ? (
@@ -259,6 +279,9 @@ export function AttachmentDialog({
                         browse
                       </button>
                     </p>
+                    {uploadError && (
+                      <p className="mt-2 text-sm text-red-500">{uploadError}</p>
+                    )}
                   </>
                 )}
                 <input
