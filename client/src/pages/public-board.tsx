@@ -135,7 +135,10 @@ export default function PublicBoard() {
                                 .map(block => (
                                   <Block
                                     key={block.id}
-                                    block={block}
+                                    block={{
+                                      ...block,
+                                      readOnly: true
+                                    }}
                                     isTemplate={false}
                                   />
                                 ))}

@@ -156,7 +156,7 @@ export default function Block({
 
       <div
         ref={contentRef}
-        contentEditable={!isTemplate}
+        contentEditable={!isTemplate && !block.readOnly}
         onInput={handleInput}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
@@ -168,14 +168,15 @@ export default function Block({
           focus:outline-none
           focus:bg-white/50
           transition-colors duration-200
+          ${block.readOnly ? 'cursor-default' : ''}
         `}
         style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
-        {isTemplate ? TYPE_LABELS[block.type] : localContent}
+        {isTemplate ? TYPE_LABELS[block.type] : block.content}
       </div>
 
-      {!isTemplate && (
+      {!isTemplate && !block.readOnly && (
         <div className={`
           absolute bottom-0 inset-x-0 px-2 py-1
           text-xs text-gray-500
@@ -187,7 +188,7 @@ export default function Block({
         </div>
       )}
 
-      {!isTemplate && (
+      {!isTemplate && !block.readOnly && (
         <div className="absolute top-1 right-1 flex gap-1">
           <button
             onClick={(e) => {
@@ -207,7 +208,6 @@ export default function Block({
             <MessageSquare className="w-4 h-4" />
             <span>{commentCount}</span>
           </button>
-
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -226,7 +226,6 @@ export default function Block({
             <Paperclip className="w-4 h-4" />
             {attachmentCount > 0 && <span>{attachmentCount}</span>}
           </button>
-
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -244,7 +243,6 @@ export default function Block({
           >
             <StickyNote className="w-4 h-4" />
           </button>
-
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -261,7 +259,6 @@ export default function Block({
           >
             <Tag className="w-4 h-4" />
           </button>
-
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -287,94 +284,94 @@ export default function Block({
         </div>
       )}
 
-      <AttachmentDialog
-        open={attachmentDialogOpen}
-        onOpenChange={setAttachmentDialogOpen}
-        projectId={projectId}
-        currentAttachments={block.attachments}
-        onAttach={(attachments) => onAttachmentChange?.(block.id, attachments)}
-      />
-
-      <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Notes</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <Textarea
-              placeholder="Add notes about this block..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[200px]"
-            />
-            <Button onClick={handleNotesChange} className="w-full">
-              Save Notes
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={departmentDialogOpen} onOpenChange={setDepartmentDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Select Department</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              {DEPARTMENTS.map((dept) => (
-                <Button
-                  key={dept}
-                  variant={block.department === dept ? "default" : "outline"}
-                  onClick={() => handleDepartmentChange(dept as Department)}
-                  className="w-full"
-                >
-                  {dept}
-                </Button>
-              ))}
-              <Button
-                variant="outline"
-                onClick={() => handleDepartmentChange(undefined)}
-                className="w-full col-span-2 text-red-600 hover:text-red-700"
-              >
-                Clear Department
-              </Button>
-            </div>
-
-            {block.department === 'Custom' && (
-              <div className="space-y-2">
+      {!block.readOnly && (
+        <>
+          <AttachmentDialog
+            open={attachmentDialogOpen}
+            onOpenChange={setAttachmentDialogOpen}
+            projectId={projectId}
+            currentAttachments={block.attachments}
+            onAttach={(attachments) => onAttachmentChange?.(block.id, attachments)}
+          />
+          <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Notes</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
                 <Textarea
-                  placeholder="Enter custom department name..."
-                  value={customDepartment}
-                  onChange={(e) => setCustomDepartment(e.target.value)}
-                  className="min-h-[80px]"
+                  placeholder="Add notes about this block..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="min-h-[200px]"
                 />
-                <Button
-                  onClick={handleCustomDepartmentSave}
-                  className="w-full"
-                  disabled={!customDepartment}
-                >
-                  Save Custom Department
+                <Button onClick={handleNotesChange} className="w-full">
+                  Save Notes
                 </Button>
               </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Emoji</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <Picker
-              data={data}
-              onEmojiSelect={handleEmojiSelect}
-              theme="light"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={departmentDialogOpen} onOpenChange={setDepartmentDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Select Department</DialogTitle>
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                <div className="grid grid-cols-2 gap-2">
+                  {DEPARTMENTS.map((dept) => (
+                    <Button
+                      key={dept}
+                      variant={block.department === dept ? "default" : "outline"}
+                      onClick={() => handleDepartmentChange(dept as Department)}
+                      className="w-full"
+                    >
+                      {dept}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDepartmentChange(undefined)}
+                    className="w-full col-span-2 text-red-600 hover:text-red-700"
+                  >
+                    Clear Department
+                  </Button>
+                </div>
+                {block.department === 'Custom' && (
+                  <div className="space-y-2">
+                    <Textarea
+                      placeholder="Enter custom department name..."
+                      value={customDepartment}
+                      onChange={(e) => setCustomDepartment(e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                    <Button
+                      onClick={handleCustomDepartmentSave}
+                      className="w-full"
+                      disabled={!customDepartment}
+                    >
+                      Save Custom Department
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Emoji</DialogTitle>
+              </DialogHeader>
+              <div className="py-4">
+                <Picker
+                  data={data}
+                  onEmojiSelect={handleEmojiSelect}
+                  theme="light"
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 }
