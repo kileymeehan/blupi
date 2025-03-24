@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
-import { Card } from "@/components/ui/card";
-import { Info } from "lucide-react";
 import { Board } from "@shared/schema";
 
 export default function PublicBoard() {
@@ -45,97 +43,74 @@ export default function PublicBoard() {
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
       <header className="border-b bg-white shadow-sm">
-        <div className="max-w-[1440px] mx-auto flex h-24 items-center px-6">
-          <div className="flex-1 flex items-center gap-6">
-            <div className="flex items-center">
-              <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7" />
-            </div>
+        <div className="max-w-[1440px] mx-auto flex h-16 items-center px-6">
+          <div className="flex items-center">
+            <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7" />
           </div>
-          <div className="text-center">
-            <h1 className="text-xl font-semibold">{board.name}</h1>
-            <p className="text-sm text-muted-foreground mt-1">(Read-only view)</p>
+          <div className="ml-4">
+            <span className="text-xl font-semibold">{board.name}</span>
+            <span className="text-sm text-muted-foreground ml-2">(Read-only view)</span>
           </div>
-          <div className="flex-1"></div>
         </div>
       </header>
 
-      <div className="flex">
-        <div className="w-72 bg-white border-r border-gray-300 shadow-md h-[calc(100vh-6rem)]">
-          <div className="p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Info className="w-5 h-5" />
-              <span className="text-sm font-semibold">Context</span>
-            </div>
-
-            <div className="space-y-4">
-              <Card className="p-4 border border-gray-300">
-                <h3 className="text-sm font-medium mb-2">Blueprint Details</h3>
-                <p className="text-sm text-muted-foreground">
-                  {board.description || "No description available"}
-                </p>
-              </Card>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-1 p-8 overflow-auto">
-          <div className="grid gap-8">
-            {board.phases.map((phase, phaseIndex) => (
-              <div key={phase.id} className="space-y-4">
-                <h2 className="text-xl font-semibold text-gray-900">{phase.name}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {phase.columns.map((column, columnIndex) => (
-                    <Card key={column.id} className="p-4 border border-gray-300 shadow-md hover:shadow-lg transition-all duration-200">
-                      <h3 className="text-base font-medium mb-4 pb-2 border-b">{column.name}</h3>
-                      {column.image && (
-                        <img 
-                          src={column.image} 
-                          alt={column.name}
-                          className="w-full h-32 object-cover rounded-md mb-4"
-                        />
-                      )}
-                      <div className="space-y-3">
-                        {board.blocks
-                          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                          .map(block => (
-                            <div
-                              key={block.id}
-                              className={`p-3 rounded-md bg-white border border-gray-200 shadow-sm`}
-                              style={{
-                                borderLeftWidth: '4px',
-                                borderLeftColor: 
-                                  block.department === 'Design' ? '#FF8BAE' :
-                                  block.department === 'Engineering' ? '#98E2C6' :
-                                  block.department === 'Product' ? '#93C5FD' :
-                                  block.department === 'Sales' ? '#C4B5FD' :
-                                  block.department === 'Marketing' ? '#FCD34D' :
-                                  '#E5E7EB'
-                              }}
-                            >
-                              <div className="flex items-start gap-2">
-                                <div className="flex-1">
-                                  <div className="text-sm font-medium">{block.content}</div>
-                                  {block.notes && (
-                                    <div className="mt-1 text-sm text-gray-600">{block.notes}</div>
-                                  )}
-                                  {block.department && (
-                                    <div className="mt-2 text-xs font-medium text-gray-500">
-                                      {block.department}
-                                    </div>
-                                  )}
-                                </div>
+      <main className="max-w-[1440px] mx-auto px-6 py-6 overflow-x-auto">
+        <div className="flex gap-8 min-w-max pb-6">
+          {board.phases.map((phase, phaseIndex) => (
+            <div key={phase.id} className="w-[400px]">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">{phase.name}</h2>
+              <div className="space-y-4">
+                {phase.columns.map((column, columnIndex) => (
+                  <div key={column.id} className="bg-white rounded-lg p-4 border border-gray-300 shadow-md">
+                    <h3 className="text-base font-medium mb-4 pb-2 border-b">{column.name}</h3>
+                    {column.image && (
+                      <img 
+                        src={column.image} 
+                        alt={column.name}
+                        className="w-full h-32 object-cover rounded-md mb-4"
+                      />
+                    )}
+                    <div className="space-y-3">
+                      {board.blocks
+                        .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                        .map(block => (
+                          <div
+                            key={block.id}
+                            className="p-3 rounded-md bg-white border border-gray-200 shadow-sm"
+                            style={{
+                              borderLeftWidth: '4px',
+                              borderLeftColor: 
+                                block.department === 'Design' ? '#FF8BAE' :
+                                block.department === 'Engineering' ? '#98E2C6' :
+                                block.department === 'Product' ? '#93C5FD' :
+                                block.department === 'Sales' ? '#C4B5FD' :
+                                block.department === 'Marketing' ? '#FCD34D' :
+                                '#E5E7EB'
+                            }}
+                          >
+                            <div className="flex items-start gap-2">
+                              <div className="flex-1">
+                                <div className="text-sm font-medium">{block.content}</div>
+                                {block.notes && (
+                                  <div className="mt-1 text-sm text-gray-600">{block.notes}</div>
+                                )}
+                                {block.department && (
+                                  <div className="mt-2 text-xs font-medium text-gray-500">
+                                    {block.department}
+                                  </div>
+                                )}
                               </div>
                             </div>
-                          ))}
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
