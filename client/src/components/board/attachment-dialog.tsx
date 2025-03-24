@@ -3,12 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Link as LinkIcon, Image as ImageIcon, Video, FileText, X, Plus } from "lucide-react";
+import { Link as LinkIcon, Image as ImageIcon, Video, FileText, X, Plus, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { Board, Attachment } from "@shared/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { nanoid } from "nanoid";
+import { useToast } from "@/hooks/use-toast";
 
 interface AttachmentDialogProps {
   open: boolean;
@@ -18,39 +19,37 @@ interface AttachmentDialogProps {
   onAttach: (attachments: Attachment[]) => void;
 }
 
-export function AttachmentDialog({ 
-  open, 
-  onOpenChange, 
+export function AttachmentDialog({
+  open,
+  onOpenChange,
   projectId,
   currentAttachments = [],
-  onAttach 
+  onAttach
 }: AttachmentDialogProps) {
   const [selectedTab, setSelectedTab] = useState('link');
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  // Query project boards if we have a project ID
-  const { data: projectBoards } = useQuery<Board[]>({
-    queryKey: ['/api/projects', projectId, 'boards'],
-    queryFn: async () => {
-      if (!projectId) return [];
-      const res = await fetch(`/api/projects/${projectId}/boards`);
-      if (!res.ok) throw new Error('Failed to fetch project boards');
-      return res.json();
-    },
-    enabled: !!projectId
-  });
+  const handleImageUpload = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive"
+      });
+      return;
+    }
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
+    setIsUploading(true);
+    const reader = new FileReader();
 
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
+    reader.onloadend = () => {
+      try {
         const newAttachment: Attachment = {
           id: nanoid(),
           type: 'image',
@@ -59,8 +58,34 @@ export function AttachmentDialog({
         };
         onAttach([...currentAttachments, newAttachment]);
         onOpenChange(false);
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+        toast({
+          title: "Upload failed",
+          description: "Failed to process the image. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsUploading(false);
+      }
+    };
+
+    reader.onerror = () => {
+      toast({
+        title: "Upload failed",
+        description: "Failed to read the image file. Please try again.",
+        variant: "destructive"
+      });
+      setIsUploading(false);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleImageUpload(file);
     }
   };
 
@@ -80,19 +105,8 @@ export function AttachmentDialog({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newAttachment: Attachment = {
-          id: nanoid(),
-          type: 'image',
-          url: reader.result as string,
-          title: file.name
-        };
-        onAttach([...currentAttachments, newAttachment]);
-        onOpenChange(false);
-      };
-      reader.readAsDataURL(file);
+    if (file) {
+      handleImageUpload(file);
     }
   };
 
@@ -112,6 +126,17 @@ export function AttachmentDialog({
   const handleRemoveAttachment = (id: string) => {
     onAttach(currentAttachments.filter(a => a.id !== id));
   };
+
+  const { data: projectBoards } = useQuery<Board[]>({
+    queryKey: ['/api/projects', projectId, 'boards'],
+    queryFn: async () => {
+      if (!projectId) return [];
+      const res = await fetch(`/api/projects/${projectId}/boards`);
+      if (!res.ok) throw new Error('Failed to fetch project boards');
+      return res.json();
+    },
+    enabled: !!projectId
+  });
 
   return (
     <>
@@ -150,7 +175,7 @@ export function AttachmentDialog({
                   onChange={(e) => setTitle(e.target.value)}
                 />
               </div>
-              <Button 
+              <Button
                 className="w-full"
                 onClick={handleAddAttachment}
               >
@@ -165,24 +190,41 @@ export function AttachmentDialog({
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors"
+                className={`
+                  border-2 border-dashed border-gray-300 rounded-lg p-6 
+                  text-center hover:border-primary transition-colors
+                  ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
               >
-                <ImageIcon className="w-8 h-8 mx-auto text-gray-400" />
-                <p className="mt-2 text-sm text-gray-600">
-                  Drag and drop an image here, or{" "}
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-primary hover:underline"
-                  >
-                    browse
-                  </button>
-                </p>
+                {isUploading ? (
+                  <div className="flex flex-col items-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <p className="mt-2 text-sm text-gray-600">
+                      Uploading image...
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <ImageIcon className="w-8 h-8 mx-auto text-gray-400" />
+                    <p className="mt-2 text-sm text-gray-600">
+                      Drag and drop an image here, or{" "}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-primary hover:underline"
+                        disabled={isUploading}
+                      >
+                        browse
+                      </button>
+                    </p>
+                  </>
+                )}
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   className="hidden"
                   onChange={handleFileSelect}
+                  disabled={isUploading}
                 />
               </div>
             </TabsContent>
@@ -190,7 +232,7 @@ export function AttachmentDialog({
             <TabsContent value="board" className="space-y-4">
               <ScrollArea className="h-[200px] rounded-md border p-2">
                 {projectBoards?.map(board => (
-                  <Card 
+                  <Card
                     key={board.id}
                     className="mb-2 cursor-pointer hover:bg-gray-50"
                     onClick={() => {
@@ -235,9 +277,9 @@ export function AttachmentDialog({
                           onClick={() => setExpandedImage(attachment.url)}
                           className="w-8 h-8 rounded overflow-hidden"
                         >
-                          <img 
-                            src={attachment.url} 
-                            alt={attachment.title || 'Attachment'} 
+                          <img
+                            src={attachment.url}
+                            alt={attachment.title || 'Attachment'}
                             className="w-full h-full object-cover"
                           />
                         </button>
@@ -263,13 +305,12 @@ export function AttachmentDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Image expansion dialog */}
       {expandedImage && (
         <Dialog open={!!expandedImage} onOpenChange={() => setExpandedImage(null)}>
           <DialogContent className="sm:max-w-[80vw] sm:max-h-[80vh]">
-            <img 
-              src={expandedImage} 
-              alt="Expanded attachment" 
+            <img
+              src={expandedImage}
+              alt="Expanded attachment"
               className="w-full h-full object-contain"
             />
           </DialogContent>

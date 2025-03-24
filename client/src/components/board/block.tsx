@@ -35,7 +35,7 @@ interface BlockProps {
 
 const TYPE_LABELS = {
   touchpoint: "Touchpoint",
-  email: "Email Touchpoint",
+  email: "Email",
   pendo: "Modal",
   role: "Role",
   process: "Process",
@@ -153,7 +153,7 @@ export default function Block({
       )}
 
       {block.department && (
-        <div className="absolute bottom-5 left-3 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
+        <div className="absolute bottom-1 left-1 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
           {block.customDepartment || block.department}
         </div>
       )}
@@ -166,13 +166,13 @@ export default function Block({
         onKeyDown={handleKeyDown}
         className={`
           w-full min-h-[100px] p-4
-          ${block.emoji ? 'pr-8' : ''} 
-          ${block.department ? 'pb-12' : ''}
-          ${isTemplate ? 'flex items-center justify-center' : ''}
+          ${block.emoji ? "pr-8" : ""} 
+          ${block.department ? "pb-12" : ""}
+          ${isTemplate ? "flex items-center justify-center" : ""}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal text
           focus:outline-none
-          ${block.readOnly ? 'cursor-default' : ''}
+          ${block.readOnly ? "cursor-default" : ""}
         `}
         suppressContentEditableWarning={true}
       >
@@ -188,16 +188,18 @@ export default function Block({
                 onCommentClick?.();
               }}
               className={`
-                flex items-center justify-center w-6 h-6 p-0
+                flex items-center justify-center w-8 h-6 p-0
                 rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
-                ${commentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
+                ${commentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ""}
                 transition-all duration-150
               `}
             >
               <MessageSquare className="w-4 h-4" />
-              {commentCount > 0 && <span className="text-[10px] ml-0.5">{commentCount}</span>}
+              {commentCount > 0 && (
+                <span className="text-[10px] ml-0.5">{commentCount}</span>
+              )}
             </button>
 
             <button
@@ -210,12 +212,14 @@ export default function Block({
                 rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
-                ${attachmentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
+                ${attachmentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ""}
                 transition-all duration-150
               `}
             >
               <Paperclip className="w-4 h-4" />
-              {attachmentCount > 0 && <span className="text-[10px] ml-0.5">{attachmentCount}</span>}
+              {attachmentCount > 0 && (
+                <span className="text-[10px] ml-0.5">{attachmentCount}</span>
+              )}
             </button>
 
             <button
@@ -228,7 +232,7 @@ export default function Block({
                 rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
-                ${block.notes ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
+                ${block.notes ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' : ""}
                 transition-all duration-150
               `}
             >
@@ -255,7 +259,7 @@ export default function Block({
               onClick={(e) => {
                 e.stopPropagation();
                 if (block.emoji) {
-                  onEmojiChange?.(block.id, '');
+                  onEmojiChange?.(block.id, "");
                 } else {
                   setEmojiPickerOpen(true);
                 }
@@ -265,7 +269,7 @@ export default function Block({
                 rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
-                ${block.emoji ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
+                ${block.emoji ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' : ""}
                 transition-all duration-150
               `}
               title={block.emoji ? "Remove emoji" : "Add emoji"}
@@ -275,12 +279,14 @@ export default function Block({
           </div>
 
           {/* Block type label */}
-          <div className={`
+          <div
+            className={`
             absolute bottom-1 right-2
-            text-xs text-gray-500
+            text-xs text-gray-700
             opacity-0 group-hover:opacity-60
             transition-opacity duration-200
-          `}>
+          `}
+          >
             {TYPE_LABELS[block.type]}
           </div>
 
@@ -289,7 +295,9 @@ export default function Block({
             onOpenChange={setAttachmentDialogOpen}
             projectId={projectId}
             currentAttachments={block.attachments}
-            onAttach={(attachments) => onAttachmentChange?.(block.id, attachments)}
+            onAttach={(attachments) =>
+              onAttachmentChange?.(block.id, attachments)
+            }
           />
 
           <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
@@ -311,7 +319,10 @@ export default function Block({
             </DialogContent>
           </Dialog>
 
-          <Dialog open={departmentDialogOpen} onOpenChange={setDepartmentDialogOpen}>
+          <Dialog
+            open={departmentDialogOpen}
+            onOpenChange={setDepartmentDialogOpen}
+          >
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Select Department</DialogTitle>
@@ -321,7 +332,9 @@ export default function Block({
                   {DEPARTMENTS.map((dept) => (
                     <Button
                       key={dept}
-                      variant={block.department === dept ? 'default' : 'outline'}
+                      variant={
+                        block.department === dept ? "default" : "outline"
+                      }
                       onClick={() => handleDepartmentChange(dept as Department)}
                       className="w-full"
                     >
@@ -337,7 +350,7 @@ export default function Block({
                   </Button>
                 </div>
 
-                {block.department === 'Custom' && (
+                {block.department === "Custom" && (
                   <div className="space-y-2">
                     <Textarea
                       placeholder="Enter custom department name..."

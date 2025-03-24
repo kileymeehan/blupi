@@ -1,51 +1,101 @@
-import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Home, LayoutGrid, UserCircle2, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, FolderPlus, Info, Upload, Folder, User, FileDown, MessageSquare, Filter } from "lucide-react";
+import {
+  Plus,
+  GripVertical,
+  Home,
+  LayoutGrid,
+  UserCircle2,
+  ArrowUpFromLine,
+  Pencil,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  FolderPlus,
+  Info,
+  Upload,
+  Folder,
+  User,
+  FileDown,
+  MessageSquare,
+  Filter,
+} from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
 import { CommentDialog } from "./comment-dialog";
-import type { Board, Block as BlockType, Phase, Department } from "@shared/schema";
+import type {
+  Board,
+  Block as BlockType,
+  Phase,
+  Department,
+} from "@shared/schema";
 import { nanoid } from "nanoid";
-import ImageUpload from './image-upload';
+import ImageUpload from "./image-upload";
 import { CommentsOverview } from "./comments-overview";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import AddToProjectDialog from "./add-to-project-dialog";
 import { UsersPresence } from "./users-presence";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { UserPlus, Link as LinkIcon } from "lucide-react";
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import { LAYER_TYPES } from "./constants";
 import { DepartmentFilter } from "./department-filter";
 
 interface Attachment {
-  type: 'link' | 'image' | 'video';
+  type: "link" | "image" | "video";
   url: string;
 }
-
 
 interface BoardGridProps {
   id: string;
   onBlocksChange: (blocks: BlockType[]) => void;
   onPhasesChange: (phases: Phase[]) => void;
   onBoardChange: (board: Board) => void;
-  connectedUsers: Array<{ id: string; name: string; color: string; }>;
+  connectedUsers: Array<{ id: string; name: string; color: string }>;
 }
 
-export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardChange, connectedUsers }: BoardGridProps) {
+export default function BoardGrid({
+  id,
+  onBlocksChange,
+  onPhasesChange,
+  onBoardChange,
+  connectedUsers,
+}: BoardGridProps) {
   const [_, setLocation] = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -53,7 +103,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showBlocks, setShowBlocks] = useState(true);
-  const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
+  const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(
+    null,
+  );
   const [addToProjectOpen, setAddToProjectOpen] = useState(false);
   const [showContext, setShowContext] = useState(false);
   const [blueprintDetails, setBlueprintDetails] = useState("");
@@ -65,23 +117,34 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const boardRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [showDepartments, setShowDepartments] = useState(false);
-  const [departmentFilter, setDepartmentFilter] = useState<Department | undefined>(undefined);
+  const [departmentFilter, setDepartmentFilter] = useState<
+    Department | undefined
+  >(undefined);
 
-  const { data: board, isLoading: boardLoading, error } = useQuery({
-    queryKey: ['/api/boards', id],
+  const {
+    data: board,
+    isLoading: boardLoading,
+    error,
+  } = useQuery({
+    queryKey: ["/api/boards", id],
     queryFn: async () => {
       const res = await fetch(`/api/boards/${id}`);
       if (!res.ok) {
         if (res.status === 429) {
-          throw new Error("Too many requests. Please wait a moment before trying again.");
+          throw new Error(
+            "Too many requests. Please wait a moment before trying again.",
+          );
         }
-        throw new Error('Failed to fetch board');
+        throw new Error("Failed to fetch board");
       }
       return res.json();
     },
     refetchInterval: 5000,
     retry: (failureCount, error) => {
-      if (error instanceof Error && error.message.includes("Too many requests")) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Too many requests")
+      ) {
         return false;
       }
       return failureCount < 3;
@@ -90,11 +153,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   });
 
   const { data: project } = useQuery({
-    queryKey: ['/api/projects', board?.projectId],
+    queryKey: ["/api/projects", board?.projectId],
     queryFn: async () => {
       if (!board?.projectId) return null;
       const res = await fetch(`/api/projects/${board.projectId}`);
-      if (!res.ok) throw new Error('Failed to fetch project');
+      if (!res.ok) throw new Error("Failed to fetch project");
       return res.json();
     },
     enabled: !!board?.projectId,
@@ -113,7 +176,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="text-lg text-red-600 mb-2">{error.message}</div>
-          <div className="text-sm text-gray-600">Please wait a moment and try again</div>
+          <div className="text-sm text-gray-600">
+            Please wait a moment and try again
+          </div>
         </div>
       </div>
     );
@@ -124,9 +189,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
     const { source, destination, type } = result;
 
-    if (type === 'COLUMN') {
-      const sourcePhaseIndex = Number(source.droppableId.split('-')[1]);
-      const destPhaseIndex = Number(destination.droppableId.split('-')[1]);
+    if (type === "COLUMN") {
+      const sourcePhaseIndex = Number(source.droppableId.split("-")[1]);
+      const destPhaseIndex = Number(destination.droppableId.split("-")[1]);
 
       const newPhases = Array.from(board.phases);
       const sourcePhase = newPhases[sourcePhaseIndex];
@@ -136,15 +201,24 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       destPhase.columns.splice(destination.index, 0, movedColumn);
 
       const blocks = Array.from(board.blocks);
-      blocks.forEach(block => {
-        if (block.phaseIndex === sourcePhaseIndex && block.columnIndex === source.index) {
+      blocks.forEach((block) => {
+        if (
+          block.phaseIndex === sourcePhaseIndex &&
+          block.columnIndex === source.index
+        ) {
           block.phaseIndex = destPhaseIndex;
           block.columnIndex = destination.index;
         } else {
-          if (block.phaseIndex === sourcePhaseIndex && block.columnIndex > source.index) {
+          if (
+            block.phaseIndex === sourcePhaseIndex &&
+            block.columnIndex > source.index
+          ) {
             block.columnIndex--;
           }
-          if (block.phaseIndex === destPhaseIndex && block.columnIndex >= destination.index) {
+          if (
+            block.phaseIndex === destPhaseIndex &&
+            block.columnIndex >= destination.index
+          ) {
             block.columnIndex++;
           }
         }
@@ -155,25 +229,27 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       return;
     }
 
-    if (!type || type === 'DEFAULT') {
+    if (!type || type === "DEFAULT") {
       let blocks = Array.from(board.blocks);
 
       // Handle dropping block in drawer (delete)
-      if (destination.droppableId === 'drawer') {
-        blocks = blocks.filter(b => b.id !== result.draggableId);
+      if (destination.droppableId === "drawer") {
+        blocks = blocks.filter((b) => b.id !== result.draggableId);
         onBlocksChange(blocks);
         return;
       }
 
       // Handle dragging from drawer (create new)
-      if (source.droppableId === 'drawer') {
-        const blockType = result.draggableId.replace('drawer-', '');
-        const [phaseIndex, columnIndex] = destination.droppableId.split('-').map(Number);
+      if (source.droppableId === "drawer") {
+        const blockType = result.draggableId.replace("drawer-", "");
+        const [phaseIndex, columnIndex] = destination.droppableId
+          .split("-")
+          .map(Number);
 
         const newBlock: BlockType = {
           id: nanoid(),
-          type: blockType as BlockType['type'],
-          content: '',
+          type: blockType as BlockType["type"],
+          content: "",
           phaseIndex,
           columnIndex,
           comments: [],
@@ -181,18 +257,26 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           notes: "",
           emoji: "",
           department: undefined,
-          customDepartment: ""
+          customDepartment: "",
         };
 
         // Get blocks in destination column to determine insertion point
         const blocksInDestColumn = blocks
-          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+          .filter(
+            (b) => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex,
+          )
           .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
 
         // Find the correct insertion index
-        const insertIndex = destination.index === 0 ?
-          blocks.findIndex(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex) :
-          blocks.findIndex(b => b === blocksInDestColumn[destination.index - 1]) + 1;
+        const insertIndex =
+          destination.index === 0
+            ? blocks.findIndex(
+                (b) =>
+                  b.phaseIndex === phaseIndex && b.columnIndex === columnIndex,
+              )
+            : blocks.findIndex(
+                (b) => b === blocksInDestColumn[destination.index - 1],
+              ) + 1;
 
         if (insertIndex === -1) {
           blocks.push(newBlock);
@@ -205,12 +289,18 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       }
 
       // Handle moving existing block
-      const [sourcePhase, sourceColumn] = source.droppableId.split('-').map(Number);
-      const [destPhase, destColumn] = destination.droppableId.split('-').map(Number);
+      const [sourcePhase, sourceColumn] = source.droppableId
+        .split("-")
+        .map(Number);
+      const [destPhase, destColumn] = destination.droppableId
+        .split("-")
+        .map(Number);
 
       // Get ordered blocks in both columns
       const blocksInSourceColumn = blocks
-        .filter(b => b.phaseIndex === sourcePhase && b.columnIndex === sourceColumn)
+        .filter(
+          (b) => b.phaseIndex === sourcePhase && b.columnIndex === sourceColumn,
+        )
         .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
 
       // Find the block being moved
@@ -218,22 +308,30 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       if (!blockToMove || blockToMove.id !== result.draggableId) return;
 
       // Remove the block from its current position
-      blocks = blocks.filter(b => b.id !== blockToMove.id);
+      blocks = blocks.filter((b) => b.id !== blockToMove.id);
 
       // Special handling for same column moves
       if (sourcePhase === destPhase && sourceColumn === destColumn) {
         const sameColumnBlocks = blocks
-          .filter(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
+          .filter(
+            (b) => b.phaseIndex === destPhase && b.columnIndex === destColumn,
+          )
           .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
 
-        const insertAt = destination.index === 0 ? 0 :
-          blocks.findIndex(b => b === sameColumnBlocks[destination.index - 1]) + 1;
+        const insertAt =
+          destination.index === 0
+            ? 0
+            : blocks.findIndex(
+                (b) => b === sameColumnBlocks[destination.index - 1],
+              ) + 1;
 
         blocks.splice(insertAt >= 0 ? insertAt : blocks.length, 0, blockToMove);
       } else {
         // Moving to a different column
         const destColumnBlocks = blocks
-          .filter(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
+          .filter(
+            (b) => b.phaseIndex === destPhase && b.columnIndex === destColumn,
+          )
           .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
 
         // Update block's phase and column
@@ -241,9 +339,15 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
         blockToMove.columnIndex = destColumn;
 
         // Find insertion point
-        const insertAt = destination.index === 0 ?
-          blocks.findIndex(b => b.phaseIndex === destPhase && b.columnIndex === destColumn) :
-          blocks.findIndex(b => b === destColumnBlocks[destination.index - 1]) + 1;
+        const insertAt =
+          destination.index === 0
+            ? blocks.findIndex(
+                (b) =>
+                  b.phaseIndex === destPhase && b.columnIndex === destColumn,
+              )
+            : blocks.findIndex(
+                (b) => b === destColumnBlocks[destination.index - 1],
+              ) + 1;
 
         blocks.splice(insertAt >= 0 ? insertAt : blocks.length, 0, blockToMove);
       }
@@ -253,48 +357,55 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   };
 
   const handleBlockChange = (blockId: string, content: string) => {
-    const blocks = board.blocks.map(block =>
-      block.id === blockId ? { ...block, content: content } : block
+    const blocks = board.blocks.map((block) =>
+      block.id === blockId ? { ...block, content: content } : block,
     );
     onBlocksChange(blocks);
   };
 
-  const handleAttachmentChange = (blockId: string, attachments: Attachment[]) => {
-    const blocks = board.blocks.map(block =>
-      block.id === blockId ? { ...block, attachments } : block
+  const handleAttachmentChange = (
+    blockId: string,
+    attachments: Attachment[],
+  ) => {
+    const blocks = board.blocks.map((block) =>
+      block.id === blockId ? { ...block, attachments } : block,
     );
     onBlocksChange(blocks);
   };
 
   const handleNotesChange = (blockId: string, notes: string) => {
-    const blocks = board.blocks.map(block =>
-      block.id === blockId ? { ...block, notes } : block
+    const blocks = board.blocks.map((block) =>
+      block.id === blockId ? { ...block, notes } : block,
     );
     onBlocksChange(blocks);
   };
 
   const handleEmojiChange = (blockId: string, emoji: string) => {
-    const blocks = board.blocks.map(block =>
-      block.id === blockId ? { ...block, emoji } : block
+    const blocks = board.blocks.map((block) =>
+      block.id === blockId ? { ...block, emoji } : block,
     );
     onBlocksChange(blocks);
   };
 
-  const handleDepartmentChange = (blockId: string, department: Department | undefined, customDepartment?: string) => {
-    const blocks = board.blocks.map(block =>
-      block.id === blockId ? { ...block, department, customDepartment } : block
+  const handleDepartmentChange = (
+    blockId: string,
+    department: Department | undefined,
+    customDepartment?: string,
+  ) => {
+    const blocks = board.blocks.map((block) =>
+      block.id === blockId ? { ...block, department, customDepartment } : block,
     );
     onBlocksChange(blocks);
   };
-
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
-    const newColumn: { id: string; name: string; image?: string | undefined } = {
-      id: nanoid(),
-      name: `Step ${newPhases[phaseIndex].columns.length + 1}`,
-      image: undefined
-    };
+    const newColumn: { id: string; name: string; image?: string | undefined } =
+      {
+        id: nanoid(),
+        name: `Step ${newPhases[phaseIndex].columns.length + 1}`,
+        image: undefined,
+      };
 
     newPhases[phaseIndex].columns.push(newColumn);
     onPhasesChange(newPhases);
@@ -305,11 +416,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     newPhases.push({
       id: nanoid(),
       name: `Phase ${newPhases.length + 1}`,
-      columns: [{
-        id: nanoid(),
-        name: 'Step 1',
-        image: undefined
-      }]
+      columns: [
+        {
+          id: nanoid(),
+          name: "Step 1",
+          image: undefined,
+        },
+      ],
     });
 
     onPhasesChange(newPhases);
@@ -321,7 +434,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     onPhasesChange(newPhases);
   };
 
-  const handleColumnNameChange = (phaseIndex: number, columnIndex: number, name: string) => {
+  const handleColumnNameChange = (
+    phaseIndex: number,
+    columnIndex: number,
+    name: string,
+  ) => {
     const newPhases = [...board.phases];
     newPhases[phaseIndex].columns[columnIndex].name = name;
     onPhasesChange(newPhases);
@@ -332,10 +449,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   };
 
   const handleClose = () => {
-    setLocation('/');
+    setLocation("/");
   };
 
-  const handleImageChange = (phaseIndex: number, columnIndex: number, image: string | null) => {
+  const handleImageChange = (
+    phaseIndex: number,
+    columnIndex: number,
+    image: string | null,
+  ) => {
     const newPhases = [...board.phases];
     newPhases[phaseIndex].columns[columnIndex].image = image || undefined;
     onPhasesChange(newPhases);
@@ -345,14 +466,22 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
     const newPhases = [...board.phases];
     newPhases[phaseIndex].columns.splice(columnIndex, 1);
 
-    const newBlocks = board.blocks.filter(block =>
-      !(block.phaseIndex === phaseIndex && block.columnIndex === columnIndex)
-    ).map(block => {
-      if (block.phaseIndex === phaseIndex && block.columnIndex > columnIndex) {
-        return { ...block, columnIndex: block.columnIndex - 1 };
-      }
-      return block;
-    });
+    const newBlocks = board.blocks
+      .filter(
+        (block) =>
+          !(
+            block.phaseIndex === phaseIndex && block.columnIndex === columnIndex
+          ),
+      )
+      .map((block) => {
+        if (
+          block.phaseIndex === phaseIndex &&
+          block.columnIndex > columnIndex
+        ) {
+          return { ...block, columnIndex: block.columnIndex - 1 };
+        }
+        return block;
+      });
 
     onPhasesChange(newPhases);
     onBlocksChange(newBlocks);
@@ -433,15 +562,16 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const handleDeleteBoard = async () => {
     try {
       const res = await fetch(`/api/boards/${id}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
-      if (!res.ok) throw new Error('Failed to delete blueprint');
-      setLocation('/');
+      if (!res.ok) throw new Error("Failed to delete blueprint");
+      setLocation("/");
     } catch (error) {
       useToast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to delete blueprint',
-        variant: "destructive"
+        description:
+          error instanceof Error ? error.message : "Failed to delete blueprint",
+        variant: "destructive",
       });
     }
   };
@@ -449,19 +579,18 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
   const handleExportPDF = async () => {
     if (!boardRef.current) return;
 
-    const uiElements = boardRef.current.querySelectorAll('.hide-in-pdf');
-    uiElements.forEach(el => (el.classList.add('opacity-0')));
-
+    const uiElements = boardRef.current.querySelectorAll(".hide-in-pdf");
+    uiElements.forEach((el) => el.classList.add("opacity-0"));
 
     try {
       await exportToPDF(boardRef.current, board.name);
     } finally {
-      uiElements.forEach(el => el.classList.remove('opacity-0'));
+      uiElements.forEach((el) => el.classList.remove("opacity-0"));
     }
   };
 
   const exportToPDF = async (boardRef: HTMLElement, boardName: string) => {
-    const pdf = new jsPDF('landscape', 'pt', 'a4');
+    const pdf = new jsPDF("landscape", "pt", "a4");
 
     const canvas = await html2canvas(boardRef, {
       scale: 2,
@@ -469,25 +598,26 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
       logging: false,
       allowTaint: true,
       ignoreElements: (element) => {
-        return element.classList.contains('hide-in-pdf');
-      }
+        return element.classList.contains("hide-in-pdf");
+      },
     });
 
     const imgWidth = 842;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
     pdf.addImage(
-      canvas.toDataURL('image/png'),
-      'PNG',
+      canvas.toDataURL("image/png"),
+      "PNG",
       0,
       0,
       imgWidth,
-      imgHeight
+      imgHeight,
     );
 
-    pdf.save(`${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_blueprint.pdf`);
+    pdf.save(
+      `${boardName.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_blueprint.pdf`,
+    );
   };
-
 
   return (
     <div className="min-h-screen bg-background">
@@ -506,12 +636,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           {project && (
             <>
               <div className="w-px h-6 bg-gray-200 mx-2" />
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="h-10 px-3"
-              >
+              <Button variant="ghost" size="sm" asChild className="h-10 px-3">
                 <Link href={`/project/${project.id}`}>
                   <div className="flex items-center">
                     <Folder className="w-5 h-5 mr-2" />
@@ -530,18 +655,19 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
               onFocus={() => setIsEditingName(true)}
               onBlur={(e) => {
                 setIsEditingName(false);
-                handleBoardNameChange(e.currentTarget.textContent || '');
+                handleBoardNameChange(e.currentTarget.textContent || "");
               }}
               className="text-2xl font-bold focus:outline-none focus:border-b border-primary"
               suppressContentEditableWarning={true}
             >
               {board.name}
             </div>
-            <Pencil className={`w-4 h-4 text-gray-400 transition-opacity duration-200 ${isEditingName ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+            <Pencil
+              className={`w-4 h-4 text-gray-400 transition-opacity duration-200 ${isEditingName ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+            />
           </div>
 
           <div className="w-px h-6 bg-gray-200 mx-2" />
-
         </div>
 
         <div className="flex items-center">
@@ -598,7 +724,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -606,12 +736,16 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Blueprint</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete this blueprint? This action cannot be undone.
+                    Are you sure you want to delete this blueprint? This action
+                    cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteBoard} className="bg-red-600 hover:bg-red-700">
+                  <AlertDialogAction
+                    onClick={handleDeleteBoard}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -623,7 +757,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
       <div className="flex flex-1 overflow-hidden">
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className={`${isDrawerOpen ? 'w-72' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}>
+          <div
+            className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}
+          >
             <div className="flex flex-col flex-grow">
               <div className="border-b border-gray-200 bg-white shadow-sm">
                 <Button
@@ -634,8 +770,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     w-full h-12 px-4
                     flex items-center gap-2
                     group
-                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showContext ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
+                    ${!isDrawerOpen ? "justify-center" : "justify-start"}
+                    ${showContext ? "bg-blue-50 font-semibold" : "hover:bg-blue-50"}
                   `}
                 >
                   <Info className="w-5 h-5" />
@@ -650,12 +786,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     w-full h-12 px-4
                     flex items-center gap-2
                     group
-                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showBlocks ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
+                    ${!isDrawerOpen ? "justify-center" : "justify-start"}
+                    ${showBlocks ? "bg-blue-50 font-semibold" : "hover:bg-blue-50"}
                   `}
                 >
                   <LayoutGrid className="w-5 h-5" />
-                  {isDrawerOpen && <span className="text-sm">Available Boxes</span>}
+                  {isDrawerOpen && (
+                    <span className="text-sm">Available Boxes</span>
+                  )}
                 </Button>
 
                 <Button
@@ -666,12 +804,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     w-full h-12 px-4
                     flex items-center gap-2
                     group
-                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showComments ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
+                    ${!isDrawerOpen ? "justify-center" : "justify-start"}
+                    ${showComments ? "bg-blue-50 font-semibold" : "hover:bg-blue-50"}
                   `}
                 >
                   <MessageSquare className="w-5 h-5" />
-                  {isDrawerOpen && <span className="text-sm">All Comments</span>}
+                  {isDrawerOpen && (
+                    <span className="text-sm">All Comments</span>
+                  )}
                 </Button>
                 <Button
                   variant="ghost"
@@ -681,12 +821,14 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     w-full h-12 px-4
                     flex items-center gap-2
                     group
-                    ${!isDrawerOpen ? 'justify-center' : 'justify-start'}
-                    ${showDepartments ? 'bg-blue-50 font-semibold' : 'hover:bg-blue-50'}
+                    ${!isDrawerOpen ? "justify-center" : "justify-start"}
+                    ${showDepartments ? "bg-blue-50 font-semibold" : "hover:bg-blue-50"}
                   `}
                 >
                   <Filter className="w-5 h-5" />
-                  {isDrawerOpen && <span className="text-sm">Department Filter</span>}
+                  {isDrawerOpen && (
+                    <span className="text-sm">Department Filter</span>
+                  )}
                 </Button>
               </div>
 
@@ -705,7 +847,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
               {isDrawerOpen && (
                 <div className="flex-1 flex flex-col bg-blue-50">
-                  <div className={`flex-1 ${showContext ? 'block' : 'hidden'}`}>
+                  <div className={`flex-1 ${showContext ? "block" : "hidden"}`}>
                     <div className="p-4 space-y-4">
                       <div>
                         <label className="text-sm font-medium mb-2 block">
@@ -725,7 +867,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                         </label>
                         <div
                           className="w-full h-40 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
-                          onClick={() => document.getElementById('persona-image')?.click()}
+                          onClick={() =>
+                            document.getElementById("persona-image")?.click()
+                          }
                         >
                           {personaImage ? (
                             <img
@@ -768,7 +912,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </div>
                   </div>
 
-                  <div className={`flex-1 ${showBlocks ? 'block' : 'hidden'}`}>
+                  <div className={`flex-1 ${showBlocks ? "block" : "hidden"}`}>
                     <Droppable droppableId="drawer">
                       {(provided) => (
                         <div
@@ -783,7 +927,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </Droppable>
                   </div>
 
-                  <div className={`flex-1 ${showComments ? 'block' : 'hidden'}`}>
+                  <div
+                    className={`flex-1 ${showComments ? "block" : "hidden"}`}
+                  >
                     <CommentsOverview
                       board={board}
                       onCommentClick={(block) => {
@@ -794,7 +940,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                       }}
                     />
                   </div>
-                  <div className={`flex-1 ${showDepartments ? 'block' : 'hidden'}`}>
+                  <div
+                    className={`flex-1 ${showDepartments ? "block" : "hidden"}`}
+                  >
                     <DepartmentFilter
                       blocks={board.blocks}
                       onFilterByDepartment={setDepartmentFilter}
@@ -806,9 +954,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
           </div>
 
           <div className="flex-1 overflow-x-auto">
-            <div
-              className="min-w-[800px] relative"
-            >
+            <div className="min-w-[800px] relative">
               <div ref={boardRef} className="p-8">
                 <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
@@ -818,7 +964,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                           <div className="flex items-center justify-between mb-1">
                             <div
                               contentEditable
-                              onBlur={(e) => handlePhaseNameChange(phaseIndex, e.currentTarget.textContent || '')}
+                              onBlur={(e) =>
+                                handlePhaseNameChange(
+                                  phaseIndex,
+                                  e.currentTarget.textContent || "",
+                                )
+                              }
                               className="font-bold text-lg focus:outline-none focus:border-b border-primary"
                               suppressContentEditableWarning={true}
                             >
@@ -828,7 +979,7 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                               variant="outline"
                               size="sm"
                               onClick={() => handleAddColumn(phaseIndex)}
-                              className="h-7 px-2 border border-gray-300 hide-in-pdf"
+                              className="h-7 px-2 border border-gray-100 hide-in-pdf"
                             >
                               <Plus className="w-4 h-4 mr-1" />
                               Step
@@ -836,7 +987,11 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                           </div>
                         </div>
 
-                        <Droppable droppableId={`phase-${phaseIndex}`} type="COLUMN" direction="horizontal">
+                        <Droppable
+                          droppableId={`phase-${phaseIndex}`}
+                          type="COLUMN"
+                          direction="horizontal"
+                        >
                           {(provided) => (
                             <div
                               ref={provided.innerRef}
@@ -849,14 +1004,18 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                   className="flex-shrink-0 w-[225px]"
                                 >
                                   <div className="flex items-center gap-2 mb-2">
-                                    <div
-                                      className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
-                                    >
+                                    <div className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing">
                                       <GripVertical className="w-4 h-4" />
                                     </div>
                                     <div
                                       contentEditable
-                                      onBlur={(e) => handleColumnNameChange(phaseIndex, columnIndex, e.currentTarget.textContent || '')}
+                                      onBlur={(e) =>
+                                        handleColumnNameChange(
+                                          phaseIndex,
+                                          columnIndex,
+                                          e.currentTarget.textContent || "",
+                                        )
+                                      }
                                       className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
                                       suppressContentEditableWarning={true}
                                     >
@@ -865,7 +1024,12 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleDeleteColumn(phaseIndex, columnIndex)}
+                                      onClick={() =>
+                                        handleDeleteColumn(
+                                          phaseIndex,
+                                          columnIndex,
+                                        )
+                                      }
                                       className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -874,26 +1038,43 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
 
                                   <ImageUpload
                                     currentImage={column.image}
-                                    onImageChange={(image) => handleImageChange(phaseIndex, columnIndex, image)}
+                                    onImageChange={(image) =>
+                                      handleImageChange(
+                                        phaseIndex,
+                                        columnIndex,
+                                        image,
+                                      )
+                                    }
                                   />
 
-                                  <Droppable droppableId={`${phaseIndex}-${columnIndex}`}>
+                                  <Droppable
+                                    droppableId={`${phaseIndex}-${columnIndex}`}
+                                  >
                                     {(provided, snapshot) => (
                                       <div
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                         className={`
-                                          space-y-4 min-h-[100px] p-4 rounded-lg border-2 border-gray-300
-                                          ${snapshot.isDraggingOver
-                                            ? 'border-primary/50 bg-primary/5'
-                                            : 'hover:border-gray-300'
+                                          space-y-4 min-h-[100px] p-4 rounded-lg border-1 border-gray-300 
+                                          ${
+                                            snapshot.isDraggingOver
+                                              ? "border-primary/50 bg-primary/5"
+                                              : "hover:border-gray-300"
                                           }
                                           transition-colors duration-200
                                         `}
                                       >
                                         {board.blocks
-                                          .filter(b => !departmentFilter || b.department === departmentFilter)
-                                          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                          .filter(
+                                            (b) =>
+                                              !departmentFilter ||
+                                              b.department === departmentFilter,
+                                          )
+                                          .filter(
+                                            (b) =>
+                                              b.phaseIndex === phaseIndex &&
+                                              b.columnIndex === columnIndex,
+                                          )
                                           .map((block, index) => (
                                             <Draggable
                                               key={block.id}
@@ -905,23 +1086,58 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                                                   ref={provided.innerRef}
                                                   {...provided.draggableProps}
                                                   {...provided.dragHandleProps}
-                                                  style={provided.draggableProps.style}
+                                                  style={
+                                                    provided.draggableProps
+                                                      .style
+                                                  }
                                                   className={`
-                                                    ${LAYER_TYPES.find(l => l.type === block.type)?.color}
-                                                    group relative rounded-lg border-2 border-gray-300 mb-2 p-2
-                                                    ${snapshot.isDragging ? 'shadow-lg' : ''}
-                                                    ${highlightedBlockId === block.id ? 'ring-2ring-primary ring-offset-2' : ''}
+                                                    ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
+                                                    group relative rounded-lg border-3 border-gray-500 mb-2 p-2 
+                                                    ${snapshot.isDragging ? "shadow-lg" : ""}
+                                                    ${highlightedBlockId === block.id ? "ring-2ring-primary ring-offset-2" : ""}
                                                   `}
                                                 >
                                                   <Block
                                                     block={block}
-                                                    onChange={(content) => handleBlockChange(block.id, content)}
-                                                    onAttachmentChange={(attachments) => handleAttachmentChange(block.id, attachments)}
-                                                    onNotesChange={(notes) => handleNotesChange(block.id, notes)}
-                                                    onEmojiChange={(blockId, emoji) => handleEmojiChange(blockId, emoji)}
-                                                    onDepartmentChange={handleDepartmentChange}
-                                                    onCommentClick={() => handleCommentClick(block)}
-                                                    projectId={board.projectId || undefined}
+                                                    onChange={(content) =>
+                                                      handleBlockChange(
+                                                        block.id,
+                                                        content,
+                                                      )
+                                                    }
+                                                    onAttachmentChange={(
+                                                      attachments,
+                                                    ) =>
+                                                      handleAttachmentChange(
+                                                        block.id,
+                                                        attachments,
+                                                      )
+                                                    }
+                                                    onNotesChange={(notes) =>
+                                                      handleNotesChange(
+                                                        block.id,
+                                                        notes,
+                                                      )
+                                                    }
+                                                    onEmojiChange={(
+                                                      blockId,
+                                                      emoji,
+                                                    ) =>
+                                                      handleEmojiChange(
+                                                        blockId,
+                                                        emoji,
+                                                      )
+                                                    }
+                                                    onDepartmentChange={
+                                                      handleDepartmentChange
+                                                    }
+                                                    onCommentClick={() =>
+                                                      handleCommentClick(block)
+                                                    }
+                                                    projectId={
+                                                      board.projectId ||
+                                                      undefined
+                                                    }
                                                   />
                                                 </div>
                                               )}
@@ -963,10 +1179,10 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                 boardId={id}
                 onCommentAdd={(comment) => {
                   if (!onBlocksChange) return;
-                  const blocks = board.blocks.map(b =>
+                  const blocks = board.blocks.map((b) =>
                     b.id === selectedBlock.id
                       ? { ...b, comments: [...(b.comments || []), comment] }
-                      : b
+                      : b,
                   );
                   onBlocksChange(blocks);
                 }}
@@ -982,16 +1198,21 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
             {inviteOpen && (
               <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
                 <DialogContent>
-                  <DialogHeader><DialogTitle>Invite Team Members</DialogTitle>
+                  <DialogHeader>
+                    <DialogTitle>Invite Team Members</DialogTitle>
                     <DialogDescription>
-                      Enter email addresses to invite team members                    </DialogDescription>
+                      Enter email addresses to invite team members{" "}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <Input
                       placeholder="Enter email addresses (comma separated)"
                       className="w-full"
                     />
-                    <Button className="w-full" onClick={() => setInviteOpen(false)}>
+                    <Button
+                      className="w-full"
+                      onClick={() => setInviteOpen(false)}
+                    >
                       Send Invites
                     </Button>
                   </div>
@@ -1010,7 +1231,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                   </DialogHeader>
                   <div className="space-y-6 py-4">
                     <div className="space-y-4">
-                      <h3 className="text-sm font-medium">Team Access (Requires Login)</h3>
+                      <h3 className="text-sm font-medium">
+                        Team Access (Requires Login)
+                      </h3>
                       <div className="flex gap-2">
                         <Input
                           value={window.location.href}
@@ -1022,7 +1245,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                             navigator.clipboard.writeText(window.location.href);
                             useToast({
                               title: "Link copied",
-                              description: "Team access link has been copied to clipboard"
+                              description:
+                                "Team access link has been copied to clipboard",
                             });
                           }}
                         >
@@ -1032,7 +1256,9 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                     </div>
 
                     <div className="space-y-4">
-                      <h3 className="text-sm font-medium">Public Access (Read-only, No Login Required)</h3>
+                      <h3 className="text-sm font-medium">
+                        Public Access (Read-only, No Login Required)
+                      </h3>
                       <div className="flex gap-2">
                         <Input
                           value={`${window.location.origin}/public/board/${id}`}
@@ -1041,10 +1267,13 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                         />
                         <Button
                           onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/public/board/${id}`);
+                            navigator.clipboard.writeText(
+                              `${window.location.origin}/public/board/${id}`,
+                            );
                             useToast({
                               title: "Link copied",
-                              description: "Public access link has been copied to clipboard"
+                              description:
+                                "Public access link has been copied to clipboard",
                             });
                           }}
                         >
@@ -1052,7 +1281,8 @@ export default function BoardGrid({ id, onBlocksChange, onPhasesChange, onBoardC
                         </Button>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Anyone with this link can view the blueprint in read-only mode
+                        Anyone with this link can view the blueprint in
+                        read-only mode
                       </p>
                     </div>
                   </div>
