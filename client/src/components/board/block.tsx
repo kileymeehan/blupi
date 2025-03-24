@@ -36,7 +36,7 @@ interface BlockProps {
 const TYPE_LABELS = {
   touchpoint: "Touchpoint",
   email: "Email Touchpoint",
-  pendo: "Pendo Touchpoint",
+  pendo: "Modal",
   role: "Role",
   process: "Process",
   friction: "Friction",
@@ -145,7 +145,7 @@ export default function Block({
   const attachmentCount = block.attachments?.length || 0;
 
   return (
-    <div className="w-full h-full relative group"> {/* Added group class */}
+    <div className="w-full h-full relative group">
       {block.emoji && (
         <div className="absolute top-[-12px] right-[-20px] z-10 text-lg select-none">
           {block.emoji}
@@ -153,7 +153,7 @@ export default function Block({
       )}
 
       {block.department && (
-        <div className="absolute bottom-2 left-2 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
+        <div className="absolute bottom-3 left-3 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
           {block.customDepartment || block.department}
         </div>
       )}
@@ -181,7 +181,7 @@ export default function Block({
 
       {!isTemplate && !block.readOnly && (
         <>
-          <div className="absolute top-[-16px] right-2 flex items-center gap-[2px] z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute top-[-16px] left-1/2 transform -translate-x-1/2 flex items-center gap-[2px] z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
               onClick={(e) => {
                 e.stopPropagation();
