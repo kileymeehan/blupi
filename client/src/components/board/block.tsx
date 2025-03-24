@@ -1,12 +1,21 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
 import { MessageSquare, Paperclip, StickyNote, Smile, Tag } from "lucide-react";
-import type { Block as BlockType, Attachment, Department } from "@shared/schema";
+import type {
+  Block as BlockType,
+  Attachment,
+  Department,
+} from "@shared/schema";
 import { AttachmentDialog } from "./attachment-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import data from '@emoji-mart/data'
-import Picker from '@emoji-mart/react'
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 
 interface BlockProps {
   block: BlockType;
@@ -14,36 +23,40 @@ interface BlockProps {
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
   onEmojiChange?: (blockId: string, emoji: string) => void;
-  onDepartmentChange?: (blockId: string, department: Department | undefined, customDepartment?: string) => void;
+  onDepartmentChange?: (
+    blockId: string,
+    department: Department | undefined,
+    customDepartment?: string,
+  ) => void;
   isTemplate?: boolean;
   onCommentClick?: () => void;
   projectId?: number;
 }
 
 const TYPE_LABELS = {
-  touchpoint: 'Touchpoint',
-  email: 'Email Touchpoint',
-  pendo: 'Pendo Touchpoint',
-  role: 'Role',
-  process: 'Process',
-  friction: 'Friction',
-  policy: 'Policy',
-  technology: 'Technology',
-  rationale: 'Rationale',
-  question: 'Question',
-  note: 'Note',
-  hidden: 'Hidden Step'
+  touchpoint: "Touchpoint",
+  email: "Email Touchpoint",
+  pendo: "Pendo Touchpoint",
+  role: "Role",
+  process: "Process",
+  friction: "Friction",
+  policy: "Policy",
+  technology: "Technology",
+  rationale: "Rationale",
+  question: "Question",
+  note: "Note",
+  hidden: "Hidden Step",
 } as const;
 
 const DEPARTMENTS = [
-  'Engineering',
-  'Marketing',
-  'Product',
-  'Design',
-  'Brand',
-  'Support',
-  'Sales',
-  'Custom'
+  "Engineering",
+  "Marketing",
+  "Product",
+  "Design",
+  "Brand",
+  "Support",
+  "Sales",
+  "Custom",
 ] as const;
 
 export default function Block({
@@ -55,26 +68,28 @@ export default function Block({
   onDepartmentChange,
   isTemplate = false,
   onCommentClick,
-  projectId
+  projectId,
 }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [departmentDialogOpen, setDepartmentDialogOpen] = useState(false);
-  const [customDepartment, setCustomDepartment] = useState(block.customDepartment || '');
+  const [customDepartment, setCustomDepartment] = useState(
+    block.customDepartment || "",
+  );
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
-  const [notes, setNotes] = useState(block.notes || '');
-  const [localContent, setLocalContent] = useState(block.content || '');
+  const [notes, setNotes] = useState(block.notes || "");
+  const [localContent, setLocalContent] = useState(block.content || "");
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
-      setLocalContent(block.content || '');
-      contentRef.current.textContent = block.content || '';
+      setLocalContent(block.content || "");
+      contentRef.current.textContent = block.content || "";
     }
   }, [block.content, isTemplate]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       contentRef.current?.blur();
     }
@@ -82,13 +97,13 @@ export default function Block({
 
   const handleInput = () => {
     if (!contentRef.current) return;
-    const newContent = contentRef.current.textContent || '';
+    const newContent = contentRef.current.textContent || "";
     setLocalContent(newContent);
   };
 
   const handleBlur = () => {
     if (!onChange || !contentRef.current) return;
-    const content = contentRef.current.textContent || '';
+    const content = contentRef.current.textContent || "";
     if (content !== block.content) {
       onChange(content);
     }
@@ -102,17 +117,21 @@ export default function Block({
 
   const handleDepartmentChange = (department: Department | undefined) => {
     if (!onDepartmentChange) return;
-    if (department === 'Custom') {
+    if (department === "Custom") {
       return;
     }
-    onDepartmentChange(block.id, department, department === 'Custom' ? customDepartment : undefined);
+    onDepartmentChange(
+      block.id,
+      department,
+      department === "Custom" ? customDepartment : undefined,
+    );
     setDepartmentDialogOpen(false);
-    setCustomDepartment('');
+    setCustomDepartment("");
   };
 
   const handleCustomDepartmentSave = () => {
     if (!onDepartmentChange || !customDepartment) return;
-    onDepartmentChange(block.id, 'Custom', customDepartment);
+    onDepartmentChange(block.id, "Custom", customDepartment);
     setDepartmentDialogOpen(false);
   };
 
@@ -128,13 +147,13 @@ export default function Block({
   return (
     <div className="w-full h-full relative">
       {block.emoji && (
-        <div className="absolute top-2 right-2 z-10 text-lg select-none">
+        <div className="absolute top-[-10px] right-[-16px] z-10 text-lg select-none">
           {block.emoji}
         </div>
       )}
 
       {block.department && (
-        <div className="absolute bottom-2 left-2 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
+        <div className="absolute bottom-0 left-1 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
           {block.customDepartment || block.department}
         </div>
       )}
@@ -146,14 +165,14 @@ export default function Block({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`
-          w-full min-h-[100px] p-4
-          ${block.emoji ? 'pr-10' : ''} 
-          ${block.department ? 'pb-10' : ''}
-          ${isTemplate ? 'flex items-center justify-center' : ''}
+          w-full min-h-[100px] p-4 
+          ${block.emoji ? "pr-10" : ""} 
+          ${block.department ? "pb-10" : ""}
+          ${isTemplate ? "flex items-center justify-center" : ""}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal text
           focus:outline-none
-          ${block.readOnly ? 'cursor-default' : ''}
+          ${block.readOnly ? "cursor-default" : ""}
         `}
         suppressContentEditableWarning={true}
       >
@@ -162,19 +181,19 @@ export default function Block({
 
       {!isTemplate && !block.readOnly && (
         <>
-          <div className="absolute top-2 right-2 flex gap-1 z-20">
+          <div className="absolute top-[-4px] right-2 flex gap-1 z-20v border-black-1">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onCommentClick?.();
               }}
               className={`
-                flex items-center gap-1 p-1
+                flex items-center gap-1 p-1 
                 rounded bg-white/80 backdrop-blur-sm
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow
                 opacity-0 group-hover:opacity-100
-                ${commentCount > 0 ? '!opacity-100' : ''}
+                ${commentCount > 0 ? "!opacity-100" : ""}
                 transition-all duration-150
               `}
             >
@@ -193,7 +212,7 @@ export default function Block({
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow
                 opacity-0 group-hover:opacity-100
-                ${attachmentCount > 0 ? '!opacity-100 text-blue-600' : ''}
+                ${attachmentCount > 0 ? "!opacity-100 text-blue-600" : ""}
                 transition-all duration-150
               `}
             >
@@ -212,7 +231,7 @@ export default function Block({
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow
                 opacity-0 group-hover:opacity-100
-                ${block.notes ? '!opacity-100 text-yellow-600' : ''}
+                ${block.notes ? "!opacity-100 text-yellow-600" : ""}
                 transition-all duration-150
               `}
             >
@@ -240,7 +259,7 @@ export default function Block({
               onClick={(e) => {
                 e.stopPropagation();
                 if (block.emoji) {
-                  onEmojiChange?.(block.id, '');
+                  onEmojiChange?.(block.id, "");
                 } else {
                   setEmojiPickerOpen(true);
                 }
@@ -251,7 +270,7 @@ export default function Block({
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow
                 opacity-0 group-hover:opacity-100
-                ${block.emoji ? 'text-yellow-600' : ''}
+                ${block.emoji ? "text-yellow-600" : ""}
                 transition-all duration-150
               `}
               title={block.emoji ? "Remove emoji" : "Add emoji"}
@@ -265,7 +284,9 @@ export default function Block({
             onOpenChange={setAttachmentDialogOpen}
             projectId={projectId}
             currentAttachments={block.attachments}
-            onAttach={(attachments) => onAttachmentChange?.(block.id, attachments)}
+            onAttach={(attachments) =>
+              onAttachmentChange?.(block.id, attachments)
+            }
           />
 
           <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
@@ -287,7 +308,10 @@ export default function Block({
             </DialogContent>
           </Dialog>
 
-          <Dialog open={departmentDialogOpen} onOpenChange={setDepartmentDialogOpen}>
+          <Dialog
+            open={departmentDialogOpen}
+            onOpenChange={setDepartmentDialogOpen}
+          >
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Select Department</DialogTitle>
@@ -297,7 +321,9 @@ export default function Block({
                   {DEPARTMENTS.map((dept) => (
                     <Button
                       key={dept}
-                      variant={block.department === dept ? "default" : "outline"}
+                      variant={
+                        block.department === dept ? "default" : "outline"
+                      }
                       onClick={() => handleDepartmentChange(dept as Department)}
                       className="w-full"
                     >
@@ -313,7 +339,7 @@ export default function Block({
                   </Button>
                 </div>
 
-                {block.department === 'Custom' && (
+                {block.department === "Custom" && (
                   <div className="space-y-2">
                     <Textarea
                       placeholder="Enter custom department name..."
