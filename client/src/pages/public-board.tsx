@@ -9,7 +9,7 @@ export default function PublicBoard() {
   const { id } = useParams<{ id: string }>();
 
   const { data: board, isLoading, error } = useQuery<Board>({
-    queryKey: ['/api/boards', id],
+    queryKey: ['/api/boards', id, 'public'],
     queryFn: async () => {
       const res = await fetch(`/api/boards/${id}/public`);
       if (!res.ok) {
@@ -62,7 +62,7 @@ export default function PublicBoard() {
               <Info className="w-5 h-5" />
               <span className="text-sm font-semibold">Context</span>
             </div>
-            
+
             <div className="space-y-4">
               <Card className="p-4">
                 <h3 className="text-sm font-medium mb-2">Blueprint Details</h3>

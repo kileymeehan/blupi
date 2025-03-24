@@ -63,8 +63,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Broadcast to other users in the same board
           for (const [, connectedUser] of connectedUsers) {
-            if (connectedUser.ws !== ws && 
-                connectedUser.boardId === message.boardId && 
+            if (connectedUser.ws !== ws &&
+                connectedUser.boardId === message.boardId &&
                 connectedUser.ws.readyState === WebSocket.OPEN) {
               connectedUser.ws.send(JSON.stringify({
                 type: 'users_update',
@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .map(({ id, name, color, emoji }) => ({ id, name, color, emoji }));
 
         for (const [, connectedUser] of connectedUsers) {
-          if (connectedUser.boardId === user.boardId && 
+          if (connectedUser.boardId === user.boardId &&
               connectedUser.ws.readyState === WebSocket.OPEN) {
             connectedUser.ws.send(JSON.stringify({
               type: 'users_update',
@@ -362,7 +362,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/public/boards/:id", async (req, res) => {
+  // Replace the existing public board route with the corrected path
+  app.get("/api/boards/:id/public", async (req, res) => {
     try {
       console.log(`[HTTP] Fetching public board with ID: ${req.params.id}`);
       const board = await storage.getBoard(Number(req.params.id));
@@ -370,6 +371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
 
+      // Remove sensitive information for public view
       const publicBoard = {
         ...board,
         blocks: board.blocks.map(block => ({
