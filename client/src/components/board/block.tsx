@@ -188,7 +188,7 @@ export default function Block({
                 onCommentClick?.();
               }}
               className={`
-                flex items-center justify-center w-5 h-5
+                flex items-center justify-center w-6 h-6 p-0
                 rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
@@ -196,7 +196,7 @@ export default function Block({
                 transition-all duration-150
               `}
             >
-              <MessageSquare className="w-2.5 h-2.5" />
+              <MessageSquare className="w-4 h-4" />
               {commentCount > 0 && <span className="text-[10px] ml-0.5">{commentCount}</span>}
             </button>
 
@@ -206,7 +206,7 @@ export default function Block({
                 setAttachmentDialogOpen(true);
               }}
               className={`
-                flex items-center justify-center w-5 h-5
+                flex items-center justify-center w-6 h-6 p-0
                 rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
@@ -214,7 +214,7 @@ export default function Block({
                 transition-all duration-150
               `}
             >
-              <Paperclip className="w-2.5 h-2.5" />
+              <Paperclip className="w-4 h-4" />
               {attachmentCount > 0 && <span className="text-[10px] ml-0.5">{attachmentCount}</span>}
             </button>
 
@@ -224,7 +224,7 @@ export default function Block({
                 setNotesDialogOpen(true);
               }}
               className={`
-                flex items-center justify-center w-5 h-5
+                flex items-center justify-center w-6 h-6 p-0
                 rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
@@ -232,7 +232,7 @@ export default function Block({
                 transition-all duration-150
               `}
             >
-              <StickyNote className="w-2.5 h-2.5" />
+              <StickyNote className="w-4 h-4" />
             </button>
 
             <button
@@ -241,14 +241,14 @@ export default function Block({
                 setDepartmentDialogOpen(true);
               }}
               className={`
-                flex items-center justify-center w-5 h-5
+                flex items-center justify-center w-6 h-6 p-0
                 rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
                 transition-all duration-150
               `}
             >
-              <Tag className="w-2.5 h-2.5" />
+              <Tag className="w-4 h-4" />
             </button>
 
             <button
@@ -261,7 +261,7 @@ export default function Block({
                 }
               }}
               className={`
-                flex items-center justify-center w-5 h-5
+                flex items-center justify-center w-6 h-6 p-0
                 rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
@@ -270,7 +270,7 @@ export default function Block({
               `}
               title={block.emoji ? "Remove emoji" : "Add emoji"}
             >
-              <Smile className="w-2.5 h-2.5" />
+              <Smile className="w-4 h-4" />
             </button>
           </div>
 
