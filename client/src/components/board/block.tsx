@@ -47,18 +47,18 @@ const DEPARTMENTS = [
 ] as const;
 
 const TYPE_COLORS = {
-  touchpoint: 'bg-sky-50',
-  email: 'bg-blue-50',
-  pendo: 'bg-violet-50',
-  role: 'bg-emerald-50',
-  process: 'bg-teal-50',
-  friction: 'bg-red-50',
-  policy: 'bg-amber-50',
-  technology: 'bg-indigo-50',
-  rationale: 'bg-orange-50',
-  question: 'bg-purple-50',
-  note: 'bg-gray-50',
-  hidden: 'bg-gray-50'
+  touchpoint: 'bg-blue-100',
+  email: 'bg-purple-100',
+  pendo: 'bg-indigo-100',
+  role: 'bg-green-100',
+  process: 'bg-teal-100',
+  friction: 'bg-red-100',
+  policy: 'bg-yellow-100',
+  technology: 'bg-cyan-100',
+  rationale: 'bg-orange-100',
+  question: 'bg-violet-100',
+  note: 'bg-gray-100',
+  hidden: 'bg-slate-100'
 } as const;
 
 export default function Block({
@@ -141,14 +141,13 @@ export default function Block({
   const attachmentCount = block.attachments?.length || 0;
 
   return (
-    <div className={`w-full h-full p-2 rounded-lg border border-gray-300 group relative hover:shadow-md transition-shadow ${TYPE_COLORS[block.type]}`}>
+    <div className={`w-full h-full p-2 rounded-lg border border-gray-200 group relative hover:shadow-md transition-shadow ${TYPE_COLORS[block.type]}`}>
       {block.emoji && (
-        <div className="absolute -top-2 -right-2 z-10 text-lg cursor-default">
+        <div className="absolute top-1 right-1 z-10 text-lg">
           {block.emoji}
         </div>
       )}
 
-      {/* Show department tag if set */}
       {block.department && (
         <div className="absolute bottom-1 left-1 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
           {block.customDepartment || block.department}
@@ -165,13 +164,11 @@ export default function Block({
           w-full min-h-[100px] px-3 py-4 pt-8 text-sm
           ${isTemplate ? 'flex items-center justify-center' : ''}
           overflow-y-auto whitespace-pre-wrap break-words
-          leading-normal text-center
+          leading-normal text
           focus:outline-none
-          focus:bg-white/50
-          transition-colors duration-200
+          bg-transparent
           ${block.readOnly ? 'cursor-default' : ''}
         `}
-        style={{ backgroundColor: 'inherit' }}
         suppressContentEditableWarning={true}
       >
         {isTemplate ? TYPE_LABELS[block.type] : block.content}
@@ -190,103 +187,105 @@ export default function Block({
       )}
 
       {!isTemplate && !block.readOnly && (
-        <div className="absolute top-1 right-1 flex gap-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onCommentClick?.();
-            }}
-            className={`
-              flex items-center gap-1 p-1
-              rounded bg-white/80 backdrop-blur-sm
-              text-xs text-gray-600 hover:text-gray-900
-              shadow-sm hover:shadow
-              opacity-0 group-hover:opacity-100
-              ${commentCount > 0 ? '!opacity-100' : ''}
-              transition-all duration-150
-            `}
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>{commentCount}</span>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setAttachmentDialogOpen(true);
-            }}
-            className={`
-              flex items-center gap-1 p-1
-              rounded bg-white/80 backdrop-blur-sm
-              text-xs text-gray-600 hover:text-gray-900
-              shadow-sm hover:shadow
-              opacity-0 group-hover:opacity-100
-              ${attachmentCount > 0 ? '!opacity-100 text-blue-600' : ''}
-              transition-all duration-150
-            `}
-          >
-            <Paperclip className="w-4 h-4" />
-            {attachmentCount > 0 && <span>{attachmentCount}</span>}
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setNotesDialogOpen(true);
-            }}
-            className={`
-              flex items-center gap-1 p-1
-              rounded bg-white/80 backdrop-blur-sm
-              text-xs text-gray-600 hover:text-gray-900
-              shadow-sm hover:shadow
-              opacity-0 group-hover:opacity-100
-              ${block.notes ? '!opacity-100 text-yellow-600' : ''}
-              transition-all duration-150
-            `}
-          >
-            <StickyNote className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDepartmentDialogOpen(true);
-            }}
-            className={`
-              flex items-center gap-1 p-1
-              rounded bg-white/80 backdrop-blur-sm
-              text-xs text-gray-600 hover:text-gray-900
-              shadow-sm hover:shadow
-              opacity-0 group-hover:opacity-100
-              transition-all duration-150
-            `}
-          >
-            <Tag className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (block.emoji) {
-                onEmojiChange?.(block.id, '');
-              } else {
-                setEmojiPickerOpen(true);
-              }
-            }}
-            className={`
-              flex items-center gap-1 p-1
-              rounded bg-white/80 backdrop-blur-sm
-              text-xs text-gray-600 hover:text-gray-900
-              shadow-sm hover:shadow
-              opacity-0 group-hover:opacity-100
-              ${block.emoji ? 'text-yellow-600' : ''}
-              transition-all duration-150
-            `}
-            title={block.emoji ? "Remove emoji" : "Add emoji"}
-          >
-            <Smile className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {!block.readOnly && (
         <>
+          <div className="absolute top-1 right-1 flex gap-1">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCommentClick?.();
+              }}
+              className={`
+                flex items-center gap-1 p-1
+                rounded bg-white/80 backdrop-blur-sm
+                text-xs text-gray-600 hover:text-gray-900
+                shadow-sm hover:shadow
+                opacity-0 group-hover:opacity-100
+                ${commentCount > 0 ? '!opacity-100' : ''}
+                transition-all duration-150
+              `}
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>{commentCount}</span>
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setAttachmentDialogOpen(true);
+              }}
+              className={`
+                flex items-center gap-1 p-1
+                rounded bg-white/80 backdrop-blur-sm
+                text-xs text-gray-600 hover:text-gray-900
+                shadow-sm hover:shadow
+                opacity-0 group-hover:opacity-100
+                ${attachmentCount > 0 ? '!opacity-100 text-blue-600' : ''}
+                transition-all duration-150
+              `}
+            >
+              <Paperclip className="w-4 h-4" />
+              {attachmentCount > 0 && <span>{attachmentCount}</span>}
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setNotesDialogOpen(true);
+              }}
+              className={`
+                flex items-center gap-1 p-1
+                rounded bg-white/80 backdrop-blur-sm
+                text-xs text-gray-600 hover:text-gray-900
+                shadow-sm hover:shadow
+                opacity-0 group-hover:opacity-100
+                ${block.notes ? '!opacity-100 text-yellow-600' : ''}
+                transition-all duration-150
+              `}
+            >
+              <StickyNote className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setDepartmentDialogOpen(true);
+              }}
+              className={`
+                flex items-center gap-1 p-1
+                rounded bg-white/80 backdrop-blur-sm
+                text-xs text-gray-600 hover:text-gray-900
+                shadow-sm hover:shadow
+                opacity-0 group-hover:opacity-100
+                transition-all duration-150
+              `}
+            >
+              <Tag className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (block.emoji) {
+                  onEmojiChange?.(block.id, '');
+                } else {
+                  setEmojiPickerOpen(true);
+                }
+              }}
+              className={`
+                flex items-center gap-1 p-1
+                rounded bg-white/80 backdrop-blur-sm
+                text-xs text-gray-600 hover:text-gray-900
+                shadow-sm hover:shadow
+                opacity-0 group-hover:opacity-100
+                ${block.emoji ? 'text-yellow-600' : ''}
+                transition-all duration-150
+              `}
+              title={block.emoji ? "Remove emoji" : "Add emoji"}
+            >
+              <Smile className="w-4 h-4" />
+            </button>
+          </div>
+
           <AttachmentDialog
             open={attachmentDialogOpen}
             onOpenChange={setAttachmentDialogOpen}
@@ -294,6 +293,7 @@ export default function Block({
             currentAttachments={block.attachments}
             onAttach={(attachments) => onAttachmentChange?.(block.id, attachments)}
           />
+
           <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
             <DialogContent>
               <DialogHeader>
@@ -312,6 +312,7 @@ export default function Block({
               </div>
             </DialogContent>
           </Dialog>
+
           <Dialog open={departmentDialogOpen} onOpenChange={setDepartmentDialogOpen}>
             <DialogContent>
               <DialogHeader>
@@ -337,6 +338,7 @@ export default function Block({
                     Clear Department
                   </Button>
                 </div>
+
                 {block.department === 'Custom' && (
                   <div className="space-y-2">
                     <Textarea
@@ -357,6 +359,7 @@ export default function Block({
               </div>
             </DialogContent>
           </Dialog>
+
           <Dialog open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
             <DialogContent>
               <DialogHeader>
