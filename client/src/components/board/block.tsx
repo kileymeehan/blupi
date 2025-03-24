@@ -147,7 +147,7 @@ export default function Block({
   return (
     <div className="w-full h-full relative">
       {block.emoji && (
-        <div className="absolute top-2 right-2 z-10 text-lg select-none">
+        <div className="absolute top-[-12px] right-[-12px] z-10 text-lg select-none">
           {block.emoji}
         </div>
       )}
@@ -166,8 +166,8 @@ export default function Block({
         onKeyDown={handleKeyDown}
         className={`
           w-full min-h-[100px] p-4
-          ${block.emoji ? 'pr-10' : ''} 
-          ${block.department ? 'pb-10' : ''}
+          ${block.emoji ? 'pr-8' : ''} 
+          ${block.department ? 'pb-8' : ''}
           ${isTemplate ? 'flex items-center justify-center' : ''}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal text
@@ -181,22 +181,22 @@ export default function Block({
 
       {!isTemplate && !block.readOnly && (
         <>
-          <div className="absolute top-2 right-2 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute top-[-12px] right-2 flex gap-1.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onCommentClick?.();
               }}
               className={`
-                flex items-center gap-1 p-1
-                rounded bg-white/80 backdrop-blur-sm
+                flex items-center gap-1 p-1.5
+                rounded-md bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
-                shadow-sm hover:shadow
-                ${commentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-0 after:right-0' : ''}
+                shadow-sm hover:shadow hover:border-gray-300
+                ${commentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
                 transition-all duration-150
               `}
             >
-              <MessageSquare className="w-4 h-4" />
+              <MessageSquare className="w-3.5 h-3.5" />
               <span>{commentCount}</span>
             </button>
 
@@ -206,15 +206,15 @@ export default function Block({
                 setAttachmentDialogOpen(true);
               }}
               className={`
-                flex items-center gap-1 p-1
-                rounded bg-white/80 backdrop-blur-sm
+                flex items-center gap-1 p-1.5
+                rounded-md bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
-                shadow-sm hover:shadow
-                ${attachmentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-0 after:right-0' : ''}
+                shadow-sm hover:shadow hover:border-gray-300
+                ${attachmentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
                 transition-all duration-150
               `}
             >
-              <Paperclip className="w-4 h-4" />
+              <Paperclip className="w-3.5 h-3.5" />
               {attachmentCount > 0 && <span>{attachmentCount}</span>}
             </button>
 
@@ -224,15 +224,15 @@ export default function Block({
                 setNotesDialogOpen(true);
               }}
               className={`
-                flex items-center gap-1 p-1
-                rounded bg-white/80 backdrop-blur-sm
+                flex items-center gap-1 p-1.5
+                rounded-md bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
-                shadow-sm hover:shadow
-                ${block.notes ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-0 after:right-0' : ''}
+                shadow-sm hover:shadow hover:border-gray-300
+                ${block.notes ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
                 transition-all duration-150
               `}
             >
-              <StickyNote className="w-4 h-4" />
+              <StickyNote className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -241,14 +241,14 @@ export default function Block({
                 setDepartmentDialogOpen(true);
               }}
               className={`
-                flex items-center gap-1 p-1
-                rounded bg-white/80 backdrop-blur-sm
+                flex items-center gap-1 p-1.5
+                rounded-md bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
-                shadow-sm hover:shadow
+                shadow-sm hover:shadow hover:border-gray-300
                 transition-all duration-150
               `}
             >
-              <Tag className="w-4 h-4" />
+              <Tag className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -261,16 +261,16 @@ export default function Block({
                 }
               }}
               className={`
-                flex items-center gap-1 p-1
-                rounded bg-white/80 backdrop-blur-sm
+                flex items-center gap-1 p-1.5
+                rounded-md bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
-                shadow-sm hover:shadow
-                ${block.emoji ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-0 after:right-0' : ''}
+                shadow-sm hover:shadow hover:border-gray-300
+                ${block.emoji ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
                 transition-all duration-150
               `}
               title={block.emoji ? "Remove emoji" : "Add emoji"}
             >
-              <Smile className="w-4 h-4" />
+              <Smile className="w-3.5 h-3.5" />
             </button>
           </div>
 
