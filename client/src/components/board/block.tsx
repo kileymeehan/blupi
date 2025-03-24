@@ -170,7 +170,7 @@ export default function Block({
           ${block.department ? "pb-10" : ""}
           ${isTemplate ? "flex items-center justify-center" : ""}
           overflow-y-auto whitespace-pre-wrap break-words
-          leading-normal text
+          leading-normal text-sm mt-1.5
           focus:outline-none
           ${block.readOnly ? "cursor-default" : ""}
         `}
