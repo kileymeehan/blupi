@@ -147,7 +147,7 @@ export default function Block({
   return (
     <div className="w-full h-full relative">
       {block.emoji && (
-        <div className="absolute top-[-12px] right-[-12px] z-10 text-lg select-none">
+        <div className="absolute top-[-12px] right-[-20px] z-10 text-lg select-none">
           {block.emoji}
         </div>
       )}
@@ -181,23 +181,23 @@ export default function Block({
 
       {!isTemplate && !block.readOnly && (
         <>
-          <div className="absolute top-[-12px] right-2 flex gap-1.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute top-[-16px] right-2 flex items-center gap-[2px] z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onCommentClick?.();
               }}
               className={`
-                flex items-center gap-1 p-1.5
-                rounded-md bg-white border border-gray-200
+                flex items-center justify-center w-5 h-5
+                rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
                 ${commentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
                 transition-all duration-150
               `}
             >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>{commentCount}</span>
+              <MessageSquare className="w-2.5 h-2.5" />
+              {commentCount > 0 && <span className="text-[10px] ml-0.5">{commentCount}</span>}
             </button>
 
             <button
@@ -206,16 +206,16 @@ export default function Block({
                 setAttachmentDialogOpen(true);
               }}
               className={`
-                flex items-center gap-1 p-1.5
-                rounded-md bg-white border border-gray-200
+                flex items-center justify-center w-5 h-5
+                rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
                 ${attachmentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
                 transition-all duration-150
               `}
             >
-              <Paperclip className="w-3.5 h-3.5" />
-              {attachmentCount > 0 && <span>{attachmentCount}</span>}
+              <Paperclip className="w-2.5 h-2.5" />
+              {attachmentCount > 0 && <span className="text-[10px] ml-0.5">{attachmentCount}</span>}
             </button>
 
             <button
@@ -224,15 +224,15 @@ export default function Block({
                 setNotesDialogOpen(true);
               }}
               className={`
-                flex items-center gap-1 p-1.5
-                rounded-md bg-white border border-gray-200
+                flex items-center justify-center w-5 h-5
+                rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
                 ${block.notes ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
                 transition-all duration-150
               `}
             >
-              <StickyNote className="w-3.5 h-3.5" />
+              <StickyNote className="w-2.5 h-2.5" />
             </button>
 
             <button
@@ -241,14 +241,14 @@ export default function Block({
                 setDepartmentDialogOpen(true);
               }}
               className={`
-                flex items-center gap-1 p-1.5
-                rounded-md bg-white border border-gray-200
+                flex items-center justify-center w-5 h-5
+                rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
                 transition-all duration-150
               `}
             >
-              <Tag className="w-3.5 h-3.5" />
+              <Tag className="w-2.5 h-2.5" />
             </button>
 
             <button
@@ -261,8 +261,8 @@ export default function Block({
                 }
               }}
               className={`
-                flex items-center gap-1 p-1.5
-                rounded-md bg-white border border-gray-200
+                flex items-center justify-center w-5 h-5
+                rounded bg-white border border-gray-200
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow hover:border-gray-300
                 ${block.emoji ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' : ''}
@@ -270,7 +270,7 @@ export default function Block({
               `}
               title={block.emoji ? "Remove emoji" : "Add emoji"}
             >
-              <Smile className="w-3.5 h-3.5" />
+              <Smile className="w-2.5 h-2.5" />
             </button>
           </div>
 
