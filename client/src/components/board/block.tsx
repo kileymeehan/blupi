@@ -66,7 +66,6 @@ export default function Block({
   const [notes, setNotes] = useState(block.notes || '');
   const [localContent, setLocalContent] = useState(block.content || '');
 
-  // Update content when block changes from external source
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
       setLocalContent(block.content || '');
@@ -85,16 +84,6 @@ export default function Block({
     if (!contentRef.current) return;
     const newContent = contentRef.current.textContent || '';
     setLocalContent(newContent);
-
-    // Preserve cursor position at end of text
-    if (contentRef.current) {
-      const range = document.createRange();
-      const sel = window.getSelection();
-      range.selectNodeContents(contentRef.current);
-      range.collapse(false);
-      sel?.removeAllRanges();
-      sel?.addRange(range);
-    }
   };
 
   const handleBlur = () => {
@@ -114,7 +103,6 @@ export default function Block({
   const handleDepartmentChange = (department: Department | undefined) => {
     if (!onDepartmentChange) return;
     if (department === 'Custom') {
-      // Keep the dialog open for custom input
       return;
     }
     onDepartmentChange(block.id, department, department === 'Custom' ? customDepartment : undefined);
@@ -138,12 +126,10 @@ export default function Block({
   const attachmentCount = block.attachments?.length || 0;
 
   return (
-    <div className="w-full h-full p-2">
+    <div className="w-full h-full p-2 bg-white rounded-lg border border-gray-300 group relative hover:shadow-md transition-shadow">
       {block.emoji && (
         <div className="absolute -top-2 -right-2 z-10 text-lg cursor-default">
-          <span role="img" aria-label="emoji" className="select-none">
-            {block.emoji}
-          </span>
+          {block.emoji}
         </div>
       )}
 
