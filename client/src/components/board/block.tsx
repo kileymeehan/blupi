@@ -147,13 +147,13 @@ export default function Block({
   return (
     <div className="w-full h-full relative">
       {block.emoji && (
-        <div className="absolute top-[-10px] right-[-16px] z-10 text-lg select-none">
+        <div className="absolute top-2 right-2 z-10 text-lg select-none">
           {block.emoji}
         </div>
       )}
 
       {block.department && (
-        <div className="absolute bottom-0 left-1 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
+        <div className="absolute bottom-2 left-2 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
           {block.customDepartment || block.department}
         </div>
       )}
@@ -165,14 +165,14 @@ export default function Block({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`
-          w-full min-h-[100px] p-4 
-          ${block.emoji ? "pr-10" : ""} 
-          ${block.department ? "pb-10" : ""}
-          ${isTemplate ? "flex items-center justify-center" : ""}
+          w-full min-h-[100px] p-4
+          ${block.emoji ? 'pr-10' : ''} 
+          ${block.department ? 'pb-10' : ''}
+          ${isTemplate ? 'flex items-center justify-center' : ''}
           overflow-y-auto whitespace-pre-wrap break-words
-          leading-normal text-sm mt-3
+          leading-normal text
           focus:outline-none
-          ${block.readOnly ? "cursor-default" : ""}
+          ${block.readOnly ? 'cursor-default' : ''}
         `}
         suppressContentEditableWarning={true}
       >
@@ -181,19 +181,18 @@ export default function Block({
 
       {!isTemplate && !block.readOnly && (
         <>
-          <div className="absolute top-[-4px] right-2 flex gap-1 z-20v border-black-1">
+          <div className="absolute top-2 right-2 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onCommentClick?.();
               }}
               className={`
-                flex items-center gap-1 p-1 
+                flex items-center gap-1 p-1
                 rounded bg-white/80 backdrop-blur-sm
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow
-                opacity-0 group-hover:opacity-100
-                ${commentCount > 0 ? "!opacity-100" : ""}
+                ${commentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-0 after:right-0' : ''}
                 transition-all duration-150
               `}
             >
@@ -211,8 +210,7 @@ export default function Block({
                 rounded bg-white/80 backdrop-blur-sm
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow
-                opacity-0 group-hover:opacity-100
-                ${attachmentCount > 0 ? "!opacity-100 text-blue-600" : ""}
+                ${attachmentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-0 after:right-0' : ''}
                 transition-all duration-150
               `}
             >
@@ -230,8 +228,7 @@ export default function Block({
                 rounded bg-white/80 backdrop-blur-sm
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow
-                opacity-0 group-hover:opacity-100
-                ${block.notes ? "!opacity-100 text-yellow-600" : ""}
+                ${block.notes ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-0 after:right-0' : ''}
                 transition-all duration-150
               `}
             >
@@ -248,7 +245,6 @@ export default function Block({
                 rounded bg-white/80 backdrop-blur-sm
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow
-                opacity-0 group-hover:opacity-100
                 transition-all duration-150
               `}
             >
@@ -259,7 +255,7 @@ export default function Block({
               onClick={(e) => {
                 e.stopPropagation();
                 if (block.emoji) {
-                  onEmojiChange?.(block.id, "");
+                  onEmojiChange?.(block.id, '');
                 } else {
                   setEmojiPickerOpen(true);
                 }
@@ -269,8 +265,7 @@ export default function Block({
                 rounded bg-white/80 backdrop-blur-sm
                 text-xs text-gray-600 hover:text-gray-900
                 shadow-sm hover:shadow
-                opacity-0 group-hover:opacity-100
-                ${block.emoji ? "text-yellow-600" : ""}
+                ${block.emoji ? 'after:content-["•"] after:text-yellow-500 after:absolute after:top-0 after:right-0' : ''}
                 transition-all duration-150
               `}
               title={block.emoji ? "Remove emoji" : "Add emoji"}
