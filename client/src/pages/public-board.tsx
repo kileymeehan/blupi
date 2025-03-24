@@ -57,55 +57,65 @@ export default function PublicBoard() {
       <main className="max-w-[1440px] mx-auto px-6 py-6 overflow-x-auto">
         <div className="flex gap-8 min-w-max pb-6">
           {board.phases.map((phase, phaseIndex) => (
-            <div key={phase.id} className="w-[400px]">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">{phase.name}</h2>
-              <div className="space-y-4">
-                {phase.columns.map((column, columnIndex) => (
-                  <div key={column.id} className="bg-white rounded-lg p-4 border border-gray-300 shadow-md">
-                    <h3 className="text-base font-medium mb-4 pb-2 border-b">{column.name}</h3>
-                    {column.image && (
-                      <img 
-                        src={column.image} 
-                        alt={column.name}
-                        className="w-full h-32 object-cover rounded-md mb-4"
-                      />
-                    )}
-                    <div className="space-y-3">
-                      {board.blocks
-                        .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                        .map(block => (
-                          <div
-                            key={block.id}
-                            className="p-3 rounded-md bg-white border border-gray-200 shadow-sm"
-                            style={{
-                              borderLeftWidth: '4px',
-                              borderLeftColor: 
-                                block.department === 'Design' ? '#FF8BAE' :
-                                block.department === 'Engineering' ? '#98E2C6' :
-                                block.department === 'Product' ? '#93C5FD' :
-                                block.department === 'Sales' ? '#C4B5FD' :
-                                block.department === 'Marketing' ? '#FCD34D' :
-                                '#E5E7EB'
-                            }}
-                          >
-                            <div className="flex items-start gap-2">
-                              <div className="flex-1">
-                                <div className="text-sm font-medium">{block.content}</div>
-                                {block.notes && (
-                                  <div className="mt-1 text-sm text-gray-600">{block.notes}</div>
-                                )}
-                                {block.department && (
-                                  <div className="mt-2 text-xs font-medium text-gray-500">
-                                    {block.department}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+            <div key={phase.id} className="flex-shrink-0 relative mr-8">
+              <div className="px-4">
+                <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="font-bold text-lg">
+                      {phase.name}
                     </div>
                   </div>
-                ))}
+                </div>
+
+                <div className="flex gap-8">
+                  {phase.columns.map((column, columnIndex) => (
+                    <div
+                      key={column.id}
+                      className="flex-shrink-0 w-[225px]"
+                    >
+                      <div className="mb-2">
+                        <div className="font-medium text-sm">
+                          {column.name}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {board.blocks
+                          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                          .map(block => (
+                            <div
+                              key={block.id}
+                              className="p-3 rounded-md bg-white border border-gray-200 shadow-sm"
+                              style={{
+                                borderLeftWidth: '4px',
+                                borderLeftColor: 
+                                  block.department === 'Design' ? '#FF8BAE' :
+                                  block.department === 'Engineering' ? '#98E2C6' :
+                                  block.department === 'Product' ? '#93C5FD' :
+                                  block.department === 'Sales' ? '#C4B5FD' :
+                                  block.department === 'Marketing' ? '#FCD34D' :
+                                  '#E5E7EB'
+                              }}
+                            >
+                              <div className="flex items-start gap-2">
+                                <div className="flex-1">
+                                  <div className="text-sm font-medium">{block.content}</div>
+                                  {block.notes && (
+                                    <div className="mt-1 text-sm text-gray-600">{block.notes}</div>
+                                  )}
+                                  {block.department && (
+                                    <div className="mt-2 text-xs font-medium text-gray-500">
+                                      {block.department}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
