@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { Board } from "@shared/schema";
+import { Loader2 } from "lucide-react";
 
 export default function PublicBoard() {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +23,10 @@ export default function PublicBoard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading blueprint...</div>
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+          <div className="text-lg">Loading blueprint...</div>
+        </div>
       </div>
     );
   }
@@ -54,8 +58,8 @@ export default function PublicBoard() {
         </div>
       </header>
 
-      <main className="max-w-[1440px] mx-auto px-6 py-6 overflow-x-auto">
-        <div className="flex gap-8 min-w-max pb-6">
+      <main className="min-w-[800px] p-8">
+        <div className="flex items-start gap-8">
           {board.phases.map((phase, phaseIndex) => (
             <div key={phase.id} className="flex-shrink-0 relative mr-8">
               <div className="px-4">
@@ -85,7 +89,7 @@ export default function PublicBoard() {
                           .map(block => (
                             <div
                               key={block.id}
-                              className="p-3 rounded-md bg-white border border-gray-200 shadow-sm"
+                              className="p-3 rounded-md bg-white border border-gray-200 shadow-sm relative"
                               style={{
                                 borderLeftWidth: '4px',
                                 borderLeftColor: 
@@ -99,12 +103,9 @@ export default function PublicBoard() {
                             >
                               <div className="flex items-start gap-2">
                                 <div className="flex-1">
-                                  <div className="text-sm font-medium">{block.content}</div>
-                                  {block.notes && (
-                                    <div className="mt-1 text-sm text-gray-600">{block.notes}</div>
-                                  )}
+                                  <div className="text-sm font-medium mb-1">{block.content}</div>
                                   {block.department && (
-                                    <div className="mt-2 text-xs font-medium text-gray-500">
+                                    <div className="text-xs font-medium text-gray-500">
                                       {block.department}
                                     </div>
                                   )}
