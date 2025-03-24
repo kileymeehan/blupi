@@ -153,7 +153,7 @@ export default function Block({
       )}
 
       {block.department && (
-        <div className="absolute bottom-3 left-3 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
+        <div className="absolute bottom-5 left-3 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
           {block.customDepartment || block.department}
         </div>
       )}
@@ -167,7 +167,7 @@ export default function Block({
         className={`
           w-full min-h-[100px] p-4
           ${block.emoji ? 'pr-8' : ''} 
-          ${block.department ? 'pb-8' : ''}
+          ${block.department ? 'pb-12' : ''}
           ${isTemplate ? 'flex items-center justify-center' : ''}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal text
@@ -181,7 +181,7 @@ export default function Block({
 
       {!isTemplate && !block.readOnly && (
         <>
-          <div className="absolute top-[-16px] left-1/2 transform -translate-x-1/2 flex items-center gap-[2px] z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute top-[-16px] left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
               onClick={(e) => {
                 e.stopPropagation();
