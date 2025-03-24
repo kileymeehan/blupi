@@ -145,7 +145,7 @@ export default function Block({
   const attachmentCount = block.attachments?.length || 0;
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative group"> {/* Added group class */}
       {block.emoji && (
         <div className="absolute top-[-12px] right-[-20px] z-10 text-lg select-none">
           {block.emoji}
@@ -274,14 +274,22 @@ export default function Block({
             </button>
           </div>
 
+          {/* Block type label */}
+          <div className={`
+            absolute bottom-1 right-2
+            text-xs text-gray-500
+            opacity-0 group-hover:opacity-60
+            transition-opacity duration-200
+          `}>
+            {TYPE_LABELS[block.type]}
+          </div>
+
           <AttachmentDialog
             open={attachmentDialogOpen}
             onOpenChange={setAttachmentDialogOpen}
             projectId={projectId}
             currentAttachments={block.attachments}
-            onAttach={(attachments) =>
-              onAttachmentChange?.(block.id, attachments)
-            }
+            onAttach={(attachments) => onAttachmentChange?.(block.id, attachments)}
           />
 
           <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
@@ -303,10 +311,7 @@ export default function Block({
             </DialogContent>
           </Dialog>
 
-          <Dialog
-            open={departmentDialogOpen}
-            onOpenChange={setDepartmentDialogOpen}
-          >
+          <Dialog open={departmentDialogOpen} onOpenChange={setDepartmentDialogOpen}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Select Department</DialogTitle>
@@ -316,9 +321,7 @@ export default function Block({
                   {DEPARTMENTS.map((dept) => (
                     <Button
                       key={dept}
-                      variant={
-                        block.department === dept ? "default" : "outline"
-                      }
+                      variant={block.department === dept ? 'default' : 'outline'}
                       onClick={() => handleDepartmentChange(dept as Department)}
                       className="w-full"
                     >
@@ -334,7 +337,7 @@ export default function Block({
                   </Button>
                 </div>
 
-                {block.department === "Custom" && (
+                {block.department === 'Custom' && (
                   <div className="space-y-2">
                     <Textarea
                       placeholder="Enter custom department name..."
