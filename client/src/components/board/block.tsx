@@ -46,21 +46,6 @@ const DEPARTMENTS = [
   'Custom'
 ] as const;
 
-const TYPE_COLORS = {
-  touchpoint: 'bg-blue-100',
-  email: 'bg-purple-100',
-  pendo: 'bg-indigo-100',
-  role: 'bg-green-100',
-  process: 'bg-teal-100',
-  friction: 'bg-red-100',
-  policy: 'bg-yellow-100',
-  technology: 'bg-cyan-100',
-  rationale: 'bg-orange-100',
-  question: 'bg-violet-100',
-  note: 'bg-gray-100',
-  hidden: 'bg-slate-100'
-} as const;
-
 export default function Block({
   block,
   onChange,
@@ -141,7 +126,7 @@ export default function Block({
   const attachmentCount = block.attachments?.length || 0;
 
   return (
-    <div className={`w-full h-full p-2 rounded-lg border border-gray-200 group relative hover:shadow-md transition-shadow ${TYPE_COLORS[block.type]}`}>
+    <div className="w-full h-full p-2 rounded-lg border border-gray-200 group relative hover:shadow-md transition-shadow">
       {block.emoji && (
         <div className="absolute top-1 right-1 z-10 text-lg">
           {block.emoji}
@@ -166,7 +151,6 @@ export default function Block({
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal text
           focus:outline-none
-          bg-transparent
           ${block.readOnly ? 'cursor-default' : ''}
         `}
         suppressContentEditableWarning={true}

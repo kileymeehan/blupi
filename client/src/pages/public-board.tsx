@@ -3,6 +3,7 @@ import { useParams } from "wouter";
 import { Board } from "@shared/schema";
 import { Loader2, Info } from "lucide-react";
 import Block from "@/components/board/block";
+import { LAYER_TYPES } from "@/components/board/constants";
 
 export default function PublicBoard() {
   const { id } = useParams<{ id: string }>();
@@ -133,14 +134,19 @@ export default function PublicBoard() {
                               {board.blocks
                                 .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
                                 .map(block => (
-                                  <Block
+                                  <div
                                     key={block.id}
-                                    block={{
-                                      ...block,
-                                      readOnly: true
-                                    }}
-                                    isTemplate={false}
-                                  />
+                                    className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group relative rounded-lg border-2 border-gray-300`}
+                                  >
+                                    <Block
+                                      key={block.id}
+                                      block={{
+                                        ...block,
+                                        readOnly: true
+                                      }}
+                                      isTemplate={false}
+                                    />
+                                  </div>
                                 ))}
                             </div>
                           </div>
