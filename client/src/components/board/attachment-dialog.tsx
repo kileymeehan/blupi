@@ -38,15 +38,19 @@ export function AttachmentDialog({
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Reset upload state when dialog closes
+  // Reset states when dialog closes
   useEffect(() => {
     if (!open) {
       setIsUploading(false);
+      setUrl('');
+      setTitle('');
     }
   }, [open]);
 
   // Handles the image upload process including validation and conversion
   const handleImageUpload = async (file: File) => {
+    console.log('Starting image upload process');
+
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
@@ -59,25 +63,48 @@ export function AttachmentDialog({
     setIsUploading(true);
 
     try {
-      // Convert the file to a data URL
-      const dataUrl = await new Promise<string>((resolve, reject) => {
+      // Create a promise to handle the FileReader
+      const base64Data = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error('Failed to read file'));
+
+        reader.onload = () => {
+          try {
+            const result = reader.result;
+            if (typeof result === 'string') {
+              resolve(result);
+            } else {
+              reject(new Error('Failed to convert image to base64'));
+            }
+          } catch (error) {
+            reject(error);
+          }
+        };
+
+        reader.onerror = () => reject(reader.error);
         reader.readAsDataURL(file);
       });
 
-      // Create new attachment with the image data
+      console.log('Image successfully converted to base64');
+
+      // Create the attachment object
       const newAttachment: Attachment = {
         id: nanoid(),
         type: 'image',
-        url: dataUrl,
+        url: base64Data,
         title: file.name
       };
 
+      // Update attachments
       onAttach([...currentAttachments, newAttachment]);
       onOpenChange(false);
+
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+
     } catch (error) {
+      console.error('Image upload error:', error);
       toast({
         title: "Upload failed",
         description: "Failed to process the image. Please try again.",
