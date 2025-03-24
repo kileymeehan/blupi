@@ -126,15 +126,15 @@ export default function Block({
   const attachmentCount = block.attachments?.length || 0;
 
   return (
-    <div className="w-full h-full p-2 rounded-lg border border-gray-200 group relative hover:shadow-md transition-shadow">
+    <div className="w-full h-full relative">
       {block.emoji && (
-        <div className="absolute top-1 right-1 z-10 text-lg">
+        <div className="absolute top-2 right-2 z-10 text-lg select-none">
           {block.emoji}
         </div>
       )}
 
       {block.department && (
-        <div className="absolute bottom-1 left-1 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
+        <div className="absolute bottom-2 left-2 z-10 px-2 py-0.5 text-xs bg-white rounded-md shadow-sm border border-gray-200">
           {block.customDepartment || block.department}
         </div>
       )}
@@ -146,7 +146,9 @@ export default function Block({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={`
-          w-full min-h-[100px] px-3 py-4 pt-8 text-sm
+          w-full min-h-[100px] p-4
+          ${block.emoji ? 'pr-10' : ''} 
+          ${block.department ? 'pb-10' : ''}
           ${isTemplate ? 'flex items-center justify-center' : ''}
           overflow-y-auto whitespace-pre-wrap break-words
           leading-normal text
@@ -159,20 +161,8 @@ export default function Block({
       </div>
 
       {!isTemplate && !block.readOnly && (
-        <div className={`
-          absolute bottom-0 inset-x-0 px-2 py-1
-          text-xs text-gray-500
-          opacity-0 group-hover:opacity-100
-          transition-opacity duration-200
-          text-right mr-2 whitespace-nowrap overflow-hidden text-ellipsis
-        `}>
-          {TYPE_LABELS[block.type]}
-        </div>
-      )}
-
-      {!isTemplate && !block.readOnly && (
         <>
-          <div className="absolute top-1 right-1 flex gap-1">
+          <div className="absolute top-2 right-2 flex gap-1 z-20">
             <button
               onClick={(e) => {
                 e.stopPropagation();
