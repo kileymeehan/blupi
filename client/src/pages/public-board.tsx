@@ -122,7 +122,7 @@ export default function PublicBoard() {
                         {phase.columns.map((column, columnIndex) => (
                           <div
                             key={column.id}
-                            className="flex-shrink-0 w-[225px]"
+                            className="flex-shrink-0 w-[280px]"
                           >
                             <div className="mb-2">
                               <div className="font-medium text-sm">
@@ -130,13 +130,18 @@ export default function PublicBoard() {
                               </div>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                               {board.blocks
                                 .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
                                 .map(block => (
                                   <div
                                     key={block.id}
-                                    className={`${LAYER_TYPES.find(l => l.type === block.type)?.color} group relative rounded-lg border-2 border-gray-300`}
+                                    className={`
+                                      ${LAYER_TYPES.find(l => l.type === block.type)?.color}
+                                      group relative rounded-lg border-2 border-gray-300 mb-2
+                                      min-h-[150px] shadow-md hover:shadow-lg transition-shadow
+                                      duration-200
+                                    `}
                                   >
                                     <Block
                                       key={block.id}
