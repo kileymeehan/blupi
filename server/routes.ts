@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
+import { insertBoardSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -10,7 +10,6 @@ interface ConnectedUser {
   id: string;
   name: string;
   color: string;
-  emoji?: string;
   ws: WebSocket;
   boardId?: string;
 }
@@ -23,34 +22,48 @@ const COLORS = [
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
-  console.log('[HTTP] Creating basic HTTP server');
 
-  // Create WebSocket server with proper path
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws',
-    verifyClient: (info, cb) => {
-      console.log('[WS] Verifying client connection:', info.req.url);
+  // Create WebSocket server with explicit configuration
+  const wss = new WebSocketServer({
+    server: httpServer,
+    path: "/ws",
+    clientTracking: true,
+    verifyClient: (info, callback) => {
+      console.log('[WS] Verifying client connection request:', {
+        url: info.req.url,
+        headers: info.req.headers
+      });
       // Accept all connections for now
-      cb(true);
+      callback(true);
     }
   });
-  console.log('[WS] WebSocket server created on path /ws');
 
-  wss.on('connection', (ws) => {
+  console.log('[WS] WebSocket server initialized on path: /ws');
+
+  // WebSocket error handling
+  wss.on('error', (error) => {
+    console.error('[WS] Server error:', error);
+  });
+
+  // Handle WebSocket connections
+  wss.on('connection', (ws, request) => {
     const userId = nanoid();
-    const colorIndex = Math.floor(Math.random() * COLORS.length);
+    console.log(`[WS] New connection: ${userId}, URL: ${request.url}`);
 
-    console.log(`[WS] New connection established: ${userId}`);
+    // Send initial connection confirmation
+    ws.send(JSON.stringify({
+      type: 'connected',
+      userId
+    }));
 
+    // Handle incoming messages
     ws.on('message', (data) => {
       try {
         const message = JSON.parse(data.toString());
-        console.log(`[WS] Received message from ${userId}:`, message);
+        console.log(`[WS] Message from ${userId}:`, message);
 
         if (message.type === 'subscribe') {
           if (!message.boardId) {
-            console.log('[WS] Missing boardId in subscribe message');
             ws.send(JSON.stringify({
               type: 'error',
               message: 'boardId is required'
@@ -58,40 +71,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return;
           }
 
-          const user: ConnectedUser = {
+          // Add user to connected users
+          const userColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+          connectedUsers.set(userId, {
             id: userId,
             name: message.userName || 'Anonymous',
-            color: COLORS[colorIndex],
-            emoji: message.userEmoji,
+            color: userColor,
             ws,
             boardId: message.boardId
-          };
-          connectedUsers.set(userId, user);
+          });
 
-          // Send initial users list to new user
+          // Get all users in the same board
           const boardUsers = Array.from(connectedUsers.values())
             .filter(u => u.boardId === message.boardId)
-            .map(({ id, name, color, emoji }) => ({ id, name, color, emoji }));
+            .map(({ id, name, color }) => ({ id, name, color }));
 
-          ws.send(JSON.stringify({
+          // Send users list to all clients in the board
+          const userUpdateMessage = JSON.stringify({
             type: 'users_update',
             users: boardUsers
-          }));
+          });
 
-          // Broadcast to other users in the same board
-          for (const [, connectedUser] of connectedUsers) {
-            if (connectedUser.ws !== ws && 
-                connectedUser.boardId === message.boardId &&
-                connectedUser.ws.readyState === WebSocket.OPEN) {
-              connectedUser.ws.send(JSON.stringify({
-                type: 'users_update',
-                users: boardUsers
-              }));
+          connectedUsers.forEach((user) => {
+            if (user.boardId === message.boardId && user.ws.readyState === WebSocket.OPEN) {
+              user.ws.send(userUpdateMessage);
             }
-          }
+          });
         }
       } catch (error) {
-        console.error('[WS] Error processing message:', error);
+        console.error('[WS] Message processing error:', error);
         ws.send(JSON.stringify({
           type: 'error',
           message: 'Failed to process message'
@@ -99,38 +107,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
 
+    // Handle disconnection
     ws.on('close', () => {
       console.log(`[WS] Connection closed: ${userId}`);
       const user = connectedUsers.get(userId);
+
       if (user?.boardId) {
         connectedUsers.delete(userId);
 
-        // Broadcast updated users list to remaining users in the same board
+        // Notify remaining users
         const boardUsers = Array.from(connectedUsers.values())
           .filter(u => u.boardId === user.boardId)
-          .map(({ id, name, color, emoji }) => ({ id, name, color, emoji }));
+          .map(({ id, name, color }) => ({ id, name, color }));
 
-        for (const [, connectedUser] of connectedUsers) {
-          if (connectedUser.boardId === user.boardId &&
-              connectedUser.ws.readyState === WebSocket.OPEN) {
-            connectedUser.ws.send(JSON.stringify({
-              type: 'users_update',
-              users: boardUsers
-            }));
+        const userUpdateMessage = JSON.stringify({
+          type: 'users_update',
+          users: boardUsers
+        });
+
+        connectedUsers.forEach((remainingUser) => {
+          if (remainingUser.boardId === user.boardId && 
+              remainingUser.ws.readyState === WebSocket.OPEN) {
+            remainingUser.ws.send(userUpdateMessage);
           }
-        }
+        });
       }
-    });
-
-    // Send heartbeat to keep connection alive
-    const heartbeat = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.ping();
-      }
-    }, 30000);
-
-    ws.on('close', () => {
-      clearInterval(heartbeat);
     });
   });
 
