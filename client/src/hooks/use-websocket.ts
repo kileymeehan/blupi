@@ -26,7 +26,7 @@ export function useWebSocket(boardId: string) {
   const { user } = useFirebaseAuth();
 
   const MAX_RETRY_ATTEMPTS = 5;
-  const INITIAL_RETRY_DELAY = 1000; // 1 second
+  const INITIAL_RETRY_DELAY = 500; // Start with a shorter delay (500ms)
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -84,15 +84,6 @@ export function useWebSocket(boardId: string) {
         socket.addEventListener('error', (error) => {
           console.error('[WS] Connection error:', error);
           setIsConnected(false);
-
-          // Only show error toast after multiple attempts
-          if (reconnectAttempts.current >= MAX_RETRY_ATTEMPTS) {
-            toast({
-              title: "Connection Error",
-              description: "Failed to connect to collaboration server. Please check your internet connection.",
-              variant: "destructive"
-            });
-          }
         });
 
         socket.addEventListener('close', (event) => {
@@ -102,8 +93,8 @@ export function useWebSocket(boardId: string) {
 
           if (event.code !== 1000) {
             const backoffTime = Math.min(
-              INITIAL_RETRY_DELAY * Math.pow(2, reconnectAttempts.current),
-              30000
+              INITIAL_RETRY_DELAY * Math.pow(1.5, reconnectAttempts.current), // Use 1.5 instead of 2 for gentler backoff
+              10000 // Cap at 10 seconds instead of 30
             );
             reconnectAttempts.current++;
 
@@ -117,7 +108,7 @@ export function useWebSocket(boardId: string) {
             } else {
               toast({
                 title: "Connection Failed",
-                description: "Unable to establish a stable connection. Please refresh the page to try again.",
+                description: "Unable to establish a stable connection. Please check your internet connection and refresh the page.",
                 variant: "destructive"
               });
             }
@@ -132,14 +123,6 @@ export function useWebSocket(boardId: string) {
       } catch (error) {
         console.error('[WS] Failed to create WebSocket connection:', error);
         setIsConnecting(false);
-
-        if (reconnectAttempts.current >= MAX_RETRY_ATTEMPTS) {
-          toast({
-            title: "Connection Error",
-            description: "Failed to establish connection. Please try refreshing the page.",
-            variant: "destructive"
-          });
-        }
       }
     };
 
