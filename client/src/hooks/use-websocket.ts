@@ -16,6 +16,7 @@ interface ConnectedUser {
 
 export function useWebSocket(boardId: string) {
   const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
   const socketRef = useRef<WebSocket | null>(null);
@@ -23,6 +24,9 @@ export function useWebSocket(boardId: string) {
   const reconnectAttempts = useRef(0);
   const { toast } = useToast();
   const { user } = useFirebaseAuth();
+
+  const MAX_RETRY_ATTEMPTS = 5;
+  const INITIAL_RETRY_DELAY = 1000; // 1 second
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -36,9 +40,7 @@ export function useWebSocket(boardId: string) {
   useEffect(() => {
     if (!boardId) return;
 
-    // Get the host without port number
     const host = window.location.hostname;
-    // Get the port from the current URL, or use default port
     const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${wsProtocol}//${host}:${port}/ws`;
@@ -47,12 +49,14 @@ export function useWebSocket(boardId: string) {
 
     const connect = () => {
       try {
+        setIsConnecting(true);
         const socket = new WebSocket(wsUrl);
         socketRef.current = socket;
 
         socket.addEventListener('open', () => {
           console.log('[WS] Connection opened');
           setIsConnected(true);
+          setIsConnecting(false);
           reconnectAttempts.current = 0;
 
           sendMessage({
@@ -80,27 +84,43 @@ export function useWebSocket(boardId: string) {
         socket.addEventListener('error', (error) => {
           console.error('[WS] Connection error:', error);
           setIsConnected(false);
-          toast({
-            title: "Connection Error",
-            description: "Failed to connect to collaboration server. Retrying...",
-            variant: "destructive"
-          });
+
+          // Only show error toast after multiple attempts
+          if (reconnectAttempts.current >= MAX_RETRY_ATTEMPTS) {
+            toast({
+              title: "Connection Error",
+              description: "Failed to connect to collaboration server. Please check your internet connection.",
+              variant: "destructive"
+            });
+          }
         });
 
         socket.addEventListener('close', (event) => {
           console.log(`[WS] Connection closed. Code: ${event.code}, Reason: ${event.reason}`);
           setIsConnected(false);
+          setIsConnecting(false);
 
           if (event.code !== 1000) {
-            const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
+            const backoffTime = Math.min(
+              INITIAL_RETRY_DELAY * Math.pow(2, reconnectAttempts.current),
+              30000
+            );
             reconnectAttempts.current++;
 
-            console.log(`[WS] Attempting to reconnect in ${backoffTime}ms (attempt ${reconnectAttempts.current})`);
-            reconnectTimeoutRef.current = setTimeout(() => {
-              if (document.visibilityState === 'visible') {
-                connect();
-              }
-            }, backoffTime);
+            if (reconnectAttempts.current <= MAX_RETRY_ATTEMPTS) {
+              console.log(`[WS] Attempting to reconnect in ${backoffTime}ms (attempt ${reconnectAttempts.current}/${MAX_RETRY_ATTEMPTS})`);
+              reconnectTimeoutRef.current = setTimeout(() => {
+                if (document.visibilityState === 'visible') {
+                  connect();
+                }
+              }, backoffTime);
+            } else {
+              toast({
+                title: "Connection Failed",
+                description: "Unable to establish a stable connection. Please refresh the page to try again.",
+                variant: "destructive"
+              });
+            }
           }
         });
 
@@ -111,11 +131,15 @@ export function useWebSocket(boardId: string) {
         };
       } catch (error) {
         console.error('[WS] Failed to create WebSocket connection:', error);
-        toast({
-          title: "Connection Error",
-          description: "Failed to establish connection. Please try refreshing the page.",
-          variant: "destructive"
-        });
+        setIsConnecting(false);
+
+        if (reconnectAttempts.current >= MAX_RETRY_ATTEMPTS) {
+          toast({
+            title: "Connection Error",
+            description: "Failed to establish connection. Please try refreshing the page.",
+            variant: "destructive"
+          });
+        }
       }
     };
 
@@ -141,5 +165,5 @@ export function useWebSocket(boardId: string) {
     };
   }, [boardId, toast, sendMessage, user?.email, user?.photoURL]);
 
-  return { isConnected, lastMessage, sendMessage, connectedUsers };
+  return { isConnected, isConnecting, lastMessage, sendMessage, connectedUsers };
 }
