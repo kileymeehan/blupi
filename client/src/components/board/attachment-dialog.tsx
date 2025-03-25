@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Link as LinkIcon, Image as ImageIcon, Video, FileText, X, Plus, Loader2 } from "lucide-react";
+import { Link as LinkIcon, Image as ImageIcon, FileText, X, Plus, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { Board, Attachment } from "@shared/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -35,50 +35,48 @@ export function AttachmentDialog({
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleImageUpload = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsUploading(true);
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      try {
-        const newAttachment: Attachment = {
-          id: nanoid(),
-          type: 'image',
-          url: reader.result as string,
-          title: file.name
-        };
-        onAttach([...currentAttachments, newAttachment]);
-        onOpenChange(false);
-      } catch (error) {
-        toast({
-          title: "Upload failed",
-          description: "Failed to process the image. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsUploading(false);
+  const validateAndProcessImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith('image/')) {
+        reject(new Error('Please upload an image file'));
+        return;
       }
-    };
 
-    reader.onerror = () => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result);
+      };
+      reader.onerror = () => {
+        reject(new Error('Failed to read the image file'));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      setIsUploading(true);
+      const imageDataUrl = await validateAndProcessImage(file);
+
+      const newAttachment: Attachment = {
+        id: nanoid(),
+        type: 'image',
+        url: imageDataUrl,
+        title: file.name
+      };
+
+      onAttach([...currentAttachments, newAttachment]);
+      onOpenChange(false);
+    } catch (error) {
       toast({
         title: "Upload failed",
-        description: "Failed to read the image file. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to process the image",
         variant: "destructive"
       });
+    } finally {
       setIsUploading(false);
-    };
-
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -110,13 +108,13 @@ export function AttachmentDialog({
     }
   };
 
-  const handleAddAttachment = () => {
+  const handleAddLink = () => {
     if (!url) return;
     const newAttachment: Attachment = {
       id: nanoid(),
-      type: selectedTab as 'link' | 'image' | 'video',
+      type: 'link',
       url,
-      title
+      title: title || url
     };
     onAttach([...currentAttachments, newAttachment]);
     setUrl('');
@@ -177,7 +175,8 @@ export function AttachmentDialog({
               </div>
               <Button
                 className="w-full"
-                onClick={handleAddAttachment}
+                onClick={handleAddLink}
+                disabled={!url}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Link
