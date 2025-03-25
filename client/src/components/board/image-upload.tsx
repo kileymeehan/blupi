@@ -28,8 +28,8 @@ export default function ImageUpload({
           let width = img.width;
           let height = img.height;
 
-          // If image is larger than 2000px in any dimension, scale it down
-          const maxDimension = 2000;
+          // If image is larger than 1000px in any dimension, scale it down more aggressively
+          const maxDimension = 1000;
           if (width > maxDimension || height > maxDimension) {
             if (width > height) {
               height = (height / width) * maxDimension;
@@ -45,23 +45,51 @@ export default function ImageUpload({
           const ctx = canvas.getContext("2d");
           ctx?.drawImage(img, 0, 0, width, height);
 
-          // Use lower quality for larger files
-          const quality = file.size > 1024 * 1024 ? 0.7 : 0.9;
-          resolve(canvas.toDataURL("image/jpeg", quality));
+          // More aggressive compression for larger files
+          const maxSizeInBytes = 500 * 1024; // 500KB
+          let quality = file.size > maxSizeInBytes ? 0.5 : 0.7;
+          let result = canvas.toDataURL("image/jpeg", quality);
+
+          // If still too large, compress more
+          while (result.length > maxSizeInBytes * 1.37 && quality > 0.1) { // 1.37 factor for base64
+            quality -= 0.1;
+            result = canvas.toDataURL("image/jpeg", quality);
+          }
+
+          resolve(result);
         };
-        img.onerror = reject;
+        img.onerror = () => {
+          reject(new Error('Failed to process the image'));
+        };
         img.src = e.target?.result as string;
       };
-      reader.onerror = reject;
+      reader.onerror = () => {
+        reject(new Error('Failed to read the image file'));
+      };
       reader.readAsDataURL(file);
     });
   };
 
-  const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check file size before processing
+    const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSizeInBytes) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       setIsUploading(true);
@@ -70,9 +98,10 @@ export default function ImageUpload({
     } catch (error) {
       toast({
         title: "Upload failed",
-        description: "Failed to process the image. Please try again.",
-        variant: "destructive",
+        description: error instanceof Error ? error.message : "Failed to process the image. Please try a smaller image.",
+        variant: "destructive"
       });
+      onImageChange(null); // Reset the image state on failure
     } finally {
       setIsUploading(false);
     }
@@ -105,7 +134,12 @@ export default function ImageUpload({
         <input
           type="file"
           ref={fileInputRef}
-          onChange={handleImageUpload}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              handleImageUpload(file);
+            }
+          }}
           accept="image/*"
           className="hidden"
         />
