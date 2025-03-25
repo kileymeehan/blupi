@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Image, X, Upload, Trash } from "lucide-react";
+import { Image as ImageIcon, X, Upload, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -22,8 +22,7 @@ export default function ImageUpload({
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        console.log(Image); // Add this line
-        const img = new Image();
+        const img = document.createElement('img');
         img.onload = () => {
           const canvas = document.createElement("canvas");
           let width = img.width;
@@ -146,7 +145,7 @@ export default function ImageUpload({
               </div>
             ) : (
               <>
-                <Image className="w-4 h-4 mb-1" />
+                <ImageIcon className="w-4 h-4 mb-1" />
                 <span className="text-xs">Add image</span>
               </>
             )}
