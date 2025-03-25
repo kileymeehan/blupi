@@ -1,15 +1,18 @@
-import { useState, useRef } from 'react';
-import { Image, X, Upload, Trash } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useRef } from "react";
+import { Image, X, Upload, Trash } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface ImageUploadProps {
   onImageChange: (image: string | null) => void;
   currentImage?: string | null;
 }
 
-export default function ImageUpload({ onImageChange, currentImage }: ImageUploadProps) {
+export default function ImageUpload({
+  onImageChange,
+  currentImage,
+}: ImageUploadProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -21,7 +24,7 @@ export default function ImageUpload({ onImageChange, currentImage }: ImageUpload
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          const canvas = document.createElement('canvas');
+          const canvas = document.createElement("canvas");
           let width = img.width;
           let height = img.height;
 
@@ -39,12 +42,12 @@ export default function ImageUpload({ onImageChange, currentImage }: ImageUpload
 
           canvas.width = width;
           canvas.height = height;
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext("2d");
           ctx?.drawImage(img, 0, 0, width, height);
 
           // Use lower quality for larger files
           const quality = file.size > 1024 * 1024 ? 0.7 : 0.9;
-          resolve(canvas.toDataURL('image/jpeg', quality));
+          resolve(canvas.toDataURL("image/jpeg", quality));
         };
         img.onerror = reject;
         img.src = e.target?.result as string;
@@ -54,7 +57,9 @@ export default function ImageUpload({ onImageChange, currentImage }: ImageUpload
     });
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -66,7 +71,7 @@ export default function ImageUpload({ onImageChange, currentImage }: ImageUpload
       toast({
         title: "Upload failed",
         description: "Failed to process the image. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsUploading(false);
@@ -93,7 +98,7 @@ export default function ImageUpload({ onImageChange, currentImage }: ImageUpload
 
   return (
     <>
-      <div 
+      <div
         onClick={handleClick}
         className="mb-2 h-24 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer relative overflow-hidden w-[225px]"
       >
@@ -107,9 +112,9 @@ export default function ImageUpload({ onImageChange, currentImage }: ImageUpload
 
         {currentImage ? (
           <>
-            <img 
-              src={currentImage} 
-              alt="Uploaded" 
+            <img
+              src={currentImage}
+              alt="Uploaded"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-opacity flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
@@ -159,9 +164,9 @@ export default function ImageUpload({ onImageChange, currentImage }: ImageUpload
             >
               <X className="w-4 h-4" />
             </Button>
-            <img 
-              src={currentImage!} 
-              alt="Preview" 
+            <img
+              src={currentImage!}
+              alt="Preview"
               className="w-full h-full object-contain"
             />
           </div>

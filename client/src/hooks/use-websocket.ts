@@ -33,7 +33,6 @@ export function useWebSocket(boardId: string) {
     }
   }, []);
 
-  // Reset connection when user profile changes
   useEffect(() => {
     if (socketRef.current && user?.photoURL) {
       console.log('[WS] User profile updated, reconnecting...');
@@ -43,8 +42,7 @@ export function useWebSocket(boardId: string) {
 
   useEffect(() => {
     console.log(`[WS] Initializing connection for board ${boardId}`);
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
     console.log('[WS] Connecting to:', wsUrl);
 
     const connect = () => {
@@ -57,7 +55,6 @@ export function useWebSocket(boardId: string) {
           setIsConnected(true);
           reconnectAttempts.current = 0;
 
-          // Subscribe to board updates with user info
           const userEmail = user?.email || 'Anonymous';
           console.log('[WS] Subscribing with user info:', { 
             email: userEmail, 
@@ -68,7 +65,7 @@ export function useWebSocket(boardId: string) {
             type: 'subscribe', 
             boardId,
             userName: userEmail,
-            userEmoji: user?.photoURL // Send user's emoji from Firebase Auth
+            userEmoji: user?.photoURL
           });
         });
 
@@ -109,7 +106,6 @@ export function useWebSocket(boardId: string) {
           }
         });
 
-        // Listen for user profile updates
         const handleProfileUpdate = (event: CustomEvent) => {
           if (socket.readyState === WebSocket.OPEN) {
             sendMessage({
