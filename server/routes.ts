@@ -26,7 +26,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('[HTTP] Creating basic HTTP server');
 
   // Create WebSocket server with proper path
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws',
+    verifyClient: (info, cb) => {
+      console.log('[WS] Verifying client connection:', info.req.url);
+      // Accept all connections for now
+      cb(true);
+    }
+  });
   console.log('[WS] WebSocket server created on path /ws');
 
   wss.on('connection', (ws) => {
@@ -41,6 +49,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[WS] Received message from ${userId}:`, message);
 
         if (message.type === 'subscribe') {
+          if (!message.boardId) {
+            console.log('[WS] Missing boardId in subscribe message');
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'boardId is required'
+            }));
+            return;
+          }
+
           const user: ConnectedUser = {
             id: userId,
             name: message.userName || 'Anonymous',
@@ -63,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Broadcast to other users in the same board
           for (const [, connectedUser] of connectedUsers) {
-            if (connectedUser.ws !== ws &&
+            if (connectedUser.ws !== ws && 
                 connectedUser.boardId === message.boardId &&
                 connectedUser.ws.readyState === WebSocket.OPEN) {
               connectedUser.ws.send(JSON.stringify({
@@ -75,6 +92,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (error) {
         console.error('[WS] Error processing message:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Failed to process message'
+        }));
       }
     });
 

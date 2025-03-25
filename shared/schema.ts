@@ -106,10 +106,11 @@ export const commentSchema = z.object({
 
 export type Comment = z.infer<typeof commentSchema>;
 
+// Update the attachment schema to handle both URLs and base64 data
 export const attachmentSchema = z.object({
   id: z.string(),
   type: z.enum(['link', 'image', 'video']),
-  url: z.string().url('Invalid URL'),
+  url: z.string(), // Remove URL validation to allow base64 data
   title: z.string().optional()
 });
 
