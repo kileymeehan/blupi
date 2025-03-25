@@ -45,9 +45,20 @@ export function AttachmentDialog({
     }
   }, [open]);
 
-  // Simple image upload handler
-  const handleImageUpload = (file: File) => {
-    console.log('Starting image upload...', file.name);
+  // Simplified image upload function
+  const readImageFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Handle file selection
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     if (!file.type.startsWith('image/')) {
       toast({
@@ -58,87 +69,47 @@ export function AttachmentDialog({
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
       toast({
         title: "File too large",
-        description: "Please upload an image smaller than 5MB",
+        description: "Please upload an image smaller than 2MB",
         variant: "destructive"
       });
       return;
     }
 
     setIsUploading(true);
-    console.log('Reading file...');
-
-    const reader = new FileReader();
-
-    reader.onload = function(e) {
-      console.log('File read complete');
-      try {
-        if (!e.target?.result) {
-          throw new Error('Failed to read file');
-        }
-
-        const newAttachment: Attachment = {
-          id: nanoid(),
-          type: 'image',
-          url: e.target.result as string,
-          title: file.name
-        };
-
-        console.log('Created attachment object');
-        onAttach([...currentAttachments, newAttachment]);
-
-        toast({
-          title: "Success",
-          description: "Image uploaded successfully"
-        });
-
-        setIsUploading(false);
-        onOpenChange(false);
-      } catch (error) {
-        console.error('Error creating attachment:', error);
-        toast({
-          title: "Upload failed",
-          description: "Failed to process image",
-          variant: "destructive"
-        });
-        setIsUploading(false);
-      }
-    };
-
-    reader.onerror = function(error) {
-      console.error('FileReader error:', error);
-      toast({
-        title: "Upload failed",
-        description: "Failed to read image file",
-        variant: "destructive"
-      });
-      setIsUploading(false);
-    };
 
     try {
-      reader.readAsDataURL(file);
+      const dataUrl = await readImageFile(file);
+
+      const newAttachment: Attachment = {
+        id: nanoid(),
+        type: 'image',
+        url: dataUrl,
+        title: file.name
+      };
+
+      onAttach([...currentAttachments, newAttachment]);
+
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully"
+      });
+
+      onOpenChange(false);
     } catch (error) {
-      console.error('Error starting file read:', error);
       toast({
         title: "Upload failed",
-        description: "Failed to start file upload",
+        description: "Failed to upload image. Please try again.",
         variant: "destructive"
       });
+    } finally {
       setIsUploading(false);
     }
   };
 
-  // File input change handler
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleImageUpload(file);
-    }
-  };
-
-  // Link attachment handler
+  // Handle link attachment
   const handleAddLink = () => {
     if (!url) return;
 
@@ -154,7 +125,7 @@ export function AttachmentDialog({
     setTitle('');
   };
 
-  // Remove attachment handler
+  // Handle attachment removal
   const handleRemoveAttachment = (id: string) => {
     onAttach(currentAttachments.filter(a => a.id !== id));
   };
@@ -237,24 +208,22 @@ export function AttachmentDialog({
                   <>
                     <ImageIcon className="w-8 h-8 mx-auto text-gray-400" />
                     <p className="mt-2 text-sm text-gray-600">
-                      Click to upload an image
+                      Click to select an image
                     </p>
-                    <input
-                      type="file"
-                      className="hidden"
-                      ref={fileInputRef}
-                      accept="image/*"
-                      onChange={handleFileSelect}
-                      disabled={isUploading}
-                    />
                     <Button
                       variant="outline"
                       onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
                       className="mt-4"
                     >
                       Choose File
                     </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileSelect}
+                    />
                   </>
                 )}
               </div>
