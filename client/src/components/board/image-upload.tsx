@@ -22,6 +22,7 @@ export default function ImageUpload({
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
+        console.log(Image); // Add this line
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement("canvas");

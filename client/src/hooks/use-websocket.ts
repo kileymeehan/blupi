@@ -17,28 +17,32 @@ interface ConnectedUser {
 export function useWebSocket(boardId: string) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
-  const socketRef = useRef<WebSocket | null>(null);
-  const { toast } = useToast();
-  const { user } = useFirebaseAuth();
   const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
+  const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttempts = useRef(0);
+  const { toast } = useToast();
+  const { user } = useFirebaseAuth();
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       console.log('[WS] Sending message:', message);
       socketRef.current.send(JSON.stringify(message));
     } else {
-      console.warn('[WS] Socket not ready (state:', socketRef.current?.readyState, '), message not sent:', message);
+      console.warn('[WS] Socket not ready, message not sent:', message);
     }
   }, []);
 
   useEffect(() => {
     if (!boardId) return;
 
-    console.log(`[WS] Initializing connection for board ${boardId}`);
+    // Get the host without port number
+    const host = window.location.hostname;
+    // Get the port from the current URL, or use default port
+    const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+    const wsUrl = `${wsProtocol}//${host}:${port}/ws`;
+
     console.log('[WS] Attempting to connect to:', wsUrl);
 
     const connect = () => {
@@ -51,16 +55,10 @@ export function useWebSocket(boardId: string) {
           setIsConnected(true);
           reconnectAttempts.current = 0;
 
-          const userEmail = user?.email || 'Anonymous';
-          console.log('[WS] Subscribing with user info:', {
-            email: userEmail,
-            emoji: user?.photoURL
-          });
-
           sendMessage({
             type: 'subscribe',
             boardId,
-            userName: userEmail,
+            userName: user?.email || 'Anonymous',
             userEmoji: user?.photoURL
           });
         });
@@ -93,7 +91,7 @@ export function useWebSocket(boardId: string) {
           console.log(`[WS] Connection closed. Code: ${event.code}, Reason: ${event.reason}`);
           setIsConnected(false);
 
-          if (event.code !== 1000) { // Not a normal closure
+          if (event.code !== 1000) {
             const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
             reconnectAttempts.current++;
 
@@ -129,6 +127,7 @@ export function useWebSocket(boardId: string) {
         connect();
       }
     };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
