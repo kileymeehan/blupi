@@ -1,138 +1,165 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useFirebaseAuth } from '@/hooks/use-firebase-auth';
+
+type WebSocketMessage = {
+  type: string;
+  [key: string]: any;
+};
 
 interface ConnectedUser {
   id: string;
   name: string;
   color: string;
-}
-
-interface WebSocketMessage {
-  type: string;
-  [key: string]: any;
+  emoji?: string;
 }
 
 export function useWebSocket(boardId: string) {
   const [isConnected, setIsConnected] = useState(false);
-  const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
+  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const { toast } = useToast();
+  const { user } = useFirebaseAuth();
+  const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectAttempts = useRef(0);
+  const maxReconnectAttempts = 5;
 
+  const sendMessage = useCallback((message: WebSocketMessage) => {
+    if (!boardId) {
+      console.error('[WS] Cannot send message: no boardId provided');
+      return;
+    }
+
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(message));
+    } else {
+      console.warn('[WS] Socket not ready, message queued');
+      // Attempt to reconnect if not connected
+      if (!isConnected) {
+        connect();
+      }
+    }
+  }, [boardId, isConnected]);
+
+  const connect = useCallback(() => {
+    if (reconnectAttempts.current >= maxReconnectAttempts) {
+      console.error('[WS] Max reconnection attempts reached');
+      toast({
+        title: "Connection Error",
+        description: "Failed to connect to server. Please refresh the page.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host;
+      const wsUrl = `${protocol}//${host}/ws`;
+
+      console.log('[WS] Connecting to:', wsUrl);
+
+      const socket = new WebSocket(wsUrl);
+      socketRef.current = socket;
+
+      socket.addEventListener('open', () => {
+        console.log('[WS] Connection established');
+        setIsConnected(true);
+        reconnectAttempts.current = 0;
+
+        // Send initial subscription
+        const userEmail = user?.email || 'Anonymous';
+        socket.send(JSON.stringify({
+          type: 'subscribe',
+          boardId,
+          userName: userEmail,
+          userEmoji: user?.photoURL
+        }));
+      });
+
+      socket.addEventListener('message', (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'error') {
+            console.error('[WS] Server error:', data.message);
+            toast({
+              title: "Server Error",
+              description: data.message,
+              variant: "destructive"
+            });
+          } else if (data.type === 'users_update') {
+            setConnectedUsers(data.users);
+          }
+          setLastMessage(data);
+        } catch (error) {
+          console.error('[WS] Message parsing error:', error);
+        }
+      });
+
+      socket.addEventListener('error', (error) => {
+        console.error('[WS] WebSocket error:', error);
+        setIsConnected(false);
+      });
+
+      socket.addEventListener('close', (event) => {
+        console.log('[WS] Connection closed. Code:', event.code);
+        setIsConnected(false);
+
+        if (event.code !== 1000) {
+          const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
+          reconnectAttempts.current++;
+
+          console.log(`[WS] Attempting to reconnect in ${backoffTime}ms`);
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+          }
+
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (document.visibilityState === 'visible') {
+              connect();
+            }
+          }, backoffTime);
+        }
+      });
+
+    } catch (error) {
+      console.error('[WS] Setup error:', error);
+      setIsConnected(false);
+    }
+  }, [boardId, toast, user?.email, user?.photoURL]);
+
+  // Initialize connection
   useEffect(() => {
     if (!boardId) {
       console.log('[WS] No boardId provided, skipping connection');
       return;
     }
 
-    // Create WebSocket URL
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const wsUrl = `${protocol}//${host}/ws`;
+    connect();
 
-    console.log('[WS] Connecting to:', wsUrl);
+    // Handle tab visibility
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !isConnected && boardId) {
+        console.log('[WS] Tab visible, attempting reconnect');
+        connect();
+      }
+    };
 
-    try {
-      // Create WebSocket connection
-      const socket = new WebSocket(wsUrl);
-      socketRef.current = socket;
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-      // Connection opened
-      socket.addEventListener('open', () => {
-        console.log('[WS] Connection established');
-        setIsConnected(true);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
 
-        // Send subscription message
-        const subscribeMessage = {
-          type: 'subscribe',
-          boardId,
-          userName: 'Test User' // For testing
-        };
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
 
-        console.log('[WS] Sending subscribe message:', subscribeMessage);
-        socket.send(JSON.stringify(subscribeMessage));
-      });
+      if (socketRef.current) {
+        socketRef.current.close(1000, 'Component unmounted');
+      }
+    };
+  }, [boardId, connect]);
 
-      // Listen for messages
-      socket.addEventListener('message', (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log('[WS] Received message:', data);
-
-          switch (data.type) {
-            case 'connected':
-              console.log('[WS] Connection confirmed, userId:', data.userId);
-              break;
-            case 'users_update':
-              console.log('[WS] Users updated:', data.users);
-              setConnectedUsers(data.users);
-              break;
-            case 'error':
-              console.error('[WS] Server error:', data.message);
-              toast({
-                title: "WebSocket Error",
-                description: data.message,
-                variant: "destructive"
-              });
-              break;
-            default:
-              console.log('[WS] Unknown message type:', data.type);
-          }
-        } catch (error) {
-          console.error('[WS] Error processing message:', error);
-        }
-      });
-
-      // Connection error
-      socket.addEventListener('error', (error) => {
-        console.error('[WS] WebSocket error:', error);
-        setIsConnected(false);
-        toast({
-          title: "Connection Error",
-          description: "Failed to connect to server. Please try refreshing the page.",
-          variant: "destructive"
-        });
-      });
-
-      // Connection closed
-      socket.addEventListener('close', (event) => {
-        console.log('[WS] Connection closed. Code:', event.code);
-        setIsConnected(false);
-        setConnectedUsers([]);
-      });
-
-      // Cleanup on unmount
-      return () => {
-        console.log('[WS] Cleaning up WebSocket connection');
-        if (socketRef.current?.readyState === WebSocket.OPEN) {
-          socketRef.current.close(1000, 'Component unmounted');
-        }
-      };
-    } catch (error) {
-      console.error('[WS] Setup error:', error);
-      toast({
-        title: "Connection Error",
-        description: "Failed to establish WebSocket connection",
-        variant: "destructive"
-      });
-    }
-  }, [boardId, toast]);
-
-  const sendMessage = (message: WebSocketMessage) => {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-      console.warn('[WS] Cannot send message - socket not ready');
-      return;
-    }
-
-    try {
-      socketRef.current.send(JSON.stringify(message));
-    } catch (error) {
-      console.error('[WS] Error sending message:', error);
-    }
-  };
-
-  return {
-    isConnected,
-    connectedUsers,
-    sendMessage
-  };
+  return { isConnected, lastMessage, sendMessage, connectedUsers };
 }
