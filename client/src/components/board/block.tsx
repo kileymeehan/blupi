@@ -16,12 +16,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
-import { toast } from "@/components/ui/toast"; // Assuming toast component exists
 
 interface BlockProps {
   block: BlockType;
   onChange?: (content: string) => void;
-  onBlocksChange?: (blocks: BlockType[]) => void; // Added onBlocksChange prop
+  onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
   onEmojiChange?: (blockId: string, emoji: string) => void;
   onDepartmentChange?: (
@@ -32,7 +31,6 @@ interface BlockProps {
   isTemplate?: boolean;
   onCommentClick?: () => void;
   projectId?: number;
-  board: {blocks: BlockType[]}; // Added board prop
 }
 
 const TYPE_LABELS = {
@@ -64,14 +62,13 @@ const DEPARTMENTS = [
 export default function Block({
   block,
   onChange,
+  onAttachmentChange,
   onNotesChange,
   onEmojiChange,
   onDepartmentChange,
   isTemplate = false,
   onCommentClick,
   projectId,
-  board, // Added board prop
-  onBlocksChange, // Added onBlocksChange prop
 }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
@@ -146,32 +143,6 @@ export default function Block({
 
   const commentCount = block.comments?.length || 0;
   const attachmentCount = block.attachments?.length || 0;
-
-  // Update the handleAttachmentChange function
-  const handleAttachmentChange = (blockId: string, attachments: Attachment[]) => {
-    console.log('Updating block attachments:', {
-      blockId,
-      attachmentCount: attachments.length,
-      totalSize: attachments.reduce((size, att) => size + (att.url?.length || 0), 0) //Fixed potential error
-    });
-
-    const blocks = board.blocks.map((block) =>
-      block.id === blockId ? { ...block, attachments } : block
-    );
-
-    try {
-      onBlocksChange(blocks);
-      console.log('Block attachments updated successfully');
-    } catch (error) {
-      console.error('Error updating block attachments:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save image attachment",
-        variant: "destructive"
-      });
-    }
-  };
-
 
   return (
     <div className="w-full h-full relative group">
@@ -324,7 +295,9 @@ export default function Block({
             onOpenChange={setAttachmentDialogOpen}
             projectId={projectId}
             currentAttachments={block.attachments}
-            onAttach={handleAttachmentChange} // Use the new handleAttachmentChange function
+            onAttach={(attachments) =>
+              onAttachmentChange?.(block.id, attachments)
+            }
           />
 
           <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
