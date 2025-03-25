@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Link as LinkIcon, Image as ImageIcon, FileText, X, Plus, Loader2, Paperclip } from "lucide-react";
+import { Link as LinkIcon, Image as ImageIcon, FileText, X, Plus, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { Board, Attachment } from "@shared/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,20 +27,12 @@ export function AttachmentDialog({
   currentAttachments = [],
   onAttach
 }: AttachmentDialogProps) {
-  // Tab and form state
+  // Basic state
   const [selectedTab, setSelectedTab] = useState('link');
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
-
-  // Upload state
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-
-  // References
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const dropZoneRef = useRef<HTMLDivElement>(null);
-
-  // UI state
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -48,115 +40,97 @@ export function AttachmentDialog({
   useEffect(() => {
     if (!open) {
       setIsUploading(false);
-      setUploadError(null);
       setUrl('');
       setTitle('');
     }
   }, [open]);
 
-  // File validation
-  const validateFile = (file: File): boolean => {
+  // Simple image upload handler
+  const handleImageUpload = (file: File) => {
+    console.log('Starting image upload...', file.name);
+
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
         description: "Please upload an image file",
         variant: "destructive"
       });
-      return false;
+      return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File too large",
         description: "Please upload an image smaller than 5MB",
         variant: "destructive"
       });
-      return false;
-    }
-
-    return true;
-  };
-
-  // Handle image upload
-  const handleImageUpload = async (file: File) => {
-    setUploadError(null);
-
-    if (!validateFile(file)) {
       return;
     }
 
     setIsUploading(true);
+    console.log('Reading file...');
 
-    try {
-      // Create a new FileReader instance for each upload
-      const reader = new FileReader();
+    const reader = new FileReader();
 
-      const base64Data = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          if (typeof reader.result === 'string') {
-            resolve(reader.result);
-          } else {
-            reject(new Error('Failed to read file as base64'));
-          }
+    reader.onload = function(e) {
+      console.log('File read complete');
+      try {
+        if (!e.target?.result) {
+          throw new Error('Failed to read file');
+        }
+
+        const newAttachment: Attachment = {
+          id: nanoid(),
+          type: 'image',
+          url: e.target.result as string,
+          title: file.name
         };
-        reader.onerror = () => reject(new Error('Error reading file'));
-        reader.readAsDataURL(file);
-      });
 
-      // Create new attachment
-      const newAttachment: Attachment = {
-        id: nanoid(),
-        type: 'image',
-        url: base64Data,
-        title: file.name
-      };
+        console.log('Created attachment object');
+        onAttach([...currentAttachments, newAttachment]);
 
-      // Update attachments and close dialog
-      onAttach([...currentAttachments, newAttachment]);
+        toast({
+          title: "Success",
+          description: "Image uploaded successfully"
+        });
 
-      toast({
-        title: "Success",
-        description: "Image uploaded successfully"
-      });
+        setIsUploading(false);
+        onOpenChange(false);
+      } catch (error) {
+        console.error('Error creating attachment:', error);
+        toast({
+          title: "Upload failed",
+          description: "Failed to process image",
+          variant: "destructive"
+        });
+        setIsUploading(false);
+      }
+    };
 
-      onOpenChange(false);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image';
-      setUploadError(errorMessage);
+    reader.onerror = function(error) {
+      console.error('FileReader error:', error);
       toast({
         title: "Upload failed",
-        description: errorMessage,
+        description: "Failed to read image file",
         variant: "destructive"
       });
-    } finally {
+      setIsUploading(false);
+    };
+
+    try {
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error starting file read:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to start file upload",
+        variant: "destructive"
+      });
       setIsUploading(false);
     }
   };
 
-  // Handle drag and drop
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleImageUpload(file);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (dropZoneRef.current) {
-      dropZoneRef.current.classList.add('border-primary');
-    }
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (dropZoneRef.current) {
-      dropZoneRef.current.classList.remove('border-primary');
-    }
-  };
-
-  // Handle file input change
+  // File input change handler
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -164,7 +138,7 @@ export function AttachmentDialog({
     }
   };
 
-  // Handle link attachment
+  // Link attachment handler
   const handleAddLink = () => {
     if (!url) return;
 
@@ -180,7 +154,7 @@ export function AttachmentDialog({
     setTitle('');
   };
 
-  // Handle attachment removal
+  // Remove attachment handler
   const handleRemoveAttachment = (id: string) => {
     onAttach(currentAttachments.filter(a => a.id !== id));
   };
@@ -221,7 +195,7 @@ export function AttachmentDialog({
               </TabsTrigger>
             </TabsList>
 
-            {/* Link attachment section */}
+            {/* Link tab content */}
             <TabsContent value="link" className="space-y-4">
               <div className="space-y-2">
                 <Input
@@ -245,20 +219,13 @@ export function AttachmentDialog({
               </Button>
             </TabsContent>
 
-            {/* Image upload section */}
+            {/* Image tab content */}
             <TabsContent value="image" className="space-y-4">
-              <div
-                ref={dropZoneRef}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                className={`
-                  border-2 border-dashed rounded-lg p-6 
-                  text-center transition-all duration-200
-                  ${isUploading ? 'border-gray-300 bg-gray-50 cursor-not-allowed' : 'border-gray-300 hover:border-primary'}
-                  ${uploadError ? 'border-red-300' : ''}
-                `}
-              >
+              <div className={`
+                border-2 border-dashed rounded-lg p-6 
+                text-center transition-all duration-200
+                ${isUploading ? 'border-gray-300 bg-gray-50' : 'border-gray-300 hover:border-primary'}
+              `}>
                 {isUploading ? (
                   <div className="flex flex-col items-center">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -270,32 +237,30 @@ export function AttachmentDialog({
                   <>
                     <ImageIcon className="w-8 h-8 mx-auto text-gray-400" />
                     <p className="mt-2 text-sm text-gray-600">
-                      Drag and drop an image here, or{" "}
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="text-primary hover:underline"
-                        disabled={isUploading}
-                      >
-                        browse
-                      </button>
+                      Click to upload an image
                     </p>
-                    {uploadError && (
-                      <p className="mt-2 text-sm text-red-500">{uploadError}</p>
-                    )}
+                    <input
+                      type="file"
+                      className="hidden"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      disabled={isUploading}
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="mt-4"
+                    >
+                      Choose File
+                    </Button>
                   </>
                 )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileSelect}
-                  disabled={isUploading}
-                />
               </div>
             </TabsContent>
 
-            {/* Board linking section */}
+            {/* Board tab content */}
             <TabsContent value="board" className="space-y-4">
               <ScrollArea className="h-[200px] rounded-md border p-2">
                 {projectBoards?.map(board => (
