@@ -26,14 +26,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('[HTTP] Creating basic HTTP server');
 
   // Create WebSocket server with proper path
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws',
+    clientTracking: true,
+    perMessageDeflate: {
+      zlibDeflateOptions: {
+        chunkSize: 1024,
+        memLevel: 7,
+        level: 3
+      },
+      zlibInflateOptions: {
+        chunkSize: 10 * 1024
+      },
+      clientNoContextTakeover: true,
+      serverNoContextTakeover: true,
+      serverMaxWindowBits: 10,
+      concurrencyLimit: 10,
+      threshold: 1024
+    }
+  });
+
   console.log('[WS] WebSocket server created on path /ws');
 
-  wss.on('connection', (ws) => {
+  wss.on('connection', (ws, req) => {
     const userId = nanoid();
-    const colorIndex = Math.floor(Math.random() * COLORS.length);
-
     console.log(`[WS] New connection established: ${userId}`);
+
+    ws.on('error', (error) => {
+      console.error(`[WS] Connection error for ${userId}:`, error);
+    });
 
     ws.on('message', (data) => {
       try {
@@ -44,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const user: ConnectedUser = {
             id: userId,
             name: message.userName || 'Anonymous',
-            color: COLORS[colorIndex],
+            color: COLORS[Math.floor(Math.random() * COLORS.length)],
             emoji: message.userEmoji,
             ws,
             boardId: message.boardId
@@ -63,8 +85,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Broadcast to other users in the same board
           for (const [, connectedUser] of connectedUsers) {
-            if (connectedUser.ws !== ws &&
-                connectedUser.boardId === message.boardId &&
+            if (connectedUser.ws !== ws && 
+                connectedUser.boardId === message.boardId && 
                 connectedUser.ws.readyState === WebSocket.OPEN) {
               connectedUser.ws.send(JSON.stringify({
                 type: 'users_update',

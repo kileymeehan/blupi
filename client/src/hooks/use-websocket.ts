@@ -34,16 +34,12 @@ export function useWebSocket(boardId: string) {
   }, []);
 
   useEffect(() => {
-    if (socketRef.current && user?.photoURL) {
-      console.log('[WS] User profile updated, reconnecting...');
-      socketRef.current.close(1000, 'User profile updated');
-    }
-  }, [user?.photoURL]);
+    if (!boardId) return;
 
-  useEffect(() => {
     console.log(`[WS] Initializing connection for board ${boardId}`);
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
-    console.log('[WS] Connecting to:', wsUrl);
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+    console.log('[WS] Attempting to connect to:', wsUrl);
 
     const connect = () => {
       try {
@@ -56,13 +52,13 @@ export function useWebSocket(boardId: string) {
           reconnectAttempts.current = 0;
 
           const userEmail = user?.email || 'Anonymous';
-          console.log('[WS] Subscribing with user info:', { 
-            email: userEmail, 
-            emoji: user?.photoURL 
+          console.log('[WS] Subscribing with user info:', {
+            email: userEmail,
+            emoji: user?.photoURL
           });
 
-          sendMessage({ 
-            type: 'subscribe', 
+          sendMessage({
+            type: 'subscribe',
             boardId,
             userName: userEmail,
             userEmoji: user?.photoURL
@@ -77,7 +73,6 @@ export function useWebSocket(boardId: string) {
             if (data.type === 'users_update') {
               setConnectedUsers(data.users);
             }
-            window.postMessage(data, window.location.origin);
             setLastMessage(data);
           } catch (error) {
             console.error('[WS] Message parsing error:', error);
@@ -87,6 +82,11 @@ export function useWebSocket(boardId: string) {
         socket.addEventListener('error', (error) => {
           console.error('[WS] Connection error:', error);
           setIsConnected(false);
+          toast({
+            title: "Connection Error",
+            description: "Failed to connect to collaboration server. Retrying...",
+            variant: "destructive"
+          });
         });
 
         socket.addEventListener('close', (event) => {
@@ -106,31 +106,22 @@ export function useWebSocket(boardId: string) {
           }
         });
 
-        const handleProfileUpdate = (event: CustomEvent) => {
+        return () => {
           if (socket.readyState === WebSocket.OPEN) {
-            sendMessage({
-              type: 'subscribe',
-              boardId,
-              userName: user?.email || 'Anonymous',
-              userEmoji: event.detail.photoURL
-            });
+            socket.close(1000, 'Component unmounted');
           }
         };
-
-        window.addEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
-
-        return () => {
-          window.removeEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
-        };
-
       } catch (error) {
         console.error('[WS] Failed to create WebSocket connection:', error);
+        toast({
+          title: "Connection Error",
+          description: "Failed to establish connection. Please try refreshing the page.",
+          variant: "destructive"
+        });
       }
     };
 
-    if (boardId) {
-      connect();
-    }
+    connect();
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && !isConnected && boardId) {
@@ -142,16 +133,14 @@ export function useWebSocket(boardId: string) {
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
-
       if (socketRef.current) {
         socketRef.current.close(1000, 'Component unmounted');
       }
     };
-  }, [boardId, toast, sendMessage, user, user?.photoURL]); 
+  }, [boardId, toast, sendMessage, user?.email, user?.photoURL]);
 
   return { isConnected, lastMessage, sendMessage, connectedUsers };
 }
