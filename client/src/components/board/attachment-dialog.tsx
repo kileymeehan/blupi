@@ -1,16 +1,18 @@
-// AttachmentDialog: Manages file attachments for blocks (images, links, board references)
-import { useState, useRef, useEffect } from "react";
+// Simple attachment dialog component
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link as LinkIcon, Image as ImageIcon, FileText, X, Plus, Loader2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import type { Board, Attachment } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { nanoid } from "nanoid";
+import type { Attachment } from "@shared/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
-import { nanoid } from "nanoid";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import type { Board } from "@shared/schema";
+
 
 interface AttachmentDialogProps {
   open: boolean;
@@ -32,47 +34,27 @@ export function AttachmentDialog({
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Reset states when dialog closes
-  useEffect(() => {
-    if (!open) {
-      setIsUploading(false);
-      setUrl('');
-      setTitle('');
-    }
-  }, [open]);
-
-  // Simplified image upload function
-  const readImageFile = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsDataURL(file);
-    });
-  };
-
-  // Handle file selection
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // Handle image upload
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
+    // Basic validation
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
-        description: "Please upload an image file",
+        description: "Please select an image file",
         variant: "destructive"
       });
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+    if (file.size > 2 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Please upload an image smaller than 2MB",
+        description: "Please select an image smaller than 2MB",
         variant: "destructive"
       });
       return;
@@ -80,33 +62,56 @@ export function AttachmentDialog({
 
     setIsUploading(true);
 
-    try {
-      const dataUrl = await readImageFile(file);
+    // Simple FileReader implementation
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
 
-      const newAttachment: Attachment = {
-        id: nanoid(),
-        type: 'image',
-        url: dataUrl,
-        title: file.name
-      };
+    reader.onload = () => {
+      try {
+        // Create attachment
+        const newAttachment: Attachment = {
+          id: nanoid(),
+          type: 'image',
+          url: reader.result as string,
+          title: file.name
+        };
 
-      onAttach([...currentAttachments, newAttachment]);
+        // Update attachments
+        onAttach([...currentAttachments, newAttachment]);
 
-      toast({
-        title: "Success",
-        description: "Image uploaded successfully"
-      });
+        // Reset state
+        setIsUploading(false);
+        event.target.value = '';
 
-      onOpenChange(false);
-    } catch (error) {
+        // Close dialog
+        onOpenChange(false);
+
+        toast({
+          title: "Success",
+          description: "Image uploaded successfully"
+        });
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Upload failed",
+          description: "Failed to process image",
+          variant: "destructive"
+        });
+        setIsUploading(false);
+        event.target.value = '';
+      }
+    };
+
+    reader.onerror = () => {
+      console.error('FileReader error:', reader.error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload image. Please try again.",
+        description: "Failed to read image file",
         variant: "destructive"
       });
-    } finally {
       setIsUploading(false);
-    }
+      event.target.value = '';
+    };
   };
 
   // Handle link attachment
@@ -143,182 +148,154 @@ export function AttachmentDialog({
   });
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Attachments</DialogTitle>
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Add Attachment</DialogTitle>
+        </DialogHeader>
 
-          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mt-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="link">
-                <LinkIcon className="w-4 h-4 mr-2" />
-                Link
-              </TabsTrigger>
-              <TabsTrigger value="image">
-                <ImageIcon className="w-4 h-4 mr-2" />
-                Image
-              </TabsTrigger>
-              <TabsTrigger value="board">
-                <FileText className="w-4 h-4 mr-2" />
-                Board
-              </TabsTrigger>
-            </TabsList>
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="link">
+              <LinkIcon className="w-4 h-4 mr-2" />
+              Link
+            </TabsTrigger>
+            <TabsTrigger value="image">
+              <ImageIcon className="w-4 h-4 mr-2" />
+              Image
+            </TabsTrigger>
+            <TabsTrigger value="board">
+              <FileText className="w-4 h-4 mr-2" />
+              Board
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Link tab content */}
-            <TabsContent value="link" className="space-y-4">
-              <div className="space-y-2">
-                <Input
-                  placeholder="Enter URL"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                />
-                <Input
-                  placeholder="Title (optional)"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </div>
-              <Button
-                className="w-full"
-                onClick={handleAddLink}
-                disabled={!url}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Link
-              </Button>
-            </TabsContent>
+          {/* Link tab */}
+          <TabsContent value="link" className="space-y-4">
+            <div className="space-y-2">
+              <Input
+                placeholder="Enter URL"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+              <Input
+                placeholder="Title (optional)"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+            <Button
+              className="w-full"
+              onClick={handleAddLink}
+              disabled={!url}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Link
+            </Button>
+          </TabsContent>
 
-            {/* Image tab content */}
-            <TabsContent value="image" className="space-y-4">
-              <div className={`
-                border-2 border-dashed rounded-lg p-6 
-                text-center transition-all duration-200
-                ${isUploading ? 'border-gray-300 bg-gray-50' : 'border-gray-300 hover:border-primary'}
-              `}>
-                {isUploading ? (
-                  <div className="flex flex-col items-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <p className="mt-2 text-sm text-gray-600">
-                      Uploading image...
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <ImageIcon className="w-8 h-8 mx-auto text-gray-400" />
-                    <p className="mt-2 text-sm text-gray-600">
-                      Click to select an image
-                    </p>
-                    <Button
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="mt-4"
-                    >
+          {/* Image tab */}
+          <TabsContent value="image" className="space-y-4">
+            <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg">
+              {isUploading ? (
+                <div className="flex flex-col items-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <p className="mt-2 text-sm text-gray-600">Uploading image...</p>
+                </div>
+              ) : (
+                <>
+                  <ImageIcon className="w-8 h-8 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-600">Select an image to upload</p>
+                  <label className="mt-4">
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      disabled={isUploading}
+                    />
+                    <Button variant="outline" type="button">
                       Choose File
                     </Button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleFileSelect}
-                    />
-                  </>
-                )}
-              </div>
-            </TabsContent>
-
-            {/* Board tab content */}
-            <TabsContent value="board" className="space-y-4">
-              <ScrollArea className="h-[200px] rounded-md border p-2">
-                {projectBoards?.map(board => (
-                  <Card
-                    key={board.id}
-                    className="mb-2 cursor-pointer hover:bg-gray-50"
-                    onClick={() => {
-                      const newAttachment: Attachment = {
-                        id: nanoid(),
-                        type: 'link',
-                        url: `/board/${board.id}`,
-                        title: board.name
-                      };
-                      onAttach([...currentAttachments, newAttachment]);
-                      onOpenChange(false);
-                    }}
-                  >
-                    <CardContent className="p-3">
-                      <div className="text-sm font-medium">{board.name}</div>
-                      {board.description && (
-                        <div className="text-xs text-gray-500 mt-1 line-clamp-2">
-                          {board.description}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-                {(!projectBoards || projectBoards.length === 0) && (
-                  <div className="text-sm text-gray-500 text-center py-4">
-                    No other boards found in this project
-                  </div>
-                )}
-              </ScrollArea>
-            </TabsContent>
-          </Tabs>
-
-          {/* Current attachments list */}
-          {currentAttachments.length > 0 && (
-            <div className="mt-4 pt-4 border-t">
-              <h3 className="text-sm font-medium mb-2">Current Attachments</h3>
-              <div className="space-y-2">
-                {currentAttachments.map(attachment => (
-                  <div key={attachment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <div className="flex items-center gap-2">
-                      {attachment.type === 'image' ? (
-                        <button
-                          onClick={() => setExpandedImage(attachment.url)}
-                          className="w-8 h-8 rounded overflow-hidden"
-                        >
-                          <img
-                            src={attachment.url}
-                            alt={attachment.title || 'Attachment'}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
-                      ) : (
-                        <LinkIcon className="w-4 h-4 text-gray-500" />
-                      )}
-                      <span className="text-sm truncate">
-                        {attachment.title || attachment.url}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveAttachment(attachment.id)}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                  </label>
+                </>
+              )}
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </TabsContent>
 
-      {/* Image preview dialog */}
-      {expandedImage && (
-        <Dialog open={!!expandedImage} onOpenChange={() => setExpandedImage(null)}>
-          <DialogContent className="sm:max-w-[80vw] sm:max-h-[80vh]">
-            <img
-              src={expandedImage}
-              alt="Expanded attachment"
-              className="w-full h-full object-contain"
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-    </>
+          {/* Board tab content */}
+          <TabsContent value="board" className="space-y-4">
+            <ScrollArea className="h-[200px] rounded-md border p-2">
+              {projectBoards?.map(board => (
+                <Card
+                  key={board.id}
+                  className="mb-2 cursor-pointer hover:bg-gray-50"
+                  onClick={() => {
+                    const newAttachment: Attachment = {
+                      id: nanoid(),
+                      type: 'link',
+                      url: `/board/${board.id}`,
+                      title: board.name
+                    };
+                    onAttach([...currentAttachments, newAttachment]);
+                    onOpenChange(false);
+                  }}
+                >
+                  <CardContent className="p-3">
+                    <div className="text-sm font-medium">{board.name}</div>
+                    {board.description && (
+                      <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {board.description}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+              {(!projectBoards || projectBoards.length === 0) && (
+                <div className="text-sm text-gray-500 text-center py-4">
+                  No other boards found in this project
+                </div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
+
+        {/* Current attachments */}
+        {currentAttachments.length > 0 && (
+          <div className="mt-4 pt-4 border-t">
+            <h3 className="text-sm font-medium mb-2">Current Attachments</h3>
+            <div className="space-y-2">
+              {currentAttachments.map(attachment => (
+                <div key={attachment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div className="flex items-center gap-2">
+                    {attachment.type === 'image' ? (
+                      <div className="w-8 h-8 rounded overflow-hidden">
+                        <img
+                          src={attachment.url}
+                          alt={attachment.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <LinkIcon className="w-4 h-4 text-gray-500" />
+                    )}
+                    <span className="text-sm truncate">
+                      {attachment.title || attachment.url}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveAttachment(attachment.id)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
