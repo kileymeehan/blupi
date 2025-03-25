@@ -23,44 +23,33 @@ const COLORS = [
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
-  // Create WebSocket server with explicit configuration
-  const wss = new WebSocketServer({
+  // Simple WebSocket server setup without verification
+  const wss = new WebSocketServer({ 
     server: httpServer,
-    path: "/ws",
-    clientTracking: true,
-    verifyClient: (info, callback) => {
-      console.log('[WS] Verifying client connection request:', {
-        url: info.req.url,
-        headers: info.req.headers
-      });
-      // Accept all connections for now
-      callback(true);
-    }
+    path: '/ws'
   });
 
-  console.log('[WS] WebSocket server initialized on path: /ws');
-
-  // WebSocket error handling
-  wss.on('error', (error) => {
-    console.error('[WS] Server error:', error);
-  });
+  console.log('[WS] WebSocket server initialized on /ws');
 
   // Handle WebSocket connections
   wss.on('connection', (ws, request) => {
     const userId = nanoid();
-    console.log(`[WS] New connection: ${userId}, URL: ${request.url}`);
+    console.log(`[WS] New connection established: ${userId}`);
+    console.log('[WS] Connection headers:', request.headers);
+    console.log('[WS] Connection URL:', request.url);
 
-    // Send initial connection confirmation
+    // Send connection confirmation
     ws.send(JSON.stringify({
       type: 'connected',
-      userId
+      userId,
+      message: 'Successfully connected to WebSocket server'
     }));
 
     // Handle incoming messages
     ws.on('message', (data) => {
       try {
         const message = JSON.parse(data.toString());
-        console.log(`[WS] Message from ${userId}:`, message);
+        console.log(`[WS] Received message from ${userId}:`, message);
 
         if (message.type === 'subscribe') {
           if (!message.boardId) {
@@ -86,17 +75,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .filter(u => u.boardId === message.boardId)
             .map(({ id, name, color }) => ({ id, name, color }));
 
-          // Send users list to all clients in the board
+          // Send updated users list
           const userUpdateMessage = JSON.stringify({
             type: 'users_update',
             users: boardUsers
           });
 
-          connectedUsers.forEach((user) => {
-            if (user.boardId === message.boardId && user.ws.readyState === WebSocket.OPEN) {
-              user.ws.send(userUpdateMessage);
-            }
-          });
+          ws.send(userUpdateMessage);
         }
       } catch (error) {
         console.error('[WS] Message processing error:', error);
@@ -110,28 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Handle disconnection
     ws.on('close', () => {
       console.log(`[WS] Connection closed: ${userId}`);
-      const user = connectedUsers.get(userId);
-
-      if (user?.boardId) {
-        connectedUsers.delete(userId);
-
-        // Notify remaining users
-        const boardUsers = Array.from(connectedUsers.values())
-          .filter(u => u.boardId === user.boardId)
-          .map(({ id, name, color }) => ({ id, name, color }));
-
-        const userUpdateMessage = JSON.stringify({
-          type: 'users_update',
-          users: boardUsers
-        });
-
-        connectedUsers.forEach((remainingUser) => {
-          if (remainingUser.boardId === user.boardId && 
-              remainingUser.ws.readyState === WebSocket.OPEN) {
-            remainingUser.ws.send(userUpdateMessage);
-          }
-        });
-      }
+      connectedUsers.delete(userId);
     });
   });
 
