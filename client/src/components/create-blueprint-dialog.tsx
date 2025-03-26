@@ -48,14 +48,22 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
   const handleGenerateTemplate = async () => {
     try {
       setIsGeneratingTemplate(true);
+      console.log('Starting template generation...');
+
       const template = await generateBlueprintTemplate({
         industry: "general",
         complexity: "detailed"
       });
 
+      console.log('Template generated successfully:', template);
+
+      if (!template.name || !template.description) {
+        throw new Error('Generated template is missing required fields');
+      }
+
       // Update form with generated content
-      form.setValue("name", template.name || form.getValues("name"));
-      form.setValue("description", template.description || "");
+      form.setValue("name", template.name);
+      form.setValue("description", template.description);
 
       // Show success message
       toast({
@@ -63,9 +71,12 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
         description: "AI-generated template has been loaded successfully.",
       });
     } catch (error) {
+      console.error('Template generation error:', error);
       toast({
         title: "Generation Failed",
-        description: error instanceof Error ? error.message : "Failed to generate template",
+        description: error instanceof Error 
+          ? error.message 
+          : "Failed to generate template. Please check your connection and try again.",
         variant: "destructive"
       });
     } finally {

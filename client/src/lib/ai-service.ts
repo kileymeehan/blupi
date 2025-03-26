@@ -45,9 +45,11 @@ export async function generateBlueprintTemplate(options: GenerateTemplateOptions
         "opportunities": ["Array of improvement opportunities"]
       }`;
 
+    console.log('Sending prompt to Google AI:', prompt);
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
+    console.log('Received response from Google AI:', text);
 
     try {
       const parsedTemplate = JSON.parse(text);
