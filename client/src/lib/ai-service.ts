@@ -21,7 +21,7 @@ export async function generateBlueprintTemplate(options: GenerateTemplateOptions
       throw new Error('Google AI API key is not configured. Please check your environment variables.');
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `Create a customer journey blueprint template for ${options.industry || 'a general business'}.
       Project type: ${options.projectType || 'Customer Experience'}

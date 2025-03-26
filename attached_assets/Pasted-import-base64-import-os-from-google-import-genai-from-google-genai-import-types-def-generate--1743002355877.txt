@@ -1,0 +1,137 @@
+import base64
+import os
+from google import genai
+from google.genai import types
+
+
+def generate():
+    client = genai.Client(
+        api_key=os.environ.get("GEMINI_API_KEY"),
+    )
+
+    files = [
+        # Make the file available in local system working directory
+        client.files.upload(file="Experience Delivery Blueprints.pdf"),
+    ]
+    model = "gemini-2.0-flash"
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_uri(
+                    file_uri=files[0].uri,
+                    mime_type=files[0].mime_type,
+                ),
+                types.Part.from_text(text="""Generate an Experience Blueprint Template based on what the customer requests, and format it as suggested in the attached PDF"""),
+            ],
+        ),
+        types.Content(
+            role="model",
+            parts=[
+                types.Part.from_text(text="""While I can't directly create a fillable template or a dynamic Lucidchart diagram as described in the PDF, I can provide a textual outline and structure that mirrors the Experience Delivery Blueprint concept, which can be easily translated into a spreadsheet or mindmap in Lucidchart or other software.  This outline provides all the essential elements and can be used to populate the columns.
+***
+## Experience Delivery Blueprint Template - [Journey Name]
+
+**Overall Goal of this Journey:** [Briefly state the desired outcome for the customer]
+
+### **I. Phases (Column Headers in your spreadsheet):**
+
+**(For each phase, create a new column):**
+
+**Phase Name:** [e.g., Discovery, Onboarding, Daily Use, Offboarding]
+*   **Goal of Phase:** [What should the customer achieve during this phase?]
+
+**(Within each Phase Column, create rows for the following categories.)**
+
+### **II. Front-Stage Operations (Rows within each Phase Column):**
+
+*   **Steps:** (List each step the customer takes, in sequential order)
+    *   **Step 1:** [e.g., Google search, Create Account]
+    *   **Step 2:** [e.g., Input Account Details, Import contacts]
+    *   **Step 3:** [...]
+    *   ...
+*   **Touchpoints:** (How does the customer interact with the product/company?)
+    *   [e.g., Website, App, Email, Phone Call, Chatbot, In-App Message]
+*   **Roles Involved:** (Which teams/individuals interact with the customer during this step?)
+    *   [e.g., Sales, Support, Marketing, Product, Billing]
+
+### **III. Back-Stage Operations (Rows within each Phase Column):**
+
+*   **Hidden Steps:** (What's happening behind the scenes?  Technical processes)
+    *   [e.g., API calls, Data validation, Account provisioning, Database updates]
+*   **Communication Type:** (Specific Channels)
+    *   [e.g., Automated Email Series, Pendo Guide, SMS]
+*   **Underlying Processes:** (The internal procedures that drive this phase)
+    *   [e.g., Account verification process, Payment processing workflow]
+*   **Policies:** (Rules that govern this aspect of the business/product)
+    *   [e.g., Refund policy, Data privacy policy]
+*   **Technologies:** (Systems & Tools used to deliver this phase)
+    *   [e.g., CRM, Database, Email Marketing Software, Payment Gateway]
+
+### **IV. Key Metrics & Insights (Rows within each Phase Column, for each step):**
+
+*   **Friction Points:** (Where are customers likely to get stuck or frustrated?)
+    *   [e.g., Confusing instructions, slow loading times, required fields]
+*   **Opportunities:** (How can we improve the experience at this step?)
+    *   [e.g., Add tooltips, offer live chat, streamline form fields]
+*   **Key Metrics:** (How will we measure the success of this step/phase?)
+    *   [e.g., Conversion Rate, Task Completion Rate, Time to Complete, Customer Satisfaction (CSAT), Net Promoter Score (NPS)]
+*   **Notes:** (Additional information or context)
+    *   [e.g., \"This step is only applicable to users on the Enterprise plan.\"]
+*   **Critical Moments** - (High impact moments that have a strong emotional impact, positive or negative.)
+    *   [e.g. First \"Aha\" moment, successful task completion, payment error]
+*   **Questions:** (What questions do customers frequently ask at this step?)
+    *   [e.g., \"How do I change my password?\", \"What is my billing cycle?\"]
+    *   **Processes:**  (Detail the process in place at each step)
+        * [e.g. data validation, email trigger, form submission]
+
+### **Example Rows - Data Link (for Lucidchart Integration)**
+
+* **Customer Survey Data linked into a specific Step/Phase**
+* **USE Tickets linked to critical moments**
+* **Churn Data linked to a friction point during offboarding**
+***
+
+**How to Use this Template:**
+
+1.  **Choose a Journey:** Select a core customer journey to map (e.g., New User Onboarding, Making a Purchase, Resolving a Support Issue).
+2.  **Create Columns:** Each Phase becomes a column.
+3.  **Fill in the Rows:**  Work through each phase, step-by-step, and populate the corresponding rows with details about the front-stage, back-stage operations, and key metrics/insights.  Be specific and concise.
+4.  **Data Linking (If using Lucidchart):**  Use Lucidchart's data linking feature to connect your Blueprint to relevant data sources (e.g., spreadsheets, databases) for automated metric updates.
+
+**Adapting this to Lucidchart:**
+
+*   Use shapes to represent each element (Phase, Step, Touchpoint, etc.).
+*   Connect the shapes with lines to visualize the flow.
+*   Use different colors to represent different categories (e.g., Front-Stage vs. Back-Stage).
+*   Create swimlanes to represent different teams or departments involved.
+*   Use layers to show different levels of detail (e.g., a high-level overview vs. a detailed breakdown).
+
+This structured outline provides a robust foundation for creating your own Experience Delivery Blueprints.  Remember to keep it high-level and focused on the core \"golden path\" workflow. Good luck!
+"""),
+            ],
+        ),
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(text="""INSERT_INPUT_HERE"""),
+            ],
+        ),
+    ]
+    generate_content_config = types.GenerateContentConfig(
+        temperature=1,
+        top_p=0.95,
+        top_k=40,
+        max_output_tokens=8192,
+        response_mime_type="text/plain",
+    )
+
+    for chunk in client.models.generate_content_stream(
+        model=model,
+        contents=contents,
+        config=generate_content_config,
+    ):
+        print(chunk.text, end="")
+
+if __name__ == "__main__":
+    generate()
