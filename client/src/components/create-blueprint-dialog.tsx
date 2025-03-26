@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -11,8 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { insertBoardSchema, type InsertBoard } from "@shared/schema";
 import { nanoid } from 'nanoid';
-import { generateBlueprintTemplate } from "@/lib/ai-service";
-import { Loader2 } from "lucide-react";
 
 interface CreateBlueprintDialogProps {
   open: boolean;
@@ -23,7 +20,6 @@ interface CreateBlueprintDialogProps {
 export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateBlueprintDialogProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
 
   const form = useForm<InsertBoard>({
     resolver: zodResolver(insertBoardSchema),
@@ -44,45 +40,6 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
       projectId: projectId || undefined
     },
   });
-
-  const handleGenerateTemplate = async () => {
-    try {
-      setIsGeneratingTemplate(true);
-      console.log('Starting template generation...');
-
-      const template = await generateBlueprintTemplate({
-        industry: "general",
-        complexity: "detailed"
-      });
-
-      console.log('Template generated successfully:', template);
-
-      if (!template.name || !template.description) {
-        throw new Error('Generated template is missing required fields');
-      }
-
-      // Update form with generated content
-      form.setValue("name", template.name);
-      form.setValue("description", template.description);
-
-      // Show success message
-      toast({
-        title: "Template Generated",
-        description: "AI-generated template has been loaded successfully.",
-      });
-    } catch (error) {
-      console.error('Template generation error:', error);
-      toast({
-        title: "Generation Failed",
-        description: error instanceof Error 
-          ? error.message 
-          : "Failed to generate template. Please check your connection and try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGeneratingTemplate(false);
-    }
-  };
 
   const createBlueprint = useMutation({
     mutationFn: async (data: InsertBoard) => {
@@ -184,35 +141,18 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
               )}
             />
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGenerateTemplate}
-              disabled={isGeneratingTemplate}
-              className="w-full mb-4"
-            >
-              {isGeneratingTemplate ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating Template...
-                </>
-              ) : (
-                'Generate Template with AI'
-              )}
-            </Button>
-
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={createBlueprint.isPending || isGeneratingTemplate}
+                disabled={createBlueprint.isPending}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                disabled={createBlueprint.isPending || isGeneratingTemplate}
+                disabled={createBlueprint.isPending}
                 className="bg-amber-600 hover:bg-amber-700"
               >
                 {createBlueprint.isPending ? "Creating..." : "Create Blueprint"}
