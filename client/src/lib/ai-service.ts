@@ -1,7 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize the API with the key
-const genAI = new GoogleGenerativeAI(import.meta.env.GOOGLE_AI_API_KEY);
+const API_KEY = import.meta.env.VITE_GOOGLE_AI_API_KEY;
+
+if (!API_KEY) {
+  console.error('Google AI API key is not properly configured');
+}
+
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 interface GenerateTemplateOptions {
   projectType?: string;
@@ -11,8 +17,8 @@ interface GenerateTemplateOptions {
 
 export async function generateBlueprintTemplate(options: GenerateTemplateOptions) {
   try {
-    if (!import.meta.env.GOOGLE_AI_API_KEY) {
-      throw new Error('Google AI API key is not configured');
+    if (!API_KEY) {
+      throw new Error('Google AI API key is not configured. Please check your environment variables.');
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
@@ -28,13 +34,21 @@ export async function generateBlueprintTemplate(options: GenerateTemplateOptions
       4. Pain points
       5. Opportunities
 
-      Format the response as a structured JSON object that can be used to initialize a blueprint.`;
+      Format the response as a structured JSON object with the following fields:
+      {
+        "name": "Template name",
+        "description": "Detailed description of the blueprint",
+        "stages": ["Array of customer journey stages"],
+        "actions": ["Array of customer actions"],
+        "touchpoints": ["Array of touchpoints"],
+        "painPoints": ["Array of pain points"],
+        "opportunities": ["Array of improvement opportunities"]
+      }`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
-    // Validate and parse the response
     try {
       const parsedTemplate = JSON.parse(text);
       return parsedTemplate;
@@ -44,9 +58,13 @@ export async function generateBlueprintTemplate(options: GenerateTemplateOptions
     }
   } catch (error) {
     console.error('Error generating blueprint template:', error);
-    if (error instanceof Error && error.message.includes('API_KEY_INVALID')) {
-      throw new Error('Invalid API key configuration. Please check your settings.');
+    if (error instanceof Error) {
+      if (error.message.includes('API_KEY_INVALID')) {
+        throw new Error('Invalid API key. Please check your API key configuration.');
+      } else if (error.message.includes('not configured')) {
+        throw new Error('API key is missing. Please make sure VITE_GOOGLE_AI_API_KEY is set in your environment.');
+      }
     }
-    throw new Error('Failed to generate blueprint template. Please try again.');
+    throw new Error('Failed to generate blueprint template. Please try again later.');
   }
 }
