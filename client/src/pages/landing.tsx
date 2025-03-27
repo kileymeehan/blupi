@@ -1,7 +1,20 @@
 import { Button } from "@/components/ui/button";
 
 export default function LandingPage() {
-  const appDomain = "my.blupi.io";
+  // Configure the app domain, defaulting to the current domain in development
+  // In production, this would be "my.blupi.io"
+  const isProduction = import.meta.env.PROD;
+  const appDomain = isProduction ? "my.blupi.io" : window.location.host;
+  
+  // For development, create app links that will work locally
+  const getAppUrl = (path: string) => {
+    if (isProduction) {
+      return `https://${appDomain}${path}`;
+    } else {
+      // In development, keep on same domain but add parameter
+      return `${path}`;
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -21,7 +34,7 @@ export default function LandingPage() {
                 size="lg" 
                 className="bg-white text-blue-600 hover:bg-blue-50"
               >
-                <a href={`https://${appDomain}/auth/register`}>
+                <a href={getAppUrl('/auth/register')}>
                   Get Started Free
                 </a>
               </Button>
@@ -31,7 +44,7 @@ export default function LandingPage() {
                 variant="outline" 
                 className="border-white text-white hover:bg-white/10"
               >
-                <a href={`https://${appDomain}/auth/login`}>
+                <a href={getAppUrl('/auth/login')}>
                   Sign In
                 </a>
               </Button>
@@ -99,7 +112,7 @@ export default function LandingPage() {
                 size="lg" 
                 className="bg-white text-blue-600 hover:bg-blue-50"
               >
-                <a href={`https://${appDomain}/auth/register`}>
+                <a href={getAppUrl('/auth/register')}>
                   Start Mapping Now
                 </a>
               </Button>

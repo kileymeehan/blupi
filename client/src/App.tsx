@@ -16,9 +16,15 @@ import PublicBoard from "@/pages/public-board";
 import LandingPage from "@/pages/landing";
 
 function Router() {
-  // Check if we're on the main domain
-  const isMainDomain = window.location.host === "blupi.io";
-
+  // Force landing page mode with URL param for development testing
+  const urlParams = new URLSearchParams(window.location.search);
+  const forceLandingMode = urlParams.get('mode') === 'landing';
+  
+  // Check if we're on the main domain (blupi.io) or forcing landing page mode
+  const isMainDomain = window.location.host === "blupi.io" || forceLandingMode;
+  
+  // In development, we may want to show the landing page
+  // You can access it via: /?mode=landing
   if (isMainDomain) {
     return (
       <Switch>
@@ -28,6 +34,7 @@ function Router() {
     );
   }
 
+  // This is the app domain (my.blupi.io) or the development server
   return (
     <Switch>
       <Route path="/auth/login" component={LoginPage} />

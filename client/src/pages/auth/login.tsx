@@ -161,7 +161,7 @@ export default function LoginPage() {
               <Button
                 variant="link"
                 className="px-0"
-                onClick={() => setLocation(`https://my.blupi.io/auth/register`)}
+                onClick={() => setLocation(`/auth/register`)}
               >
                 Register
               </Button>
