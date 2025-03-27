@@ -141,20 +141,20 @@ export function AttachmentDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Attachments</DialogTitle>
+            <DialogTitle className="text-[#302E87] text-xl font-semibold">Attachments</DialogTitle>
           </DialogHeader>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mt-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="link">
+            <TabsList className="grid w-full grid-cols-3 bg-[#FFE8D6]/20">
+              <TabsTrigger value="link" className="data-[state=active]:bg-[#302E87] data-[state=active]:text-white">
                 <LinkIcon className="w-4 h-4 mr-2" />
                 Link
               </TabsTrigger>
-              <TabsTrigger value="image">
+              <TabsTrigger value="image" className="data-[state=active]:bg-[#302E87] data-[state=active]:text-white">
                 <ImageIcon className="w-4 h-4 mr-2" />
                 Image
               </TabsTrigger>
-              <TabsTrigger value="board">
+              <TabsTrigger value="board" className="data-[state=active]:bg-[#302E87] data-[state=active]:text-white">
                 <FileText className="w-4 h-4 mr-2" />
                 Board
               </TabsTrigger>
@@ -166,15 +166,17 @@ export function AttachmentDialog({
                   placeholder="Enter URL"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
+                  className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50"
                 />
                 <Input
                   placeholder="Title (optional)"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50"
                 />
               </div>
               <Button
-                className="w-full"
+                className="w-full bg-[#302E87] hover:bg-[#252270] text-white"
                 onClick={handleAddLink}
                 disabled={!url}
               >

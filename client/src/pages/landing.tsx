@@ -29,7 +29,7 @@ export default function LandingPage() {
       {isDevelopment && (
         <div className="bg-[#F2918C] text-[#302E87] py-2 text-center font-semibold">
           Development Mode - Landing Page Preview 
-          <span className="ml-2 px-2 py-1 bg-[#302E87] text-white rounded text-xs">
+          <span className="ml-2 px-2 py-1 bg-[#302E87] text-white rounded text-xs font-bold">
             ?landing=true
           </span>
         </div>
@@ -50,7 +50,7 @@ export default function LandingPage() {
                 <Button 
                   asChild
                   size="lg" 
-                  className="bg-[#F2918C] text-white hover:bg-[#f07a73] font-medium shadow-md"
+                  className="bg-[#F2918C] text-[#302E87] hover:bg-[#f07a73] font-medium shadow-md"
                 >
                   <a href={getAppUrl('/auth/register')}>
                     Get Started Free
@@ -60,7 +60,7 @@ export default function LandingPage() {
                   asChild
                   size="lg" 
                   variant="outline" 
-                  className="border-white text-white hover:bg-white/10 font-medium"
+                  className="border-white bg-white/10 text-white hover:bg-white/20 font-medium"
                 >
                   <a href={getAppUrl('/auth/login')}>
                     Sign In
@@ -164,10 +164,10 @@ export default function LandingPage() {
       <section className="bg-[#F2918C]">
         <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:py-20 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-[#302E87] sm:text-4xl">
               Ready to improve your customer experience?
             </h2>
-            <p className="mt-4 text-xl text-white/90 max-w-3xl mx-auto">
+            <p className="mt-4 text-xl text-[#302E87]/90 max-w-3xl mx-auto">
               Join thousands of teams that use Blupi to create exceptional customer journeys
             </p>
             <div className="mt-8 flex justify-center">
@@ -257,7 +257,7 @@ export default function LandingPage() {
             
             {isDevelopment && (
               <p className="mt-4 text-xs text-center text-[#A1D9F5]">
-                <span className="bg-[#F2918C] text-white px-2 py-1 rounded">Development Mode</span>
+                <span className="bg-[#F2918C] text-[#302E87] font-medium px-2 py-1 rounded">Development Mode</span>
                 <span className="ml-2">Domain Separation: blupi.io (landing) | my.blupi.io (app)</span>
               </p>
             )}

@@ -101,8 +101,8 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Blueprint</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-[#302E87] text-xl font-semibold">Create New Blueprint</DialogTitle>
+          <DialogDescription className="text-[#6B6B97]">
             Create a new blueprint to design your workflow
           </DialogDescription>
         </DialogHeader>
@@ -114,9 +114,13 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel className="text-[#302E87]">Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter blueprint name" {...field} />
+                    <Input 
+                      placeholder="Enter blueprint name" 
+                      className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -128,12 +132,13 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel className="text-[#302E87]">Description</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter blueprint description (optional)"
                       value={field.value || ''}
                       onChange={field.onChange}
+                      className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50"
                     />
                   </FormControl>
                   <FormMessage />
@@ -147,13 +152,14 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={createBlueprint.isPending}
+                className="border-[#A1D9F5] text-[#302E87] hover:bg-[#FFE8D6]/20 hover:border-[#302E87]"
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
                 disabled={createBlueprint.isPending}
-                className="bg-amber-600 hover:bg-amber-700"
+                className="bg-[#302E87] hover:bg-[#252270] text-white"
               >
                 {createBlueprint.isPending ? "Creating..." : "Create Blueprint"}
               </Button>
