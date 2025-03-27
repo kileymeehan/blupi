@@ -13,8 +13,21 @@ import Dashboard from "@/pages/dashboard";
 import Project from "@/pages/project";
 import Profile from "@/pages/profile";
 import PublicBoard from "@/pages/public-board";
+import LandingPage from "@/pages/landing";
 
 function Router() {
+  // Check if we're on the main domain
+  const isMainDomain = window.location.host === "blupi.io";
+
+  if (isMainDomain) {
+    return (
+      <Switch>
+        <Route path="/" component={LandingPage} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
   return (
     <Switch>
       <Route path="/auth/login" component={LoginPage} />
