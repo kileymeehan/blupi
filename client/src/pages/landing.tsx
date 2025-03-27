@@ -41,8 +41,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="flex items-center">
-                <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7 bg-white p-1 rounded border border-[#302E87]" />
-                <span className="ml-2 font-semibold text-xl text-[#302E87]">Blupi</span>
+                <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-10 bg-white p-1 rounded" />
               </div>
               
               {/* Desktop Navigation */}
