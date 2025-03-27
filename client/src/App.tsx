@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
@@ -18,6 +18,8 @@ import LandingPage from "@/pages/landing";
 function Router() {
   // Get URL parameters
   const urlParams = new URLSearchParams(window.location.search);
+  const [location] = useLocation();
+  
   // Accept multiple parameter formats for flexibility
   const showLanding = urlParams.get('landing') === 'true' || 
                       urlParams.get('mode') === 'landing' || 
@@ -35,20 +37,22 @@ function Router() {
   
   console.log("Is main domain?", isMainDomain);
   
+  // Always show landing page on "/landing" path regardless of other conditions
+  if (location === "/landing") {
+    return <LandingPage />;
+  }
+  
   // In development, we can force landing page with any of the supported URL parameters
   // Show landing page on main domain or when explicitly requested
   if (isMainDomain || showLanding) {
     console.log("Showing landing page with URL params:", window.location.search);
-    return (
-      <Switch>
-        <Route path="*" component={LandingPage} />
-      </Switch>
-    );
+    return <LandingPage />;
   }
 
   // This is the app domain (my.blupi.io) or the development server
   return (
     <Switch>
+      <Route path="/landing" component={LandingPage} />
       <Route path="/auth/login" component={LoginPage} />
       <Route path="/auth/register" component={RegisterPage} />
       <Route path="/auth">

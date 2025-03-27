@@ -35,6 +35,42 @@ export default function LandingPage() {
         </div>
       )}
       
+      {/* Navigation Header */}
+      <nav className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <div className="flex items-center">
+                <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7 bg-white p-1 rounded border border-[#302E87]" />
+                <span className="ml-2 font-semibold text-xl text-[#302E87]">Blupi</span>
+              </div>
+              
+              {/* Desktop Navigation */}
+              <div className="hidden md:flex ml-10 space-x-6">
+                <a href="#features" className="text-[#302E87]/90 hover:text-[#302E87] font-medium">Features</a>
+                <a href="#how-it-works" className="text-[#302E87]/90 hover:text-[#302E87] font-medium">How It Works</a>
+                <a href="#" className="text-[#302E87]/90 hover:text-[#302E87] font-medium">Pricing</a>
+                <a href="#" className="text-[#302E87]/90 hover:text-[#302E87] font-medium">Templates</a>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <a href={getAppUrl('/auth/login')} className="hidden md:block text-[#302E87] hover:text-[#302E87]/80 font-medium">
+                Sign In
+              </a>
+              <Button
+                asChild
+                className="bg-[#F2918C] text-[#302E87] hover:bg-[#f07a73] font-medium"
+              >
+                <a href={getAppUrl('/auth/register')}>
+                  Sign Up for Free
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+      
       {/* Hero Section */}
       <header className="bg-[#302E87] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -81,7 +117,7 @@ export default function LandingPage() {
       </header>
 
       {/* Features Section */}
-      <section className="py-24 bg-[#FFE8D6]/30">
+      <section id="features" className="py-24 bg-[#FFE8D6]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight text-[#302E87] sm:text-4xl">
@@ -127,7 +163,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-24 bg-white">
+      <section id="how-it-works" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight text-[#302E87] sm:text-4xl">
