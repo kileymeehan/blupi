@@ -18,15 +18,19 @@ import LandingPage from "@/pages/landing";
 function Router() {
   // Get URL parameters
   const urlParams = new URLSearchParams(window.location.search);
-  const showLanding = urlParams.get('landing') === 'true';
+  // Accept multiple parameter formats for flexibility
+  const showLanding = urlParams.get('landing') === 'true' || 
+                      urlParams.get('mode') === 'landing' || 
+                      urlParams.has('landing') || 
+                      urlParams.has('home');
   
   // Check if we're on the main domain (blupi.io) or explicitly showing landing
   const isMainDomain = window.location.host === "blupi.io";
   
-  // In development, we can force landing page with ?landing=true
+  // In development, we can force landing page with any of the supported URL parameters
   // Show landing page on main domain or when explicitly requested
   if (isMainDomain || showLanding) {
-    console.log("Showing landing page");
+    console.log("Showing landing page with URL params:", window.location.search);
     return (
       <Switch>
         <Route path="/" component={LandingPage} />

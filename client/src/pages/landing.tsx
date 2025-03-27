@@ -4,6 +4,7 @@ export default function LandingPage() {
   // Configure the app domain, defaulting to the current domain in development
   // In production, this would be "my.blupi.io"
   const isProduction = import.meta.env.PROD;
+  const isDevelopment = !isProduction;
   const appDomain = isProduction ? "my.blupi.io" : window.location.host;
   
   // For development, create app links that will work locally
@@ -18,6 +19,16 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen">
+      {/* Development Mode Banner */}
+      {isDevelopment && (
+        <div className="bg-amber-500 text-white py-2 text-center font-semibold">
+          Development Mode - Landing Page Preview 
+          <span className="ml-2 px-2 py-1 bg-amber-700 rounded text-xs">
+            ?landing=true
+          </span>
+        </div>
+      )}
+      
       {/* Hero Section */}
       <header className="bg-gradient-to-br from-blue-600 to-blue-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -126,6 +137,12 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="text-center text-gray-500">
             <p>&copy; {new Date().getFullYear()} Blupi. All rights reserved.</p>
+            {isDevelopment && (
+              <p className="mt-2 text-xs">
+                <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded">Development Mode</span>
+                <span className="ml-2">Domain Separation: blupi.io (landing) | my.blupi.io (app)</span>
+              </p>
+            )}
           </div>
         </div>
       </footer>
