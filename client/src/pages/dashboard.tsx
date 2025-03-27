@@ -241,11 +241,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#F8F8F8] animate-fade-in">
-      <header className="border-b bg-white shadow-sm">
+      <header className="border-b bg-[#302E87] shadow-sm">
         <div className="max-w-[1440px] mx-auto flex h-24 items-center px-6">
           <div className="flex-1 flex items-center gap-6">
             <Link href="/" className="flex items-center">
-              <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7" />
+              <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7 bg-white p-1 rounded" />
             </Link>
           </div>
 
@@ -254,9 +254,11 @@ export default function Dashboard() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="relative flex items-center gap-2 h-8"
+                  className="relative flex items-center gap-2 h-8 text-white hover:bg-[#302E87]/20"
                 >
-                  <ProfileIcon />
+                  <div className="border-2 border-white rounded-full">
+                    <ProfileIcon />
+                  </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">

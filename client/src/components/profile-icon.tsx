@@ -24,7 +24,7 @@ export function ProfileIcon() {
   }, [user?.photoURL]);
 
   return (
-    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
+    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#302E87]/20">
       <span className="text-lg">{emoji}</span>
     </div>
   );
