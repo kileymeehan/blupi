@@ -24,8 +24,16 @@ function Router() {
                       urlParams.has('landing') || 
                       urlParams.has('home');
   
-  // Check if we're on the main domain (blupi.io) or explicitly showing landing
-  const isMainDomain = window.location.host === "blupi.io";
+  // Check if we're on the main domain (blupi.io or www.blupi.io) or explicitly showing landing
+  const host = window.location.host.toLowerCase();
+  console.log("Current host is:", host);
+  
+  // Main domain is blupi.io, www.blupi.io, or any subdomain EXCEPT my.blupi.io
+  const isMainDomain = host === "blupi.io" || 
+                       host === "www.blupi.io" || 
+                      (host.includes(".blupi.io") && !host.startsWith("my."));
+  
+  console.log("Is main domain?", isMainDomain);
   
   // In development, we can force landing page with any of the supported URL parameters
   // Show landing page on main domain or when explicitly requested

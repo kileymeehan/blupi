@@ -7,12 +7,17 @@ export default function LandingPage() {
   const isDevelopment = !isProduction;
   const appDomain = isProduction ? "my.blupi.io" : window.location.host;
   
-  // For development, create app links that will work locally
+  // Generate proper application URLs based on environment
   const getAppUrl = (path: string) => {
+    // Log to help with debugging
+    console.log("Creating app URL in", isProduction ? "production" : "development", "mode");
+    console.log("App domain is:", appDomain);
+    
     if (isProduction) {
-      return `https://${appDomain}${path}`;
+      // In production, explicitly use https and the app domain
+      return `https://my.blupi.io${path}`;
     } else {
-      // In development, we just use the path directly
+      // In development, just use the path directly
       return path;
     }
   };
