@@ -11,8 +11,8 @@ export default function LandingPage() {
     if (isProduction) {
       return `https://${appDomain}${path}`;
     } else {
-      // In development, keep on same domain but add parameter
-      return `${path}`;
+      // In development, we just use the path directly
+      return path;
     }
   };
 

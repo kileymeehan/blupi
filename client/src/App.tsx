@@ -16,16 +16,17 @@ import PublicBoard from "@/pages/public-board";
 import LandingPage from "@/pages/landing";
 
 function Router() {
-  // Force landing page mode with URL param for development testing
+  // Get URL parameters
   const urlParams = new URLSearchParams(window.location.search);
-  const forceLandingMode = urlParams.get('mode') === 'landing';
+  const showLanding = urlParams.get('landing') === 'true';
   
-  // Check if we're on the main domain (blupi.io) or forcing landing page mode
-  const isMainDomain = window.location.host === "blupi.io" || forceLandingMode;
+  // Check if we're on the main domain (blupi.io) or explicitly showing landing
+  const isMainDomain = window.location.host === "blupi.io";
   
-  // In development, we may want to show the landing page
-  // You can access it via: /?mode=landing
-  if (isMainDomain) {
+  // In development, we can force landing page with ?landing=true
+  // Show landing page on main domain or when explicitly requested
+  if (isMainDomain || showLanding) {
+    console.log("Showing landing page");
     return (
       <Switch>
         <Route path="/" component={LandingPage} />
