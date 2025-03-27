@@ -64,10 +64,10 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="border-b bg-white shadow-sm">
-        <div className="container flex h-16 items-center px-8">
+      <header className="border-b bg-[#302E87] shadow-sm">
+        <div className="container flex h-24 items-center px-8">
           <Link href="/" className="flex items-center">
-            <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-8" />
+            <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7 bg-white p-1 rounded" />
           </Link>
         </div>
       </header>
