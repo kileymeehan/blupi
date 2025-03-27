@@ -41,8 +41,7 @@ function Router() {
     console.log("Showing landing page with URL params:", window.location.search);
     return (
       <Switch>
-        <Route path="/" component={LandingPage} />
-        <Route component={NotFound} />
+        <Route path="*" component={LandingPage} />
       </Switch>
     );
   }

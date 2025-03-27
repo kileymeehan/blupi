@@ -190,26 +190,26 @@ export function AttachmentDialog({
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 className={`
-                  border-2 border-dashed border-gray-300 rounded-lg p-6 
-                  text-center hover:border-primary transition-colors
+                  border-2 border-dashed border-[#A1D9F5] rounded-lg p-6 
+                  text-center hover:border-[#302E87] transition-colors
                   ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
               >
                 {isUploading ? (
                   <div className="flex flex-col items-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <p className="mt-2 text-sm text-gray-600">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#302E87]" />
+                    <p className="mt-2 text-sm text-[#6B6B97]">
                       Uploading image...
                     </p>
                   </div>
                 ) : (
                   <>
-                    <ImageIcon className="w-8 h-8 mx-auto text-gray-400" />
-                    <p className="mt-2 text-sm text-gray-600">
+                    <ImageIcon className="w-8 h-8 mx-auto text-[#A1D9F5]" />
+                    <p className="mt-2 text-sm text-[#6B6B97]">
                       Drag and drop an image here, or{" "}
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="text-primary hover:underline"
+                        className="text-[#302E87] hover:underline font-medium"
                         disabled={isUploading}
                       >
                         browse
@@ -229,11 +229,11 @@ export function AttachmentDialog({
             </TabsContent>
 
             <TabsContent value="board" className="space-y-4">
-              <ScrollArea className="h-[200px] rounded-md border p-2">
+              <ScrollArea className="h-[200px] rounded-md border border-[#A1D9F5] p-2">
                 {projectBoards?.map(board => (
                   <Card
                     key={board.id}
-                    className="mb-2 cursor-pointer hover:bg-gray-50"
+                    className="mb-2 cursor-pointer hover:bg-[#FFE8D6]/20 transition-colors"
                     onClick={() => {
                       const newAttachment: Attachment = {
                         id: nanoid(),
@@ -246,9 +246,9 @@ export function AttachmentDialog({
                     }}
                   >
                     <CardContent className="p-3">
-                      <div className="text-sm font-medium">{board.name}</div>
+                      <div className="text-sm font-medium text-[#302E87]">{board.name}</div>
                       {board.description && (
-                        <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        <div className="text-xs text-[#6B6B97] mt-1 line-clamp-2">
                           {board.description}
                         </div>
                       )}
@@ -256,7 +256,7 @@ export function AttachmentDialog({
                   </Card>
                 ))}
                 {(!projectBoards || projectBoards.length === 0) && (
-                  <div className="text-sm text-gray-500 text-center py-4">
+                  <div className="text-sm text-[#6B6B97] text-center py-4">
                     No other boards found in this project
                   </div>
                 )}
@@ -265,16 +265,16 @@ export function AttachmentDialog({
           </Tabs>
 
           {currentAttachments.length > 0 && (
-            <div className="mt-4 pt-4 border-t">
-              <h3 className="text-sm font-medium mb-2">Current Attachments</h3>
+            <div className="mt-4 pt-4 border-t border-[#A1D9F5]/50">
+              <h3 className="text-sm font-medium mb-2 text-[#302E87]">Current Attachments</h3>
               <div className="space-y-2">
                 {currentAttachments.map(attachment => (
-                  <div key={attachment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div key={attachment.id} className="flex items-center justify-between p-2 bg-[#FFE8D6]/20 rounded border border-[#FFE8D6]/50">
                     <div className="flex items-center gap-2">
                       {attachment.type === 'image' ? (
                         <button
                           onClick={() => setExpandedImage(attachment.url)}
-                          className="w-8 h-8 rounded overflow-hidden"
+                          className="w-8 h-8 rounded overflow-hidden shadow-sm"
                         >
                           <img
                             src={attachment.url}
@@ -283,9 +283,9 @@ export function AttachmentDialog({
                           />
                         </button>
                       ) : (
-                        <LinkIcon className="w-4 h-4 text-gray-500" />
+                        <LinkIcon className="w-4 h-4 text-[#302E87]" />
                       )}
-                      <span className="text-sm truncate">
+                      <span className="text-sm truncate text-[#302E87]">
                         {attachment.title || attachment.url}
                       </span>
                     </div>
@@ -293,6 +293,7 @@ export function AttachmentDialog({
                       variant="ghost"
                       size="sm"
                       onClick={() => handleRemoveAttachment(attachment.id)}
+                      className="hover:bg-[#F2918C]/20 hover:text-[#F2918C]"
                     >
                       <X className="w-4 h-4" />
                     </Button>
