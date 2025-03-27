@@ -6,6 +6,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Plus, Folder, LayoutGrid } from "lucide-react";
+import { CreateProjectDialog } from "@/components/create-project-dialog";
+import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
@@ -14,6 +18,8 @@ export default function ProfilePage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [selectedEmoji, setSelectedEmoji] = useState<string>(ANIMAL_EMOJIS[0]);
+  const [createProjectOpen, setCreateProjectOpen] = useState(false);
+  const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
 
   // Update selected emoji when user data changes
   useEffect(() => {
@@ -65,12 +71,54 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-[#302E87] shadow-sm">
-        <div className="container flex h-24 items-center px-8">
-          <Link href="/" className="flex items-center">
-            <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7 bg-white p-1 rounded" />
-          </Link>
+        <div className="container flex h-24 items-center justify-between px-8">
+          <div className="flex-1 flex items-center gap-6">
+            <Link href="/" className="flex items-center">
+              <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7 bg-white p-1 rounded" />
+            </Link>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {/* Create New Button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="bg-[#F2918C] text-[#302E87] hover:bg-[#f07a73] font-medium h-9"
+                >
+                  <Plus className="mr-1.5 h-3.5 w-3.5" />
+                  Create New
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem 
+                  onClick={() => setCreateProjectOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <Folder className="mr-2 h-4 w-4 text-[#302E87]" />
+                  New Project
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setCreateBlueprintOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <LayoutGrid className="mr-2 h-4 w-4 text-[#302E87]" />
+                  New Blueprint
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </header>
+      
+      {/* Add dialog components */}
+      <CreateProjectDialog 
+        open={createProjectOpen} 
+        onOpenChange={setCreateProjectOpen} 
+      />
+      <CreateBlueprintDialog 
+        open={createBlueprintOpen} 
+        onOpenChange={setCreateBlueprintOpen} 
+      />
 
       <main className="container px-8 py-8">
         <Card className="max-w-2xl mx-auto">

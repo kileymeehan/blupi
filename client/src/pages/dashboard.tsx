@@ -249,7 +249,39 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            {/* Create New Button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="bg-[#F2918C] text-[#302E87] hover:bg-[#f07a73] font-medium h-9"
+                >
+                  <Plus className="mr-1.5 h-3.5 w-3.5" />
+                  Create New
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem 
+                  onClick={() => setCreateProjectOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <Folder className="mr-2 h-4 w-4 text-[#302E87]" />
+                  New Project
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setCreateBlueprintOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <LayoutGrid className="mr-2 h-4 w-4 text-[#302E87]" />
+                  New Blueprint
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {/* Divider */}
+            <div className="h-8 w-px bg-white/30"></div>
+            
+            {/* Profile Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
