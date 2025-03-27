@@ -1,9 +1,8 @@
-import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
 export default function LandingPage() {
   const appDomain = "my.blupi.io";
-  
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
