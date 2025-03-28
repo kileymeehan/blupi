@@ -246,10 +246,20 @@ export default function BoardGrid({
           .split("-")
           .map(Number);
 
+        // Set default content for divider blocks based on their type
+        let defaultContent = "";
+        if (blockType === "front-stage") {
+          defaultContent = "Front-Stage";
+        } else if (blockType === "back-stage") {
+          defaultContent = "Back-Stage";
+        } else if (blockType === "custom-divider") {
+          defaultContent = "Custom Divider";
+        }
+
         const newBlock: BlockType = {
           id: nanoid(),
           type: blockType as BlockType["type"],
-          content: "",
+          content: defaultContent,
           phaseIndex,
           columnIndex,
           comments: [],
