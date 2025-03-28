@@ -18,7 +18,7 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 
 interface BlockProps {
-  block: BlockType;
+  block: BlockType & { readOnly?: boolean };
   onChange?: (content: string) => void;
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
@@ -46,6 +46,9 @@ const TYPE_LABELS = {
   question: "Question",
   note: "Note",
   hidden: "Hidden Step",
+  "front-stage": "Front-Stage",
+  "back-stage": "Back-Stage",
+  "custom-divider": "Custom Divider",
 } as const;
 
 const DEPARTMENTS = [
@@ -117,13 +120,13 @@ export default function Block({
 
   const handleDepartmentChange = (department: Department | undefined) => {
     if (!onDepartmentChange) return;
-    if (department === "Custom") {
+    if (department && department === "Custom" as Department) {
       return;
     }
     onDepartmentChange(
       block.id,
       department,
-      department === "Custom" ? customDepartment : undefined,
+      department && department === "Custom" as Department ? customDepartment : undefined,
     );
     setDepartmentDialogOpen(false);
     setCustomDepartment("");
@@ -158,26 +161,66 @@ export default function Block({
         </div>
       )}
 
-      <div
-        ref={contentRef}
-        contentEditable={!isTemplate && !block.readOnly}
-        onInput={handleInput}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        className={`
-          w-full min-h-[100px] p-4
-          ${block.emoji ? "pr-8" : ""} 
-          ${block.department ? "pb-12" : ""}
-          ${isTemplate ? "flex items-center justify-center" : ""}
-          overflow-y-auto whitespace-pre-wrap break-words
-          leading-normal text
-          focus:outline-none
-          ${block.readOnly ? "cursor-default" : ""}
-        `}
-        suppressContentEditableWarning={true}
-      >
-        {isTemplate ? TYPE_LABELS[block.type] : block.content}
-      </div>
+      {/* Render divider blocks differently */}
+      {block.type === "front-stage" || block.type === "back-stage" || block.type === "custom-divider" ? (
+        <div
+          ref={contentRef}
+          contentEditable={!isTemplate && !block.readOnly}
+          onInput={handleInput}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className={`
+            w-full min-h-[40px] p-2
+            flex items-center justify-center
+            relative
+            ${block.emoji ? "pr-8" : ""} 
+            ${block.department ? "pb-6" : ""}
+            overflow-hidden whitespace-pre-wrap break-words
+            leading-normal
+            focus:outline-none
+            ${block.readOnly ? "cursor-default" : ""}
+            ${block.type === "front-stage" ? "bg-blue-500/75 text-white" : ""}
+            ${block.type === "back-stage" ? "bg-purple-500/75 text-white" : ""}
+            ${block.type === "custom-divider" ? "bg-gray-600/75 text-white" : ""}
+            border-2 border-white
+            font-semibold
+          `}
+          suppressContentEditableWarning={true}
+        >
+          <div className="absolute inset-0 flex items-center justify-start px-4 pointer-events-none">
+            <div className="w-full border-t-2 border-white opacity-50"></div>
+          </div>
+          
+          <div className="relative z-10 px-4 bg-inherit rounded-md">
+            {isTemplate ? TYPE_LABELS[block.type] : block.content || TYPE_LABELS[block.type]}
+          </div>
+          
+          <div className="absolute inset-0 flex items-center justify-end px-4 pointer-events-none">
+            <div className="w-full border-t-2 border-white opacity-50"></div>
+          </div>
+        </div>
+      ) : (
+        <div
+          ref={contentRef}
+          contentEditable={!isTemplate && !block.readOnly}
+          onInput={handleInput}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className={`
+            w-full min-h-[100px] p-4
+            ${block.emoji ? "pr-8" : ""} 
+            ${block.department ? "pb-12" : ""}
+            ${isTemplate ? "flex items-center justify-center" : ""}
+            overflow-y-auto whitespace-pre-wrap break-words
+            leading-normal text
+            focus:outline-none
+            ${block.readOnly ? "cursor-default" : ""}
+          `}
+          suppressContentEditableWarning={true}
+        >
+          {isTemplate ? TYPE_LABELS[block.type] : block.content}
+        </div>
+      )}
 
       {!isTemplate && !block.readOnly && (
         <>

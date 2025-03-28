@@ -1,4 +1,5 @@
 export const LAYER_TYPES = [
+  // Standard blocks
   { type: "touchpoint", label: "UX Touchpoint", color: "bg-blue-600/20" },
   { type: "email", label: "Email", color: "bg-indigo-500/20" },
   { type: "pendo", label: "Modal", color: "bg-cyan-300" },
@@ -11,4 +12,9 @@ export const LAYER_TYPES = [
   { type: "question", label: "Question", color: "bg-violet-200" },
   { type: "note", label: "Note", color: "bg-cyan-200" },
   { type: "hidden", label: "Hidden Step", color: "bg-gray-400" },
+  
+  // Divider blocks
+  { type: "front-stage", label: "Front-Stage Divider", color: "bg-blue-500/75", isDivider: true },
+  { type: "back-stage", label: "Back-Stage Divider", color: "bg-purple-500/75", isDivider: true },
+  { type: "custom-divider", label: "Custom Divider", color: "bg-gray-600/75", isDivider: true },
 ] as const;
