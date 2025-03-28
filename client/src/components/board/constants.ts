@@ -1,4 +1,12 @@
-export const LAYER_TYPES = [
+// Define the type for layer types
+type LayerType = {
+  type: string;
+  label: string;
+  color: string;
+  isDivider?: boolean;
+};
+
+export const LAYER_TYPES: LayerType[] = [
   // Standard blocks
   { type: "touchpoint", label: "UX Touchpoint", color: "bg-blue-600/20" },
   { type: "email", label: "Email", color: "bg-indigo-500/20" },
@@ -17,4 +25,4 @@ export const LAYER_TYPES = [
   { type: "front-stage", label: "Front-Stage Divider", color: "bg-blue-500/75", isDivider: true },
   { type: "back-stage", label: "Back-Stage Divider", color: "bg-purple-500/75", isDivider: true },
   { type: "custom-divider", label: "Custom Divider", color: "bg-gray-600/75", isDivider: true },
-] as const;
+];

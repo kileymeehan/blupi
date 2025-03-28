@@ -191,7 +191,7 @@ export default function Block({
             <div className="w-full border-t-2 border-white opacity-50"></div>
           </div>
           
-          <div className="relative z-10 px-4 bg-inherit rounded-md">
+          <div className="relative z-10 px-4 bg-inherit rounded-md font-bold text-white">
             {isTemplate ? TYPE_LABELS[block.type] : block.content || TYPE_LABELS[block.type]}
           </div>
           
@@ -321,17 +321,19 @@ export default function Block({
             </button>
           </div>
 
-          {/* Block type label */}
-          <div
-            className={`
-            absolute bottom-1 right-2
-            text-xs text-gray-700
-            opacity-0 group-hover:opacity-60
-            transition-opacity duration-200
-          `}
-          >
-            {TYPE_LABELS[block.type]}
-          </div>
+          {/* Block type label - only show for regular blocks, not dividers */}
+          {block.type !== "front-stage" && block.type !== "back-stage" && block.type !== "custom-divider" && (
+            <div
+              className={`
+              absolute bottom-1 right-2
+              text-xs text-gray-700
+              opacity-0 group-hover:opacity-60
+              transition-opacity duration-200
+            `}
+            >
+              {TYPE_LABELS[block.type]}
+            </div>
+          )}
 
           <AttachmentDialog
             open={attachmentDialogOpen}
