@@ -14,36 +14,3 @@
     font-family: 'Montserrat', sans-serif;
   }
 }
-
-.blueprint-board-container {
-  position: relative;
-  overflow: visible;
-}
-
-.separator-block {
-  position: relative;
-  overflow: visible;
-  height: 50px;
-  margin-bottom: 30px !important;
-  padding: 0 !important;
-  background: transparent !important;
-  grid-column: 1 / -1 !important; /* Make it span all columns in grid layouts */
-  width: 100vw !important; /* Make it extra wide */
-  max-width: none !important;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-}
-
-/* Hide the separator block's standard background */
-.separator-block > div {
-  background-color: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.hide-in-pdf {
-  @media print {
-    display: none !important;
-  }
-}

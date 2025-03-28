@@ -14,7 +14,6 @@ import Project from "@/pages/project";
 import Profile from "@/pages/profile";
 import PublicBoard from "@/pages/public-board";
 import LandingPage from "@/pages/landing";
-import TestBlueprintPage from "@/pages/test-blueprint";
 
 function Router() {
   // Get URL parameters
@@ -60,7 +59,6 @@ function Router() {
         <LoginPage />
       </Route>
       <Route path="/public/board/:id" component={PublicBoard} />
-      <Route path="/test-blueprint/:id" component={TestBlueprintPage} />
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/profile" component={Profile} />
       <ProtectedRoute path="/project/:id" component={Project} />

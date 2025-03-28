@@ -249,7 +249,7 @@ export default function BoardGrid({
         const newBlock: BlockType = {
           id: nanoid(),
           type: blockType as BlockType["type"],
-          content: blockType === "separator" ? "Section Separator" : "",
+          content: "",
           phaseIndex,
           columnIndex,
           comments: [],
@@ -258,7 +258,6 @@ export default function BoardGrid({
           emoji: "",
           department: undefined,
           customDepartment: "",
-          spanFullWidth: blockType === "separator" ? true : undefined,
         };
 
         // Get blocks in destination column to determine insertion point
@@ -268,45 +267,21 @@ export default function BoardGrid({
           )
           .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
 
-        // Handle separator blocks specially - they need to be inserted
-        // at a position that affects all columns in the phase
-        if (blockType === "separator") {
-          // When a separator is added, we need to calculate a global position for it
-          // within the phase that will affect all columns
+        // Find the correct insertion index
+        const insertIndex =
+          destination.index === 0
+            ? blocks.findIndex(
+                (b) =>
+                  b.phaseIndex === phaseIndex && b.columnIndex === columnIndex,
+              )
+            : blocks.findIndex(
+                (b) => b === blocksInDestColumn[destination.index - 1],
+              ) + 1;
 
-          // First, get the y-position where it's being dropped
-          let yPosition = destination.index;
-          if (blocksInDestColumn.length > 0) {
-            // Get the visual y-position of where the block is being dropped
-            // This will help us determine which blocks should move below the separator
-            yPosition = destination.index < blocksInDestColumn.length 
-              ? blocks.indexOf(blocksInDestColumn[destination.index])
-              : blocks.length;
-          }
-
-          // Insert the separator at the calculated position
-          if (yPosition === -1 || yPosition >= blocks.length) {
-            blocks.push(newBlock);
-          } else {
-            blocks.splice(yPosition, 0, newBlock);
-          }
+        if (insertIndex === -1) {
+          blocks.push(newBlock);
         } else {
-          // Regular blocks - normal insert logic
-          const insertIndex =
-            destination.index === 0
-              ? blocks.findIndex(
-                  (b) =>
-                    b.phaseIndex === phaseIndex && b.columnIndex === columnIndex,
-                )
-              : blocks.findIndex(
-                  (b) => b === blocksInDestColumn[destination.index - 1],
-                ) + 1;
-
-          if (insertIndex === -1) {
-            blocks.push(newBlock);
-          } else {
-            blocks.splice(insertIndex, 0, newBlock);
-          }
+          blocks.splice(insertIndex, 0, newBlock);
         }
 
         onBlocksChange(blocks);
@@ -980,7 +955,7 @@ export default function BoardGrid({
 
           <div className="flex-1 overflow-x-auto">
             <div className="min-w-[800px] relative">
-              <div ref={boardRef} className="p-8 relative blueprint-board-container">
+              <div ref={boardRef} className="p-8">
                 <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
                     <div key={phase.id} className="flex-shrink-0 relative mr-8">
@@ -1021,12 +996,12 @@ export default function BoardGrid({
                             <div
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className="flex gap-8 relative"
+                              className="flex gap-8"
                             >
                               {phase.columns.map((column, columnIndex) => (
                                 <div
                                   key={column.id}
-                                  className="flex-shrink-0 w-[225px] relative"
+                                  className="flex-shrink-0 w-[225px]"
                                 >
                                   <div className="flex items-center gap-2 mb-2">
                                     <div className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing">
@@ -1087,7 +1062,6 @@ export default function BoardGrid({
                                               : "hover:border-gray-300"
                                           }
                                           transition-colors duration-200
-                                          grid grid-cols-1 gap-2
                                         `}
                                       >
                                         {board.blocks
@@ -1112,17 +1086,19 @@ export default function BoardGrid({
                                                   ref={provided.innerRef}
                                                   {...provided.draggableProps}
                                                   {...provided.dragHandleProps}
-                                                  style={provided.draggableProps.style}
+                                                  style={
+                                                    provided.draggableProps
+                                                      .style
+                                                  }
                                                   className={`
                                                     ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
                                                     group relative rounded-lg border-3 border-gray-500 mb-2 p-2 
                                                     ${snapshot.isDragging ? "shadow-lg" : ""}
-                                                    ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
-                                                    ${block.type === 'separator' ? 'col-span-full w-full border-0 z-10 separator-block' : ''}
+                                                    ${highlightedBlockId === block.id ? "ring-2ring-primary ring-offset-2" : ""}
                                                   `}
                                                 >
                                                   <Block
-                                                    block={{...block, spanFullWidth: block.type === 'separator' ? true : undefined}}
+                                                    block={block}
                                                     onChange={(content) =>
                                                       handleBlockChange(
                                                         block.id,

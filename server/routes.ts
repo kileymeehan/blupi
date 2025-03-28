@@ -125,30 +125,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('[HTTP] Handling ping request');
     res.json({ status: "ok" });
   });
-  
-  // Test route for blueprint loading (temporary, bypasses auth)
-  app.get("/api/test-blueprint/:id", async (req, res) => {
-    try {
-      const boardId = parseInt(req.params.id, 10);
-      if (isNaN(boardId)) {
-        return res.status(400).json({ error: true, message: 'Invalid board ID' });
-      }
-      
-      const board = await storage.getBoard(boardId);
-      if (!board) {
-        return res.status(404).json({ error: true, message: 'Board not found' });
-      }
-      
-      console.log('[TEST] Successfully loaded board:', boardId);
-      res.json(board);
-    } catch (error) {
-      console.error('[TEST] Error loading board:', error);
-      res.status(500).json({ 
-        error: true, 
-        message: error instanceof Error ? error.message : 'Unknown error' 
-      });
-    }
-  });
 
   // Basic routes without WebSocket functionality
   app.get("/api/boards", async (_req, res) => {
