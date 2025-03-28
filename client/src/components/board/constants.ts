@@ -18,5 +18,6 @@ export const LAYER_TYPES = [
 export const SPECIAL_BLOCK_TYPES = {
   separator: {
     spanFullWidth: true,
+    fullBoardWidth: true,
   },
 };

@@ -150,19 +150,19 @@ export default function Block({
     return (
       <div className="w-full h-full relative group">
         <div className="w-full flex items-center px-4 py-2 min-h-[50px]">
-          <div className="flex-grow h-[1px] bg-gray-300"></div>
+          <div className="flex-grow h-[2px] bg-gray-400"></div>
           <div 
             ref={contentRef}
             contentEditable={!isTemplate && !block.readOnly}
             onInput={handleInput}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            className="mx-2 px-3 py-1 text-sm text-gray-600 font-medium bg-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 whitespace-nowrap overflow-hidden"
+            className="mx-4 px-4 py-1 text-sm text-gray-700 font-semibold bg-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 whitespace-nowrap overflow-hidden border border-gray-300"
             suppressContentEditableWarning={true}
           >
             {block.content || "Section Separator"}
           </div>
-          <div className="flex-grow h-[1px] bg-gray-300"></div>
+          <div className="flex-grow h-[2px] bg-gray-400"></div>
           
           {/* Label showing it's a separator */}
           <div className="absolute top-[-16px] right-2 text-xs text-gray-600 bg-white px-1 opacity-0 group-hover:opacity-100">

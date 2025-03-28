@@ -1089,15 +1089,24 @@ export default function BoardGrid({
                                                   {...provided.draggableProps}
                                                   {...provided.dragHandleProps}
                                                   style={
-                                                    provided.draggableProps
-                                                      .style
+                                                    block.type === 'separator'
+                                                      ? {
+                                                          ...provided.draggableProps.style,
+                                                          width: "100vw",
+                                                          position: "absolute",
+                                                          left: "0",
+                                                          zIndex: 10,
+                                                          marginTop: "0.5rem",
+                                                          marginBottom: "0.5rem"
+                                                        }
+                                                      : provided.draggableProps.style
                                                   }
                                                   className={`
                                                     ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
                                                     group relative rounded-lg border-3 border-gray-500 mb-2 p-2 
                                                     ${snapshot.isDragging ? "shadow-lg" : ""}
                                                     ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
-                                                    ${block.type === 'separator' ? 'col-span-full w-full' : ''}
+                                                    ${block.type === 'separator' ? 'col-span-full w-full border-0 border-b-2 border-gray-400' : ''}
                                                   `}
                                                 >
                                                   <Block
