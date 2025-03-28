@@ -249,7 +249,7 @@ export default function BoardGrid({
         const newBlock: BlockType = {
           id: nanoid(),
           type: blockType as BlockType["type"],
-          content: "",
+          content: blockType === "separator" ? "Section Separator" : "",
           phaseIndex,
           columnIndex,
           comments: [],
@@ -258,6 +258,7 @@ export default function BoardGrid({
           emoji: "",
           department: undefined,
           customDepartment: "",
+          spanFullWidth: blockType === "separator" ? true : undefined,
         };
 
         // Get blocks in destination column to determine insertion point
@@ -996,12 +997,12 @@ export default function BoardGrid({
                             <div
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className="flex gap-8"
+                              className="flex gap-8 relative"
                             >
                               {phase.columns.map((column, columnIndex) => (
                                 <div
                                   key={column.id}
-                                  className="flex-shrink-0 w-[225px]"
+                                  className="flex-shrink-0 w-[225px] relative"
                                 >
                                   <div className="flex items-center gap-2 mb-2">
                                     <div className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing">
@@ -1062,6 +1063,7 @@ export default function BoardGrid({
                                               : "hover:border-gray-300"
                                           }
                                           transition-colors duration-200
+                                          grid grid-cols-1 gap-2
                                         `}
                                       >
                                         {board.blocks
@@ -1094,7 +1096,8 @@ export default function BoardGrid({
                                                     ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
                                                     group relative rounded-lg border-3 border-gray-500 mb-2 p-2 
                                                     ${snapshot.isDragging ? "shadow-lg" : ""}
-                                                    ${highlightedBlockId === block.id ? "ring-2ring-primary ring-offset-2" : ""}
+                                                    ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
+                                                    ${block.type === 'separator' ? 'col-span-full w-full' : ''}
                                                   `}
                                                 >
                                                   <Block

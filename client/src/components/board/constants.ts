@@ -11,4 +11,12 @@ export const LAYER_TYPES = [
   { type: "question", label: "Question", color: "bg-violet-200" },
   { type: "note", label: "Note", color: "bg-cyan-200" },
   { type: "hidden", label: "Hidden Step", color: "bg-gray-400" },
+  { type: "separator", label: "Separator", color: "bg-gray-200" },
 ] as const;
+
+// Block types with special rendering options
+export const SPECIAL_BLOCK_TYPES = {
+  separator: {
+    spanFullWidth: true,
+  },
+};

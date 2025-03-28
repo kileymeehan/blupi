@@ -18,7 +18,7 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 
 interface BlockProps {
-  block: BlockType;
+  block: BlockType & { readOnly?: boolean }; // Add readOnly property
   onChange?: (content: string) => void;
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
@@ -46,6 +46,7 @@ const TYPE_LABELS = {
   question: "Question",
   note: "Note",
   hidden: "Hidden Step",
+  separator: "Separator",
 } as const;
 
 const DEPARTMENTS = [
@@ -117,13 +118,13 @@ export default function Block({
 
   const handleDepartmentChange = (department: Department | undefined) => {
     if (!onDepartmentChange) return;
-    if (department === "Custom") {
+    if (department === "Custom" as Department) {
       return;
     }
     onDepartmentChange(
       block.id,
       department,
-      department === "Custom" ? customDepartment : undefined,
+      department === "Custom" as Department ? customDepartment : undefined,
     );
     setDepartmentDialogOpen(false);
     setCustomDepartment("");
@@ -131,7 +132,7 @@ export default function Block({
 
   const handleCustomDepartmentSave = () => {
     if (!onDepartmentChange || !customDepartment) return;
-    onDepartmentChange(block.id, "Custom", customDepartment);
+    onDepartmentChange(block.id, "Custom" as Department, customDepartment);
     setDepartmentDialogOpen(false);
   };
 
@@ -144,6 +145,52 @@ export default function Block({
   const commentCount = block.comments?.length || 0;
   const attachmentCount = block.attachments?.length || 0;
 
+  // Special rendering for separator blocks
+  if (block.type === 'separator' && !isTemplate) {
+    return (
+      <div className="w-full h-full relative group">
+        <div className="w-full flex items-center px-4 py-2 min-h-[50px]">
+          <div className="flex-grow h-[1px] bg-gray-300"></div>
+          <div 
+            ref={contentRef}
+            contentEditable={!isTemplate && !block.readOnly}
+            onInput={handleInput}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            className="mx-2 px-3 py-1 text-sm text-gray-600 font-medium bg-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 whitespace-nowrap overflow-hidden"
+            suppressContentEditableWarning={true}
+          >
+            {block.content || "Section Separator"}
+          </div>
+          <div className="flex-grow h-[1px] bg-gray-300"></div>
+          
+          {/* Label showing it's a separator */}
+          <div className="absolute top-[-16px] right-2 text-xs text-gray-600 bg-white px-1 opacity-0 group-hover:opacity-100">
+            {TYPE_LABELS[block.type]}
+          </div>
+        </div>
+
+        {!isTemplate && !block.readOnly && (
+          <div className="absolute top-[-16px] left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCommentClick?.();
+              }}
+              className="flex items-center justify-center w-8 h-6 p-0 rounded bg-white border border-gray-200 text-xs text-gray-600 hover:text-gray-900 shadow-sm hover:shadow hover:border-gray-300 transition-all duration-150"
+            >
+              <MessageSquare className="w-4 h-4" />
+              {(block.comments?.length || 0) > 0 && (
+                <span className="text-[10px] ml-0.5">{block.comments?.length}</span>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Regular block rendering
   return (
     <div className="w-full h-full relative group">
       {block.emoji && (
