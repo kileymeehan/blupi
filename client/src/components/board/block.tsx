@@ -148,9 +148,9 @@ export default function Block({
   // Special rendering for separator blocks
   if (block.type === 'separator' && !isTemplate) {
     return (
-      <div className="w-full h-full relative group flex items-center">
-        <div className={`absolute ${block.spanFullWidth ? 'left-[-1000px] right-[-1000px]' : 'left-0 right-0'} flex items-center justify-center py-4 min-h-[50px]`}>
-          <div className="flex-grow h-[3px] bg-gray-400"></div>
+      <div className="separator-block w-full h-full relative group flex items-center">
+        <div className="absolute left-[-1000px] right-[-1000px] flex items-center justify-center py-4 min-h-[50px]">
+          <div className="flex-grow h-[3px] bg-gray-400 relative"></div>
           <div 
             ref={contentRef}
             contentEditable={!isTemplate && !block.readOnly}
@@ -162,10 +162,10 @@ export default function Block({
           >
             {block.content || "Section Separator"}
           </div>
-          <div className="flex-grow h-[3px] bg-gray-400"></div>
+          <div className="flex-grow h-[3px] bg-gray-400 relative"></div>
           
-          {/* Label showing it's a separator */}
-          <div className="absolute top-[-16px] right-2 text-xs text-gray-600 bg-white px-1 opacity-0 group-hover:opacity-100">
+          {/* Label showing it's a separator on hover */}
+          <div className="absolute top-[-16px] right-2 text-xs text-gray-600 bg-white px-1 opacity-0 group-hover:opacity-100 transition-opacity">
             {TYPE_LABELS[block.type]}
           </div>
         </div>

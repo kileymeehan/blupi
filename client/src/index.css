@@ -27,6 +27,12 @@
   margin-bottom: 30px !important;
   padding: 0 !important;
   background: transparent !important;
+  grid-column: 1 / -1 !important; /* Make it span all columns in grid layouts */
+  width: 100vw !important; /* Make it extra wide */
+  max-width: none !important;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
 }
 
 /* Hide the separator block's standard background */

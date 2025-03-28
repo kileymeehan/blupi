@@ -268,21 +268,45 @@ export default function BoardGrid({
           )
           .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
 
-        // Find the correct insertion index
-        const insertIndex =
-          destination.index === 0
-            ? blocks.findIndex(
-                (b) =>
-                  b.phaseIndex === phaseIndex && b.columnIndex === columnIndex,
-              )
-            : blocks.findIndex(
-                (b) => b === blocksInDestColumn[destination.index - 1],
-              ) + 1;
+        // Handle separator blocks specially - they need to be inserted
+        // at a position that affects all columns in the phase
+        if (blockType === "separator") {
+          // When a separator is added, we need to calculate a global position for it
+          // within the phase that will affect all columns
 
-        if (insertIndex === -1) {
-          blocks.push(newBlock);
+          // First, get the y-position where it's being dropped
+          let yPosition = destination.index;
+          if (blocksInDestColumn.length > 0) {
+            // Get the visual y-position of where the block is being dropped
+            // This will help us determine which blocks should move below the separator
+            yPosition = destination.index < blocksInDestColumn.length 
+              ? blocks.indexOf(blocksInDestColumn[destination.index])
+              : blocks.length;
+          }
+
+          // Insert the separator at the calculated position
+          if (yPosition === -1 || yPosition >= blocks.length) {
+            blocks.push(newBlock);
+          } else {
+            blocks.splice(yPosition, 0, newBlock);
+          }
         } else {
-          blocks.splice(insertIndex, 0, newBlock);
+          // Regular blocks - normal insert logic
+          const insertIndex =
+            destination.index === 0
+              ? blocks.findIndex(
+                  (b) =>
+                    b.phaseIndex === phaseIndex && b.columnIndex === columnIndex,
+                )
+              : blocks.findIndex(
+                  (b) => b === blocksInDestColumn[destination.index - 1],
+                ) + 1;
+
+          if (insertIndex === -1) {
+            blocks.push(newBlock);
+          } else {
+            blocks.splice(insertIndex, 0, newBlock);
+          }
         }
 
         onBlocksChange(blocks);

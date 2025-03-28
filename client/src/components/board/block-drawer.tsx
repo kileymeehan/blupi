@@ -27,13 +27,16 @@ export default function BlockDrawer() {
                 }}
               >
                 {layer.type === 'separator' ? (
-                  <div className="flex items-center w-full px-3">
-                    <div className="h-[1px] flex-grow bg-gray-400"></div>
-                    <div className="mx-2 text-gray-700/75 font-medium text-sm flex items-center">
-                      <Minus className="w-4 h-4 mr-1" />
-                      {layer.label}
+                  <div className="flex flex-col items-center w-full">
+                    <div className="flex items-center w-full px-3">
+                      <div className="h-[2px] flex-grow bg-gray-400"></div>
+                      <div className="mx-2 text-gray-700/75 font-medium text-sm flex items-center">
+                        <Minus className="w-4 h-4 mr-1" />
+                        {layer.label}
+                      </div>
+                      <div className="h-[2px] flex-grow bg-gray-400"></div>
                     </div>
-                    <div className="h-[1px] flex-grow bg-gray-400"></div>
+                    <div className="text-[10px] mt-1 text-gray-600">Spans full width</div>
                   </div>
                 ) : (
                   <div className="font-bold text-gray-700/75 text-center">
