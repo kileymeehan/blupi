@@ -956,7 +956,7 @@ export default function BoardGrid({
 
           <div className="flex-1 overflow-x-auto">
             <div className="min-w-[800px] relative">
-              <div ref={boardRef} className="p-8">
+              <div ref={boardRef} className="p-8 relative blueprint-board-container">
                 <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
                     <div key={phase.id} className="flex-shrink-0 relative mr-8">
@@ -1088,29 +1088,17 @@ export default function BoardGrid({
                                                   ref={provided.innerRef}
                                                   {...provided.draggableProps}
                                                   {...provided.dragHandleProps}
-                                                  style={
-                                                    block.type === 'separator'
-                                                      ? {
-                                                          ...provided.draggableProps.style,
-                                                          width: "100vw",
-                                                          position: "absolute",
-                                                          left: "0",
-                                                          zIndex: 10,
-                                                          marginTop: "0.5rem",
-                                                          marginBottom: "0.5rem"
-                                                        }
-                                                      : provided.draggableProps.style
-                                                  }
+                                                  style={provided.draggableProps.style}
                                                   className={`
                                                     ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
                                                     group relative rounded-lg border-3 border-gray-500 mb-2 p-2 
                                                     ${snapshot.isDragging ? "shadow-lg" : ""}
                                                     ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
-                                                    ${block.type === 'separator' ? 'col-span-full w-full border-0 border-b-2 border-gray-400' : ''}
+                                                    ${block.type === 'separator' ? 'col-span-full w-full border-0 z-10 separator-block' : ''}
                                                   `}
                                                 >
                                                   <Block
-                                                    block={block}
+                                                    block={{...block, spanFullWidth: true}}
                                                     onChange={(content) =>
                                                       handleBlockChange(
                                                         block.id,

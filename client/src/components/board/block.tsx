@@ -148,21 +148,21 @@ export default function Block({
   // Special rendering for separator blocks
   if (block.type === 'separator' && !isTemplate) {
     return (
-      <div className="w-full h-full relative group">
-        <div className="w-full flex items-center px-4 py-2 min-h-[50px]">
-          <div className="flex-grow h-[2px] bg-gray-400"></div>
+      <div className="w-full h-full relative group flex items-center">
+        <div className={`absolute ${block.spanFullWidth ? 'left-[-1000px] right-[-1000px]' : 'left-0 right-0'} flex items-center justify-center py-4 min-h-[50px]`}>
+          <div className="flex-grow h-[3px] bg-gray-400"></div>
           <div 
             ref={contentRef}
             contentEditable={!isTemplate && !block.readOnly}
             onInput={handleInput}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            className="mx-4 px-4 py-1 text-sm text-gray-700 font-semibold bg-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 whitespace-nowrap overflow-hidden border border-gray-300"
+            className="mx-4 px-6 py-2 text-sm text-gray-700 font-semibold bg-white rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 whitespace-nowrap overflow-hidden border-2 border-gray-300 shadow-sm"
             suppressContentEditableWarning={true}
           >
             {block.content || "Section Separator"}
           </div>
-          <div className="flex-grow h-[2px] bg-gray-400"></div>
+          <div className="flex-grow h-[3px] bg-gray-400"></div>
           
           {/* Label showing it's a separator */}
           <div className="absolute top-[-16px] right-2 text-xs text-gray-600 bg-white px-1 opacity-0 group-hover:opacity-100">
@@ -171,7 +171,7 @@ export default function Block({
         </div>
 
         {!isTemplate && !block.readOnly && (
-          <div className="absolute top-[-16px] left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute top-[-16px] right-2 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
               onClick={(e) => {
                 e.stopPropagation();

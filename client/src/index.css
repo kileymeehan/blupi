@@ -14,3 +14,30 @@
     font-family: 'Montserrat', sans-serif;
   }
 }
+
+.blueprint-board-container {
+  position: relative;
+  overflow: visible;
+}
+
+.separator-block {
+  position: relative;
+  overflow: visible;
+  height: 50px;
+  margin-bottom: 30px !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+/* Hide the separator block's standard background */
+.separator-block > div {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.hide-in-pdf {
+  @media print {
+    display: none !important;
+  }
+}
