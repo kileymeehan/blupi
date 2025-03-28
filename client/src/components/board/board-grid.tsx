@@ -1122,7 +1122,7 @@ export default function BoardGrid({
                                                   `}
                                                 >
                                                   <Block
-                                                    block={{...block, spanFullWidth: true}}
+                                                    block={{...block, spanFullWidth: block.type === 'separator' ? true : undefined}}
                                                     onChange={(content) =>
                                                       handleBlockChange(
                                                         block.id,
