@@ -46,8 +46,8 @@ export default function ImageUpload({
           ctx?.drawImage(img, 0, 0, width, height);
 
           // More aggressive compression for larger files
-          const maxSizeInBytes = 500 * 1024; // 500KB
-          let quality = file.size > maxSizeInBytes ? 0.5 : 0.7;
+          const maxSizeInBytes = 250 * 1024; // 250KB (increased from 100KB)
+          let quality = file.size > maxSizeInBytes ? 0.6 : 0.8; // Better quality
           let result = canvas.toDataURL("image/jpeg", quality);
 
           // If still too large, compress more
@@ -129,7 +129,7 @@ export default function ImageUpload({
     <>
       <div
         onClick={handleClick}
-        className="mb-2 h-24 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer relative overflow-hidden w-[225px]"
+        className="mb-2 h-36 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer relative overflow-hidden w-full"
       >
         <input
           type="file"
@@ -149,7 +149,7 @@ export default function ImageUpload({
             <img
               src={currentImage}
               alt="Uploaded"
-              className="w-full h-full object-cover"
+              className="w-full h-36 object-cover"
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-opacity flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
               <Button

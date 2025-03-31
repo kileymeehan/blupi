@@ -207,13 +207,14 @@ export default function Block({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className={`
-            w-full min-h-[100px] p-4
+            w-full min-h-[140px] p-4
             ${block.emoji ? "pr-8" : ""} 
             ${block.department ? "pb-12" : ""}
             ${isTemplate ? "flex items-center justify-center" : ""}
             overflow-y-auto whitespace-pre-wrap break-words
             leading-normal text
             focus:outline-none
+            font-semibold
             ${block.readOnly ? "cursor-default" : ""}
           `}
           suppressContentEditableWarning={true}
