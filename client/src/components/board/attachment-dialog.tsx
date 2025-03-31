@@ -41,6 +41,13 @@ export function AttachmentDialog({
         reject(new Error('Please upload an image file'));
         return;
       }
+      
+      // Check file size limit (250KB = 250 * 1024 bytes)
+      const maxSizeInBytes = 250 * 1024;
+      if (file.size > maxSizeInBytes) {
+        reject(new Error('Image file is too large. Please upload an image smaller than 250KB or compress it first.'));
+        return;
+      }
 
       const reader = new FileReader();
       reader.onload = () => {
@@ -208,7 +215,7 @@ export function AttachmentDialog({
                   <>
                     <ImageIcon className="w-8 h-8 mx-auto text-[#A1D9F5]" />
                     <p className="mt-2 text-sm text-[#6B6B97]">
-                      Drag and drop an image here, or{" "}
+                      Drag and drop an image here (max 250KB), or{" "}
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         className="text-[#302E87] hover:underline font-medium"

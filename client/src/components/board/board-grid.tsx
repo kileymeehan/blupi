@@ -26,7 +26,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useLocation, Link } from "wouter";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import Block from "./block";
 import BlockDrawer from "./block-drawer";
@@ -117,6 +117,7 @@ export default function BoardGrid({
   const boardRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [showDepartments, setShowDepartments] = useState(false);
+  const [isModifierKeyPressed, setIsModifierKeyPressed] = useState(false);
   const [departmentFilter, setDepartmentFilter] = useState<
     Department | undefined
   >(undefined);
@@ -188,6 +189,52 @@ export default function BoardGrid({
     if (!result.destination) return;
 
     const { source, destination, type } = result;
+
+    // Handling block duplication when modifier key (Cmd/Ctrl) is pressed
+    if (isModifierKeyPressed && source.droppableId !== "drawer" && type !== "COLUMN") {
+      const blocks = Array.from(board.blocks);
+      
+      // Find the block being duplicated
+      const [sourcePhase, sourceColumn] = source.droppableId.split("-").map(Number);
+      const [destPhase, destColumn] = destination.droppableId.split("-").map(Number);
+      
+      // Get ordered blocks in source column
+      const blocksInSourceColumn = blocks
+        .filter(b => b.phaseIndex === sourcePhase && b.columnIndex === sourceColumn)
+        .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
+      
+      // Find the block to duplicate
+      const blockToDuplicate = blocksInSourceColumn[source.index];
+      if (!blockToDuplicate) return;
+      
+      // Create a duplicate with a new ID
+      const duplicatedBlock = {
+        ...blockToDuplicate,
+        id: nanoid(),
+        phaseIndex: destPhase,
+        columnIndex: destColumn
+      };
+      
+      // Get blocks in destination column to determine insertion point
+      const blocksInDestColumn = blocks
+        .filter(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
+        .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
+      
+      // Find the insertion index
+      const insertIndex = destination.index === 0
+        ? blocks.findIndex(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
+        : blocks.findIndex(b => b === blocksInDestColumn[destination.index - 1]) + 1;
+      
+      // Insert the duplicated block
+      if (insertIndex === -1) {
+        blocks.push(duplicatedBlock);
+      } else {
+        blocks.splice(insertIndex, 0, duplicatedBlock);
+      }
+      
+      onBlocksChange(blocks);
+      return;
+    }
 
     if (type === "COLUMN") {
       const sourcePhaseIndex = Number(source.droppableId.split("-")[1]);
@@ -629,6 +676,42 @@ export default function BoardGrid({
     );
   };
 
+  // Add keyboard event listeners for modifier key detection (Cmd/Ctrl)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if Command (Mac) or Control (Windows/Linux) key is pressed
+      if (e.metaKey || e.ctrlKey) {
+        setIsModifierKeyPressed(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      // When the modifier key is released, reset the state
+      if (e.key === 'Meta' || e.key === 'Control') {
+        setIsModifierKeyPressed(false);
+      }
+    };
+
+    // Add event listeners when component mounts
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    // Clean up event listeners when component unmounts
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  // Add a function to handle the drag start event for potential duplication
+  const handleDragStart = (initial: any) => {
+    // We only need to show a visual indicator if modifier is pressed
+    if (isModifierKeyPressed) {
+      // Could add some visual indication here that we're in duplicate mode
+      // For example, changing the cursor or adding a badge
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
@@ -766,7 +849,7 @@ export default function BoardGrid({
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <DragDropContext onDragEnd={handleDragEnd}>
+        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div
             className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}
           >

@@ -193,11 +193,19 @@ export default function Block({
           </div>
           
           <div className="relative z-10 px-4 bg-inherit rounded-md font-bold text-white flex items-center gap-2">
-            {block.type === "front-stage" && <ChevronDown className="w-4 h-4" />}
+            {(block.type === "front-stage" || block.type === "back-stage") && (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-4 h-4" />
+              </>
+            )}
             {isTemplate ? TYPE_LABELS[block.type] : block.content || TYPE_LABELS[block.type]}
-            {block.type === "front-stage" && <ChevronDown className="w-4 h-4" />}
-            {block.type === "back-stage" && <ChevronDown className="w-4 h-4" />}
-            {block.type === "back-stage" && <ChevronDown className="w-4 h-4" />}
+            {(block.type === "front-stage" || block.type === "back-stage") && (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-4 h-4" />
+              </>
+            )}
           </div>
           
           <div className="absolute inset-0 flex items-center justify-end px-4 pointer-events-none">
