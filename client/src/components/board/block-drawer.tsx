@@ -12,7 +12,7 @@ export default function BlockDrawer() {
         <h2 className="font-semibold text-gray-700">Content Blocks</h2>
       </div>
 
-      <div className="space-y-4 flex flex-col items-center mb-8">
+      <div className="grid grid-cols-2 gap-2 mb-8">
         {standardBlocks.map((layer, index) => (
           <Draggable
             key={layer.type}
@@ -24,13 +24,13 @@ export default function BlockDrawer() {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-[205px] h-[70px] relative flex items-center justify-center`}
+                className={`${layer.color} rounded-lg w-[100px] h-[50px] relative flex items-center justify-center`}
                 style={{
                   ...provided.draggableProps.style,
                   zIndex: snapshot.isDragging ? 9999 : 'auto'
                 }}
               >
-                <div className="font-bold text-gray-700/75 text-center">
+                <div className="font-medium text-xs text-gray-700/75 text-center">
                   {layer.label}
                 </div>
               </div>

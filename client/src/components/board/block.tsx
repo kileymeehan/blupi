@@ -212,11 +212,11 @@ export default function Block({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className={`
-            w-full min-h-[120px] p-4
+            w-full min-h-[120px] max-h-[200px] p-4
             ${block.emoji ? "pr-8" : ""} 
             ${block.department ? "pb-12" : ""}
             ${isTemplate ? "flex items-center justify-center" : ""}
-            overflow-y-auto whitespace-pre-wrap break-words
+            overflow-y-auto whitespace-normal break-words
             leading-normal text
             focus:outline-none
             ${block.readOnly ? "cursor-default" : ""}
