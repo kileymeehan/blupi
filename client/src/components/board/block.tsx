@@ -1,5 +1,5 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote, Smile, Tag } from "lucide-react";
+import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown } from "lucide-react";
 import type {
   Block as BlockType,
   Attachment,
@@ -45,6 +45,7 @@ const TYPE_LABELS = {
   rationale: "Rationale",
   question: "Question",
   note: "Note",
+  opportunities: "Opportunities",
   hidden: "Hidden Step",
   "front-stage": "Front-Stage",
   "back-stage": "Back-Stage",
@@ -191,8 +192,12 @@ export default function Block({
             <div className="w-full border-t-2 border-white opacity-50"></div>
           </div>
           
-          <div className="relative z-10 px-4 bg-inherit rounded-md font-bold text-white">
+          <div className="relative z-10 px-4 bg-inherit rounded-md font-bold text-white flex items-center gap-2">
+            {block.type === "front-stage" && <ChevronDown className="w-4 h-4" />}
             {isTemplate ? TYPE_LABELS[block.type] : block.content || TYPE_LABELS[block.type]}
+            {block.type === "front-stage" && <ChevronDown className="w-4 h-4" />}
+            {block.type === "back-stage" && <ChevronDown className="w-4 h-4" />}
+            {block.type === "back-stage" && <ChevronDown className="w-4 h-4" />}
           </div>
           
           <div className="absolute inset-0 flex items-center justify-end px-4 pointer-events-none">
@@ -207,14 +212,13 @@ export default function Block({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className={`
-            w-full min-h-[140px] p-4
+            w-full min-h-[120px] p-4
             ${block.emoji ? "pr-8" : ""} 
             ${block.department ? "pb-12" : ""}
             ${isTemplate ? "flex items-center justify-center" : ""}
             overflow-y-auto whitespace-pre-wrap break-words
             leading-normal text
             focus:outline-none
-            font-semibold
             ${block.readOnly ? "cursor-default" : ""}
           `}
           suppressContentEditableWarning={true}

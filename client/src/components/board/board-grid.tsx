@@ -1026,7 +1026,7 @@ export default function BoardGrid({
                                           e.currentTarget.textContent || "",
                                         )
                                       }
-                                      className="font-medium text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
+                                      className="font-bold text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1"
                                       suppressContentEditableWarning={true}
                                     >
                                       {column.name}

@@ -19,6 +19,7 @@ export const LAYER_TYPES: LayerType[] = [
   { type: "rationale", label: "Rationale", color: "bg-blue-200" },
   { type: "question", label: "Question", color: "bg-violet-200" },
   { type: "note", label: "Note", color: "bg-cyan-200" },
+  { type: "opportunities", label: "Opportunities", color: "bg-yellow-300" },
   { type: "hidden", label: "Hidden Step", color: "bg-gray-400" },
   
   // Divider blocks
