@@ -25,13 +25,13 @@ export default function BlockDrawer() {
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
                 className={`${layer.color} rounded-lg w-[100px] h-[50px] relative flex items-center justify-center
-                  ${snapshot.isDragging ? "shadow-xl scale-105 rotate-1" : "hover:shadow-md hover:-translate-y-1"}
-                  transition-all duration-200 cursor-grab active:cursor-grabbing
+                  ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
+                  transition-shadow duration-200
                 `}
                 style={{
                   ...provided.draggableProps.style,
                   zIndex: snapshot.isDragging ? 9999 : 'auto',
-                  transition: "transform 0.2s, box-shadow 0.2s"
+                  cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
                 <div className="font-medium text-xs text-gray-700/75 text-center">
@@ -61,13 +61,13 @@ export default function BlockDrawer() {
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
                 className={`${layer.color} rounded-lg w-[205px] h-[40px] relative flex items-center justify-center border-2 border-white text-white
-                  ${snapshot.isDragging ? "shadow-xl scale-105 rotate-1" : "hover:shadow-md hover:-translate-y-1"}
-                  transition-all duration-200 cursor-grab active:cursor-grabbing
+                  ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
+                  transition-shadow duration-200
                 `}
                 style={{
                   ...provided.draggableProps.style,
                   zIndex: snapshot.isDragging ? 9999 : 'auto',
-                  transition: "transform 0.2s, box-shadow 0.2s"
+                  cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
                 <div className="absolute inset-0 flex items-center justify-start px-4 pointer-events-none">
