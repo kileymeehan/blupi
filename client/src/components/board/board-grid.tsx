@@ -1179,15 +1179,23 @@ export default function BoardGrid({
                                                   ref={provided.innerRef}
                                                   {...provided.draggableProps}
                                                   {...provided.dragHandleProps}
-                                                  style={
-                                                    provided.draggableProps
-                                                      .style
-                                                  }
+                                                  style={{
+                                                    ...provided.draggableProps.style,
+                                                    transform: snapshot.isDragging 
+                                                      ? provided.draggableProps.style?.transform 
+                                                      : "translate(0, 0)",
+                                                    transition: "transform 0.2s, box-shadow 0.2s",
+                                                    cursor: "grab"
+                                                  }}
                                                   className={`
                                                     ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
                                                     group relative rounded-lg border-3 border-gray-500 mb-2 p-2 
-                                                    ${snapshot.isDragging ? "shadow-lg" : ""}
-                                                    ${highlightedBlockId === block.id ? "ring-2ring-primary ring-offset-2" : ""}
+                                                    ${snapshot.isDragging 
+                                                      ? "shadow-xl scale-[1.02] z-50 rotate-1" 
+                                                      : "hover:shadow-md hover:-translate-y-1"
+                                                    }
+                                                    ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
+                                                    active:cursor-grabbing active:shadow-lg
                                                   `}
                                                 >
                                                   <Block
