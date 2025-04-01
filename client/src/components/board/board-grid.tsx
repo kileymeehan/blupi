@@ -1190,27 +1190,28 @@ export default function BoardGrid({
                                                     zIndex: snapshot.isDragging ? 9999 : "auto"
                                                   }}
                                                 >
-                                                  {/* Add drag handle at the top of the block */}
+                                                  {/* Make entire block border draggable */}
                                                   <div 
                                                     {...provided.dragHandleProps}
-                                                    className="absolute top-0 right-0 left-0 h-7 cursor-grab active:cursor-grabbing"
+                                                    className="absolute inset-0 border-4 border-transparent cursor-grab active:cursor-grabbing pointer-events-auto z-10"
                                                     style={{
                                                       cursor: snapshot.isDragging ? "grabbing" : "grab"
                                                     }}
                                                   >
-                                                    <div className="flex justify-center items-center h-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                                      <GripVertical size={16} className="text-gray-400" />
+                                                    {/* Visual indicator on hover */}
+                                                    <div className="absolute top-0 right-0 left-0 h-4 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                      <GripVertical size={14} className="text-gray-400" />
                                                     </div>
                                                   </div>
                                                   
                                                   <Block
-                                                    block={block}
-                                                    onChange={(content) =>
-                                                      handleBlockChange(
-                                                        block.id,
-                                                        content,
-                                                      )
-                                                    }
+                                                      block={block}
+                                                      onChange={(content) =>
+                                                        handleBlockChange(
+                                                          block.id,
+                                                          content,
+                                                        )
+                                                      }
                                                     onAttachmentChange={(
                                                       attachments,
                                                     ) =>
