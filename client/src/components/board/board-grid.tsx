@@ -1190,18 +1190,39 @@ export default function BoardGrid({
                                                     zIndex: snapshot.isDragging ? 9999 : "auto"
                                                   }}
                                                 >
-                                                  {/* Make entire block border draggable */}
-                                                  <div 
-                                                    {...provided.dragHandleProps}
-                                                    className="absolute inset-0 border-4 border-transparent cursor-grab active:cursor-grabbing pointer-events-auto z-10"
-                                                    style={{
-                                                      cursor: snapshot.isDragging ? "grabbing" : "grab"
-                                                    }}
-                                                  >
-                                                    {/* Visual indicator on hover */}
-                                                    <div className="absolute top-0 right-0 left-0 h-4 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                      <GripVertical size={14} className="text-gray-400" />
+                                                  {/* Create handles on the edges that are draggable but leave the center free for editing */}
+                                                  <div className="absolute inset-0 pointer-events-none">
+                                                    {/* Top handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-0 left-0 right-0 h-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      style={{
+                                                        cursor: snapshot.isDragging ? "grabbing" : "grab"
+                                                      }}
+                                                    >
+                                                      {/* Visual indicator on hover */}
+                                                      <div className="h-4 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <GripVertical size={14} className="text-gray-400" />
+                                                      </div>
                                                     </div>
+                                                    
+                                                    {/* Bottom handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute bottom-0 left-0 right-0 h-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
+                                                    
+                                                    {/* Left handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-6 bottom-6 left-0 w-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
+                                                    
+                                                    {/* Right handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-6 bottom-6 right-0 w-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
                                                   </div>
                                                   
                                                   <Block
