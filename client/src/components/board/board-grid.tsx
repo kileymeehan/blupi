@@ -1178,26 +1178,31 @@ export default function BoardGrid({
                                                 <div
                                                   ref={provided.innerRef}
                                                   {...provided.draggableProps}
-                                                  {...provided.dragHandleProps}
-                                                  style={{
-                                                    ...provided.draggableProps.style,
-                                                    cursor: snapshot.isDragging ? "grabbing" : "grab",
-                                                    // Add enhanced dragging capabilities - ensure block stays above others
-                                                    zIndex: snapshot.isDragging ? 9999 : "auto",
-                                                    // Remove transform/transition that might interfere with proper reordering
-                                                    transform: snapshot.isDragging ? provided.draggableProps.style.transform : "none"
-                                                  }}
                                                   className={`
                                                     ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
                                                     group relative rounded-lg border-3 border-gray-500 mb-2 p-2
                                                     transition-shadow duration-200
-                                                    ${snapshot.isDragging 
-                                                      ? "shadow-xl z-50" 
-                                                      : "hover:shadow-md hover:border-gray-900"
-                                                    }
+                                                    ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                     ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
                                                   `}
+                                                  style={{
+                                                    ...provided.draggableProps.style,
+                                                    zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                  }}
                                                 >
+                                                  {/* Add drag handle at the top of the block */}
+                                                  <div 
+                                                    {...provided.dragHandleProps}
+                                                    className="absolute top-0 right-0 left-0 h-7 cursor-grab active:cursor-grabbing"
+                                                    style={{
+                                                      cursor: snapshot.isDragging ? "grabbing" : "grab"
+                                                    }}
+                                                  >
+                                                    <div className="flex justify-center items-center h-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                      <GripVertical size={16} className="text-gray-400" />
+                                                    </div>
+                                                  </div>
+                                                  
                                                   <Block
                                                     block={block}
                                                     onChange={(content) =>
