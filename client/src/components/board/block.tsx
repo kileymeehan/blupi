@@ -84,6 +84,7 @@ export default function Block({
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [notes, setNotes] = useState(block.notes || "");
   const [localContent, setLocalContent] = useState(block.content || "");
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
@@ -110,6 +111,22 @@ export default function Block({
     const content = contentRef.current.textContent || "";
     if (content !== block.content) {
       onChange(content);
+    }
+    setIsEditing(false);
+  };
+  
+  const handleDoubleClick = () => {
+    if (isTemplate || block.readOnly) return;
+    setIsEditing(true);
+    if (contentRef.current) {
+      contentRef.current.focus();
+      // Create a range and selection to position cursor at the end
+      const range = document.createRange();
+      const selection = window.getSelection();
+      range.selectNodeContents(contentRef.current);
+      range.collapse(false); // Collapse to end
+      selection?.removeAllRanges();
+      selection?.addRange(range);
     }
   };
 
@@ -166,10 +183,11 @@ export default function Block({
       {block.type === "front-stage" || block.type === "back-stage" || block.type === "custom-divider" ? (
         <div
           ref={contentRef}
-          contentEditable={!isTemplate && !block.readOnly}
+          contentEditable={(isEditing || !isTemplate) && !block.readOnly}
           onInput={handleInput}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
+          onDoubleClick={handleDoubleClick}
           className={`
             w-full min-h-[40px] p-2
             flex items-center justify-center
@@ -179,7 +197,7 @@ export default function Block({
             overflow-hidden whitespace-pre-wrap break-words
             leading-normal
             focus:outline-none
-            ${block.readOnly ? "cursor-default" : "cursor-text"}
+            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
             ${block.type === "front-stage" ? "bg-blue-500/75 text-white" : ""}
             ${block.type === "back-stage" ? "bg-purple-500/75 text-white" : ""}
             ${block.type === "custom-divider" ? "bg-gray-600/75 text-white" : ""}
@@ -215,10 +233,11 @@ export default function Block({
       ) : (
         <div
           ref={contentRef}
-          contentEditable={!isTemplate && !block.readOnly}
+          contentEditable={(isEditing || !isTemplate) && !block.readOnly}
           onInput={handleInput}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
+          onDoubleClick={handleDoubleClick}
           className={`
             w-full min-h-[120px] max-h-[200px] p-4
             ${block.emoji ? "pr-8" : ""} 
@@ -227,7 +246,7 @@ export default function Block({
             overflow-y-auto whitespace-normal break-words
             leading-normal text
             focus:outline-none
-            ${block.readOnly ? "cursor-default" : "cursor-text"}
+            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
           `}
           suppressContentEditableWarning={true}
         >
