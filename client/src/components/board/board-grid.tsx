@@ -1181,7 +1181,11 @@ export default function BoardGrid({
                                                   {...provided.dragHandleProps}
                                                   style={{
                                                     ...provided.draggableProps.style,
-                                                    cursor: snapshot.isDragging ? "grabbing" : "grab"
+                                                    cursor: snapshot.isDragging ? "grabbing" : "grab",
+                                                    // Add enhanced dragging capabilities - ensure block stays above others
+                                                    zIndex: snapshot.isDragging ? 9999 : "auto",
+                                                    // Remove transform/transition that might interfere with proper reordering
+                                                    transform: snapshot.isDragging ? provided.draggableProps.style.transform : "none"
                                                   }}
                                                   className={`
                                                     ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
@@ -1189,7 +1193,7 @@ export default function BoardGrid({
                                                     transition-shadow duration-200
                                                     ${snapshot.isDragging 
                                                       ? "shadow-xl z-50" 
-                                                      : "hover:shadow-md"
+                                                      : "hover:shadow-md hover:border-gray-900"
                                                     }
                                                     ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
                                                   `}

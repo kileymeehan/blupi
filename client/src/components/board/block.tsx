@@ -179,7 +179,7 @@ export default function Block({
             overflow-hidden whitespace-pre-wrap break-words
             leading-normal
             focus:outline-none
-            ${block.readOnly ? "cursor-default" : ""}
+            ${block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
             ${block.type === "front-stage" ? "bg-blue-500/75 text-white" : ""}
             ${block.type === "back-stage" ? "bg-purple-500/75 text-white" : ""}
             ${block.type === "custom-divider" ? "bg-gray-600/75 text-white" : ""}
@@ -227,7 +227,7 @@ export default function Block({
             overflow-y-auto whitespace-normal break-words
             leading-normal text
             focus:outline-none
-            ${block.readOnly ? "cursor-default" : ""}
+            ${block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
           `}
           suppressContentEditableWarning={true}
         >
