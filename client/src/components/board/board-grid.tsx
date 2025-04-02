@@ -1112,18 +1112,20 @@ export default function BoardGrid({
                                             e.currentTarget.textContent || "",
                                           )
                                         }
-                                        className="font-bold text-base focus:outline-none focus-visible:border-b focus-visible:border-primary h-12 overflow-hidden text-ellipsis"
+                                        className="text-base focus:outline-none focus-visible:border-b focus-visible:border-primary h-12 overflow-hidden text-ellipsis flex items-center"
                                         suppressContentEditableWarning={true}
                                         title={column.name}
                                       >
                                         {column.name}
                                       </div>
                                       {column.name && column.name.length > 25 && (
-                                        <div className="absolute inset-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="absolute top-0 right-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                           <button 
                                             className="text-xs text-gray-500 bg-white p-1 rounded-md shadow"
                                             onClick={() => {
-                                              setExpandedStepText(column.name);
+                                              // Store the phase and column indices along with the text
+                                              // We'll parse these when saving
+                                              setExpandedStepText(`${phaseIndex}|${columnIndex}|${column.name}`);
                                               setStepTextDialogOpen(true);
                                             }}
                                           >
@@ -1443,11 +1445,39 @@ export default function BoardGrid({
       <Dialog open={stepTextDialogOpen} onOpenChange={setStepTextDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Step Details</DialogTitle>
+            <DialogTitle>Edit Step Text</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="p-4 bg-gray-50 rounded-md border text-base">
-              {expandedStepText}
+            <textarea
+              className="w-full p-4 bg-gray-50 rounded-md border text-base min-h-[100px]"
+              value={expandedStepText.split('|').slice(2).join('|')}
+              onChange={(e) => {
+                // Keep the indices when updating text
+                const parts = expandedStepText.split('|');
+                const indices = parts.slice(0, 2);
+                setExpandedStepText([...indices, e.target.value].join('|'));
+              }}
+            />
+            <div className="flex justify-end">
+              <Button 
+                onClick={() => {
+                  // We need to store phaseIndex and columnIndex when opening the dialog
+                  // This way we know exactly which column to update
+                  const [currentPhaseIndex, currentColumnIndex] = expandedStepText.split('|');
+                  const phaseIndex = parseInt(currentPhaseIndex);
+                  const columnIndex = parseInt(currentColumnIndex);
+                  
+                  // Get the actual text content without the index information
+                  const actualText = expandedStepText.split('|').slice(2).join('|');
+                  
+                  // Update the column name
+                  handleColumnNameChange(phaseIndex, columnIndex, actualText);
+                  
+                  setStepTextDialogOpen(false);
+                }}
+              >
+                Save Changes
+              </Button>
             </div>
           </div>
         </DialogContent>
