@@ -1098,7 +1098,7 @@ export default function BoardGrid({
                                   key={column.id}
                                   className="flex-shrink-0 w-[225px] flex flex-col"
                                 >
-                                  <div className="flex items-center gap-2 mb-2">
+                                  <div className="flex items-center gap-2 mb-2 mt-4">
                                     <div className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing">
                                       <GripVertical className="w-4 h-4" />
                                     </div>
