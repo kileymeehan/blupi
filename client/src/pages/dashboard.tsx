@@ -264,10 +264,10 @@ export default function Dashboard() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            
+
             {/* Divider */}
             <div className="h-8 w-px bg-white/30"></div>
-            
+
             {/* Profile Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -380,6 +380,10 @@ export default function Dashboard() {
                           {project.description}
                         </div>
                         <div className="mt-2 flex items-center gap-2">
+                          <div className="text-xs text-muted-foreground">
+                            Created on{" "}
+                            {format(new Date(project.createdAt), "MMM d, yyyy")}
+                          </div>
                           {project.user && (
                             <div className="relative group">
                               <Avatar className="h-6 w-6">
@@ -395,10 +399,6 @@ export default function Dashboard() {
                               </div>
                             </div>
                           )}
-                          <div className="text-xs text-muted-foreground">
-                            Created on{" "}
-                            {format(new Date(project.createdAt), "MMM d, yyyy")}
-                          </div>
                         </div>
                       </div>
                     </CardHeader>
@@ -526,12 +526,11 @@ export default function Dashboard() {
                         </div>
                         <CardDescription>
                           {board.description}
-                          {project && (
-                            <div className="mt-1 text-xs text-muted-foreground">
-                              Project: {project.name}
-                            </div>
-                          )}
                           <div className="mt-2 flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground mb-2">
+                              Created on{" "}
+                              {format(new Date(board.createdAt), "MMM d, yyyy")}
+                            </div>
                             {board.user && (
                               <div className="relative group">
                                 <Avatar className="h-6 w-6">
@@ -547,10 +546,11 @@ export default function Dashboard() {
                                 </div>
                               </div>
                             )}
-                            <div className="text-xs text-muted-foreground">
-                              Created on{" "}
-                              {format(new Date(board.createdAt), "MMM d, yyyy")}
-                            </div>
+                            {project && (
+                              <div className="mt-1 text-xs text-muted-foreground">
+                                Project: {project.name}
+                              </div>
+                            )}
                           </div>
                         </CardDescription>
                       </CardHeader>
@@ -649,6 +649,10 @@ export default function Dashboard() {
                     <CardDescription>
                       {board.description}
                       <div className="mt-2 flex items-center gap-2">
+                        <div className="text-xs text-muted-foreground mb-2">
+                          Created on{" "}
+                          {format(new Date(board.createdAt), "MMM d, yyyy")}
+                        </div>
                         {board.user && (
                           <div className="relative group">
                             <Avatar className="h-6 w-6">
@@ -664,10 +668,6 @@ export default function Dashboard() {
                             </div>
                           </div>
                         )}
-                        <div className="text-xs text-muted-foreground">
-                          Created on{" "}
-                          {format(new Date(board.createdAt), "MMM d, yyyy")}
-                        </div>
                       </div>
                     </CardDescription>
                   </CardHeader>

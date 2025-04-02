@@ -171,7 +171,12 @@ export default function Project() {
                       disabled={updateBoardStatus.isPending}
                     />
                   </div>
-                  <CardDescription className="text-sm">{board.description}</CardDescription>
+                  <CardDescription className="text-sm">
+                    <div className="text-xs text-muted-foreground mb-2">
+                      Created on {format(new Date(board.createdAt), "MMM d, yyyy")}
+                    </div>
+                    {board.description}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 pt-0 flex flex-col h-full mt-auto">
                   <div className="flex-grow"></div>
