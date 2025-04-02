@@ -171,35 +171,15 @@ export default function Project() {
                       disabled={updateBoardStatus.isPending}
                     />
                   </div>
-                  <CardDescription className="text-sm">
-                    <div className="text-xs text-muted-foreground mb-2">
-                      Created on {format(new Date(board.createdAt), "MMM d, yyyy")}
-                    </div>
-                    {board.description}
-                  </CardDescription>
+                  <CardDescription className="text-sm">{board.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="p-4 pt-0 flex flex-col h-full mt-auto relative">
+                <CardContent className="p-4 pt-0 flex flex-col h-full mt-auto">
                   <div className="flex-grow"></div>
                   <div className="flex flex-col gap-2">
                     <Button variant="ghost" asChild className="w-full border border-gray-100 hover:bg-gray-100 h-9 text-sm">
                       <Link href={`/board/${board.id}`}>View Blueprint</Link>
                     </Button>
                   </div>
-                  {board.user && (
-                    <div className="absolute bottom-4 right-4">
-                      <Avatar className="h-6 w-6 group hover:ring-2 hover:ring-primary/20 transition-all rounded-full cursor-pointer">
-                        <AvatarFallback className="bg-primary text-white text-xs">
-                          {board.user.username.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                        <div className="absolute bottom-full right-0 transform -translate-y-1 opacity-0 group-hover:opacity-100 transition-all z-50 pointer-events-none">
-                          <div className="bg-popover shadow-md rounded px-2 py-1 text-xs text-popover-foreground whitespace-nowrap">
-                            <div>{board.user.username}</div>
-                            <div className="text-muted-foreground">{board.user.email}</div>
-                          </div>
-                        </div>
-                      </Avatar>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             ))}

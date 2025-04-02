@@ -58,12 +58,6 @@ export const projectMembers = pgTable("project_members", {
   acceptedAt: timestamp("accepted_at")
 });
 
-export const insertProjectMemberSchema = createInsertSchema(projectMembers)
-  .omit({ id: true, invitedAt: true, acceptedAt: true });
-
-export type InsertProjectMember = z.infer<typeof insertProjectMemberSchema>;
-export type ProjectMember = typeof projectMembers.$inferSelect;
-
 export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
   project: one(projects, {
     fields: [projectMembers.projectId],

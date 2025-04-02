@@ -3,8 +3,8 @@ import {
   users, projectMembers, 
   type Board, type InsertBoard, 
   type User, type InsertUser, 
-  type Project, type InsertProject,
-  type ProjectMember, type InsertProjectMember
+  type Project, type InsertProject, 
+  type ProjectMember, type InsertProjectMember 
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -30,26 +30,15 @@ export class DatabaseStorage {
   }
 
   // Project methods
-  async getProjects(): Promise<(Project & { user?: { username: string, email: string } })[]> {
+  async getProjects(): Promise<Project[]> {
     try {
       console.log('[Storage] Getting all projects');
       const results = await db
         .select()
         .from(projects)
-        .leftJoin(users, eq(projects.userId, users.id))
         .orderBy(desc(projects.createdAt));
-      
-      // Map to include user info in the expected format
-      const projectsWithUser = results.map(row => ({
-        ...row.projects,
-        user: row.users ? { 
-          username: row.users.username, 
-          email: row.users.email 
-        } : undefined
-      }));
-      
-      console.log('[Storage] Found projects:', projectsWithUser.length);
-      return projectsWithUser as (Project & { user?: { username: string, email: string } })[];
+      console.log('[Storage] Found projects:', results.length);
+      return results;
     } catch (error) {
       console.error('[Storage] Error getting projects:', error);
       throw error;
@@ -113,33 +102,22 @@ export class DatabaseStorage {
   }
 
   // Board methods
-  async getBoards(): Promise<(Board & { user?: { username: string, email: string } })[]> {
+  async getBoards(): Promise<Board[]> {
     try {
       console.log('[Storage] Getting all boards');
       const boardResults = await db
         .select()
         .from(boardsTable)
-        .leftJoin(users, eq(boardsTable.userId, users.id))
         .orderBy(desc(boardsTable.createdAt));
-      
-      // Map to include user info in the expected format
-      const boardsWithUser = boardResults.map(row => ({
-        ...row.boards,
-        user: row.users ? { 
-          username: row.users.username, 
-          email: row.users.email 
-        } : undefined
-      }));
-      
-      console.log('[Storage] Retrieved boards:', boardsWithUser.length);
-      return boardsWithUser as (Board & { user?: { username: string, email: string } })[];
+      console.log('[Storage] Retrieved boards:', boardResults.length);
+      return boardResults;
     } catch (error) {
       console.error('[Storage] Error getting boards:', error);
       throw error;
     }
   }
 
-  async getBoardsByProject(projectId: number): Promise<(Board & { user?: { username: string, email: string } })[]> {
+  async getBoardsByProject(projectId: number): Promise<Board[]> {
     try {
       console.log('[Storage] Getting boards for project:', projectId);
       if (!projectId) {
@@ -151,21 +129,11 @@ export class DatabaseStorage {
       const boardResults = await db
         .select()
         .from(boardsTable)
-        .leftJoin(users, eq(boardsTable.userId, users.id))
         .where(eq(boardsTable.projectId, projectId))
         .orderBy(desc(boardsTable.createdAt));
 
-      // Map to include user info in the expected format
-      const boardsWithUser = boardResults.map(row => ({
-        ...row.boards,
-        user: row.users ? { 
-          username: row.users.username, 
-          email: row.users.email 
-        } : undefined
-      }));
-
-      console.log('[Storage] Retrieved project boards:', boardsWithUser.length);
-      return boardsWithUser as (Board & { user?: { username: string, email: string } })[];
+      console.log('[Storage] Retrieved project boards:', boardResults.length);
+      return boardResults;
     } catch (error) {
       console.error('[Storage] Error getting boards by project:', error);
       throw error;
