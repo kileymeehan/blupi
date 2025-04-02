@@ -532,18 +532,18 @@ export default function Dashboard() {
                               {format(new Date(board.createdAt), "MMM d, yyyy")}
                             </div>
                             {board.user && (
-                              <div className="relative group">
-                                <Avatar className="h-6 w-6">
+                              <div className="relative">
+                                <Avatar className="h-6 w-6 group hover:ring-2 hover:ring-primary/20 transition-all rounded-full cursor-pointer">
                                   <AvatarFallback className="bg-primary text-white text-xs">
                                     {board.user.username.substring(0, 2).toUpperCase()}
                                   </AvatarFallback>
-                                </Avatar>
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                                  <div className="bg-popover shadow-md rounded px-2 py-1 text-xs text-popover-foreground whitespace-nowrap">
-                                    <div>{board.user.username}</div>
-                                    <div className="text-muted-foreground">{board.user.email}</div>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 opacity-0 group-hover:opacity-100 transition-all z-50 pointer-events-none">
+                                    <div className="bg-popover shadow-md rounded px-2 py-1 text-xs text-popover-foreground whitespace-nowrap">
+                                      <div>{board.user.username}</div>
+                                      <div className="text-muted-foreground">{board.user.email}</div>
+                                    </div>
                                   </div>
-                                </div>
+                                </Avatar>
                               </div>
                             )}
                             {project && (
