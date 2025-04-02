@@ -129,7 +129,7 @@ export default function ImageUpload({
     <>
       <div
         onClick={handleClick}
-        className="mb-2 h-36 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer relative overflow-hidden w-full"
+        className="mb-2 h-40 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors cursor-pointer relative overflow-hidden w-full"
       >
         <input
           type="file"
@@ -149,7 +149,7 @@ export default function ImageUpload({
             <img
               src={currentImage}
               alt="Uploaded"
-              className="w-full h-36 object-cover"
+              className="w-full h-40 object-cover"
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-opacity flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
               <Button

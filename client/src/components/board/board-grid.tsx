@@ -1094,7 +1094,7 @@ export default function BoardGrid({
                               {phase.columns.map((column, columnIndex) => (
                                 <div
                                   key={column.id}
-                                  className="flex-shrink-0 w-[225px]"
+                                  className="flex-shrink-0 w-[225px] flex flex-col"
                                 >
                                   <div className="flex items-center gap-2 mb-2">
                                     <div className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing">
@@ -1148,7 +1148,7 @@ export default function BoardGrid({
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                         className={`
-                                          space-y-4 min-h-[100px] p-4 rounded-lg border-1 border-gray-300 
+                                          space-y-4 min-h-[100px] p-4 rounded-lg border-1 border-gray-300 flex-1
                                           ${
                                             snapshot.isDraggingOver
                                               ? "border-primary/50 bg-primary/5"
