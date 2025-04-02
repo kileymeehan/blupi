@@ -38,8 +38,14 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
             await queryClient.invalidateQueries();
             localStorage.removeItem('userEmail');
           } else {
-            // Store email for websocket identification
-            localStorage.setItem('userEmail', user.email || 'Anonymous');
+            // For anonymous users, use "Guest User" as identifier
+            const userIdentifier = user.isAnonymous 
+              ? 'Guest User' 
+              : (user.email || 'Anonymous');
+            
+            // Store identifier for websocket identification
+            localStorage.setItem('userEmail', userIdentifier);
+            
             // Refetch data after successful auth
             await queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
             await queryClient.invalidateQueries({ queryKey: ['/api/boards'] });

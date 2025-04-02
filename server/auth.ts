@@ -89,7 +89,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Update the auth check endpoint to handle Firebase tokens
+  // Update the auth check endpoint to handle Firebase tokens and anonymous users
   app.get("/api/auth/check", (req: Request, res: Response) => {
     console.log('[Auth] Checking auth status');
     if (!req.session) {
@@ -100,11 +100,27 @@ export function setupAuth(app: Express) {
       });
     }
 
-    if (!req.user) {
+    // Support for anonymous/guest users from Firebase
+    const isGuestUser = req.headers['x-guest-user'] === 'true';
+    
+    if (!req.user && !isGuestUser) {
       console.log('[Auth] No user found during auth check');
       return res.status(401).json({ 
         error: true,
         message: "Not authenticated" 
+      });
+    }
+
+    if (isGuestUser) {
+      console.log('[Auth] Guest user authenticated');
+      return res.json({
+        authenticated: true,
+        user: {
+          id: 0, // Guest users use a special ID
+          email: 'guest@example.com',
+          username: 'Guest User'
+        },
+        isGuest: true
       });
     }
 
@@ -115,7 +131,8 @@ export function setupAuth(app: Express) {
         id: req.user.id,
         email: req.user.email,
         username: req.user.username
-      }
+      },
+      isGuest: false
     });
   });
 
