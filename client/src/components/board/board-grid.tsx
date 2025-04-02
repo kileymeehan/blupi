@@ -114,6 +114,8 @@ export default function BoardGrid({
   const [inviteOpen, setInviteOpen] = useState(false);
   const [shareLinkOpen, setShareLinkOpen] = useState(false);
   const [shareLink, setShareLink] = useState("");
+  const [expandedStepText, setExpandedStepText] = useState("");
+  const [stepTextDialogOpen, setStepTextDialogOpen] = useState(false);
   const boardRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [showDepartments, setShowDepartments] = useState(false);
@@ -1100,19 +1102,35 @@ export default function BoardGrid({
                                     <div className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing">
                                       <GripVertical className="w-4 h-4" />
                                     </div>
-                                    <div
-                                      contentEditable
-                                      onBlur={(e) =>
-                                        handleColumnNameChange(
-                                          phaseIndex,
-                                          columnIndex,
-                                          e.currentTarget.textContent || "",
-                                        )
-                                      }
-                                      className="font-bold text-sm focus:outline-none focus-visible:border-b focus-visible:border-primary flex-1 h-6 overflow-hidden"
-                                      suppressContentEditableWarning={true}
-                                    >
-                                      {column.name}
+                                    <div className="relative flex-1 group">
+                                      <div
+                                        contentEditable
+                                        onBlur={(e) =>
+                                          handleColumnNameChange(
+                                            phaseIndex,
+                                            columnIndex,
+                                            e.currentTarget.textContent || "",
+                                          )
+                                        }
+                                        className="font-bold text-base focus:outline-none focus-visible:border-b focus-visible:border-primary h-12 overflow-hidden text-ellipsis"
+                                        suppressContentEditableWarning={true}
+                                        title={column.name}
+                                      >
+                                        {column.name}
+                                      </div>
+                                      {column.name && column.name.length > 25 && (
+                                        <div className="absolute inset-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <button 
+                                            className="text-xs text-gray-500 bg-white p-1 rounded-md shadow"
+                                            onClick={() => {
+                                              setExpandedStepText(column.name);
+                                              setStepTextDialogOpen(true);
+                                            }}
+                                          >
+                                            Expand
+                                          </button>
+                                        </div>
+                                      )}
                                     </div>
                                     <Button
                                       variant="ghost"
@@ -1420,6 +1438,20 @@ export default function BoardGrid({
           </div>
         </DragDropContext>
       </div>
+      
+      {/* Step Text Expanded Dialog */}
+      <Dialog open={stepTextDialogOpen} onOpenChange={setStepTextDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Step Details</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-4 bg-gray-50 rounded-md border text-base">
+              {expandedStepText}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
