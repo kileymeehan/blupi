@@ -1193,15 +1193,13 @@ export default function BoardGrid({
                             <div
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className="grid gap-8"
+                              className="board-grid"
                               style={{ 
                                 display: 'grid',
-                                gridTemplateColumns: `repeat(${phase.columns.length * 3}, 1fr)`,
+                                gridTemplateColumns: `repeat(${phase.columns.length}, minmax(225px, 1fr))`,
                                 gridAutoRows: 'auto',
-                                gridGap: '2rem',
-                                gridAutoFlow: 'row',
-                                columnGap: '2rem',
-                                rowGap: '2rem'
+                                gap: '2rem',
+                                width: '100%'
                               }}
                             >
                               {phase.columns.map((column, columnIndex) => (
@@ -1209,7 +1207,6 @@ export default function BoardGrid({
                                   key={column.id}
                                   className="flex-shrink-0 flex flex-col"
                                   style={{ 
-                                    gridColumn: `span 3`,
                                     minWidth: '225px'
                                   }}
                                 >
@@ -1293,8 +1290,8 @@ export default function BoardGrid({
                                         `}
                                         style={{
                                           display: 'grid',
-                                          gridTemplateColumns: 'repeat(3, 1fr)',
-                                          columnGap: '1rem',
+                                          gridTemplateColumns: '1fr',
+                                          gridAutoFlow: 'row dense',
                                           rowGap: '1rem',
                                           width: '100%'
                                         }}
@@ -1330,12 +1327,12 @@ export default function BoardGrid({
                                                   style={{
                                                     ...provided.draggableProps.style,
                                                     zIndex: snapshot.isDragging ? 9999 : "auto",
-                                                    gridColumn: block.columnSpan && block.columnSpan > 1 ? `span ${block.columnSpan}` : 'span 1',
                                                     width: snapshot.isDragging 
                                                       ? (block.columnSpan && block.columnSpan > 1 
                                                           ? `calc(${block.columnSpan * 225}px + ${(block.columnSpan - 1) * 32}px)` 
                                                           : "225px") 
-                                                      : '100%'
+                                                      : '100%',
+                                                    gridColumnStart: `span ${block.columnSpan || 1}`
                                                   }}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
