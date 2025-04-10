@@ -75,6 +75,12 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { LAYER_TYPES } from "./constants";
 import { DepartmentFilter } from "./department-filter";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Attachment {
   type: "link" | "image" | "video";
@@ -806,35 +812,42 @@ export default function BoardGrid({
 
         <div className="flex items-center">
           {/* Zoom Controls */}
-          <div className="flex items-center gap-1 mr-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleZoomOut}
-              className="h-8 w-8 p-0"
-            >
-              <span className="text-lg">-</span>
-            </Button>
-            <div className="min-w-[60px] text-center text-sm">
-              {Math.round(zoomLevel * 100)}%
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleZoomIn}
-              className="h-8 w-8 p-0"
-            >
-              <span className="text-lg">+</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleZoomReset}
-              className="h-8 text-xs ml-1"
-            >
-              Reset
-            </Button>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center mr-4 bg-gray-100 rounded-md border border-gray-200 shadow-sm overflow-hidden">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleZoomOut}
+                    className="h-8 w-8 p-0 rounded-none border-r border-gray-200"
+                  >
+                    <span className="text-lg font-medium">−</span>
+                  </Button>
+                  <div className="min-w-[54px] flex items-center justify-center text-sm font-medium">
+                    {Math.round(zoomLevel * 100)}%
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleZoomIn}
+                    className="h-8 w-8 p-0 rounded-none border-l border-gray-200"
+                  >
+                    <span className="text-lg font-medium">+</span>
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">
+                <div className="space-y-1">
+                  <p className="font-medium">Zoom Controls</p>
+                  <p>Ctrl/Cmd + + : Zoom in</p>
+                  <p>Ctrl/Cmd + - : Zoom out</p>
+                  <p>Ctrl/Cmd + 0 : Reset zoom</p>
+                  <p>Ctrl/Cmd + Wheel : Zoom in/out</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
           <UsersPresence users={connectedUsers} />
           <div className="w-px h-6 bg-gray-200 mx-3" />
