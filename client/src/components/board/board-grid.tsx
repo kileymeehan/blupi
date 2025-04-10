@@ -406,9 +406,25 @@ export default function BoardGrid({
         blocks.splice(insertAt >= 0 ? insertAt : blocks.length, 0, blockToMove);
       } else {
         // Moving to a different column
+        // Check if there are multi-column blocks that would collide
+        const multiColumnBlocks = blocks.filter(b => 
+          b.phaseIndex === destPhase && 
+          b.columnSpan && b.columnSpan > 1 &&
+          // Check if block spans across our destination column
+          ((b.columnIndex <= destColumn && b.columnIndex + (b.columnSpan - 1) >= destColumn) ||
+           // Or if our block (if it spans multiple columns) would overlap with this block
+           (blockToMove.columnSpan && blockToMove.columnSpan > 1 &&
+            destColumn <= b.columnIndex && destColumn + (blockToMove.columnSpan - 1) >= b.columnIndex))
+        );
+
+        // Get all blocks in the destination column, including those that span into it
         const destColumnBlocks = blocks
-          .filter(
-            (b) => b.phaseIndex === destPhase && b.columnIndex === destColumn,
+          .filter(b => 
+            b.phaseIndex === destPhase && 
+            (b.columnIndex === destColumn || 
+             (b.columnSpan && b.columnSpan > 1 && 
+              b.columnIndex <= destColumn && 
+              b.columnIndex + (b.columnSpan - 1) >= destColumn))
           )
           .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
 
@@ -416,7 +432,7 @@ export default function BoardGrid({
         blockToMove.phaseIndex = destPhase;
         blockToMove.columnIndex = destColumn;
 
-        // Find insertion point
+        // Find insertion point, placing the block after any spanning blocks
         const insertAt =
           destination.index === 0
             ? blocks.findIndex(
@@ -1308,8 +1324,8 @@ export default function BoardGrid({
                                         {...provided.droppableProps}
                                         className={`
                                           column-droppable
-                                          ${snapshot.isDraggingOver ? "bg-primary/5" : ""}
-                                          transition-colors duration-200
+                                          ${snapshot.isDraggingOver ? "bg-primary/10 border-2 border-dashed border-primary/50" : ""}
+                                          transition-all duration-200 rounded-md
                                         `}
                                         style={{
                                           gridColumn: columnIndex + 1,
@@ -1350,12 +1366,9 @@ export default function BoardGrid({
                                                       : (block.columnSpan && block.columnSpan > 1
                                                         ? `calc(${block.columnSpan * 100}% + ${(block.columnSpan - 1) * 16}px)`
                                                         : '100%'),
-                                                    position: block.columnSpan && block.columnSpan > 1 && !snapshot.isDragging
-                                                      ? 'absolute'
-                                                      : 'relative',
-                                                    left: block.columnSpan && block.columnSpan > 1 && !snapshot.isDragging
-                                                      ? `0`
-                                                      : 'auto',
+                                                    position: 'relative',
+                                                    marginBottom: snapshot.isDragging ? 0 : '1rem',
+                                                    zIndex: (block.columnSpan && block.columnSpan > 1) ? 5 : 1,
                                                     gridColumn: `span ${block.columnSpan || 1}`
                                                   }}>
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
