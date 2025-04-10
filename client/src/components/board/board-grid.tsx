@@ -1193,12 +1193,18 @@ export default function BoardGrid({
                             <div
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className="flex gap-8"
+                              className="grid grid-cols-1 auto-cols-[225px] gap-8"
+                              style={{ 
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, 225px)',
+                                gridAutoFlow: 'column',
+                                gridGap: '2rem'
+                              }}
                             >
                               {phase.columns.map((column, columnIndex) => (
                                 <div
                                   key={column.id}
-                                  className="flex-shrink-0 w-[225px] flex flex-col"
+                                  className="flex-shrink-0 flex flex-col"
                                 >
                                   <div className="flex items-center gap-2 mb-2 mt-4">
                                     <div className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing">
@@ -1311,7 +1317,11 @@ export default function BoardGrid({
                                                     ...provided.draggableProps.style,
                                                     zIndex: snapshot.isDragging ? 9999 : "auto",
                                                     gridColumn: block.columnSpan && block.columnSpan > 1 ? `span ${block.columnSpan}` : undefined,
-                                                    width: block.columnSpan && block.columnSpan > 1 ? "100%" : undefined
+                                                    width: snapshot.isDragging 
+                                                      ? (block.columnSpan && block.columnSpan > 1 
+                                                          ? `calc(${block.columnSpan * 225}px + ${(block.columnSpan - 1) * 32}px)` 
+                                                          : "225px") 
+                                                      : (block.columnSpan && block.columnSpan > 1 ? "100%" : undefined)
                                                   }}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
