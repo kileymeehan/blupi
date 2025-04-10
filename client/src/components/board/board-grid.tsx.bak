@@ -1347,17 +1347,9 @@ export default function BoardGrid({
                                                       ? (block.columnSpan && block.columnSpan > 1 
                                                         ? `calc(${block.columnSpan * 225}px + ${(block.columnSpan - 1) * 32}px)` 
                                                         : "225px") 
-                                                      : (block.columnSpan && block.columnSpan > 1
-                                                        ? `calc(${block.columnSpan * 100}% + ${(block.columnSpan - 1) * 16}px)`
-                                                        : '100%'),
-                                                    position: block.columnSpan && block.columnSpan > 1 && !snapshot.isDragging
-                                                      ? 'absolute'
-                                                      : 'relative',
-                                                    left: block.columnSpan && block.columnSpan > 1 && !snapshot.isDragging
-                                                      ? `0`
-                                                      : 'auto',
+                                                      : '100%',
                                                     gridColumn: `span ${block.columnSpan || 1}`
-                                                  }}>
+                                                  }}
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
                                                   <div className="absolute inset-0 pointer-events-none">
                                                     {/* Top handle */}
