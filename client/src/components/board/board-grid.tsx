@@ -475,6 +475,16 @@ export default function BoardGrid({
     );
     onBlocksChange(blocks);
   };
+  
+  const handleColumnSpanChange = (
+    blockId: string,
+    columnSpan: number,
+  ) => {
+    const blocks = board.blocks.map((block) =>
+      block.id === blockId ? { ...block, columnSpan } : block,
+    );
+    onBlocksChange(blocks);
+  };
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];
@@ -1372,6 +1382,9 @@ export default function BoardGrid({
                                                     }
                                                     onDepartmentChange={
                                                       handleDepartmentChange
+                                                    }
+                                                    onColumnSpanChange={
+                                                      handleColumnSpanChange
                                                     }
                                                     onCommentClick={() =>
                                                       handleCommentClick(block)
