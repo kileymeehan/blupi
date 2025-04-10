@@ -1299,7 +1299,9 @@ export default function BoardGrid({
                                                   `}
                                                   style={{
                                                     ...provided.draggableProps.style,
-                                                    zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                    zIndex: snapshot.isDragging ? 9999 : "auto",
+                                                    gridColumn: block.columnSpan && block.columnSpan > 1 ? `span ${block.columnSpan}` : undefined,
+                                                    width: block.columnSpan && block.columnSpan > 1 ? "100%" : undefined
                                                   }}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
