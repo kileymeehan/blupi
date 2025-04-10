@@ -1193,11 +1193,11 @@ export default function BoardGrid({
                             <div
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className="grid grid-cols-1 auto-cols-[225px] gap-8"
+                              className="grid gap-8"
                               style={{ 
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, 225px)',
-                                gridAutoFlow: 'column',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(225px, 1fr))',
+                                gridAutoFlow: 'row dense',
                                 gridGap: '2rem'
                               }}
                             >
@@ -1282,8 +1282,13 @@ export default function BoardGrid({
                                               ? "border-primary/50 bg-primary/5"
                                               : "hover:border-gray-300"
                                           }
-                                          transition-colors duration-200
+                                          transition-colors duration-200 grid
                                         `}
+                                        style={{
+                                          display: 'grid',
+                                          gridTemplateColumns: 'minmax(225px, 1fr)',
+                                          gridGap: '1rem'
+                                        }}
                                       >
                                         {board.blocks
                                           .filter(

@@ -168,7 +168,10 @@ export default function Block({
   
   const handleColumnSpanChange = () => {
     if (!onColumnSpanChange) return;
+    // Apply immediately both to the block prop and server-side
     onColumnSpanChange(block.id, columnSpan);
+    // Update local state to match new span
+    block.columnSpan = columnSpan;
     setColumnSpanDialogOpen(false);
   };
 
