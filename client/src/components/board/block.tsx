@@ -1,5 +1,5 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown } from "lucide-react";
+import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, StretchHorizontal } from "lucide-react";
 import type {
   Block as BlockType,
   Attachment,
@@ -28,6 +28,7 @@ interface BlockProps {
     department: Department | undefined,
     customDepartment?: string,
   ) => void;
+  onColumnSpanChange?: (blockId: string, columnSpan: number) => void;
   isTemplate?: boolean;
   onCommentClick?: () => void;
   projectId?: number;

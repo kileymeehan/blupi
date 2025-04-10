@@ -152,6 +152,7 @@ export const blockSchema = z.object({
   content: z.string(),
   phaseIndex: z.number(),
   columnIndex: z.number(),
+  columnSpan: z.number().optional().default(1), // Number of columns the block spans (default: 1)
   comments: z.array(commentSchema).optional().default([]),
   attachments: z.array(attachmentSchema).optional().default([]),
   notes: z.string().optional(),
