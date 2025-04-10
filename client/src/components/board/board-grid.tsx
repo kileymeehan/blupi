@@ -123,6 +123,19 @@ export default function BoardGrid({
   const [departmentFilter, setDepartmentFilter] = useState<
     Department | undefined
   >(undefined);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.1, 2));
+  };
+  
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.1, 0.5));
+  };
+  
+  const handleZoomReset = () => {
+    setZoomLevel(1);
+  };
 
   const {
     data: board,
@@ -766,6 +779,37 @@ export default function BoardGrid({
         </div>
 
         <div className="flex items-center">
+          {/* Zoom Controls */}
+          <div className="flex items-center gap-1 mr-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleZoomOut}
+              className="h-8 w-8 p-0"
+            >
+              <span className="text-lg">-</span>
+            </Button>
+            <div className="min-w-[60px] text-center text-sm">
+              {Math.round(zoomLevel * 100)}%
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleZoomIn}
+              className="h-8 w-8 p-0"
+            >
+              <span className="text-lg">+</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleZoomReset}
+              className="h-8 text-xs ml-1"
+            >
+              Reset
+            </Button>
+          </div>
+          
           <UsersPresence users={connectedUsers} />
           <div className="w-px h-6 bg-gray-200 mx-3" />
           <div className="flex items-center gap-2">
