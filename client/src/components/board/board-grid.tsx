@@ -691,12 +691,24 @@ export default function BoardGrid({
     );
   };
 
-  // Add keyboard event listeners for modifier key detection (Cmd/Ctrl)
+  // Add keyboard event listeners for modifier key detection (Cmd/Ctrl) and zoom shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Check if Command (Mac) or Control (Windows/Linux) key is pressed
       if (e.metaKey || e.ctrlKey) {
         setIsModifierKeyPressed(true);
+        
+        // Zoom keyboard shortcuts
+        if (e.key === '=' || e.key === '+') {
+          e.preventDefault();
+          handleZoomIn();
+        } else if (e.key === '-') {
+          e.preventDefault();
+          handleZoomOut();
+        } else if (e.key === '0') {
+          e.preventDefault();
+          handleZoomReset();
+        }
       }
     };
 
@@ -706,15 +718,29 @@ export default function BoardGrid({
         setIsModifierKeyPressed(false);
       }
     };
+    
+    // Handle mousewheel zoom with Ctrl/Cmd key pressed
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          handleZoomIn();
+        } else {
+          handleZoomOut();
+        }
+      }
+    };
 
     // Add event listeners when component mounts
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('wheel', handleWheel, { passive: false });
 
     // Clean up event listeners when component unmounts
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('wheel', handleWheel);
     };
   }, []);
 
@@ -1092,9 +1118,18 @@ export default function BoardGrid({
             </div>
           </div>
 
-          <div className="flex-1 overflow-x-auto">
+          <div className="flex-1 overflow-x-auto overflow-y-auto">
             <div className="min-w-[800px] relative">
-              <div ref={boardRef} className="p-8">
+              {/* Apply zoom transformation to the board content */}
+              <div 
+                ref={boardRef}
+                className="p-8 origin-top-left"
+                style={{
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: 'top left',
+                  width: `${100 / zoomLevel}%`,
+                  minHeight: `${100 / zoomLevel}vh`
+                }}>
                 <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
                     <div key={phase.id} className="flex-shrink-0 relative mr-8">
