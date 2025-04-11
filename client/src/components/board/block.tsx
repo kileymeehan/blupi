@@ -192,6 +192,16 @@ export default function Block({
         </div>
       )}
 
+      {/* Drag handle visible on hover */}
+      {!isTemplate && !block.readOnly && (
+        <div className="absolute top-0 left-0 right-0 h-6 bg-gray-100/80 opacity-0 group-hover:opacity-100 rounded-t transition-opacity duration-200 flex items-center justify-center cursor-grab active:cursor-grabbing z-30">
+          <div className="flex space-x-1 items-center">
+            <div className="w-8 h-2 bg-gray-300 rounded-full"></div>
+            <div className="w-8 h-2 bg-gray-300 rounded-full"></div>
+          </div>
+        </div>
+      )}
+      
       {/* Render divider blocks differently */}
       {block.type === "front-stage" || block.type === "back-stage" || block.type === "custom-divider" ? (
         <div
@@ -210,7 +220,7 @@ export default function Block({
             overflow-hidden whitespace-pre-wrap break-words
             leading-normal
             focus:outline-none
-            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
+            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-default"}
             ${block.type === "front-stage" ? "bg-blue-500/75 text-white" : ""}
             ${block.type === "back-stage" ? "bg-purple-500/75 text-white" : ""}
             ${block.type === "custom-divider" ? "bg-gray-600/75 text-white" : ""}
@@ -252,14 +262,14 @@ export default function Block({
           onKeyDown={handleKeyDown}
           onDoubleClick={handleDoubleClick}
           className={`
-            w-full min-h-[120px] max-h-[200px] p-4
+            w-full min-h-[120px] max-h-[200px] p-4 pt-8
             ${block.emoji ? "pr-8" : ""} 
             ${block.department ? "pb-12" : ""}
             ${isTemplate ? "flex items-center justify-center" : ""}
             overflow-y-auto whitespace-normal break-words
             leading-normal text
             focus:outline-none
-            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
+            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-default"}
           `}
           suppressContentEditableWarning={true}
         >
