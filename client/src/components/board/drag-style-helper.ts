@@ -39,12 +39,11 @@ export const getDragStyle = (style: any, snapshot: any, sourceIndex?: string) =>
         }
       }
       
-      // Calculate final position with a much stronger left offset (-300px) to counter the jumping
-      // Based on user feedback that there's still a gap about as wide as a column
+      // Try with a much smaller offset since larger offsets increased the gap
       return {
         position: 'fixed',
         top: style.top || '0px',
-        left: style.left ? `${parseInt(style.left, 10) - 300}px` : '0px',
+        left: style.left ? `${parseInt(style.left, 10) - 50}px` : '0px',
         width: width,
         margin: 0,
         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
