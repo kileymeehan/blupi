@@ -1407,21 +1407,26 @@ export default function BoardGrid({
                                                     marginBottom: snapshot.isDragging ? 0 : '1rem',
                                                     gridColumn: `span ${block.columnSpan || 1}`
                                                   }}> 
-                                                  {/* Draggable handle that spans the entire block */}
+                                                  {/* Let the custom drag handle in the Block component handle the dragging */}
                                                   <div 
                                                     {...provided.dragHandleProps}
-                                                    className="absolute top-0 left-0 right-0 bottom-0 cursor-grab active:cursor-grabbing z-10"
-                                                    style={{
-                                                      cursor: snapshot.isDragging ? "grabbing" : "grab"
+                                                    className="hidden"
+                                                    ref={(el) => {
+                                                      if (el) {
+                                                        // Find the actual drag handle element and transfer the event handlers
+                                                        const dragHandle = document.querySelector(`[data-drag-handle="true"][data-block-id="${block.id}"]`);
+                                                        if (dragHandle) {
+                                                          const newProps = provided.dragHandleProps;
+                                                          Object.keys(newProps).forEach(key => {
+                                                            // Transfer only the event handlers, not the other props
+                                                            if (key.startsWith('on')) {
+                                                              dragHandle[key.toLowerCase()] = newProps[key];
+                                                            }
+                                                          });
+                                                        }
+                                                      }
                                                     }}
                                                   />
-                                                  
-                                                  {/* Visual drag indicator on hover */}
-                                                  <div className="absolute top-0 left-0 right-0 h-6 z-10 pointer-events-none">
-                                                    <div className="h-4 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                      <GripVertical size={14} className="text-gray-400" />
-                                                    </div>
-                                                  </div>
                                                   
                                                   <Block
                                                       block={block}

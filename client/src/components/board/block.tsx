@@ -1,5 +1,5 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, StretchHorizontal } from "lucide-react";
+import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, StretchHorizontal, GripVertical } from "lucide-react";
 import type {
   Block as BlockType,
   Attachment,
@@ -180,6 +180,16 @@ export default function Block({
 
   return (
     <div className="w-full h-full relative group">
+      {/* Add dedicated drag handle at the top left */}
+      {!isTemplate && !block.readOnly && (
+        <div 
+          className="absolute left-2 top-1 w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center cursor-grab active:cursor-grabbing z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-200"
+          data-drag-handle="true"
+        >
+          <GripVertical className="w-3 h-3 text-gray-500" />
+        </div>
+      )}
+      
       {block.emoji && (
         <div className="absolute top-[-12px] right-[-20px] z-10 text-lg select-none">
           {block.emoji}
@@ -210,7 +220,7 @@ export default function Block({
             overflow-hidden whitespace-pre-wrap break-words
             leading-normal
             focus:outline-none
-            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
+            ${isEditing ? "cursor-text" : "cursor-default"}
             ${block.type === "front-stage" ? "bg-blue-500/75 text-white" : ""}
             ${block.type === "back-stage" ? "bg-purple-500/75 text-white" : ""}
             ${block.type === "custom-divider" ? "bg-gray-600/75 text-white" : ""}
@@ -259,7 +269,7 @@ export default function Block({
             overflow-y-auto whitespace-normal break-words
             leading-normal text
             focus:outline-none
-            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
+            ${isEditing ? "cursor-text" : "cursor-default"}
           `}
           suppressContentEditableWarning={true}
         >
