@@ -777,24 +777,33 @@ export default function BoardGrid({
   }, []);
 
   // Add a function to handle the drag start event for potential duplication
-  // Enhanced style function to fix the cursor position when dragging
-  const getStyle = (style: any, snapshot: any) => {
+  // Use our external drag style helper 
+  const getStyle = (style: any, snapshot: any, sourceIndex?: string) => {
     if (!style || !snapshot) {
       return style;
     }
     
     // When the item is being dragged
     if (snapshot.isDragging) {
+      // Different handling for dragging within grid vs from sidebar
+      const isDraggingFromSidebar = sourceIndex === "drawer";
+      
       return {
         ...style,
         transform: style.transform,
+        // Force a fixed position for accurate cursor tracking
+        position: 'fixed',
+        // Attach the cursor to the exact position of the grab
+        left: style.left,
+        top: style.top,
+        // Other common dragging properties
+        margin: 0,
+        width: isDraggingFromSidebar ? style.width : undefined,
         transformOrigin: '0 0',
         transition: snapshot.isDropAnimating ? 
           'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 
-          undefined,
-        // The pointer needs to remain aligned with the cursor
+          'none',
         cursor: 'grabbing',
-        // Ensure the item stays on top during drag
         zIndex: 9999
       };
     }
@@ -1387,7 +1396,6 @@ export default function BoardGrid({
                                                   `}
                                                   style={getStyle({
                                                     ...provided.draggableProps.style,
-                                                    position: snapshot.isDragging ? 'fixed' : undefined,
                                                     width: snapshot.isDragging 
                                                       ? (block.columnSpan && block.columnSpan > 1 
                                                         ? `calc(${block.columnSpan * 225}px + ${(block.columnSpan - 1) * 32}px)` 
@@ -1397,7 +1405,7 @@ export default function BoardGrid({
                                                         : '100%'),
                                                     marginBottom: snapshot.isDragging ? 0 : '1rem',
                                                     gridColumn: `span ${block.columnSpan || 1}`
-                                                  }, snapshot)}>
+                                                  }, snapshot, phase.id)}}>
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
                                                   <div className="absolute inset-0 pointer-events-none">
                                                     {/* Top handle */}

@@ -1,6 +1,41 @@
 import { LAYER_TYPES } from "./constants";
 import { Draggable } from "react-beautiful-dnd";
 
+// Helper function for consistent drag behavior
+const getStyle = (style: any, snapshot: any, sourceIndex?: string) => {
+  if (!style || !snapshot) {
+    return style;
+  }
+  
+  // When the item is being dragged
+  if (snapshot.isDragging) {
+    // Different handling for dragging within grid vs from sidebar
+    const isDraggingFromSidebar = sourceIndex === "drawer";
+    
+    return {
+      ...style,
+      transform: style.transform,
+      // Force a fixed position for accurate cursor tracking
+      position: 'fixed',
+      // Attach the cursor to the exact position of the grab
+      left: style.left,
+      top: style.top,
+      // Other common dragging properties
+      margin: 0,
+      width: isDraggingFromSidebar ? style.width : undefined,
+      transformOrigin: '0 0',
+      transition: snapshot.isDropAnimating ? 
+        'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 
+        'none',
+      cursor: 'grabbing',
+      zIndex: 9999
+    };
+  }
+  
+  // For items not being dragged
+  return style;
+};
+
 export default function BlockDrawer() {
   // Separate standard blocks from divider blocks
   const standardBlocks = LAYER_TYPES.filter(layer => !layer.isDivider);
@@ -28,11 +63,11 @@ export default function BlockDrawer() {
                   ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
                   transition-shadow duration-200
                 `}
-                style={{
+                style={getStyle({
                   ...provided.draggableProps.style,
                   zIndex: snapshot.isDragging ? 9999 : 'auto',
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
-                }}
+                }, snapshot, "drawer")}
               >
                 <div className="font-medium text-xs text-gray-700/75 text-center">
                   {layer.label}
@@ -64,11 +99,11 @@ export default function BlockDrawer() {
                   ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
                   transition-shadow duration-200
                 `}
-                style={{
+                style={getStyle({
                   ...provided.draggableProps.style,
                   zIndex: snapshot.isDragging ? 9999 : 'auto',
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
-                }}
+                }, snapshot, "drawer")}
               >
                 <div className="absolute inset-0 flex items-center justify-start px-4 pointer-events-none">
                   <div className="w-full border-t-2 border-white opacity-50"></div>
