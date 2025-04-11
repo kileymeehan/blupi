@@ -963,12 +963,6 @@ export default function BoardGrid({
         <DragDropContext 
           onDragStart={handleDragStart} 
           onDragEnd={handleDragEnd}
-          onBeforeDragStart={(initial) => {
-            // Force a refresh to ensure the dragged item stays with the cursor
-            setTimeout(() => {
-              window.dispatchEvent(new Event('resize'));
-            }, 0);
-          }}
         >
           <div
             className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}
@@ -1367,7 +1361,6 @@ export default function BoardGrid({
                                                   `}
                                                   style={{
                                                     ...provided.draggableProps.style,
-                                                    position: snapshot.isDragging ? 'fixed' : 'relative', 
                                                     zIndex: snapshot.isDragging ? 9999 : (block.columnSpan && block.columnSpan > 1) ? 5 : 1,
                                                     width: snapshot.isDragging 
                                                       ? (block.columnSpan && block.columnSpan > 1 
@@ -1377,29 +1370,41 @@ export default function BoardGrid({
                                                         ? `calc(${block.columnSpan * 100}% + ${(block.columnSpan - 1) * 16}px)`
                                                         : '100%'),
                                                     marginBottom: snapshot.isDragging ? 0 : '1rem',
-                                                    pointerEvents: snapshot.isDragging ? 'none' : 'auto',
                                                     gridColumn: `span ${block.columnSpan || 1}`
                                                   }}>
-                                                  {/* Create a full drag handle that surrounds the entire block */}
-                                                  <div 
-                                                    {...provided.dragHandleProps} 
-                                                    className="absolute inset-0 pointer-events-auto cursor-grab active:cursor-grabbing z-10"
-                                                    style={{
-                                                      cursor: snapshot.isDragging ? "grabbing" : "grab",
-                                                      // Create a border area that shows on hover to indicate draggability
-                                                      boxShadow: "inset 0 0 0 2px rgba(0, 0, 0, 0.1)",
-                                                      opacity: 0.1,
-                                                      transition: "opacity 0.2s ease-in-out",
-                                                    }}
-                                                    onMouseEnter={(e) => e.currentTarget.style.opacity = "0.2"}
-                                                    onMouseLeave={(e) => e.currentTarget.style.opacity = "0.1"}
-                                                  >
-                                                    {/* Visual indicator on hover - centered */}
-                                                    <div className="absolute top-0 left-0 right-0 h-6 flex justify-center items-center">
-                                                      <div className="bg-white p-1 rounded-full shadow-sm">
-                                                        <GripVertical size={16} className="text-gray-500" />
+                                                  {/* Create handles on the edges that are draggable but leave the center free for editing */}
+                                                  <div className="absolute inset-0 pointer-events-none">
+                                                    {/* Top handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-0 left-0 right-0 h-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      style={{
+                                                        cursor: snapshot.isDragging ? "grabbing" : "grab"
+                                                      }}
+                                                    >
+                                                      {/* Visual indicator on hover */}
+                                                      <div className="h-4 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <GripVertical size={14} className="text-gray-400" />
                                                       </div>
                                                     </div>
+                                                    
+                                                    {/* Bottom handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute bottom-0 left-0 right-0 h-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
+                                                    
+                                                    {/* Left handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-6 bottom-6 left-0 w-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
+                                                    
+                                                    {/* Right handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-6 bottom-6 right-0 w-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
                                                   </div>
                                                   
                                                   <Block
