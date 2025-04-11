@@ -777,18 +777,30 @@ export default function BoardGrid({
   }, []);
 
   // Add a function to handle the drag start event for potential duplication
-  // Simple helper function to ensure dragged items stay with the cursor
+  // Enhanced style function to fix the cursor position when dragging
   const getStyle = (style: any, snapshot: any) => {
     if (!style || !snapshot) {
       return style;
     }
     
-    // Simplify to just maintain the transform
-    return {
-      ...style,
-      // Keep these same properties but don't override them
-      transform: style.transform,
-    };
+    // When the item is being dragged
+    if (snapshot.isDragging) {
+      return {
+        ...style,
+        transform: style.transform,
+        transformOrigin: '0 0',
+        transition: snapshot.isDropAnimating ? 
+          'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 
+          undefined,
+        // The pointer needs to remain aligned with the cursor
+        cursor: 'grabbing',
+        // Ensure the item stays on top during drag
+        zIndex: 9999
+      };
+    }
+    
+    // For items not being dragged
+    return style;
   };
 
   const handleDragStart = (initial: any) => {
@@ -1373,11 +1385,9 @@ export default function BoardGrid({
                                                     ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                     ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
                                                   `}
-                                                  style={{
+                                                  style={getStyle({
                                                     ...provided.draggableProps.style,
-                                                    // Force transform through getStyle to keep cursor attached
-                                                    ...(getStyle({transform: provided.draggableProps.style?.transform}, snapshot)),
-                                                    zIndex: snapshot.isDragging ? 9999 : (block.columnSpan && block.columnSpan > 1) ? 5 : 1,
+                                                    position: snapshot.isDragging ? 'fixed' : undefined,
                                                     width: snapshot.isDragging 
                                                       ? (block.columnSpan && block.columnSpan > 1 
                                                         ? `calc(${block.columnSpan * 225}px + ${(block.columnSpan - 1) * 32}px)` 
@@ -1387,7 +1397,7 @@ export default function BoardGrid({
                                                         : '100%'),
                                                     marginBottom: snapshot.isDragging ? 0 : '1rem',
                                                     gridColumn: `span ${block.columnSpan || 1}`
-                                                  }}>
+                                                  }, snapshot)}>
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
                                                   <div className="absolute inset-0 pointer-events-none">
                                                     {/* Top handle */}
