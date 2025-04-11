@@ -25,14 +25,32 @@ export const getDragStyle = (style: any, snapshot: any, sourceIndex?: string) =>
       }
     }
     
-    // Calculate transform offset to prevent the jumping effect
-    // The jump happens because the cursor position within the element changes
-    // We need to add an offset to keep the cursor at the same relative position
-    const transform = style.transform;
+    // Analyze the transform to extract translation values
+    let transformX = 0;
+    let transformY = 0;
+    
+    // Extract transform values if they exist
+    if (style.transform) {
+      const transformMatch = style.transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+      if (transformMatch && transformMatch.length >= 3) {
+        // Extract values, removing the 'px' suffix
+        const rawX = transformMatch[1].trim();
+        const rawY = transformMatch[2].trim();
+        transformX = parseInt(rawX, 10) || 0;
+        transformY = parseInt(rawY, 10) || 0;
+      }
+    }
+    
+    // Apply a slight offset to prevent the jump to the right
+    // This counters the automatic repositioning that react-beautiful-dnd does
+    const offsetX = isDraggingFromSidebar ? 0 : -10; // Apply offset only for grid items
+    
+    // Apply the offset to the transform to prevent jumping
+    const adjustedTransform = `translate(${transformX + offsetX}px, ${transformY}px)`;
     
     return {
       ...style,
-      transform: transform,
+      transform: adjustedTransform,
       // Force a fixed position for accurate cursor tracking
       position: 'fixed',
       // Attach the cursor to the exact position of the grab
