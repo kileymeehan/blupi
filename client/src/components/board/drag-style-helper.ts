@@ -25,41 +25,16 @@ export const getDragStyle = (style: any, snapshot: any, sourceIndex?: string) =>
       }
     }
     
-    // Extract transform values if present
-    let translateX = 0;
-    let translateY = 0;
-    
-    if (style.transform) {
-      const match = style.transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-      if (match && match.length >= 3) {
-        translateX = parseInt(match[1], 10) || 0;
-        translateY = parseInt(match[2], 10) || 0;
-      }
-    }
-    
-    // For dragging from columns, use a combination of approaches
+    // For dragging from columns
     if (!isDraggingFromSidebar) {
-      // Get client rect data from drag handle, if possible
-      const dragHandles = document.querySelectorAll('[data-drag-handle="true"]');
-      const activeHandles = Array.from(dragHandles).filter(handle => 
-        window.getComputedStyle(handle).cursor === 'grabbing'
-      );
-      
-      // Adjust position by taking into account where the drag handle is relative to the block
-      // We only need a very minor offset to prevent block jumping
-      const offsetX = -10; 
-      const offsetY = -10;
-      
-      // Set a fixed position based on style.left and style.top from react-beautiful-dnd
       return {
         ...style,
         position: 'fixed',
         top: style.top,
-        left: style.left ? `${parseInt(style.left, 10) + offsetX}px` : `${offsetX}px`,
+        left: style.left,
         width: width,
         height: 'auto',
         margin: 0,
-        transform: style.transform, // Keep original transform
         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
         cursor: 'grabbing',
         zIndex: 9999,
