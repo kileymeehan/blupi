@@ -28,46 +28,31 @@ export const getDragStyle = (style: any, snapshot: any, sourceIndex?: string) =>
     // Store original transform values for reference
     const originalTransform = style.transform;
     
-    // Instead of trying to adjust the transform, create a complete new style object
-    // that positions the element where we want it to be during dragging
+    // Start with the original style as a base
+    const newStyle = { ...style };
     
-    return {
-      position: 'fixed',
-      
-      // Instead of using left/top from react-beautiful-dnd (which causes the jump),
-      // calculate values from pointer position
-      left: isDraggingFromSidebar 
-        ? style.left 
-        : style.left ? `${parseInt(style.left, 10) - 100}px` : '0', // Apply direct left offset
-      
-      top: style.top,
-      
-      // Critical: preserve the width during dragging
-      width: width,
-      
-      // Keep original transform, but with an initial position adjustment
-      transform: isDraggingFromSidebar ? originalTransform : originalTransform,
-      
-      // Make the dragging look good
-      margin: 0,
-      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-      transformOrigin: '0 0',
-      transition: snapshot.isDropAnimating ? 
-        'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 
-        'none',
-      cursor: 'grabbing',
-      zIndex: 9999,
-      
-      // Include any additional inline styles from the Draggable
-      ...style,
-      
-      // But override transform and position to prevent them being overwritten
-      position: 'fixed',
-      transform: originalTransform,
-      
-      // This line effectively negates the right-jump by shifting the element left during drag
-      pointerEvents: 'none',
-    };
+    // Apply our custom styles specifically for dragging
+    newStyle.position = 'fixed';
+    
+    // Apply left offset to compensate for the jumping issue
+    if (!isDraggingFromSidebar && style.left) {
+      newStyle.left = `${parseInt(style.left, 10) - 100}px`;
+    }
+    
+    // Make sure width is preserved
+    newStyle.width = width;
+    
+    // Other visual styling
+    newStyle.margin = 0;
+    newStyle.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+    newStyle.transformOrigin = '0 0';
+    newStyle.transition = snapshot.isDropAnimating ? 
+      'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 
+      'none';
+    newStyle.cursor = 'grabbing';
+    newStyle.zIndex = 9999;
+    
+    return newStyle;
   }
   
   // For items not being dragged
