@@ -25,34 +25,46 @@ export const getDragStyle = (style: any, snapshot: any, sourceIndex?: string) =>
       }
     }
     
-    // Store original transform values for reference
-    const originalTransform = style.transform;
+    // For dragging from columns, calculate position directly from mouse position
+    if (!isDraggingFromSidebar) {
+      // Extract translation from transform
+      let transformX = 0;
+      let transformY = 0;
+      
+      if (style.transform) {
+        const match = style.transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+        if (match && match.length >= 3) {
+          transformX = parseInt(match[1], 10) || 0;
+          transformY = parseInt(match[2], 10) || 0;
+        }
+      }
+      
+      // Calculate final position with strong left offset (-150px) to counter the jumping
+      return {
+        position: 'fixed',
+        top: style.top || '0px',
+        left: style.left ? `${parseInt(style.left, 10) - 150}px` : '0px',
+        width: width,
+        margin: 0,
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        cursor: 'grabbing',
+        zIndex: 9999,
+        // Smooth animation only when dropping
+        transition: snapshot.isDropAnimating ? 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 'none',
+      };
+    } 
     
-    // Start with the original style as a base
-    const newStyle = { ...style };
-    
-    // Apply our custom styles specifically for dragging
-    newStyle.position = 'fixed';
-    
-    // Apply left offset to compensate for the jumping issue
-    if (!isDraggingFromSidebar && style.left) {
-      newStyle.left = `${parseInt(style.left, 10) - 100}px`;
-    }
-    
-    // Make sure width is preserved
-    newStyle.width = width;
-    
-    // Other visual styling
-    newStyle.margin = 0;
-    newStyle.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-    newStyle.transformOrigin = '0 0';
-    newStyle.transition = snapshot.isDropAnimating ? 
-      'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 
-      'none';
-    newStyle.cursor = 'grabbing';
-    newStyle.zIndex = 9999;
-    
-    return newStyle;
+    // For dragging from sidebar, use the default positioning
+    return {
+      ...style,
+      position: 'fixed',
+      width: width,
+      margin: 0,
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+      cursor: 'grabbing',
+      zIndex: 9999,
+      transition: snapshot.isDropAnimating ? 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 'none',
+    };
   }
   
   // For items not being dragged
