@@ -1407,12 +1407,11 @@ export default function BoardGrid({
                                                     marginBottom: snapshot.isDragging ? 0 : '1rem',
                                                     gridColumn: `span ${block.columnSpan || 1}`
                                                   }}> 
-                                                  {/* Make the entire block draggable for better affordance */}
+                                                  {/* Draggable handle that spans the entire block */}
                                                   <div 
                                                     {...provided.dragHandleProps}
                                                     className="absolute top-0 left-0 right-0 bottom-0 cursor-grab active:cursor-grabbing z-10"
                                                     style={{
-                                                      pointerEvents: snapshot.isDragging ? "auto" : "none",
                                                       cursor: snapshot.isDragging ? "grabbing" : "grab"
                                                     }}
                                                   />
