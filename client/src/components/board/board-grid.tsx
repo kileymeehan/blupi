@@ -777,6 +777,20 @@ export default function BoardGrid({
   }, []);
 
   // Add a function to handle the drag start event for potential duplication
+  // Simple helper function to ensure dragged items stay with the cursor
+  const getStyle = (style: any, snapshot: any) => {
+    if (!style || !snapshot) {
+      return style;
+    }
+    
+    // Simplify to just maintain the transform
+    return {
+      ...style,
+      // Keep these same properties but don't override them
+      transform: style.transform,
+    };
+  };
+
   const handleDragStart = (initial: any) => {
     // We only need to show a visual indicator if modifier is pressed
     if (isModifierKeyPressed) {
@@ -1361,6 +1375,8 @@ export default function BoardGrid({
                                                   `}
                                                   style={{
                                                     ...provided.draggableProps.style,
+                                                    // Force transform through getStyle to keep cursor attached
+                                                    ...(getStyle({transform: provided.draggableProps.style?.transform}, snapshot)),
                                                     zIndex: snapshot.isDragging ? 9999 : (block.columnSpan && block.columnSpan > 1) ? 5 : 1,
                                                     width: snapshot.isDragging 
                                                       ? (block.columnSpan && block.columnSpan > 1 
