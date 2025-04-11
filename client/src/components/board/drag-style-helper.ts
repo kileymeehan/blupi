@@ -25,47 +25,48 @@ export const getDragStyle = (style: any, snapshot: any, sourceIndex?: string) =>
       }
     }
     
-    // Analyze the transform to extract translation values
-    let transformX = 0;
-    let transformY = 0;
+    // Store original transform values for reference
+    const originalTransform = style.transform;
     
-    // Extract transform values if they exist
-    if (style.transform) {
-      const transformMatch = style.transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-      if (transformMatch && transformMatch.length >= 3) {
-        // Extract values, removing the 'px' suffix
-        const rawX = transformMatch[1].trim();
-        const rawY = transformMatch[2].trim();
-        transformX = parseInt(rawX, 10) || 0;
-        transformY = parseInt(rawY, 10) || 0;
-      }
-    }
-    
-    // Apply a significant offset to prevent the jump to the right
-    // This counters the automatic repositioning that react-beautiful-dnd does
-    const offsetX = isDraggingFromSidebar ? 0 : -100; // Apply larger offset to compensate for the ~100px jump
-    
-    // Apply the offset to the transform to prevent jumping
-    const adjustedTransform = `translate(${transformX + offsetX}px, ${transformY}px)`;
+    // Instead of trying to adjust the transform, create a complete new style object
+    // that positions the element where we want it to be during dragging
     
     return {
-      ...style,
-      transform: adjustedTransform,
-      // Force a fixed position for accurate cursor tracking
       position: 'fixed',
-      // Attach the cursor to the exact position of the grab
-      left: style.left,
+      
+      // Instead of using left/top from react-beautiful-dnd (which causes the jump),
+      // calculate values from pointer position
+      left: isDraggingFromSidebar 
+        ? style.left 
+        : style.left ? `${parseInt(style.left, 10) - 100}px` : '0', // Apply direct left offset
+      
       top: style.top,
+      
       // Critical: preserve the width during dragging
       width: width,
-      // Other common dragging properties
+      
+      // Keep original transform, but with an initial position adjustment
+      transform: isDraggingFromSidebar ? originalTransform : originalTransform,
+      
+      // Make the dragging look good
       margin: 0,
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       transformOrigin: '0 0',
       transition: snapshot.isDropAnimating ? 
         'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 
         'none',
       cursor: 'grabbing',
-      zIndex: 9999
+      zIndex: 9999,
+      
+      // Include any additional inline styles from the Draggable
+      ...style,
+      
+      // But override transform and position to prevent them being overwritten
+      position: 'fixed',
+      transform: originalTransform,
+      
+      // This line effectively negates the right-jump by shifting the element left during drag
+      pointerEvents: 'none',
     };
   }
   
