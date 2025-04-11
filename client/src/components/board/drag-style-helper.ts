@@ -41,9 +41,9 @@ export const getDragStyle = (style: any, snapshot: any, sourceIndex?: string) =>
       }
     }
     
-    // Apply a slight offset to prevent the jump to the right
+    // Apply a significant offset to prevent the jump to the right
     // This counters the automatic repositioning that react-beautiful-dnd does
-    const offsetX = isDraggingFromSidebar ? 0 : -10; // Apply offset only for grid items
+    const offsetX = isDraggingFromSidebar ? 0 : -100; // Apply larger offset to compensate for the ~100px jump
     
     // Apply the offset to the transform to prevent jumping
     const adjustedTransform = `translate(${transformX + offsetX}px, ${transformY}px)`;
