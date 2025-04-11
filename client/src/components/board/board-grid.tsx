@@ -75,6 +75,7 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { LAYER_TYPES } from "./constants";
 import { DepartmentFilter } from "./department-filter";
+import { getDragStyle } from "./drag-style-helper";
 import {
   Tooltip,
   TooltipContent,
@@ -1394,7 +1395,7 @@ export default function BoardGrid({
                                                     ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                     ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
                                                   `}
-                                                  style={getStyle({
+                                                  style={getDragStyle({
                                                     ...provided.draggableProps.style,
                                                     width: snapshot.isDragging 
                                                       ? (block.columnSpan && block.columnSpan > 1 
@@ -1405,7 +1406,7 @@ export default function BoardGrid({
                                                         : '100%'),
                                                     marginBottom: snapshot.isDragging ? 0 : '1rem',
                                                     gridColumn: `span ${block.columnSpan || 1}`
-                                                  }, snapshot, phase.id)}}>
+                                                  }, snapshot, phase.id)}> 
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
                                                   <div className="absolute inset-0 pointer-events-none">
                                                     {/* Top handle */}
