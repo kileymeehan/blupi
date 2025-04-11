@@ -185,6 +185,7 @@ export default function Block({
         <div 
           className="absolute left-2 top-1 w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center cursor-grab active:cursor-grabbing z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-200"
           data-drag-handle="true"
+          data-block-id={block.id}
         >
           <GripVertical className="w-3 h-3 text-gray-500" />
         </div>

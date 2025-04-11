@@ -1407,25 +1407,11 @@ export default function BoardGrid({
                                                     marginBottom: snapshot.isDragging ? 0 : '1rem',
                                                     gridColumn: `span ${block.columnSpan || 1}`
                                                   }}> 
-                                                  {/* Let the custom drag handle in the Block component handle the dragging */}
+                                                  {/* Add the drag handle properties directly */}
                                                   <div 
-                                                    {...provided.dragHandleProps}
-                                                    className="hidden"
-                                                    ref={(el) => {
-                                                      if (el) {
-                                                        // Find the actual drag handle element and transfer the event handlers
-                                                        const dragHandle = document.querySelector(`[data-drag-handle="true"][data-block-id="${block.id}"]`);
-                                                        if (dragHandle) {
-                                                          const newProps = provided.dragHandleProps;
-                                                          Object.keys(newProps).forEach(key => {
-                                                            // Transfer only the event handlers, not the other props
-                                                            if (key.startsWith('on')) {
-                                                              dragHandle[key.toLowerCase()] = newProps[key];
-                                                            }
-                                                          });
-                                                        }
-                                                      }
-                                                    }}
+                                                    {...provided.dragHandleProps} 
+                                                    className="absolute -top-1 -left-1 w-10 h-6 cursor-grab active:cursor-grabbing"
+                                                    style={{ opacity: 0 }} 
                                                   />
                                                   
                                                   <Block

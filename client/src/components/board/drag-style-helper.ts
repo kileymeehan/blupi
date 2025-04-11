@@ -25,27 +25,41 @@ export const getDragStyle = (style: any, snapshot: any, sourceIndex?: string) =>
       }
     }
     
-    // For dragging from columns, calculate position directly from mouse position
-    if (!isDraggingFromSidebar) {
-      // Extract translation from transform
-      let transformX = 0;
-      let transformY = 0;
-      
-      if (style.transform) {
-        const match = style.transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-        if (match && match.length >= 3) {
-          transformX = parseInt(match[1], 10) || 0;
-          transformY = parseInt(match[2], 10) || 0;
-        }
+    // Extract transform values if present
+    let translateX = 0;
+    let translateY = 0;
+    
+    if (style.transform) {
+      const match = style.transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+      if (match && match.length >= 3) {
+        translateX = parseInt(match[1], 10) || 0;
+        translateY = parseInt(match[2], 10) || 0;
       }
+    }
+    
+    // For dragging from columns, use a combination of approaches
+    if (!isDraggingFromSidebar) {
+      // Get client rect data from drag handle, if possible
+      const dragHandles = document.querySelectorAll('[data-drag-handle="true"]');
+      const activeHandles = Array.from(dragHandles).filter(handle => 
+        window.getComputedStyle(handle).cursor === 'grabbing'
+      );
       
-      // Try with a much smaller offset since larger offsets increased the gap
+      // Adjust position by taking into account where the drag handle is relative to the block
+      // We only need a very minor offset to prevent block jumping
+      const offsetX = -10; 
+      const offsetY = -10;
+      
+      // Set a fixed position based on style.left and style.top from react-beautiful-dnd
       return {
+        ...style,
         position: 'fixed',
-        top: style.top || '0px',
-        left: style.left ? `${parseInt(style.left, 10) - 50}px` : '0px',
+        top: style.top,
+        left: style.left ? `${parseInt(style.left, 10) + offsetX}px` : `${offsetX}px`,
         width: width,
+        height: 'auto',
         margin: 0,
+        transform: style.transform, // Keep original transform
         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
         cursor: 'grabbing',
         zIndex: 9999,
