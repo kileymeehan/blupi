@@ -142,6 +142,56 @@ export default function BoardGrid({
   const handleZoomReset = () => {
     setZoomLevel(1);
   };
+  
+  // Setup key handlers for zoom and modifier keys
+  useEffect(() => {
+    // Add keyboard event listeners to handle modifier keys for duplicating blocks
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Control' || e.key === 'Meta') {
+        setIsModifierKeyPressed(true);
+      }
+      
+      // Keyboard shortcuts for zoom
+      if ((e.ctrlKey || e.metaKey) && e.key === '=') {
+        e.preventDefault();
+        handleZoomIn();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+        e.preventDefault();
+        handleZoomOut();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+        e.preventDefault();
+        handleZoomReset();
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Control' || e.key === 'Meta') {
+        setIsModifierKeyPressed(false);
+      }
+    };
+    
+    // Handle mouse wheel for zooming with Ctrl/Cmd key pressed
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          handleZoomIn();
+        } else {
+          handleZoomOut();
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
 
   const {
     data: board,
@@ -208,6 +258,13 @@ export default function BoardGrid({
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
+
+    // Adjust drag coordinates based on zoom level if necessary
+    if (zoomLevel !== 1) {
+      // We don't need to adjust coordinates when using react-beautiful-dnd
+      // because the library handles this internally based on the DOM structure
+      console.log("Drag operation completed with zoom level:", zoomLevel);
+    }
 
     const { source, destination, type } = result;
 
@@ -934,7 +991,10 @@ export default function BoardGrid({
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <DragDropContext 
+          onDragStart={handleDragStart} 
+          onDragEnd={handleDragEnd}
+        >
           <div
             className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}
           >
@@ -1133,15 +1193,16 @@ export default function BoardGrid({
 
           <div className="flex-1 overflow-x-auto overflow-y-auto">
             <div className="min-w-[800px] relative">
-              {/* Apply zoom transformation to the board content */}
-              <div 
+              {/* Set up the drag and drop context with adjusted scale for proper coordinates */}
+              <div
                 ref={boardRef}
-                className="p-8 origin-top-left"
+                className="p-8 origin-top-left transform-gpu"
                 style={{
                   transform: `scale(${zoomLevel})`,
                   transformOrigin: 'top left',
                   width: `${100 / zoomLevel}%`,
-                  minHeight: `${100 / zoomLevel}vh`
+                  minHeight: `${100 / zoomLevel}vh`,
+                  touchAction: 'none' // Improves touch handling during drag operations
                 }}>
                 <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
