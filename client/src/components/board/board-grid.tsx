@@ -70,7 +70,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { UserPlus, Link as LinkIcon } from "lucide-react";
+import { UserPlus, Link as LinkIcon, ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { LAYER_TYPES } from "./constants";
@@ -714,6 +714,38 @@ export default function BoardGrid({
       // For example, changing the cursor or adding a badge
     }
   };
+  
+  // Add keyboard shortcuts for zooming
+  useEffect(() => {
+    const handleZoomKeyboard = (e: KeyboardEvent) => {
+      // Only capture keyboard shortcuts if Ctrl/Cmd is pressed
+      if (e.metaKey || e.ctrlKey) {
+        // Ctrl/Cmd + Plus/Equal to zoom in
+        if (e.key === '+' || e.key === '=' || e.key === 'Equal') {
+          e.preventDefault();
+          setCanvasScale(prev => Math.min(2, prev + 0.1));
+        }
+        
+        // Ctrl/Cmd + Minus to zoom out
+        if (e.key === '-' || e.key === 'Minus') {
+          e.preventDefault();
+          setCanvasScale(prev => Math.max(0.5, prev - 0.1));
+        }
+        
+        // Ctrl/Cmd + 0 to reset zoom
+        if (e.key === '0' || e.key === 'Digit0') {
+          e.preventDefault();
+          setCanvasScale(1);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleZoomKeyboard);
+    
+    return () => {
+      window.removeEventListener('keydown', handleZoomKeyboard);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -1051,7 +1083,38 @@ export default function BoardGrid({
 
           <div className="flex-1 overflow-x-auto">
             <div className="min-w-[800px] relative">
-              <div ref={boardRef} className="p-8">
+              <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 bg-white border border-gray-200 rounded-lg shadow-md p-2 opacity-80 hover:opacity-100 transition-opacity">
+                <button 
+                  onClick={() => setCanvasScale(Math.max(0.5, canvasScale - 0.1))}
+                  className="flex items-center justify-center h-8 w-8 bg-gray-100 hover:bg-gray-200 rounded-md"
+                  title="Zoom out"
+                >
+                  <span className="text-lg font-bold">−</span>
+                </button>
+                <button 
+                  onClick={() => setCanvasScale(1)}
+                  className="text-xs px-2 py-1 bg-white hover:bg-gray-100 border border-gray-200 rounded font-medium"
+                  title="Reset zoom"
+                >
+                  {Math.round(canvasScale * 100)}%
+                </button>
+                <button 
+                  onClick={() => setCanvasScale(Math.min(2, canvasScale + 0.1))}
+                  className="flex items-center justify-center h-8 w-8 bg-gray-100 hover:bg-gray-200 rounded-md"
+                  title="Zoom in"
+                >
+                  <span className="text-lg font-bold">+</span>
+                </button>
+              </div>
+              <div 
+                ref={boardRef} 
+                className="p-8 transition-all duration-200"
+                style={{ 
+                  transform: `scale(${canvasScale})`,
+                  transformOrigin: 'top left',
+                  width: `${100/canvasScale}%`,
+                  marginBottom: `${(canvasScale - 1) * 100}px`
+                }}>
                 <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
                     <div key={phase.id} className="flex-shrink-0 relative mr-8">
