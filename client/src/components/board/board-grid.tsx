@@ -1202,7 +1202,8 @@ export default function BoardGrid({
                   transformOrigin: 'top left',
                   width: `${100 / zoomLevel}%`,
                   minHeight: `${100 / zoomLevel}vh`,
-                  touchAction: 'none' // Improves touch handling during drag operations
+                  touchAction: 'none', // Improves touch handling during drag operations
+                  willChange: 'transform' // Optimizes performance during transformation
                 }}>
                 <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
@@ -1360,7 +1361,11 @@ export default function BoardGrid({
                                                   `}
                                                   style={{
                                                     ...provided.draggableProps.style,
-                                                    zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                    zIndex: snapshot.isDragging ? 9999 : "auto",
+                                                    // Apply hardware acceleration and other performance optimizations
+                                                    transform: provided.draggableProps.style?.transform,
+                                                    transformOrigin: 'top left',
+                                                    willChange: snapshot.isDragging ? 'transform' : 'auto'
                                                   }}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
@@ -1368,9 +1373,11 @@ export default function BoardGrid({
                                                     {/* Top handle */}
                                                     <div 
                                                       {...provided.dragHandleProps}
-                                                      className="absolute top-0 left-0 right-0 h-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      className="absolute top-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing"
                                                       style={{
-                                                        cursor: snapshot.isDragging ? "grabbing" : "grab"
+                                                        cursor: snapshot.isDragging ? "grabbing" : "grab",
+                                                        transform: 'translate3d(0,0,0)', // Force hardware acceleration
+                                                        touchAction: 'none' // Disable browser touch actions
                                                       }}
                                                     >
                                                       {/* Visual indicator on hover */}
@@ -1382,19 +1389,31 @@ export default function BoardGrid({
                                                     {/* Bottom handle */}
                                                     <div 
                                                       {...provided.dragHandleProps}
-                                                      className="absolute bottom-0 left-0 right-0 h-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      className="absolute bottom-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      style={{
+                                                        transform: 'translate3d(0,0,0)',
+                                                        touchAction: 'none'
+                                                      }}
                                                     ></div>
                                                     
                                                     {/* Left handle */}
                                                     <div 
                                                       {...provided.dragHandleProps}
-                                                      className="absolute top-6 bottom-6 left-0 w-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      className="absolute top-8 bottom-8 left-0 w-8 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      style={{
+                                                        transform: 'translate3d(0,0,0)',
+                                                        touchAction: 'none'
+                                                      }}
                                                     ></div>
                                                     
                                                     {/* Right handle */}
                                                     <div 
                                                       {...provided.dragHandleProps}
-                                                      className="absolute top-6 bottom-6 right-0 w-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      className="absolute top-8 bottom-8 right-0 w-8 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      style={{
+                                                        transform: 'translate3d(0,0,0)',
+                                                        touchAction: 'none'
+                                                      }}
                                                     ></div>
                                                   </div>
                                                   
