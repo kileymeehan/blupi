@@ -123,6 +123,7 @@ export default function BoardGrid({
   const [departmentFilter, setDepartmentFilter] = useState<
     Department | undefined
   >(undefined);
+  const [canvasScale, setCanvasScale] = useState(1);
 
   const {
     data: board,
