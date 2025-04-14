@@ -1422,51 +1422,20 @@ export default function BoardGrid({
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
                                                   <div className="absolute inset-0 pointer-events-none">
-                                                    {/* Top handle */}
+                                                    {/* Single unified handle for the entire block to avoid jumping issues */}
                                                     <div 
                                                       {...provided.dragHandleProps}
-                                                      className="absolute top-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      className="absolute inset-0 pointer-events-auto cursor-grab active:cursor-grabbing"
                                                       style={{
                                                         cursor: snapshot.isDragging ? "grabbing" : "grab",
-                                                        transform: 'none', // Remove transform to avoid conflicts with parent transform
                                                         touchAction: 'none' // Disable browser touch actions
                                                       }}
                                                     >
                                                       {/* Visual indicator on hover */}
-                                                      <div className="h-4 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                      <div className="h-4 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity mt-1">
                                                         <GripVertical size={14} className="text-gray-400" />
                                                       </div>
                                                     </div>
-                                                    
-                                                    {/* Bottom handle */}
-                                                    <div 
-                                                      {...provided.dragHandleProps}
-                                                      className="absolute bottom-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing"
-                                                      style={{
-                                                        transform: 'none',
-                                                        touchAction: 'none'
-                                                      }}
-                                                    ></div>
-                                                    
-                                                    {/* Left handle */}
-                                                    <div 
-                                                      {...provided.dragHandleProps}
-                                                      className="absolute top-8 bottom-8 left-0 w-8 pointer-events-auto cursor-grab active:cursor-grabbing"
-                                                      style={{
-                                                        transform: 'none',
-                                                        touchAction: 'none'
-                                                      }}
-                                                    ></div>
-                                                    
-                                                    {/* Right handle */}
-                                                    <div 
-                                                      {...provided.dragHandleProps}
-                                                      className="absolute top-8 bottom-8 right-0 w-8 pointer-events-auto cursor-grab active:cursor-grabbing"
-                                                      style={{
-                                                        transform: 'none',
-                                                        touchAction: 'none'
-                                                      }}
-                                                    ></div>
                                                   </div>
                                                   
                                                   <Block
