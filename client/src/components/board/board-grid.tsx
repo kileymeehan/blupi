@@ -5,6 +5,7 @@ import {
   DropResult,
   DraggableProvided,
   DraggableStateSnapshot,
+  DraggingStyle,
 } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import {
