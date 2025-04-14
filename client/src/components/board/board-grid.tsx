@@ -3,9 +3,6 @@ import {
   Droppable,
   Draggable,
   DropResult,
-  DraggableProvided,
-  DraggableStateSnapshot,
-  DraggingStyle,
 } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,12 +75,6 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { LAYER_TYPES } from "./constants";
 import { DepartmentFilter } from "./department-filter";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface Attachment {
   type: "link" | "image" | "video";
@@ -132,103 +123,6 @@ export default function BoardGrid({
   const [departmentFilter, setDepartmentFilter] = useState<
     Department | undefined
   >(undefined);
-  const [zoomLevel, setZoomLevel] = useState(1);
-  
-  const handleZoomIn = () => {
-    setZoomLevel(prev => Math.min(prev + 0.1, 2));
-  };
-  
-  const handleZoomOut = () => {
-    setZoomLevel(prev => Math.max(prev - 0.1, 0.5));
-  };
-  
-  const handleZoomReset = () => {
-    setZoomLevel(1);
-  };
-  
-  // Type-safe draggable style function for smoother dragging
-  const getDraggableStyle = (provided: DraggableProvided, snapshot: DraggableStateSnapshot): React.CSSProperties => {
-    if (!provided.draggableProps.style) return {};
-    
-    // Create base style object from provided style
-    const baseStyle = provided.draggableProps.style;
-    
-    // For non-dragging state, just return standard styles with adjusted z-index
-    if (!snapshot.isDragging) {
-      return {
-        ...baseStyle,
-        zIndex: 'auto',
-      };
-    }
-    
-    // Since we know it's dragging, we can safely cast to DraggingStyle
-    const draggingStyle = baseStyle as DraggingStyle;
-    
-    // Create a simpler style object with only the essential properties
-    // This helps prevent transform-related issues when zoomed
-    return {
-      position: draggingStyle.position,
-      top: draggingStyle.top,
-      left: draggingStyle.left,
-      width: draggingStyle.width,
-      height: draggingStyle.height,
-      transform: draggingStyle.transform,
-      zIndex: 9999,
-      cursor: 'grabbing',
-      // Don't use transitions during dragging to prevent jumps
-      transition: 'none',
-    };
-  };
-  
-  // Setup key handlers for zoom and modifier keys
-  useEffect(() => {
-    // Add keyboard event listeners to handle modifier keys for duplicating blocks
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Control' || e.key === 'Meta') {
-        setIsModifierKeyPressed(true);
-      }
-      
-      // Keyboard shortcuts for zoom
-      if ((e.ctrlKey || e.metaKey) && e.key === '=') {
-        e.preventDefault();
-        handleZoomIn();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
-        e.preventDefault();
-        handleZoomOut();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
-        e.preventDefault();
-        handleZoomReset();
-      }
-    };
-    
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Control' || e.key === 'Meta') {
-        setIsModifierKeyPressed(false);
-      }
-    };
-    
-    // Handle mouse wheel for zooming with Ctrl/Cmd key pressed
-    const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        if (e.deltaY < 0) {
-          handleZoomIn();
-        } else {
-          handleZoomOut();
-        }
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    window.addEventListener('wheel', handleWheel, { passive: false });
-    
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-      window.removeEventListener('wheel', handleWheel);
-    };
-  }, []);
 
   const {
     data: board,
@@ -294,17 +188,7 @@ export default function BoardGrid({
   }
 
   const handleDragEnd = (result: DropResult) => {
-    // Clean up drag classes and states
-    handleDragStartCleanup();
-    
     if (!result.destination) return;
-
-    // Adjust drag coordinates based on zoom level if necessary
-    if (zoomLevel !== 1) {
-      // We don't need to adjust coordinates when using react-beautiful-dnd
-      // because the library handles this internally based on the DOM structure
-      console.log("Drag operation completed with zoom level:", zoomLevel);
-    }
 
     const { source, destination, type } = result;
 
@@ -794,24 +678,12 @@ export default function BoardGrid({
     );
   };
 
-  // Add keyboard event listeners for modifier key detection (Cmd/Ctrl) and zoom shortcuts
+  // Add keyboard event listeners for modifier key detection (Cmd/Ctrl)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Check if Command (Mac) or Control (Windows/Linux) key is pressed
       if (e.metaKey || e.ctrlKey) {
         setIsModifierKeyPressed(true);
-        
-        // Zoom keyboard shortcuts
-        if (e.key === '=' || e.key === '+') {
-          e.preventDefault();
-          handleZoomIn();
-        } else if (e.key === '-') {
-          e.preventDefault();
-          handleZoomOut();
-        } else if (e.key === '0') {
-          e.preventDefault();
-          handleZoomReset();
-        }
       }
     };
 
@@ -821,58 +693,25 @@ export default function BoardGrid({
         setIsModifierKeyPressed(false);
       }
     };
-    
-    // Handle mousewheel zoom with Ctrl/Cmd key pressed
-    const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        if (e.deltaY < 0) {
-          handleZoomIn();
-        } else {
-          handleZoomOut();
-        }
-      }
-    };
 
     // Add event listeners when component mounts
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
-    window.addEventListener('wheel', handleWheel, { passive: false });
 
     // Clean up event listeners when component unmounts
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      window.removeEventListener('wheel', handleWheel);
     };
   }, []);
 
-  // Add a function to handle the drag start event
+  // Add a function to handle the drag start event for potential duplication
   const handleDragStart = (initial: any) => {
-    // Show visual indicator if modifier is pressed (for duplication)
+    // We only need to show a visual indicator if modifier is pressed
     if (isModifierKeyPressed) {
-      // Could add visual indication for duplicate mode
+      // Could add some visual indication here that we're in duplicate mode
+      // For example, changing the cursor or adding a badge
     }
-    
-    // Add a class to the body to indicate dragging is in progress
-    // This can be useful for applying specific CSS when dragging
-    document.body.classList.add('dragging-in-progress');
-    
-    // Track block being dragged for highlighting
-    if (initial.type !== "COLUMN" && initial.draggableId && initial.draggableId.indexOf('drawer-') === -1) {
-      setHighlightedBlockId(initial.draggableId);
-    }
-    
-    // Log drag start with zoom level for debugging
-    if (zoomLevel !== 1) {
-      console.log("Starting drag with zoom level:", zoomLevel);
-    }
-  };
-  
-  // Clean up when drag ends
-  const handleDragStartCleanup = () => {
-    document.body.classList.remove('dragging-in-progress');
-    setHighlightedBlockId(null);
   };
 
   return (
@@ -927,44 +766,6 @@ export default function BoardGrid({
         </div>
 
         <div className="flex items-center">
-          {/* Zoom Controls */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center mr-4 bg-gray-100 rounded-md border border-gray-200 shadow-sm overflow-hidden">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleZoomOut}
-                    className="h-8 w-8 p-0 rounded-none border-r border-gray-200"
-                  >
-                    <span className="text-lg font-medium">−</span>
-                  </Button>
-                  <div className="min-w-[54px] flex items-center justify-center text-sm font-medium">
-                    {Math.round(zoomLevel * 100)}%
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleZoomIn}
-                    className="h-8 w-8 p-0 rounded-none border-l border-gray-200"
-                  >
-                    <span className="text-lg font-medium">+</span>
-                  </Button>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="text-xs">
-                <div className="space-y-1">
-                  <p className="font-medium">Zoom Controls</p>
-                  <p>Ctrl/Cmd + + : Zoom in</p>
-                  <p>Ctrl/Cmd + - : Zoom out</p>
-                  <p>Ctrl/Cmd + 0 : Reset zoom</p>
-                  <p>Ctrl/Cmd + Wheel : Zoom in/out</p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
           <UsersPresence users={connectedUsers} />
           <div className="w-px h-6 bg-gray-200 mx-3" />
           <div className="flex items-center gap-2">
@@ -1050,10 +851,7 @@ export default function BoardGrid({
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <DragDropContext 
-          onDragStart={handleDragStart} 
-          onDragEnd={handleDragEnd}
-        >
+        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div
             className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}
           >
@@ -1250,20 +1048,9 @@ export default function BoardGrid({
             </div>
           </div>
 
-          <div className="flex-1 overflow-x-auto overflow-y-auto">
+          <div className="flex-1 overflow-x-auto">
             <div className="min-w-[800px] relative">
-              {/* Set up the drag and drop context with adjusted scale for proper coordinates */}
-              <div
-                ref={boardRef}
-                className="p-8 origin-top-left transform-gpu"
-                style={{
-                  transform: `scale(${zoomLevel})`,
-                  transformOrigin: 'top left',
-                  width: `${100 / zoomLevel}%`,
-                  minHeight: `${100 / zoomLevel}vh`,
-                  touchAction: 'none', // Improves touch handling during drag operations
-                  willChange: 'transform' // Optimizes performance during transformation
-                }}>
+              <div ref={boardRef} className="p-8">
                 <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
                     <div key={phase.id} className="flex-shrink-0 relative mr-8">
@@ -1418,24 +1205,44 @@ export default function BoardGrid({
                                                     ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                     ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
                                                   `}
-                                                  style={getDraggableStyle(provided, snapshot)}
+                                                  style={{
+                                                    ...provided.draggableProps.style,
+                                                    zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                  }}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
                                                   <div className="absolute inset-0 pointer-events-none">
-                                                    {/* Single unified handle for the entire block to avoid jumping issues */}
+                                                    {/* Top handle */}
                                                     <div 
                                                       {...provided.dragHandleProps}
-                                                      className="absolute inset-0 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      className="absolute top-0 left-0 right-0 h-6 pointer-events-auto cursor-grab active:cursor-grabbing"
                                                       style={{
-                                                        cursor: snapshot.isDragging ? "grabbing" : "grab",
-                                                        touchAction: 'none' // Disable browser touch actions
+                                                        cursor: snapshot.isDragging ? "grabbing" : "grab"
                                                       }}
                                                     >
                                                       {/* Visual indicator on hover */}
-                                                      <div className="h-4 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+                                                      <div className="h-4 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <GripVertical size={14} className="text-gray-400" />
                                                       </div>
                                                     </div>
+                                                    
+                                                    {/* Bottom handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute bottom-0 left-0 right-0 h-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
+                                                    
+                                                    {/* Left handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-6 bottom-6 left-0 w-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
+                                                    
+                                                    {/* Right handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-6 bottom-6 right-0 w-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
                                                   </div>
                                                   
                                                   <Block

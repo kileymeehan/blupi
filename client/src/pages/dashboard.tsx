@@ -26,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 import AddToProjectDialog from "@/components/board/add-to-project-dialog";
@@ -110,13 +111,6 @@ export default function Dashboard() {
     staleTime: 30000,
     gcTime: 1800000,
     initialData: [],
-    onError: (error: Error) => {
-      toast({
-        title: "Error loading projects",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
   });
 
   const { data: boards = [], isLoading: boardsLoading } = useQuery<Board[]>({
@@ -124,13 +118,6 @@ export default function Dashboard() {
     staleTime: 30000,
     gcTime: 1800000,
     initialData: [],
-    onError: (error: Error) => {
-      toast({
-        title: "Error loading boards",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
   });
 
   useEffect(() => {
@@ -392,9 +379,26 @@ export default function Dashboard() {
                         <div className="text-sm text-muted-foreground">
                           {project.description}
                         </div>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          Created on{" "}
-                          {format(new Date(project.createdAt), "MMM d, yyyy")}
+                        <div className="mt-2 flex items-center gap-2">
+                          {project.user && (
+                            <div className="relative group">
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className="bg-primary text-white text-xs">
+                                  {project.user.username.substring(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                                <div className="bg-popover shadow-md rounded px-2 py-1 text-xs text-popover-foreground whitespace-nowrap">
+                                  <div>{project.user.username}</div>
+                                  <div className="text-muted-foreground">{project.user.email}</div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          <div className="text-xs text-muted-foreground">
+                            Created on{" "}
+                            {format(new Date(project.createdAt), "MMM d, yyyy")}
+                          </div>
                         </div>
                       </div>
                     </CardHeader>
@@ -527,9 +531,26 @@ export default function Dashboard() {
                               Project: {project.name}
                             </div>
                           )}
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            Created on{" "}
-                            {format(new Date(board.createdAt), "MMM d, yyyy")}
+                          <div className="mt-2 flex items-center gap-2">
+                            {board.user && (
+                              <div className="relative group">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarFallback className="bg-primary text-white text-xs">
+                                    {board.user.username.substring(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                                  <div className="bg-popover shadow-md rounded px-2 py-1 text-xs text-popover-foreground whitespace-nowrap">
+                                    <div>{board.user.username}</div>
+                                    <div className="text-muted-foreground">{board.user.email}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            <div className="text-xs text-muted-foreground">
+                              Created on{" "}
+                              {format(new Date(board.createdAt), "MMM d, yyyy")}
+                            </div>
                           </div>
                         </CardDescription>
                       </CardHeader>
@@ -627,9 +648,26 @@ export default function Dashboard() {
                     </div>
                     <CardDescription>
                       {board.description}
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        Created on{" "}
-                        {format(new Date(board.createdAt), "MMM d, yyyy")}
+                      <div className="mt-2 flex items-center gap-2">
+                        {board.user && (
+                          <div className="relative group">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="bg-primary text-white text-xs">
+                                {board.user.username.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                              <div className="bg-popover shadow-md rounded px-2 py-1 text-xs text-popover-foreground whitespace-nowrap">
+                                <div>{board.user.username}</div>
+                                <div className="text-muted-foreground">{board.user.email}</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        <div className="text-xs text-muted-foreground">
+                          Created on{" "}
+                          {format(new Date(board.createdAt), "MMM d, yyyy")}
+                        </div>
                       </div>
                     </CardDescription>
                   </CardHeader>
@@ -703,7 +741,7 @@ export default function Dashboard() {
             }
           }}
           projectId={projectToDelete.id}
-          projectName={project.name}
+          projectName={projectToDelete.name}
         />
       )}
     </div>

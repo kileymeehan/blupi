@@ -13,43 +13,4 @@
     @apply antialiased bg-background text-foreground;
     font-family: 'Montserrat', sans-serif;
   }
-  
-  /* Global hardware acceleration for draggable elements */
-  [data-rbd-draggable-id] {
-    transform: translate3d(0, 0, 0); /* Force GPU acceleration */
-    will-change: transform;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    perspective: 1000px;
-    -webkit-perspective: 1000px;
-  }
-  
-  /* Fix jumping issues when being dragged */
-  [data-rbd-draggable-id][data-rbd-dragging="true"] {
-    transition: none !important;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-    opacity: 0.9;
-    z-index: 9999 !important;
-  }
-  
-  /* Ensure draggable content stays visible during drag */
-  [data-rbd-draggable-id][data-rbd-dragging="true"] * {
-    pointer-events: none;
-  }
-  
-  /* Optimize drag handles */
-  [data-rbd-drag-handle-draggable-id] {
-    cursor: grab;
-    touch-action: none;
-  }
-  
-  [data-rbd-drag-handle-draggable-id]:active {
-    cursor: grabbing;
-  }
-  
-  /* Remove transitions from elements during dragging to prevent jumps */
-  .dragging-in-progress * {
-    transition: none !important;
-    animation: none !important;
-  }
 }
