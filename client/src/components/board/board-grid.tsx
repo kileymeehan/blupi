@@ -3,6 +3,8 @@ import {
   Droppable,
   Draggable,
   DropResult,
+  DraggableProvided,
+  DraggableStateSnapshot,
 } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import {
@@ -141,6 +143,37 @@ export default function BoardGrid({
   
   const handleZoomReset = () => {
     setZoomLevel(1);
+  };
+  
+  // Custom function to adjust draggable styles for zoomed states
+  const getDraggableStyle = (provided: DraggableProvided, snapshot: DraggableStateSnapshot): React.CSSProperties => {
+    if (!provided.draggableProps.style) return {};
+    
+    // Create a new object with the original styles
+    const style: React.CSSProperties = {
+      ...provided.draggableProps.style,
+      // Add these by default for all draggable components
+      zIndex: snapshot.isDragging ? 9999 : 'auto',
+      transformOrigin: 'top left',
+    };
+    
+    // Only apply transformations when actually dragging and zoom is not 1
+    if (snapshot.isDragging && zoomLevel !== 1) {
+      // When dragging, adjust the transform to account for zoom level
+      if (style.transform) {
+        // Extract the translation values and adjust them
+        style.transform = style.transform.replace(
+          /translate\(([^,]+),\s*([^)]+)\)/,
+          (_, x, y) => {
+            const translateX = parseFloat(x);
+            const translateY = parseFloat(y);
+            return `translate(${translateX}px, ${translateY}px)`;
+          }
+        );
+      }
+    }
+    
+    return style;
   };
   
   // Setup key handlers for zoom and modifier keys
@@ -1359,14 +1392,7 @@ export default function BoardGrid({
                                                     ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                     ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
                                                   `}
-                                                  style={{
-                                                    ...provided.draggableProps.style,
-                                                    zIndex: snapshot.isDragging ? 9999 : "auto",
-                                                    // Apply hardware acceleration and other performance optimizations
-                                                    transform: provided.draggableProps.style?.transform,
-                                                    transformOrigin: 'top left',
-                                                    willChange: snapshot.isDragging ? 'transform' : 'auto'
-                                                  }}
+                                                  style={getDraggableStyle(provided, snapshot)}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
                                                   <div className="absolute inset-0 pointer-events-none">
