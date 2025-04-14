@@ -145,52 +145,38 @@ export default function BoardGrid({
     setZoomLevel(1);
   };
   
-  // Custom function to adjust draggable styles for zoomed states
+  // Type-safe draggable style function for smoother dragging
   const getDraggableStyle = (provided: DraggableProvided, snapshot: DraggableStateSnapshot): React.CSSProperties => {
     if (!provided.draggableProps.style) return {};
     
-    // Create a new object with the original styles
-    const style: React.CSSProperties = {
-      ...provided.draggableProps.style,
-      // Add these by default for all draggable components
-      zIndex: snapshot.isDragging ? 9999 : 'auto',
-      transformOrigin: 'top left',
-    };
+    // Create base style object from provided style
+    const baseStyle = provided.draggableProps.style;
     
-    // Only apply transformations when actually dragging and zoom is not 1
-    if (snapshot.isDragging && zoomLevel !== 1) {
-      // When dragging, transform needs to account for zoom level
-      if (style.transform) {
-        // The pattern typically looks like: translate(123px, 456px)
-        const translateMatch = style.transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-        
-        if (translateMatch) {
-          // Extract the x and y values (including units)
-          const [_, xWithUnit, yWithUnit] = translateMatch;
-          
-          // Parse the numeric values (removing 'px')
-          const translateX = parseFloat(xWithUnit);
-          const translateY = parseFloat(yWithUnit);
-          
-          // Ensure the zooming doesn't affect drag coordinates by adjusting them
-          // This is a key fix - we multiply by 1.0 instead of adjusting by zoom factor
-          // because react-beautiful-dnd already handles element scaling, but
-          // the cursor position needs alignment
-          const adjustedTransform = style.transform.replace(
-            /translate\([^)]+\)/,
-            `translate(${translateX}px, ${translateY}px)`
-          );
-          
-          style.transform = adjustedTransform;
-        }
-      }
-      
-      // Force hardware acceleration for smoother dragging
-      style.WebkitTransform = style.transform;
-      style.WebkitTransformStyle = 'preserve-3d';
+    // For non-dragging state, just return standard styles with adjusted z-index
+    if (!snapshot.isDragging) {
+      return {
+        ...baseStyle,
+        zIndex: 'auto',
+      };
     }
     
-    return style;
+    // Since we know it's dragging, we can safely cast to DraggingStyle
+    const draggingStyle = baseStyle as DraggingStyle;
+    
+    // Create a simpler style object with only the essential properties
+    // This helps prevent transform-related issues when zoomed
+    return {
+      position: draggingStyle.position,
+      top: draggingStyle.top,
+      left: draggingStyle.left,
+      width: draggingStyle.width,
+      height: draggingStyle.height,
+      transform: draggingStyle.transform,
+      zIndex: 9999,
+      cursor: 'grabbing',
+      // Don't use transitions during dragging to prevent jumps
+      transition: 'none',
+    };
   };
   
   // Setup key handlers for zoom and modifier keys
@@ -1441,7 +1427,7 @@ export default function BoardGrid({
                                                       className="absolute top-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing"
                                                       style={{
                                                         cursor: snapshot.isDragging ? "grabbing" : "grab",
-                                                        transform: 'translate3d(0,0,0)', // Force hardware acceleration
+                                                        transform: 'none', // Remove transform to avoid conflicts with parent transform
                                                         touchAction: 'none' // Disable browser touch actions
                                                       }}
                                                     >
@@ -1456,7 +1442,7 @@ export default function BoardGrid({
                                                       {...provided.dragHandleProps}
                                                       className="absolute bottom-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing"
                                                       style={{
-                                                        transform: 'translate3d(0,0,0)',
+                                                        transform: 'none',
                                                         touchAction: 'none'
                                                       }}
                                                     ></div>
@@ -1466,7 +1452,7 @@ export default function BoardGrid({
                                                       {...provided.dragHandleProps}
                                                       className="absolute top-8 bottom-8 left-0 w-8 pointer-events-auto cursor-grab active:cursor-grabbing"
                                                       style={{
-                                                        transform: 'translate3d(0,0,0)',
+                                                        transform: 'none',
                                                         touchAction: 'none'
                                                       }}
                                                     ></div>
@@ -1476,7 +1462,7 @@ export default function BoardGrid({
                                                       {...provided.dragHandleProps}
                                                       className="absolute top-8 bottom-8 right-0 w-8 pointer-events-auto cursor-grab active:cursor-grabbing"
                                                       style={{
-                                                        transform: 'translate3d(0,0,0)',
+                                                        transform: 'none',
                                                         touchAction: 'none'
                                                       }}
                                                     ></div>

@@ -13,4 +13,21 @@
     @apply antialiased bg-background text-foreground;
     font-family: 'Montserrat', sans-serif;
   }
+  
+  /* Add dragging-specific styles */
+  .dragging-in-progress * {
+    transform-style: flat !important; 
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+  }
+  
+  /* Eliminate transitions during drag to prevent jumping */
+  .dragging-in-progress [data-rbd-draggable-id] {
+    transition: none !important;
+  }
+  
+  /* Improve performance during dragging */
+  .dragging-in-progress [data-rbd-draggable-context-id] {
+    will-change: transform;
+  }
 }
