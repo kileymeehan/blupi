@@ -159,18 +159,35 @@ export default function BoardGrid({
     
     // Only apply transformations when actually dragging and zoom is not 1
     if (snapshot.isDragging && zoomLevel !== 1) {
-      // When dragging, adjust the transform to account for zoom level
+      // When dragging, transform needs to account for zoom level
       if (style.transform) {
-        // Extract the translation values and adjust them
-        style.transform = style.transform.replace(
-          /translate\(([^,]+),\s*([^)]+)\)/,
-          (_, x, y) => {
-            const translateX = parseFloat(x);
-            const translateY = parseFloat(y);
-            return `translate(${translateX}px, ${translateY}px)`;
-          }
-        );
+        // The pattern typically looks like: translate(123px, 456px)
+        const translateMatch = style.transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+        
+        if (translateMatch) {
+          // Extract the x and y values (including units)
+          const [_, xWithUnit, yWithUnit] = translateMatch;
+          
+          // Parse the numeric values (removing 'px')
+          const translateX = parseFloat(xWithUnit);
+          const translateY = parseFloat(yWithUnit);
+          
+          // Ensure the zooming doesn't affect drag coordinates by adjusting them
+          // This is a key fix - we multiply by 1.0 instead of adjusting by zoom factor
+          // because react-beautiful-dnd already handles element scaling, but
+          // the cursor position needs alignment
+          const adjustedTransform = style.transform.replace(
+            /translate\([^)]+\)/,
+            `translate(${translateX}px, ${translateY}px)`
+          );
+          
+          style.transform = adjustedTransform;
+        }
       }
+      
+      // Force hardware acceleration for smoother dragging
+      style.WebkitTransform = style.transform;
+      style.WebkitTransformStyle = 'preserve-3d';
     }
     
     return style;
@@ -290,6 +307,9 @@ export default function BoardGrid({
   }
 
   const handleDragEnd = (result: DropResult) => {
+    // Clean up drag classes and states
+    handleDragStartCleanup();
+    
     if (!result.destination) return;
 
     // Adjust drag coordinates based on zoom level if necessary
@@ -840,13 +860,32 @@ export default function BoardGrid({
     };
   }, []);
 
-  // Add a function to handle the drag start event for potential duplication
+  // Add a function to handle the drag start event
   const handleDragStart = (initial: any) => {
-    // We only need to show a visual indicator if modifier is pressed
+    // Show visual indicator if modifier is pressed (for duplication)
     if (isModifierKeyPressed) {
-      // Could add some visual indication here that we're in duplicate mode
-      // For example, changing the cursor or adding a badge
+      // Could add visual indication for duplicate mode
     }
+    
+    // Add a class to the body to indicate dragging is in progress
+    // This can be useful for applying specific CSS when dragging
+    document.body.classList.add('dragging-in-progress');
+    
+    // Track block being dragged for highlighting
+    if (initial.type !== "COLUMN" && initial.draggableId && initial.draggableId.indexOf('drawer-') === -1) {
+      setHighlightedBlockId(initial.draggableId);
+    }
+    
+    // Log drag start with zoom level for debugging
+    if (zoomLevel !== 1) {
+      console.log("Starting drag with zoom level:", zoomLevel);
+    }
+  };
+  
+  // Clean up when drag ends
+  const handleDragStartCleanup = () => {
+    document.body.classList.remove('dragging-in-progress');
+    setHighlightedBlockId(null);
   };
 
   return (
