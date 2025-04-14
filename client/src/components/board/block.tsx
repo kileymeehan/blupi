@@ -1,5 +1,5 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, StretchHorizontal, GripVertical } from "lucide-react";
+import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown } from "lucide-react";
 import type {
   Block as BlockType,
   Attachment,
@@ -28,7 +28,6 @@ interface BlockProps {
     department: Department | undefined,
     customDepartment?: string,
   ) => void;
-  onColumnSpanChange?: (blockId: string, columnSpan: number) => void;
   isTemplate?: boolean;
   onCommentClick?: () => void;
   projectId?: number;
@@ -71,7 +70,6 @@ export default function Block({
   onNotesChange,
   onEmojiChange,
   onDepartmentChange,
-  onColumnSpanChange,
   isTemplate = false,
   onCommentClick,
   projectId,
@@ -80,11 +78,9 @@ export default function Block({
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [departmentDialogOpen, setDepartmentDialogOpen] = useState(false);
-  const [columnSpanDialogOpen, setColumnSpanDialogOpen] = useState(false);
   const [customDepartment, setCustomDepartment] = useState(
     block.customDepartment || "",
   );
-  const [columnSpan, setColumnSpan] = useState(block.columnSpan || 1);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [notes, setNotes] = useState(block.notes || "");
   const [localContent, setLocalContent] = useState(block.content || "");
@@ -165,31 +161,12 @@ export default function Block({
     onEmojiChange(block.id, emoji.native);
     setEmojiPickerOpen(false);
   };
-  
-  const handleColumnSpanChange = () => {
-    if (!onColumnSpanChange) return;
-    // Apply immediately both to the block prop and server-side
-    onColumnSpanChange(block.id, columnSpan);
-    // Update local state to match new span
-    block.columnSpan = columnSpan;
-    setColumnSpanDialogOpen(false);
-  };
 
   const commentCount = block.comments?.length || 0;
   const attachmentCount = block.attachments?.length || 0;
 
   return (
     <div className="w-full h-full relative group">
-      {/* Visual drag indicator at the top left */}
-      {!isTemplate && !block.readOnly && (
-        <div 
-          className="absolute left-2 top-1 w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-200"
-          data-drag-handle-visual="true"
-        >
-          <GripVertical className="w-3 h-3 text-gray-500" />
-        </div>
-      )}
-      
       {block.emoji && (
         <div className="absolute top-[-12px] right-[-20px] z-10 text-lg select-none">
           {block.emoji}
@@ -220,7 +197,7 @@ export default function Block({
             overflow-hidden whitespace-pre-wrap break-words
             leading-normal
             focus:outline-none
-            ${isEditing ? "cursor-text" : "cursor-default"}
+            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
             ${block.type === "front-stage" ? "bg-blue-500/75 text-white" : ""}
             ${block.type === "back-stage" ? "bg-purple-500/75 text-white" : ""}
             ${block.type === "custom-divider" ? "bg-gray-600/75 text-white" : ""}
@@ -269,7 +246,7 @@ export default function Block({
             overflow-y-auto whitespace-normal break-words
             leading-normal text
             focus:outline-none
-            ${isEditing ? "cursor-text" : "cursor-default"}
+            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
           `}
           suppressContentEditableWarning={true}
         >
@@ -374,27 +351,6 @@ export default function Block({
             >
               <Smile className="w-4 h-4" />
             </button>
-
-            {/* Only show column span button for regular blocks, not dividers */}
-            {block.type !== "front-stage" && block.type !== "back-stage" && block.type !== "custom-divider" && onColumnSpanChange && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setColumnSpanDialogOpen(true);
-                }}
-                className={`
-                  flex items-center justify-center w-6 h-6 p-0
-                  rounded bg-white border border-gray-200
-                  text-xs text-gray-600 hover:text-gray-900
-                  shadow-sm hover:shadow hover:border-gray-300
-                  ${block.columnSpan && block.columnSpan > 1 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ""}
-                  transition-all duration-150
-                `}
-                title={`Span ${block.columnSpan || 1} column${(block.columnSpan || 1) > 1 ? 's' : ''}`}
-              >
-                <StretchHorizontal className="w-4 h-4" />
-              </button>
-            )}
           </div>
 
           {/* Block type label - only show for regular blocks, not dividers */}
@@ -503,46 +459,6 @@ export default function Block({
                   onEmojiSelect={handleEmojiSelect}
                   theme="light"
                 />
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={columnSpanDialogOpen} onOpenChange={setColumnSpanDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Block Size</DialogTitle>
-              </DialogHeader>
-              <div className="py-4 space-y-4">
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-medium">Column span</label>
-                  <div className="flex items-center space-x-3">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setColumnSpan(Math.max(1, columnSpan - 1))}
-                      disabled={columnSpan <= 1}
-                    >
-                      -
-                    </Button>
-                    <div className="w-14 h-9 flex items-center justify-center border rounded-md">
-                      {columnSpan}
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setColumnSpan(Math.min(3, columnSpan + 1))}
-                      disabled={columnSpan >= 3}
-                    >
-                      +
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    This block will stretch across {columnSpan} column{columnSpan > 1 ? 's' : ''}.
-                  </p>
-                </div>
-                <Button onClick={handleColumnSpanChange} className="w-full">
-                  Save
-                </Button>
               </div>
             </DialogContent>
           </Dialog>

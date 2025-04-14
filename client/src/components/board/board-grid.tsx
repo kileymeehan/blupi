@@ -75,7 +75,6 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { LAYER_TYPES } from "./constants";
 import { DepartmentFilter } from "./department-filter";
-import { getDragStyle } from "./drag-style-helper";
 import {
   Tooltip,
   TooltipContent,
@@ -407,25 +406,9 @@ export default function BoardGrid({
         blocks.splice(insertAt >= 0 ? insertAt : blocks.length, 0, blockToMove);
       } else {
         // Moving to a different column
-        // Check if there are multi-column blocks that would collide
-        const multiColumnBlocks = blocks.filter(b => 
-          b.phaseIndex === destPhase && 
-          b.columnSpan && b.columnSpan > 1 &&
-          // Check if block spans across our destination column
-          ((b.columnIndex <= destColumn && b.columnIndex + (b.columnSpan - 1) >= destColumn) ||
-           // Or if our block (if it spans multiple columns) would overlap with this block
-           (blockToMove.columnSpan && blockToMove.columnSpan > 1 &&
-            destColumn <= b.columnIndex && destColumn + (blockToMove.columnSpan - 1) >= b.columnIndex))
-        );
-
-        // Get all blocks in the destination column, including those that span into it
         const destColumnBlocks = blocks
-          .filter(b => 
-            b.phaseIndex === destPhase && 
-            (b.columnIndex === destColumn || 
-             (b.columnSpan && b.columnSpan > 1 && 
-              b.columnIndex <= destColumn && 
-              b.columnIndex + (b.columnSpan - 1) >= destColumn))
+          .filter(
+            (b) => b.phaseIndex === destPhase && b.columnIndex === destColumn,
           )
           .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
 
@@ -433,7 +416,7 @@ export default function BoardGrid({
         blockToMove.phaseIndex = destPhase;
         blockToMove.columnIndex = destColumn;
 
-        // Find insertion point, placing the block after any spanning blocks
+        // Find insertion point
         const insertAt =
           destination.index === 0
             ? blocks.findIndex(
@@ -489,16 +472,6 @@ export default function BoardGrid({
   ) => {
     const blocks = board.blocks.map((block) =>
       block.id === blockId ? { ...block, department, customDepartment } : block,
-    );
-    onBlocksChange(blocks);
-  };
-  
-  const handleColumnSpanChange = (
-    blockId: string,
-    columnSpan: number,
-  ) => {
-    const blocks = board.blocks.map((block) =>
-      block.id === blockId ? { ...block, columnSpan } : block,
     );
     onBlocksChange(blocks);
   };
@@ -778,41 +751,6 @@ export default function BoardGrid({
   }, []);
 
   // Add a function to handle the drag start event for potential duplication
-  // Use our external drag style helper 
-  const getStyle = (style: any, snapshot: any, sourceIndex?: string) => {
-    if (!style || !snapshot) {
-      return style;
-    }
-    
-    // When the item is being dragged
-    if (snapshot.isDragging) {
-      // Different handling for dragging within grid vs from sidebar
-      const isDraggingFromSidebar = sourceIndex === "drawer";
-      
-      return {
-        ...style,
-        transform: style.transform,
-        // Force a fixed position for accurate cursor tracking
-        position: 'fixed',
-        // Attach the cursor to the exact position of the grab
-        left: style.left,
-        top: style.top,
-        // Other common dragging properties
-        margin: 0,
-        width: isDraggingFromSidebar ? style.width : undefined,
-        transformOrigin: '0 0',
-        transition: snapshot.isDropAnimating ? 
-          'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 
-          'none',
-        cursor: 'grabbing',
-        zIndex: 9999
-      };
-    }
-    
-    // For items not being dragged
-    return style;
-  };
-
   const handleDragStart = (initial: any) => {
     // We only need to show a visual indicator if modifier is pressed
     if (isModifierKeyPressed) {
@@ -996,10 +934,7 @@ export default function BoardGrid({
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <DragDropContext 
-          onDragStart={handleDragStart} 
-          onDragEnd={handleDragEnd}
-        >
+        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div
             className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}
           >
@@ -1248,113 +1183,76 @@ export default function BoardGrid({
                             <div
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className="board-grid"
+                              className="flex gap-8"
                             >
-                              {/* Column headers - displayed in a separate row above the grid */}
-                              <div className="grid" style={{ 
-                                gridTemplateColumns: `repeat(${phase.columns.length}, minmax(225px, 1fr))`,
-                                gap: '2rem',
-                                width: '100%',
-                                marginBottom: '1rem'
-                              }}>
-                                {phase.columns.map((column, columnIndex) => (
-                                  <div
-                                    key={column.id}
-                                    className="flex-shrink-0"
-                                    style={{ minWidth: '225px' }}
-                                  >
-                                    <div className="flex items-center gap-2 mb-2 mt-4">
-                                      <div className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing">
-                                        <GripVertical className="w-4 h-4" />
-                                      </div>
-                                      <div className="relative flex-1 group">
-                                        <div
-                                          contentEditable
-                                          onBlur={(e) =>
-                                            handleColumnNameChange(
-                                              phaseIndex,
-                                              columnIndex,
-                                              e.currentTarget.textContent || "",
-                                            )
-                                          }
-                                          className="text-base focus:outline-none focus-visible:border-b focus-visible:border-primary h-12 overflow-hidden text-ellipsis flex items-center"
-                                          suppressContentEditableWarning={true}
-                                          title={column.name}
-                                        >
-                                          {column.name}
-                                        </div>
-                                        {column.name && column.name.length > 25 && (
-                                          <div className="absolute top-0 right-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button 
-                                              className="text-xs text-gray-500 bg-white p-1 rounded-md shadow"
-                                              onClick={() => {
-                                                // Store the phase and column indices along with the text
-                                                // We'll parse these when saving
-                                                setExpandedStepText(`${phaseIndex}|${columnIndex}|${column.name}`);
-                                                setStepTextDialogOpen(true);
-                                              }}
-                                            >
-                                              Expand
-                                            </button>
-                                          </div>
-                                        )}
-                                      </div>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                          handleDeleteColumn(
+                              {phase.columns.map((column, columnIndex) => (
+                                <div
+                                  key={column.id}
+                                  className="flex-shrink-0 w-[225px] flex flex-col"
+                                >
+                                  <div className="flex items-center gap-2 mb-2 mt-4">
+                                    <div className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing">
+                                      <GripVertical className="w-4 h-4" />
+                                    </div>
+                                    <div className="relative flex-1 group">
+                                      <div
+                                        contentEditable
+                                        onBlur={(e) =>
+                                          handleColumnNameChange(
                                             phaseIndex,
                                             columnIndex,
+                                            e.currentTarget.textContent || "",
                                           )
                                         }
-                                        className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
+                                        className="text-base focus:outline-none focus-visible:border-b focus-visible:border-primary h-12 overflow-hidden text-ellipsis flex items-center"
+                                        suppressContentEditableWarning={true}
+                                        title={column.name}
                                       >
-                                        <Trash2 className="w-4 h-4" />
-                                      </Button>
+                                        {column.name}
+                                      </div>
+                                      {column.name && column.name.length > 25 && (
+                                        <div className="absolute top-0 right-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <button 
+                                            className="text-xs text-gray-500 bg-white p-1 rounded-md shadow"
+                                            onClick={() => {
+                                              // Store the phase and column indices along with the text
+                                              // We'll parse these when saving
+                                              setExpandedStepText(`${phaseIndex}|${columnIndex}|${column.name}`);
+                                              setStepTextDialogOpen(true);
+                                            }}
+                                          >
+                                            Expand
+                                          </button>
+                                        </div>
+                                      )}
                                     </div>
-
-                                    <ImageUpload
-                                      currentImage={column.image}
-                                      onImageChange={(image) =>
-                                        handleImageChange(
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleDeleteColumn(
                                           phaseIndex,
                                           columnIndex,
-                                          image,
                                         )
                                       }
-                                    />
+                                      className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
                                   </div>
-                                ))}
-                              </div>
 
-                              {/* Main grid for blocks */}
-                              <div 
-                                className="phase-grid-container min-h-[300px] p-4 rounded-lg border-1 border-gray-300"
-                                style={{
-                                  display: 'grid', 
-                                  gridTemplateColumns: `repeat(${phase.columns.length}, minmax(225px, 1fr))`,
-                                  gridAutoRows: 'min-content',
-                                  gap: '2rem',
-                                  position: 'relative',
-                                }}
-                              >
-                                {/* Column dividers - for visual guidance */}
-                                {Array.from({ length: phase.columns.length - 1 }).map((_, i) => (
-                                  <div 
-                                    key={`divider-${i}`}
-                                    className="absolute h-full w-px bg-gray-200"
-                                    style={{
-                                      left: `calc((100% / ${phase.columns.length}) * ${i + 1})`,
-                                      top: 0,
-                                    }}
+                                  <ImageUpload
+                                    currentImage={column.image}
+                                    onImageChange={(image) =>
+                                      handleImageChange(
+                                        phaseIndex,
+                                        columnIndex,
+                                        image,
+                                      )
+                                    }
                                   />
-                                ))}
 
-                                {/* Create separate droppable areas for each column while maintaining a single grid */}
-                                {phase.columns.map((column, columnIndex) => (
                                   <Droppable
-                                    key={`${phaseIndex}-${columnIndex}`}
                                     droppableId={`${phaseIndex}-${columnIndex}`}
                                   >
                                     {(provided, snapshot) => (
@@ -1362,22 +1260,26 @@ export default function BoardGrid({
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                         className={`
-                                          column-droppable
-                                          ${snapshot.isDraggingOver ? "bg-primary/10 border-2 border-dashed border-primary/50" : ""}
-                                          transition-all duration-200 rounded-md
+                                          space-y-4 min-h-[100px] p-4 rounded-lg border-1 border-gray-300 flex-1
+                                          ${
+                                            snapshot.isDraggingOver
+                                              ? "border-primary/50 bg-primary/5"
+                                              : "hover:border-gray-300"
+                                          }
+                                          transition-colors duration-200
                                         `}
-                                        style={{
-                                          gridColumn: columnIndex + 1,
-                                          gridRow: 1,
-                                          minHeight: '100px',
-                                          display: 'flex',
-                                          flexDirection: 'column',
-                                          gap: '1rem'
-                                        }}
                                       >
                                         {board.blocks
-                                          .filter(b => !departmentFilter || b.department === departmentFilter)
-                                          .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                          .filter(
+                                            (b) =>
+                                              !departmentFilter ||
+                                              b.department === departmentFilter,
+                                          )
+                                          .filter(
+                                            (b) =>
+                                              b.phaseIndex === phaseIndex &&
+                                              b.columnIndex === columnIndex,
+                                          )
                                           .map((block, index) => (
                                             <Draggable
                                               key={block.id}
@@ -1390,31 +1292,50 @@ export default function BoardGrid({
                                                   {...provided.draggableProps}
                                                   className={`
                                                     ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
-                                                    group relative rounded-lg border-3 border-gray-500 p-2
+                                                    group relative rounded-lg border-3 border-gray-500 mb-2 p-2
                                                     transition-shadow duration-200
                                                     ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                     ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
                                                   `}
                                                   style={{
                                                     ...provided.draggableProps.style,
-                                                    width: snapshot.isDragging 
-                                                      ? (block.columnSpan && block.columnSpan > 1 
-                                                        ? `calc(${block.columnSpan * 225}px + ${(block.columnSpan - 1) * 32}px)` 
-                                                        : "225px") 
-                                                      : (block.columnSpan && block.columnSpan > 1
-                                                        ? `calc(${block.columnSpan * 100}% + ${(block.columnSpan - 1) * 16}px)`
-                                                        : '100%'),
-                                                    marginBottom: snapshot.isDragging ? 0 : '1rem',
-                                                    gridColumn: `span ${block.columnSpan || 1}`
-                                                  }}> 
-                                                  {/* Make the entire block area draggable */}
-                                                  <div 
-                                                    {...provided.dragHandleProps} 
-                                                    className="absolute top-0 left-0 right-0 bottom-0 cursor-grab active:cursor-grabbing z-10"
-                                                    style={{
-                                                      cursor: snapshot.isDragging ? "grabbing" : "grab"
-                                                    }}
-                                                  />
+                                                    zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                  }}
+                                                >
+                                                  {/* Create handles on the edges that are draggable but leave the center free for editing */}
+                                                  <div className="absolute inset-0 pointer-events-none">
+                                                    {/* Top handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-0 left-0 right-0 h-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                      style={{
+                                                        cursor: snapshot.isDragging ? "grabbing" : "grab"
+                                                      }}
+                                                    >
+                                                      {/* Visual indicator on hover */}
+                                                      <div className="h-4 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <GripVertical size={14} className="text-gray-400" />
+                                                      </div>
+                                                    </div>
+                                                    
+                                                    {/* Bottom handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute bottom-0 left-0 right-0 h-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
+                                                    
+                                                    {/* Left handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-6 bottom-6 left-0 w-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
+                                                    
+                                                    {/* Right handle */}
+                                                    <div 
+                                                      {...provided.dragHandleProps}
+                                                      className="absolute top-6 bottom-6 right-0 w-6 pointer-events-auto cursor-grab active:cursor-grabbing"
+                                                    ></div>
+                                                  </div>
                                                   
                                                   <Block
                                                       block={block}
@@ -1450,9 +1371,6 @@ export default function BoardGrid({
                                                     onDepartmentChange={
                                                       handleDepartmentChange
                                                     }
-                                                    onColumnSpanChange={
-                                                      handleColumnSpanChange
-                                                    }
                                                     onCommentClick={() =>
                                                       handleCommentClick(block)
                                                     }
@@ -1469,8 +1387,8 @@ export default function BoardGrid({
                                       </div>
                                     )}
                                   </Droppable>
-                                ))}
-                              </div>
+                                </div>
+                              ))}
                               {provided.placeholder}
                             </div>
                           )}

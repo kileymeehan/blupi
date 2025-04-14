@@ -1,6 +1,5 @@
 import { LAYER_TYPES } from "./constants";
 import { Draggable } from "react-beautiful-dnd";
-import { getDragStyle } from "./drag-style-helper";
 
 export default function BlockDrawer() {
   // Separate standard blocks from divider blocks
@@ -29,11 +28,11 @@ export default function BlockDrawer() {
                   ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
                   transition-shadow duration-200
                 `}
-                style={getDragStyle({
+                style={{
                   ...provided.draggableProps.style,
                   zIndex: snapshot.isDragging ? 9999 : 'auto',
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
-                }, snapshot, "drawer")}
+                }}
               >
                 <div className="font-medium text-xs text-gray-700/75 text-center">
                   {layer.label}
@@ -65,11 +64,11 @@ export default function BlockDrawer() {
                   ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
                   transition-shadow duration-200
                 `}
-                style={getDragStyle({
+                style={{
                   ...provided.draggableProps.style,
                   zIndex: snapshot.isDragging ? 9999 : 'auto',
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
-                }, snapshot, "drawer")}
+                }}
               >
                 <div className="absolute inset-0 flex items-center justify-start px-4 pointer-events-none">
                   <div className="w-full border-t-2 border-white opacity-50"></div>
