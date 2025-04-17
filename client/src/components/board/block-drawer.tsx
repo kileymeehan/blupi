@@ -21,25 +21,27 @@ export default function BlockDrawer() {
 
   // Function to update a block's color
   const updateBlockColor = (type: string, newColor: string) => {
+    // Correctly handle the new color by directly using it without converting to a Tailwind class
     setBlocks(prevBlocks => 
       prevBlocks.map(block => 
         block.type === type 
-        ? { ...block, color: convertToTailwindBgClass(newColor) }
+        ? { ...block, color: newColor }
         : block
       )
     );
   };
 
-  // Function to convert hex color to Tailwind bg class
+  // Function to convert hex color to Tailwind bg class if needed
+  // We're not using this for setting colors directly anymore, but keeping for compatibility
   const convertToTailwindBgClass = (color: string) => {
     // Check if the color starts with # (hex color) and add bg-[] format
     if (color.startsWith('#')) {
-      return `bg-[${color}]`;
+      return color; // Return the color as is - we'll handle the bg in the style prop
     }
     
     // If it's already a Tailwind class that doesn't start with bg-
     if (!color.startsWith('bg-')) {
-      return `bg-${color}`;
+      return color;
     }
     
     // If it's already a proper Tailwind bg class, return as is
@@ -127,12 +129,13 @@ export default function BlockDrawer() {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-[100px] h-[50px] relative flex items-center justify-center
+                className={`rounded-lg w-[100px] h-[50px] relative flex items-center justify-center
                   ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
                   transition-shadow duration-200 group
                 `}
                 style={{
                   ...provided.draggableProps.style,
+                  backgroundColor: layer.color,
                   zIndex: snapshot.isDragging ? 9999 : 'auto',
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
@@ -189,12 +192,13 @@ export default function BlockDrawer() {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-[205px] h-[40px] relative flex items-center justify-center border-2 border-white text-white
+                className={`rounded-lg w-[205px] h-[40px] relative flex items-center justify-center border-2 border-white text-white
                   ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
                   transition-shadow duration-200 group
                 `}
                 style={{
                   ...provided.draggableProps.style,
+                  backgroundColor: layer.color,
                   zIndex: snapshot.isDragging ? 9999 : 'auto',
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
@@ -203,7 +207,7 @@ export default function BlockDrawer() {
                   <div className="w-full border-t-2 border-white opacity-50"></div>
                 </div>
                 
-                <div className="relative z-10 px-4 bg-inherit rounded-md font-semibold">
+                <div className="relative z-10 px-4 rounded-md font-semibold" style={{ backgroundColor: 'inherit' }}>
                   {layer.label}
                 </div>
                 

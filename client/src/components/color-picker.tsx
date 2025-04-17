@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Pipette } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,15 +32,17 @@ interface ColorPickerProps {
 }
 
 export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
-  const [selectedColor, setSelectedColor] = useState(color);
-  const [hexInput, setHexInput] = useState(color.replace(/C0$/, "")); // Remove opacity code for display
+  const [selectedColor, setSelectedColor] = useState(color || "#B3FFB3C0");
+  const [hexInput, setHexInput] = useState((color || "#B3FFB3C0").replace(/C0$/, "")); // Remove opacity code for display
   const [isOpen, setIsOpen] = useState(false);
   const spectrumRef = useRef<HTMLDivElement>(null);
 
   // When the color prop changes from outside, update internal state
   useEffect(() => {
-    setSelectedColor(color);
-    setHexInput(color.replace(/C0$/, ""));
+    if (color) {
+      setSelectedColor(color);
+      setHexInput(color.replace(/C0$/, ""));
+    }
   }, [color]);
 
   // Handle color selection from spectrum
@@ -55,13 +58,13 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
     const saturation = Math.round((y / rect.height) * 100);
     const lightness = 50; // Fixed at 50% for vibrant colors
     
-    const newColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    
     // Convert HSL to HEX (rough approximation)
     const hexColor = hslToHex(hue, saturation, lightness);
-    setSelectedColor(hexColor + "C0"); // Add opacity
+    const newColor = hexColor + "C0"; // Add opacity
+    
+    setSelectedColor(newColor);
     setHexInput(hexColor);
-    onChange(hexColor + "C0");
+    onChange(newColor);
   };
 
   // Convert HSL to HEX
@@ -86,8 +89,9 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
       
       // Only update the actual color when we have a valid hex code
       if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-        setSelectedColor(value + "C0"); // Add opacity
-        onChange(value + "C0");
+        const newColor = value + "C0"; // Add opacity
+        setSelectedColor(newColor);
+        onChange(newColor);
       }
     } else if (!value.startsWith('#')) {
       setHexInput('#' + value);
@@ -95,81 +99,70 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
   };
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`p-1 h-6 w-6 rounded-full ${className}`}
-          style={{ backgroundColor: selectedColor }}
-        >
-          <Pipette className="h-4 w-4 stroke-white" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 p-3">
-        {/* Color Spectrum */}
-        <div className="mb-3">
-          <div 
-            ref={spectrumRef}
-            className="w-full h-32 rounded-md cursor-crosshair spectrum-gradient mb-2"
-            onClick={handleSpectrumClick}
-            style={{
-              background: "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
-              backgroundImage: "linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red), linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0), rgba(0,0,0,1))",
-              backgroundBlendMode: "multiply"
-            }}
+    <TooltipProvider>
+      <Tooltip open={isOpen} onOpenChange={setIsOpen}>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`p-1 h-6 w-6 rounded-full ${className}`}
+            style={{ backgroundColor: selectedColor }}
+            onClick={() => setIsOpen(true)}
           >
-            <style jsx>{`
-              .spectrum-gradient:before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(to bottom, white, transparent, black);
-                pointer-events: none;
-              }
-            `}</style>
-          </div>
-          <div className="flex items-center gap-2">
+            <Pipette className="h-4 w-4 stroke-white" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="center" className="w-64 p-3" sideOffset={5}>
+          {/* Color Spectrum */}
+          <div className="mb-3">
             <div 
-              className="w-8 h-8 rounded-md border border-gray-300" 
-              style={{ backgroundColor: selectedColor }}
+              ref={spectrumRef}
+              className="w-full h-24 rounded-md cursor-crosshair mb-2"
+              onClick={handleSpectrumClick}
+              style={{
+                background: "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
+              }}
             />
-            <div className="flex-1">
-              <Label htmlFor="hex-color" className="sr-only">Hex Color</Label>
-              <Input 
-                id="hex-color"
-                value={hexInput}
-                onChange={handleHexChange}
-                className="h-8 text-xs"
-                placeholder="#RRGGBB"
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-8 h-8 rounded-md border border-gray-300" 
+                style={{ backgroundColor: selectedColor }}
               />
+              <div className="flex-1">
+                <Label htmlFor="hex-color" className="sr-only">Hex Color</Label>
+                <Input 
+                  id="hex-color"
+                  value={hexInput}
+                  onChange={handleHexChange}
+                  className="h-8 text-xs"
+                  placeholder="#RRGGBB"
+                />
+              </div>
             </div>
           </div>
-        </div>
-        
-        {/* Color Palette */}
-        <div>
-          <Label className="text-xs mb-1 block text-muted-foreground">Color Presets</Label>
-          <div className="grid grid-cols-6 gap-1">
-            {COLOR_PALETTE.map((paletteColor) => (
-              <button
-                key={paletteColor}
-                className="h-6 w-6 rounded-md transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary"
-                style={{ backgroundColor: paletteColor }}
-                onClick={() => {
-                  setSelectedColor(paletteColor);
-                  setHexInput(paletteColor.replace(/C0$/, ""));
-                  onChange(paletteColor);
-                  setIsOpen(false);
-                }}
-              />
-            ))}
+          
+          {/* Color Palette */}
+          <div>
+            <Label className="text-xs mb-1 block text-muted-foreground">Color Presets</Label>
+            <div className="grid grid-cols-6 gap-1">
+              {COLOR_PALETTE.map((paletteColor) => (
+                <button
+                  key={paletteColor}
+                  className="h-6 w-6 rounded-md transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary"
+                  style={{ backgroundColor: paletteColor }}
+                  onClick={() => {
+                    const newColor = paletteColor;
+                    setSelectedColor(newColor);
+                    setHexInput(paletteColor.replace(/C0$/, ""));
+                    onChange(newColor);
+                    setIsOpen(false);
+                  }}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
