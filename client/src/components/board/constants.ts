@@ -1,9 +1,10 @@
 // Define the type for layer types
-type LayerType = {
+export type LayerType = {
   type: string;
   label: string;
   color: string;
   isDivider?: boolean;
+  isCustom?: boolean;
 };
 
 export const LAYER_TYPES: LayerType[] = [
@@ -21,6 +22,7 @@ export const LAYER_TYPES: LayerType[] = [
   { type: "note", label: "Note", color: "bg-cyan-200" },
   { type: "opportunities", label: "Opportunities", color: "bg-yellow-300" },
   { type: "hidden", label: "Hidden Step", color: "bg-gray-400" },
+  { type: "custom", label: "Custom", color: "bg-emerald-300", isCustom: true },
   
   // Divider blocks
   { type: "front-stage", label: "Front-Stage Divider", color: "bg-blue-500/75", isDivider: true },
