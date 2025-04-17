@@ -70,7 +70,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { UserPlus, Link as LinkIcon, ZoomIn, ZoomOut, Maximize } from "lucide-react";
+import { UserPlus, Link as LinkIcon } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { LAYER_TYPES } from "./constants";
@@ -124,7 +124,6 @@ export default function BoardGrid({
     Department | undefined
   >(undefined);
   const [canvasScale, setCanvasScale] = useState(1);
-  const [isDragging, setIsDragging] = useState(false);
 
   const {
     data: board,
@@ -190,16 +189,7 @@ export default function BoardGrid({
   }
 
   const handleDragEnd = (result: DropResult) => {
-    // Set dragging state back to false after a short delay to prevent display flicker
-    setTimeout(() => {
-      setIsDragging(false);
-    }, 50);
-    
-    if (!result.destination) {
-      // If no destination, we should reset dragging state immediately
-      setIsDragging(false);
-      return;
-    }
+    if (!result.destination) return;
 
     const { source, destination, type } = result;
 
@@ -718,55 +708,12 @@ export default function BoardGrid({
 
   // Add a function to handle the drag start event for potential duplication
   const handleDragStart = (initial: any) => {
-    // Set dragging state to true - this will disable scaling while dragging
-    setIsDragging(true);
-    
-    // Check if modifier key is pressed, but safely in case event is missing
-    if (initial && initial.event) {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      setIsModifierKeyPressed(
-        isMac ? 
-          initial.event.metaKey // Command key on Mac
-          : 
-          initial.event.ctrlKey // Control key on Windows/Linux
-      );
-    } else {
-      // Default to false if no event data
-      setIsModifierKeyPressed(false);
+    // We only need to show a visual indicator if modifier is pressed
+    if (isModifierKeyPressed) {
+      // Could add some visual indication here that we're in duplicate mode
+      // For example, changing the cursor or adding a badge
     }
   };
-  
-  // Add keyboard shortcuts for zooming
-  useEffect(() => {
-    const handleZoomKeyboard = (e: KeyboardEvent) => {
-      // Only capture keyboard shortcuts if Ctrl/Cmd is pressed
-      if (e.metaKey || e.ctrlKey) {
-        // Ctrl/Cmd + Plus/Equal to zoom in
-        if (e.key === '+' || e.key === '=' || e.key === 'Equal') {
-          e.preventDefault();
-          setCanvasScale(prev => Math.min(2, prev + 0.1));
-        }
-        
-        // Ctrl/Cmd + Minus to zoom out
-        if (e.key === '-' || e.key === 'Minus') {
-          e.preventDefault();
-          setCanvasScale(prev => Math.max(0.5, prev - 0.1));
-        }
-        
-        // Ctrl/Cmd + 0 to reset zoom
-        if (e.key === '0' || e.key === 'Digit0') {
-          e.preventDefault();
-          setCanvasScale(1);
-        }
-      }
-    };
-    
-    window.addEventListener('keydown', handleZoomKeyboard);
-    
-    return () => {
-      window.removeEventListener('keydown', handleZoomKeyboard);
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -905,9 +852,7 @@ export default function BoardGrid({
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <div style={{ transform: `scale(1)` }}>
-          <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          {/* Sidebar */}
+        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div
             className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}
           >
@@ -1104,49 +1049,10 @@ export default function BoardGrid({
             </div>
           </div>
 
-          {/* Main board area */}
           <div className="flex-1 overflow-x-auto">
             <div className="min-w-[800px] relative">
-              <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 bg-white border border-gray-200 rounded-lg shadow-md p-2 opacity-80 hover:opacity-100 transition-opacity">
-                <button 
-                  onClick={() => setCanvasScale(Math.max(0.5, canvasScale - 0.1))}
-                  className="flex items-center justify-center h-8 w-8 bg-gray-100 hover:bg-gray-200 rounded-md"
-                  title="Zoom out"
-                >
-                  <span className="text-lg font-bold">−</span>
-                </button>
-                <button 
-                  onClick={() => setCanvasScale(1)}
-                  className="text-xs px-2 py-1 bg-white hover:bg-gray-100 border border-gray-200 rounded font-medium"
-                  title="Reset zoom"
-                >
-                  {Math.round(canvasScale * 100)}%
-                </button>
-                <button 
-                  onClick={() => setCanvasScale(Math.min(2, canvasScale + 0.1))}
-                  className="flex items-center justify-center h-8 w-8 bg-gray-100 hover:bg-gray-200 rounded-md"
-                  title="Zoom in"
-                >
-                  <span className="text-lg font-bold">+</span>
-                </button>
-              </div>
-              {/* APPROACH CHANGED: Remove scaling from DragDropContext - scaling now applied to outside div only */}
-              <div
-                className="board-container transition-all duration-200"
-                style={{ 
-                  transform: `scale(${canvasScale})`,
-                  transformOrigin: 'top left',
-                  width: `${100/canvasScale}%`,
-                  height: `${100/canvasScale}%`,
-                  marginBottom: `${(canvasScale - 1) * 100}px`,
-                  transition: isDragging ? 'none' : 'all 200ms'
-                }}
-              >
-                <div 
-                  ref={boardRef}
-                  className="p-8"
-                >
-                  <div className="flex items-start gap-8">
+              <div ref={boardRef} className="p-8">
+                <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
                     <div key={phase.id} className="flex-shrink-0 relative mr-8">
                       <div className="px-4">
@@ -1302,11 +1208,7 @@ export default function BoardGrid({
                                                   `}
                                                   style={{
                                                     ...provided.draggableProps.style,
-                                                    zIndex: snapshot.isDragging ? 9999 : "auto",
-                                                    // Adjust transform if needed
-                                                    transform: snapshot.isDragging && provided.draggableProps.style?.transform
-                                                      ? provided.draggableProps.style.transform.replace(/scale\([^)]+\)/, `scale(1)`)
-                                                      : provided.draggableProps.style?.transform
+                                                    zIndex: snapshot.isDragging ? 9999 : "auto"
                                                   }}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
@@ -1536,10 +1438,8 @@ export default function BoardGrid({
                 </DialogContent>
               </Dialog>
             )}
-            </div> {/* End of min-w-[800px] relative */}
-          </div> {/* End of flex-1 overflow-x-auto */}
+          </div>
         </DragDropContext>
-        </div>
       </div>
       
       {/* Step Text Expanded Dialog */}
