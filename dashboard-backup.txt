@@ -504,8 +504,9 @@ export default function Dashboard() {
               variant="primary-cta"
               size="sm"
               onClick={() => setCreateBlueprintOpen(true)}
-              className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white"
+              className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm"
             >
+              <Plus className="mr-2 h-4 w-4" />
               Create New Blueprint
             </Button>
           </div>
@@ -643,6 +644,7 @@ export default function Dashboard() {
               className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm"
             >
               <Plus className="mr-2 h-4 w-4" />
+              Create New Blueprint
             </Button>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
