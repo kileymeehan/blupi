@@ -24,39 +24,75 @@ export default function ImageUpload({
       reader.onload = (e) => {
         const img = document.createElement('img');
         img.onload = () => {
-          const canvas = document.createElement("canvas");
-          let width = img.width;
-          let height = img.height;
+          try {
+            const canvas = document.createElement("canvas");
+            let width = img.width;
+            let height = img.height;
 
-          // If image is larger than 1000px in any dimension, scale it down more aggressively
-          const maxDimension = 1000;
-          if (width > maxDimension || height > maxDimension) {
-            if (width > height) {
-              height = (height / width) * maxDimension;
-              width = maxDimension;
-            } else {
-              width = (width / height) * maxDimension;
-              height = maxDimension;
+            // Scale down more aggressively for larger images
+            const maxDimension = 800; // Reduced from 1000px
+            if (width > maxDimension || height > maxDimension) {
+              const ratio = Math.min(maxDimension / width, maxDimension / height);
+              width = Math.floor(width * ratio);
+              height = Math.floor(height * ratio);
             }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              reject(new Error('Could not get canvas context'));
+              return;
+            }
+            
+            // Draw image with white background for transparency
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // More aggressive compression parameters
+            const maxSizeInBytes = 240 * 1024; // 240KB limit
+            let quality = 0.7; // Start with better balance
+            let format = 'image/jpeg';
+            
+            // Try PNG for smaller images that might be graphics/icons
+            if (file.size < 500 * 1024 && file.type.includes('png')) {
+              format = 'image/png';
+            }
+            
+            let result = canvas.toDataURL(format, quality);
+            
+            // Progressive compression
+            let attempts = 0;
+            while (result.length > maxSizeInBytes * 1.37 && quality > 0.1 && attempts < 10) {
+              quality -= 0.1;
+              result = canvas.toDataURL('image/jpeg', quality); // Force JPEG for better compression
+              attempts++;
+            }
+            
+            // If still too large, reduce dimensions more
+            if (result.length > maxSizeInBytes * 1.37) {
+              const scaleFactor = 0.8;
+              width = Math.floor(width * scaleFactor);
+              height = Math.floor(height * scaleFactor);
+              
+              canvas.width = width;
+              canvas.height = height;
+              
+              // Redraw with new dimensions
+              ctx.fillStyle = '#FFFFFF';
+              ctx.fillRect(0, 0, width, height);
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              quality = 0.6;
+              result = canvas.toDataURL('image/jpeg', quality);
+            }
+
+            console.log(`Compressed image from ${file.size} to ~${Math.round(result.length / 1.37)} bytes`);
+            resolve(result);
+          } catch (e) {
+            reject(new Error(`Error processing image: ${e instanceof Error ? e.message : 'Unknown error'}`));
           }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          // More aggressive compression for larger files
-          const maxSizeInBytes = 250 * 1024; // 250KB (increased from 100KB)
-          let quality = file.size > maxSizeInBytes ? 0.6 : 0.8; // Better quality
-          let result = canvas.toDataURL("image/jpeg", quality);
-
-          // If still too large, compress more
-          while (result.length > maxSizeInBytes * 1.37 && quality > 0.1) { // 1.37 factor for base64
-            quality -= 0.1;
-            result = canvas.toDataURL("image/jpeg", quality);
-          }
-
-          resolve(result);
         };
         img.onerror = () => {
           reject(new Error('Failed to process the image'));

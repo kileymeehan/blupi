@@ -26,6 +26,7 @@ import {
   Filter,
   Maximize2,
   Map,
+  X,
 } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef, useEffect } from "react";
@@ -1095,9 +1096,9 @@ export default function BoardGrid({
                       variant="ghost" 
                       size="sm" 
                       onClick={() => setShowMinimap(false)}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <X className="w-5 h-5" />
                     </Button>
                   </div>
                   <div 
@@ -1106,6 +1107,45 @@ export default function BoardGrid({
                     style={{ 
                       height: 'calc(80vh - 80px)',
                       position: 'relative',
+                      cursor: 'grab',
+                    }}
+                    onMouseDown={(e) => {
+                      // Only handle primary mouse button (left click)
+                      if (e.button !== 0) return;
+                      
+                      const container = minimapRef.current;
+                      if (!container) return;
+                      
+                      // Mark as being dragged
+                      container.style.cursor = 'grabbing';
+                      
+                      const startX = e.pageX;
+                      const startY = e.pageY;
+                      const scrollLeft = container.scrollLeft;
+                      const scrollTop = container.scrollTop;
+                      
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        // Calculate distance moved
+                        const dx = moveEvent.pageX - startX;
+                        const dy = moveEvent.pageY - startY;
+                        
+                        // Move in opposite direction of drag (like map dragging)
+                        container.scrollLeft = scrollLeft - dx;
+                        container.scrollTop = scrollTop - dy;
+                      };
+                      
+                      const handleMouseUp = () => {
+                        // Reset cursor
+                        container.style.cursor = 'grab';
+                        
+                        // Remove event listeners
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      // Register move and up events to document to catch events outside container
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
                     }}
                   >
                     <div className="p-6" style={{ transform: 'scale(0.4)', transformOrigin: 'top left' }}>
@@ -1113,7 +1153,17 @@ export default function BoardGrid({
                         {board.phases.map((phase, phaseIndex) => (
                           <div key={`minimap-${phase.id}`} className="flex-shrink-0 relative mr-8">
                             <div className="px-4">
-                              <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
+                              <div 
+                                className="mb-4 border-[2px] border-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-100"
+                                onClick={() => {
+                                  // Find the corresponding phase in the main board and scroll to it
+                                  const phaseElement = document.getElementById(`phase-${phase.id}`);
+                                  if (phaseElement) {
+                                    phaseElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    setShowMinimap(false);
+                                  }
+                                }}
+                              >
                                 <div className="flex items-center justify-between mb-1">
                                   <div className="font-bold text-lg">{phase.name}</div>
                                 </div>
@@ -1126,7 +1176,17 @@ export default function BoardGrid({
                                       <div className="cursor-grab text-gray-600 p-1 -ml-1 rounded">
                                         <GripVertical className="w-4 h-4" />
                                       </div>
-                                      <div className="relative flex-1">
+                                      <div 
+                                        className="relative flex-1 cursor-pointer hover:bg-gray-100 rounded px-2"
+                                        onClick={() => {
+                                          // Try to find the corresponding column in the main board
+                                          const columnElement = document.querySelector(`[data-column-id="${column.id}"]`);
+                                          if (columnElement) {
+                                            columnElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                            setShowMinimap(false);
+                                          }
+                                        }}
+                                      >
                                         <div className="text-base h-12 overflow-hidden text-ellipsis flex items-center">
                                           {column.name}
                                         </div>
