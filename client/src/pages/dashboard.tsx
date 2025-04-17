@@ -353,10 +353,10 @@ export default function Dashboard() {
 
         <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
           {/* Project section header */}
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
-              <Folder className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold">Projects</h2>
+              <Folder className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-semibold">Projects</h2>
             </div>
             <Button
               variant="primary-cta"
