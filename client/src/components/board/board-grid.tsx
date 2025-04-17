@@ -190,10 +190,16 @@ export default function BoardGrid({
   }
 
   const handleDragEnd = (result: DropResult) => {
-    // Reset dragging state
-    setIsDragging(false);
+    // Set dragging state back to false after a short delay to prevent display flicker
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 50);
     
-    if (!result.destination) return;
+    if (!result.destination) {
+      // If no destination, we should reset dragging state immediately
+      setIsDragging(false);
+      return;
+    }
 
     const { source, destination, type } = result;
 
@@ -1128,11 +1134,11 @@ export default function BoardGrid({
               <div
                 className="board-container transition-all duration-200"
                 style={{ 
-                  transform: `scale(${canvasScale})`,
+                  transform: isDragging ? 'none' : `scale(${canvasScale})`,
                   transformOrigin: 'top left',
-                  width: `${100/canvasScale}%`,
-                  height: `${100/canvasScale}%`,
-                  marginBottom: `${(canvasScale - 1) * 100}px`
+                  width: isDragging ? '100%' : `${100/canvasScale}%`,
+                  height: isDragging ? '100%' : `${100/canvasScale}%`,
+                  transition: 'none'
                 }}
               >
                 <div 
