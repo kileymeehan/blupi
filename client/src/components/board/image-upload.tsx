@@ -50,29 +50,32 @@ export default function ImageUpload({
             ctx.fillRect(0, 0, width, height);
             ctx.drawImage(img, 0, 0, width, height);
 
-            // More aggressive compression parameters
-            const maxSizeInBytes = 240 * 1024; // 240KB limit
-            let quality = 0.7; // Start with better balance
+            // Updated compression parameters with increased limits
+            const maxSizeInBytes = 250 * 1024; // 250KB limit as requested
+            let quality = 0.8; // Start with higher quality
             let format = 'image/jpeg';
             
             // Try PNG for smaller images that might be graphics/icons
             if (file.size < 500 * 1024 && file.type.includes('png')) {
               format = 'image/png';
+              quality = 0.85; // Higher quality for PNGs
             }
             
             let result = canvas.toDataURL(format, quality);
             
-            // Progressive compression
+            // Progressive compression with smaller steps for better quality control
             let attempts = 0;
-            while (result.length > maxSizeInBytes * 1.37 && quality > 0.1 && attempts < 10) {
-              quality -= 0.1;
-              result = canvas.toDataURL('image/jpeg', quality); // Force JPEG for better compression
+            while (result.length > maxSizeInBytes * 1.37 && quality > 0.2 && attempts < 15) {
+              // Reduce quality more gradually
+              quality -= (quality > 0.5) ? 0.05 : 0.02; 
+              result = canvas.toDataURL('image/jpeg', quality);
               attempts++;
             }
             
-            // If still too large, reduce dimensions more
+            // If still too large, try a multi-step approach
             if (result.length > maxSizeInBytes * 1.37) {
-              const scaleFactor = 0.8;
+              // First try a moderate dimension reduction
+              const scaleFactor = 0.85;
               width = Math.floor(width * scaleFactor);
               height = Math.floor(height * scaleFactor);
               
@@ -84,8 +87,31 @@ export default function ImageUpload({
               ctx.fillRect(0, 0, width, height);
               ctx.drawImage(img, 0, 0, width, height);
               
-              quality = 0.6;
+              quality = 0.7; // Reset quality to higher value with smaller dimensions
               result = canvas.toDataURL('image/jpeg', quality);
+              
+              // If still too big, try progressive compression again
+              attempts = 0;
+              while (result.length > maxSizeInBytes * 1.37 && quality > 0.2 && attempts < 10) {
+                quality -= 0.05;
+                result = canvas.toDataURL('image/jpeg', quality);
+                attempts++;
+              }
+              
+              // Last resort: further dimension reduction
+              if (result.length > maxSizeInBytes * 1.37) {
+                width = Math.floor(width * 0.8);
+                height = Math.floor(height * 0.8);
+                
+                canvas.width = width;
+                canvas.height = height;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, width, height);
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                quality = 0.6;
+                result = canvas.toDataURL('image/jpeg', quality);
+              }
             }
 
             console.log(`Compressed image from ${file.size} to ~${Math.round(result.length / 1.37)} bytes`);
