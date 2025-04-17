@@ -54,7 +54,8 @@ export default function BlockDrawer() {
       type: `custom-${Date.now()}`, // Create unique type
       label: customBlockLabel,
       color: convertToTailwindBgClass(customBlockColor),
-      isCustom: true
+      isCustom: true,
+      isDivider: false // Explicitly set for custom blocks
     };
     
     setBlocks(prev => [...prev, newBlock]);
