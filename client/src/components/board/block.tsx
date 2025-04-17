@@ -46,6 +46,7 @@ const TYPE_LABELS = {
   question: "Question",
   note: "Note",
   opportunities: "Opportunities",
+  custom: "Custom",
   hidden: "Hidden Step",
   "front-stage": "Front-Stage",
   "back-stage": "Back-Stage",
@@ -244,9 +245,10 @@ export default function Block({
             ${isTemplate ? "flex items-center justify-center" : ""}
             overflow-y-auto whitespace-normal break-words
             leading-normal text
-            focus:outline-none
+            focus:outline-none rounded-md
             ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
           `}
+          style={{ backgroundColor: block.color }}
           suppressContentEditableWarning={true}
         >
           {isTemplate ? TYPE_LABELS[block.type] : block.content}
