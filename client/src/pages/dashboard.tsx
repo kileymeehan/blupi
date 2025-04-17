@@ -360,11 +360,11 @@ export default function Dashboard() {
             </div>
             <Button
               variant="primary-cta"
-              size="sm"
+              size="icon"
               onClick={() => setCreateProjectOpen(true)}
-              className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white"
+              className="h-9 w-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white rounded-full"
             >
-              Create New Project
+              <Plus className="h-6 w-6" />
             </Button>
           </div>
           {projectLoading ? (
@@ -502,11 +502,11 @@ export default function Dashboard() {
             </div>
             <Button
               variant="primary-cta"
-              size="sm"
+              size="icon"
               onClick={() => setCreateBlueprintOpen(true)}
-              className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white"
+              className="h-9 w-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white rounded-full"
             >
-              Create New Blueprint
+              <Plus className="h-6 w-6" />
             </Button>
           </div>
           {boardsLoading ? (
@@ -638,11 +638,11 @@ export default function Dashboard() {
             </div>
             <Button
               variant="primary-cta"
-              size="sm"
+              size="icon"
               onClick={() => setCreateBlueprintOpen(true)}
-              className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm"
+              className="h-9 w-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white rounded-full"
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="h-6 w-6" />
             </Button>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
