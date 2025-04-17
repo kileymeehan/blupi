@@ -124,6 +124,7 @@ export default function BoardGrid({
     Department | undefined
   >(undefined);
   const [canvasScale, setCanvasScale] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
 
   const {
     data: board,
@@ -189,6 +190,9 @@ export default function BoardGrid({
   }
 
   const handleDragEnd = (result: DropResult) => {
+    // Reset dragging state
+    setIsDragging(false);
+    
     if (!result.destination) return;
 
     const { source, destination, type } = result;
@@ -708,11 +712,17 @@ export default function BoardGrid({
 
   // Add a function to handle the drag start event for potential duplication
   const handleDragStart = (initial: any) => {
-    // We only need to show a visual indicator if modifier is pressed
-    if (isModifierKeyPressed) {
-      // Could add some visual indication here that we're in duplicate mode
-      // For example, changing the cursor or adding a badge
-    }
+    // Set dragging state to true - this will disable scaling while dragging
+    setIsDragging(true);
+    
+    // Check if modifier key is pressed
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    setIsModifierKeyPressed(
+      isMac ? 
+        initial.event.metaKey // Command key on Mac
+        : 
+        initial.event.ctrlKey // Control key on Windows/Linux
+    );
   };
   
   // Add keyboard shortcuts for zooming
