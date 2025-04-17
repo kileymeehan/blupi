@@ -1270,7 +1270,10 @@ export default function BoardGrid({
               <div ref={boardRef} className="p-8">
                 <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
-                    <div key={phase.id} className="flex-shrink-0 relative mr-8">
+                    <div 
+                      key={phase.id}
+                      id={`phase-${phase.id}`} 
+                      className="flex-shrink-0 relative mr-8">
                       <div className="px-4">
                         <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
                           <div className="flex items-center justify-between mb-1">
@@ -1313,6 +1316,7 @@ export default function BoardGrid({
                               {phase.columns.map((column, columnIndex) => (
                                 <div
                                   key={column.id}
+                                  data-column-id={column.id}
                                   className="flex-shrink-0 w-[225px] flex flex-col"
                                 >
                                   <div className="flex items-center gap-2 mb-2 mt-4">
