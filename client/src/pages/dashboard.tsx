@@ -10,6 +10,7 @@ import {
   Archive,
   Briefcase,
   Loader2,
+  X,
 } from "lucide-react";
 import {
   Card,
@@ -242,9 +243,8 @@ export default function Dashboard() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  className="bg-[#F2918C] text-[#302E87] hover:bg-[#f07a73] font-medium h-9"
+                  className="bg-[#F2918C] text-[#302E87] hover:bg-[#f07a73] font-bold h-9 border border-white shadow-sm"
                 >
-                  <Plus className="mr-1.5 h-3.5 w-3.5" />
                   Create New
                 </Button>
               </DropdownMenuTrigger>
@@ -362,9 +362,8 @@ export default function Dashboard() {
               variant="primary-cta"
               size="sm"
               onClick={() => setCreateProjectOpen(true)}
-              className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm"
+              className="h-9 px-4 py-2 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white"
             >
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
               Create New Project
             </Button>
           </div>
