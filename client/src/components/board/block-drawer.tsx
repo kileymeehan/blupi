@@ -24,16 +24,26 @@ export default function BlockDrawer() {
     setBlocks(prevBlocks => 
       prevBlocks.map(block => 
         block.type === type 
-        ? { ...block, color: convertHexToTailwindBg(newColor) }
+        ? { ...block, color: convertToTailwindBgClass(newColor) }
         : block
       )
     );
   };
 
   // Function to convert hex color to Tailwind bg class
-  const convertHexToTailwindBg = (hex: string) => {
-    // This is a simplified conversion - in real app you might want a more accurate mapping
-    return `bg-[${hex}]`;
+  const convertToTailwindBgClass = (color: string) => {
+    // Check if the color starts with # (hex color) and add bg-[] format
+    if (color.startsWith('#')) {
+      return `bg-[${color}]`;
+    }
+    
+    // If it's already a Tailwind class that doesn't start with bg-
+    if (!color.startsWith('bg-')) {
+      return `bg-${color}`;
+    }
+    
+    // If it's already a proper Tailwind bg class, return as is
+    return color;
   };
 
   // Function to add a custom block
@@ -43,7 +53,7 @@ export default function BlockDrawer() {
     const newBlock: LayerType = {
       type: `custom-${Date.now()}`, // Create unique type
       label: customBlockLabel,
-      color: convertHexToTailwindBg(customBlockColor),
+      color: convertToTailwindBgClass(customBlockColor),
       isCustom: true
     };
     
