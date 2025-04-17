@@ -1134,11 +1134,12 @@ export default function BoardGrid({
               <div
                 className="board-container transition-all duration-200"
                 style={{ 
-                  transform: isDragging ? 'none' : `scale(${canvasScale})`,
+                  transform: `scale(${canvasScale})`,
                   transformOrigin: 'top left',
-                  width: isDragging ? '100%' : `${100/canvasScale}%`,
-                  height: isDragging ? '100%' : `${100/canvasScale}%`,
-                  transition: 'none'
+                  width: `${100/canvasScale}%`,
+                  height: `${100/canvasScale}%`,
+                  marginBottom: `${(canvasScale - 1) * 100}px`,
+                  transition: isDragging ? 'none' : 'all 200ms'
                 }}
               >
                 <div 
@@ -1301,7 +1302,11 @@ export default function BoardGrid({
                                                   `}
                                                   style={{
                                                     ...provided.draggableProps.style,
-                                                    zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                    zIndex: snapshot.isDragging ? 9999 : "auto",
+                                                    // Adjust transform if needed
+                                                    transform: snapshot.isDragging && provided.draggableProps.style?.transform
+                                                      ? provided.draggableProps.style.transform.replace(/scale\([^)]+\)/, `scale(1)`)
+                                                      : provided.draggableProps.style?.transform
                                                   }}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
