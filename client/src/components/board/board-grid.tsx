@@ -128,6 +128,29 @@ export default function BoardGrid({
   const [showMinimap, setShowMinimap] = useState(false);
   const minimapRef = useRef<HTMLDivElement>(null);
 
+  // Add keyboard event listeners for modifier keys (Cmd/Ctrl)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Control' || e.key === 'Meta') {
+        setIsModifierKeyPressed(true);
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Control' || e.key === 'Meta') {
+        setIsModifierKeyPressed(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
   const {
     data: board,
     isLoading: boardLoading,
@@ -1064,53 +1087,121 @@ export default function BoardGrid({
 
           <div className="flex-1 overflow-x-auto relative">
             {showMinimap && (
-              <div className="absolute top-4 right-4 z-50 bg-white border border-gray-300 shadow-lg rounded-lg p-2 w-[300px]">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-sm font-medium">Board Overview</div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setShowMinimap(false)}
-                    className="h-6 w-6 p-0"
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+                <div className="bg-white border border-gray-300 shadow-xl rounded-lg p-4 w-[80%] max-w-[1000px] max-h-[80vh]">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-lg font-medium">Board Overview</div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setShowMinimap(false)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                  </div>
+                  <div 
+                    ref={minimapRef} 
+                    className="w-full overflow-auto bg-white rounded border border-gray-200"
+                    style={{ 
+                      height: 'calc(80vh - 80px)',
+                      position: 'relative',
+                    }}
                   >
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div 
-                  ref={minimapRef} 
-                  className="w-full h-[200px] overflow-hidden bg-gray-50 rounded border border-gray-200"
-                  style={{ 
-                    position: 'relative',
-                  }}
-                >
-                  <div className="absolute inset-0 p-2" style={{ transform: 'scale(0.2)', transformOrigin: 'top left' }}>
-                    {board.phases.map((phase, phaseIndex) => (
-                      <div key={`minimap-${phase.id}`} className="flex-shrink-0 relative mr-8 inline-block align-top">
-                        <div className="px-4">
-                          <div className="mb-4 border-2 border-gray-700 rounded-lg p-3">
-                            <div className="text-xs font-bold">{phase.name}</div>
-                          </div>
-                          <div className="flex gap-8">
-                            {phase.columns.map((column, columnIndex) => (
-                              <div key={`minimap-${column.id}`} className="w-[225px] inline-block">
-                                <div className="text-xs mb-2">{column.name}</div>
-                                <div className="space-y-2">
-                                  {board.blocks
-                                    .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
-                                    .map(block => (
-                                      <div 
-                                        key={`minimap-${block.id}`}
-                                        className="h-10 bg-blue-100 border border-blue-200 rounded"
-                                      ></div>
-                                    ))
-                                  }
+                    <div className="p-6" style={{ transform: 'scale(0.4)', transformOrigin: 'top left' }}>
+                      <div className="flex items-start gap-8">
+                        {board.phases.map((phase, phaseIndex) => (
+                          <div key={`minimap-${phase.id}`} className="flex-shrink-0 relative mr-8">
+                            <div className="px-4">
+                              <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3">
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="font-bold text-lg">{phase.name}</div>
                                 </div>
                               </div>
-                            ))}
+
+                              <div className="flex gap-8">
+                                {phase.columns.map((column, columnIndex) => (
+                                  <div key={`minimap-${column.id}`} className="flex-shrink-0 w-[225px] flex flex-col">
+                                    <div className="flex items-center gap-2 mb-2 mt-4">
+                                      <div className="cursor-grab text-gray-600 p-1 -ml-1 rounded">
+                                        <GripVertical className="w-4 h-4" />
+                                      </div>
+                                      <div className="relative flex-1">
+                                        <div className="text-base h-12 overflow-hidden text-ellipsis flex items-center">
+                                          {column.name}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {column.image && (
+                                      <div className="mb-4 relative rounded-lg border border-gray-300 bg-white aspect-video overflow-hidden">
+                                        <img
+                                          src={column.image}
+                                          alt={column.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    )}
+
+                                    <div className="space-y-4 min-h-[100px] p-4 rounded-lg border-1 border-gray-300 flex-1">
+                                      {board.blocks
+                                        .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                        .map((block, index) => {
+                                          const blockType = LAYER_TYPES.find(l => l.type === block.type);
+                                          const colorClass = blockType?.color || "bg-gray-100";
+                                          
+                                          return (
+                                            <div 
+                                              key={`minimap-${block.id}`}
+                                              className={`
+                                                ${colorClass}
+                                                group relative rounded-lg border-3 border-gray-500 mb-2 p-2
+                                                cursor-pointer hover:border-gray-900 hover:shadow-md
+                                              `}
+                                              onClick={() => {
+                                                // Find the element in the main board and scroll to it
+                                                const blockElement = document.getElementById(block.id);
+                                                if (blockElement) {
+                                                  blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                  setHighlightedBlockId(block.id);
+                                                  setTimeout(() => setHighlightedBlockId(null), 2000);
+                                                  setShowMinimap(false);
+                                                }
+                                              }}
+                                            >
+                                              {block.emoji && <div className="absolute top-1 right-1 text-xl">{block.emoji}</div>}
+                                              <div className="text-sm mt-1 break-words font-normal">
+                                                {block.content}
+                                              </div>
+                                              {(block.comments?.length > 0 || block.attachments?.length > 0) && (
+                                                <div className="flex items-center gap-1 mt-2 text-gray-500">
+                                                  {block.comments?.length > 0 && (
+                                                    <div className="flex items-center gap-1">
+                                                      <MessageSquare className="w-3 h-3" />
+                                                      <span className="text-xs">{block.comments.length}</span>
+                                                    </div>
+                                                  )}
+                                                  {block.attachments?.length > 0 && (
+                                                    <div className="flex items-center gap-1 ml-2">
+                                                      <Folder className="w-3 h-3" />
+                                                      <span className="text-xs">{block.attachments.length}</span>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        })
+                                      }
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1262,6 +1353,7 @@ export default function BoardGrid({
                                             >
                                               {(provided, snapshot) => (
                                                 <div
+                                                  id={block.id}
                                                   ref={provided.innerRef}
                                                   {...provided.draggableProps}
                                                   className={`
