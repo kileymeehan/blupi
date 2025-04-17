@@ -125,7 +125,8 @@ export default function BoardGrid({
   const [departmentFilter, setDepartmentFilter] = useState<
     Department | undefined
   >(undefined);
-  const [canvasScale, setCanvasScale] = useState(1);
+  const [showMinimap, setShowMinimap] = useState(false);
+  const minimapRef = useRef<HTMLDivElement>(null);
 
   const {
     data: board,
@@ -775,6 +776,16 @@ export default function BoardGrid({
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => setShowMinimap(!showMinimap)}
+              className="h-9 w-9 p-0"
+              title="Toggle Board Overview"
+            >
+              <Map className="w-4 h-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setAddToProjectOpen(true)}
               className="h-9 w-9 p-0"
             >
@@ -1051,7 +1062,59 @@ export default function BoardGrid({
             </div>
           </div>
 
-          <div className="flex-1 overflow-x-auto">
+          <div className="flex-1 overflow-x-auto relative">
+            {showMinimap && (
+              <div className="absolute top-4 right-4 z-50 bg-white border border-gray-300 shadow-lg rounded-lg p-2 w-[300px]">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-medium">Board Overview</div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowMinimap(false)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div 
+                  ref={minimapRef} 
+                  className="w-full h-[200px] overflow-hidden bg-gray-50 rounded border border-gray-200"
+                  style={{ 
+                    position: 'relative',
+                  }}
+                >
+                  <div className="absolute inset-0 p-2" style={{ transform: 'scale(0.2)', transformOrigin: 'top left' }}>
+                    {board.phases.map((phase, phaseIndex) => (
+                      <div key={`minimap-${phase.id}`} className="flex-shrink-0 relative mr-8 inline-block align-top">
+                        <div className="px-4">
+                          <div className="mb-4 border-2 border-gray-700 rounded-lg p-3">
+                            <div className="text-xs font-bold">{phase.name}</div>
+                          </div>
+                          <div className="flex gap-8">
+                            {phase.columns.map((column, columnIndex) => (
+                              <div key={`minimap-${column.id}`} className="w-[225px] inline-block">
+                                <div className="text-xs mb-2">{column.name}</div>
+                                <div className="space-y-2">
+                                  {board.blocks
+                                    .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
+                                    .map(block => (
+                                      <div 
+                                        key={`minimap-${block.id}`}
+                                        className="h-10 bg-blue-100 border border-blue-200 rounded"
+                                      ></div>
+                                    ))
+                                  }
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="min-w-[800px] relative">
               <div ref={boardRef} className="p-8">
                 <div className="flex items-start gap-8">
