@@ -102,6 +102,7 @@ export default function Dashboard() {
   } | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [showArchivedBlueprints, setShowArchivedBlueprints] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   const { toast } = useToast();
 
   const { data: projects = [], isLoading: projectLoading } = useQuery<
@@ -301,12 +302,54 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
-        <div className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
-          <h1 className="text-2xl font-bold mb-1.5">Welcome back!</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage your blueprints and projects
-          </p>
-        </div>
+        {showWelcome && (
+          <div className="bg-white rounded-lg p-10 shadow-lg border border-gray-300 relative">
+            <div className="absolute top-4 right-4">
+              <Button 
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowWelcome(false)}
+                className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
+              >
+                <span className="sr-only">Close</span>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="relative w-full max-w-[200px]">
+                {/* Abstract illustration with complementary colors */}
+                <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="100" cy="100" r="80" fill="#FFE8D6" opacity="0.7" />
+                  <circle cx="70" cy="70" r="40" fill="#F2918C" opacity="0.8" />
+                  <circle cx="130" cy="130" r="40" fill="#A1D9F5" opacity="0.8" />
+                  <path d="M30,120 C60,180 140,180 170,120" stroke="#302E87" strokeWidth="8" fill="none" />
+                  <path d="M50,50 C90,20 110,20 150,50" stroke="#302E87" strokeWidth="6" fill="none" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold mb-1.5">Welcome Back!</h1>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Continue working on your blueprints and projects.
+                </p>
+                <div className="flex gap-4">
+                  <Button 
+                    onClick={() => setCreateProjectOpen(true)}
+                    className="bg-[#302E87] hover:bg-[#252270] text-white"
+                  >
+                    Create New Project
+                  </Button>
+                  <Button 
+                    onClick={() => setCreateBlueprintOpen(true)}
+                    variant="outline"
+                    className="border-[#302E87] text-[#302E87] hover:bg-[#FFE8D6]/20"
+                  >
+                    Create New Blueprint
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
           {/* Project section header */}
@@ -722,6 +765,7 @@ export default function Dashboard() {
       <CreateBlueprintDialog
         open={createBlueprintOpen}
         onOpenChange={setCreateBlueprintOpen}
+        projectId={undefined}
       />
 
       {selectedBoardId && (
