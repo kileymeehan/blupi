@@ -24,6 +24,8 @@ import {
   FileDown,
   MessageSquare,
   Filter,
+  Maximize2,
+  Map,
 } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef, useEffect } from "react";
