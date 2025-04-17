@@ -1108,23 +1108,21 @@ export default function BoardGrid({
                   <span className="text-lg font-bold">+</span>
                 </button>
               </div>
-              {/* Apply scaling to a wrapper div instead of directly to the board */}
-              <div 
+              {/* APPROACH CHANGED: Remove scaling from DragDropContext - scaling now applied to outside div only */}
+              <div
                 className="board-container transition-all duration-200"
                 style={{ 
-                  '--canvas-scale': canvasScale
-                } as React.CSSProperties}
+                  transform: `scale(${canvasScale})`,
+                  transformOrigin: 'top left',
+                  width: `${100/canvasScale}%`,
+                  height: `${100/canvasScale}%`,
+                  marginBottom: `${(canvasScale - 1) * 100}px`
+                }}
               >
                 <div 
-                  ref={boardRef} 
+                  ref={boardRef}
                   className="p-8"
-                  style={{ 
-                    transform: `scale(var(--canvas-scale))`,
-                    transformOrigin: 'top left',
-                    width: `${100/canvasScale}%`,
-                    height: `${100/canvasScale}%`,
-                    marginBottom: `${(canvasScale - 1) * 100}px`
-                  }}>
+                >
                   <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
                     <div key={phase.id} className="flex-shrink-0 relative mr-8">
@@ -1282,13 +1280,8 @@ export default function BoardGrid({
                                                   style={{
                                                     ...provided.draggableProps.style,
                                                     zIndex: snapshot.isDragging ? 9999 : "auto",
-                                                    // Apply a correction to transform when dragging
-                                                    transform: snapshot.isDragging && provided.draggableProps.style?.transform
-                                                      ? provided.draggableProps.style.transform.replace(
-                                                          /translate\(([^,]+), ([^)]+)\)/,
-                                                          (_, x, y) => `translate(${parseFloat(x) / canvasScale}px, ${parseFloat(y) / canvasScale}px)`
-                                                        )
-                                                      : provided.draggableProps.style?.transform
+                                                    // No transform correction needed anymore - scaling is handled by parent div
+                                                    transform: provided.draggableProps.style?.transform
                                                   }}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
