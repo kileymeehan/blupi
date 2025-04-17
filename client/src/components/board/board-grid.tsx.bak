@@ -1518,8 +1518,7 @@ export default function BoardGrid({
                 </DialogContent>
               </Dialog>
             )}
-            </div> {/* End of min-w-[800px] relative */}
-          </div> {/* End of flex-1 overflow-x-auto */}
+          </div>
         </DragDropContext>
       </div>
       

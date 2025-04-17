@@ -1085,6 +1085,7 @@ export default function BoardGrid({
           {/* Main board area */}
           <div className="flex-1 overflow-x-auto">
             <div className="min-w-[800px] relative">
+              {/* Zoom controls fixed in bottom right */}
               <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 bg-white border border-gray-200 rounded-lg shadow-md p-2 opacity-80 hover:opacity-100 transition-opacity">
                 <button 
                   onClick={() => setCanvasScale(Math.max(0.5, canvasScale - 0.1))}
@@ -1108,7 +1109,8 @@ export default function BoardGrid({
                   <span className="text-lg font-bold">+</span>
                 </button>
               </div>
-              {/* Apply scaling to a wrapper div instead of directly to the board */}
+              
+              {/* Board container with scaling CSS var */}
               <div 
                 className="board-container transition-all duration-200"
                 style={{ 
@@ -1124,7 +1126,8 @@ export default function BoardGrid({
                     width: `${100/canvasScale}%`,
                     height: `${100/canvasScale}%`,
                     marginBottom: `${(canvasScale - 1) * 100}px`
-                  }}>
+                  }}
+                >
                   <div className="flex items-start gap-8">
                   {board.phases.map((phase, phaseIndex) => (
                     <div key={phase.id} className="flex-shrink-0 relative mr-8">
@@ -1518,6 +1521,7 @@ export default function BoardGrid({
                 </DialogContent>
               </Dialog>
             )}
+          </div>
             </div> {/* End of min-w-[800px] relative */}
           </div> {/* End of flex-1 overflow-x-auto */}
         </DragDropContext>
