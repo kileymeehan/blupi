@@ -1122,11 +1122,11 @@ export default function BoardGrid({
               <div
                 className="board-container transition-all duration-200"
                 style={{ 
-                  transform: `scale(${canvasScale})`,
+                  transform: isDragging ? 'none' : `scale(${canvasScale})`,
                   transformOrigin: 'top left',
-                  width: `${100/canvasScale}%`,
-                  height: `${100/canvasScale}%`,
-                  marginBottom: `${(canvasScale - 1) * 100}px`
+                  width: isDragging ? '100%' : `${100/canvasScale}%`,
+                  height: isDragging ? '100%' : `${100/canvasScale}%`,
+                  marginBottom: isDragging ? '0' : `${(canvasScale - 1) * 100}px`
                 }}
               >
                 <div 
