@@ -715,14 +715,19 @@ export default function BoardGrid({
     // Set dragging state to true - this will disable scaling while dragging
     setIsDragging(true);
     
-    // Check if modifier key is pressed
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-    setIsModifierKeyPressed(
-      isMac ? 
-        initial.event.metaKey // Command key on Mac
-        : 
-        initial.event.ctrlKey // Control key on Windows/Linux
-    );
+    // Check if modifier key is pressed, but safely in case event is missing
+    if (initial && initial.event) {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      setIsModifierKeyPressed(
+        isMac ? 
+          initial.event.metaKey // Command key on Mac
+          : 
+          initial.event.ctrlKey // Control key on Windows/Linux
+      );
+    } else {
+      // Default to false if no event data
+      setIsModifierKeyPressed(false);
+    }
   };
   
   // Add keyboard shortcuts for zooming
@@ -894,7 +899,8 @@ export default function BoardGrid({
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div style={{ transform: `scale(1)` }}>
+          <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           {/* Sidebar */}
           <div
             className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}
@@ -1122,11 +1128,11 @@ export default function BoardGrid({
               <div
                 className="board-container transition-all duration-200"
                 style={{ 
-                  transform: isDragging ? 'none' : `scale(${canvasScale})`,
+                  transform: `scale(${canvasScale})`,
                   transformOrigin: 'top left',
-                  width: isDragging ? '100%' : `${100/canvasScale}%`,
-                  height: isDragging ? '100%' : `${100/canvasScale}%`,
-                  marginBottom: isDragging ? '0' : `${(canvasScale - 1) * 100}px`
+                  width: `${100/canvasScale}%`,
+                  height: `${100/canvasScale}%`,
+                  marginBottom: `${(canvasScale - 1) * 100}px`
                 }}
               >
                 <div 
@@ -1289,9 +1295,7 @@ export default function BoardGrid({
                                                   `}
                                                   style={{
                                                     ...provided.draggableProps.style,
-                                                    zIndex: snapshot.isDragging ? 9999 : "auto",
-                                                    // No transform correction needed anymore - scaling is handled by parent div
-                                                    transform: provided.draggableProps.style?.transform
+                                                    zIndex: snapshot.isDragging ? 9999 : "auto"
                                                   }}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
@@ -1524,6 +1528,7 @@ export default function BoardGrid({
             </div> {/* End of min-w-[800px] relative */}
           </div> {/* End of flex-1 overflow-x-auto */}
         </DragDropContext>
+        </div>
       </div>
       
       {/* Step Text Expanded Dialog */}
