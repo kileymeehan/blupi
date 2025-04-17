@@ -9,23 +9,23 @@ export type LayerType = {
 
 export const LAYER_TYPES: LayerType[] = [
   // Standard blocks
-  { type: "touchpoint", label: "UX Touchpoint", color: "bg-blue-600/20" },
-  { type: "email", label: "Email", color: "bg-indigo-500/20" },
-  { type: "pendo", label: "Modal", color: "bg-cyan-300" },
-  { type: "role", label: "Role", color: "bg-green-200" },
-  { type: "process", label: "Process", color: "bg-pink-200" },
-  { type: "friction", label: "Friction", color: "bg-red-300" },
-  { type: "policy", label: "Policy", color: "bg-orange-200" },
-  { type: "technology", label: "Technology", color: "bg-purple-300" },
-  { type: "rationale", label: "Rationale", color: "bg-blue-200" },
-  { type: "question", label: "Question", color: "bg-violet-200" },
-  { type: "note", label: "Note", color: "bg-cyan-200" },
-  { type: "opportunities", label: "Opportunities", color: "bg-yellow-300" },
-  { type: "hidden", label: "Hidden Step", color: "bg-gray-400" },
-  { type: "custom", label: "Custom", color: "bg-emerald-300", isCustom: true },
+  { type: "touchpoint", label: "UX Touchpoint", color: "#3B82F633" }, // blue-600/20
+  { type: "email", label: "Email", color: "#6366F133" }, // indigo-500/20
+  { type: "pendo", label: "Modal", color: "#67E8F9" }, // cyan-300
+  { type: "role", label: "Role", color: "#A7F3D0" }, // green-200
+  { type: "process", label: "Process", color: "#FBCFE8" }, // pink-200
+  { type: "friction", label: "Friction", color: "#FCA5A5" }, // red-300
+  { type: "policy", label: "Policy", color: "#FED7AA" }, // orange-200
+  { type: "technology", label: "Technology", color: "#D8B4FE" }, // purple-300
+  { type: "rationale", label: "Rationale", color: "#BFDBFE" }, // blue-200
+  { type: "question", label: "Question", color: "#DDD6FE" }, // violet-200
+  { type: "note", label: "Note", color: "#A5F3FC" }, // cyan-200
+  { type: "opportunities", label: "Opportunities", color: "#FDE047" }, // yellow-300
+  { type: "hidden", label: "Hidden Step", color: "#9CA3AF" }, // gray-400
+  { type: "custom", label: "Custom", color: "#6EE7B7", isCustom: true }, // emerald-300
   
   // Divider blocks
-  { type: "front-stage", label: "Front-Stage Divider", color: "bg-blue-500/75", isDivider: true },
-  { type: "back-stage", label: "Back-Stage Divider", color: "bg-purple-500/75", isDivider: true },
-  { type: "custom-divider", label: "Custom Divider", color: "bg-gray-600/75", isDivider: true },
+  { type: "front-stage", label: "Front-Stage Divider", color: "#3B82F6BF", isDivider: true }, // blue-500/75
+  { type: "back-stage", label: "Back-Stage Divider", color: "#8B5CF6BF", isDivider: true }, // purple-500/75
+  { type: "custom-divider", label: "Custom Divider", color: "#4B5563BF", isDivider: true }, // gray-600/75
 ];

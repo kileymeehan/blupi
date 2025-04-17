@@ -147,7 +147,7 @@ export default function BlockDrawer() {
                 {/* Color picker - shown on hover */}
                 <div className="absolute -top-1 -right-1 hidden group-hover:block">
                   <ColorPicker
-                    color={layer.color.replace('bg-[', '').replace(']', '')}
+                    color={layer.color}
                     onChange={(newColor) => updateBlockColor(layer.type, newColor)}
                     className="h-5 w-5 shadow-sm"
                   />
@@ -218,7 +218,7 @@ export default function BlockDrawer() {
                 {/* Color picker for dividers - shown on hover */}
                 <div className="absolute -top-1 -right-1 hidden group-hover:block">
                   <ColorPicker
-                    color={layer.color.replace('bg-[', '').replace(']', '')}
+                    color={layer.color}
                     onChange={(newColor) => updateBlockColor(layer.type, newColor)}
                     className="h-5 w-5 shadow-sm"
                   />

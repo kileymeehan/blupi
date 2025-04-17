@@ -198,31 +198,30 @@ export default function Block({
             leading-normal
             focus:outline-none
             ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
-            ${block.type === "front-stage" ? "bg-blue-500/75 text-white" : ""}
-            ${block.type === "back-stage" ? "bg-purple-500/75 text-white" : ""}
-            ${block.type === "custom-divider" ? "bg-gray-600/75 text-white" : ""}
+            text-white
             border-2 border-white
             font-semibold
           `}
+          style={{ backgroundColor: block.color }}
           suppressContentEditableWarning={true}
         >
           <div className="absolute inset-0 flex items-center justify-start px-4 pointer-events-none">
             <div className="w-full border-t-2 border-white opacity-50"></div>
           </div>
           
-          <div className="relative z-10 px-4 bg-inherit rounded-md font-bold text-white flex items-center gap-2">
+          <div className="relative z-10 px-4 rounded-md font-bold text-white flex items-center gap-2" style={{ backgroundColor: 'inherit' }}>
             {(block.type === "front-stage" || block.type === "back-stage") && (
-              <>
-                <ChevronDown className="w-4 h-4" />
-                <ChevronDown className="w-4 h-4" />
-              </>
+              <div className="flex items-center gap-1">
+                <ChevronDown className="w-5 h-5" />
+                <ChevronDown className="w-5 h-5" />
+              </div>
             )}
             {isTemplate ? TYPE_LABELS[block.type] : block.content || TYPE_LABELS[block.type]}
             {(block.type === "front-stage" || block.type === "back-stage") && (
-              <>
-                <ChevronDown className="w-4 h-4" />
-                <ChevronDown className="w-4 h-4" />
-              </>
+              <div className="flex items-center gap-1">
+                <ChevronDown className="w-5 h-5" />
+                <ChevronDown className="w-5 h-5" />
+              </div>
             )}
           </div>
           
