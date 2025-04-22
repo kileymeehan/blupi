@@ -1519,6 +1519,15 @@ export default function BoardGrid({
                                                         emoji,
                                                       )
                                                     }
+                                                    onColorChange={(
+                                                      blockId,
+                                                      color,
+                                                    ) =>
+                                                      handleBlockColorChange(
+                                                        blockId,
+                                                        color,
+                                                      )
+                                                    }
                                                     onDepartmentChange={
                                                       handleDepartmentChange
                                                     }
