@@ -1,11 +1,12 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown } from "lucide-react";
+import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, Palette } from "lucide-react";
 import type {
   Block as BlockType,
   Attachment,
   Department,
 } from "@shared/schema";
 import { AttachmentDialog } from "./attachment-dialog";
+import { ColorPicker } from "@/components/color-picker";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,7 @@ interface BlockProps {
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
   onEmojiChange?: (blockId: string, emoji: string) => void;
+  onColorChange?: (blockId: string, color: string) => void;
   onDepartmentChange?: (
     blockId: string,
     department: Department | undefined,
@@ -70,6 +72,7 @@ export default function Block({
   onAttachmentChange,
   onNotesChange,
   onEmojiChange,
+  onColorChange,
   onDepartmentChange,
   isTemplate = false,
   onCommentClick,
@@ -352,6 +355,17 @@ export default function Block({
             >
               <Smile className="w-4 h-4" />
             </button>
+            
+            {/* Color Picker button */}
+            {onColorChange && (
+              <div className="flex items-center justify-center relative">
+                <ColorPicker
+                  color={block.color || "#FFFFFFC0"}
+                  onChange={(newColor) => onColorChange(block.id, newColor)}
+                  className="h-6 w-6"
+                />
+              </div>
+            )}
           </div>
 
           {/* Block type label - only show for regular blocks, not dividers */}
