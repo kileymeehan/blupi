@@ -491,6 +491,20 @@ export default function BoardGrid({
     );
     onBlocksChange(blocks);
   };
+  
+  // New function to handle color changes for all blocks of the same type
+  const handleBlockColorChange = (blockId: string, color: string) => {
+    // First, find the block that we're changing color for
+    const targetBlock = board.blocks.find(block => block.id === blockId);
+    if (!targetBlock) return;
+    
+    // Apply color to all blocks of the same type
+    const blocks = board.blocks.map((block) =>
+      block.type === targetBlock.type ? { ...block, color } : block,
+    );
+    
+    onBlocksChange(blocks);
+  };
 
   const handleAddColumn = (phaseIndex: number) => {
     const newPhases = [...board.phases];

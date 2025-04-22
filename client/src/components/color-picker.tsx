@@ -45,7 +45,7 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
     }
   }, [color]);
 
-  // Completely rewritten color spectrum calculation
+  // Completely rewritten color spectrum calculation with improved color range
   const handleSpectrumClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!spectrumRef.current) return;
     
@@ -56,41 +56,39 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
     // Map x coordinate to hue (0-360 degrees)
     const hue = Math.round((x / rect.width) * 360);
     
-    // Map y coordinate to saturation and brightness
-    // Top = high brightness, low saturation (white)
-    // Bottom = high saturation, medium brightness (pure colors)
-    const saturation = Math.round((y / rect.height) * 100); // 0-100%
-    const brightness = Math.round(100 - ((y / rect.height) * 50)); // 50-100%
+    // Top = white, Bottom right = saturated colors, Bottom left = black
+    // Calculate saturation and value (brightness) based on y position and hue
+    const saturation = Math.min(100, Math.round((y / rect.height) * 100));
+    const value = Math.max(0, Math.min(100, 100 - Math.round((y / rect.height) * (100 - 20)))); // Ranges from 100% (top) to 20% (bottom)
     
-    // Convert HSV to RGB
-    // This is more reliable than HSL for user-selected colors
-    const c = brightness / 100 * saturation / 100;
-    const x2 = c * (1 - Math.abs(((hue / 60) % 2) - 1));
-    const m = brightness / 100 - c;
+    // Convert HSV to RGB directly (improved algorithm for better colors)
+    const hi = Math.floor(hue / 60) % 6;
+    const f = (hue / 60) - hi;
+    const v = value / 100;
+    const s = saturation / 100;
+    const p = v * (1 - s);
+    const q = v * (1 - f * s);
+    const t = v * (1 - (1 - f) * s);
     
     let r, g, b;
-    if (hue >= 0 && hue < 60) {
-      [r, g, b] = [c, x2, 0];
-    } else if (hue >= 60 && hue < 120) {
-      [r, g, b] = [x2, c, 0];
-    } else if (hue >= 120 && hue < 180) {
-      [r, g, b] = [0, c, x2];
-    } else if (hue >= 180 && hue < 240) {
-      [r, g, b] = [0, x2, c];
-    } else if (hue >= 240 && hue < 300) {
-      [r, g, b] = [x2, 0, c];
-    } else {
-      [r, g, b] = [c, 0, x2];
+    switch (hi) {
+      case 0: [r, g, b] = [v, t, p]; break;
+      case 1: [r, g, b] = [q, v, p]; break;
+      case 2: [r, g, b] = [p, v, t]; break;
+      case 3: [r, g, b] = [p, q, v]; break;
+      case 4: [r, g, b] = [t, p, v]; break;
+      case 5: [r, g, b] = [v, p, q]; break;
+      default: [r, g, b] = [0, 0, 0]; // Should never happen
     }
     
-    // Convert to hex
+    // Convert RGB to hex
     const toHex = (value: number) => {
-      const hex = Math.round((value + m) * 255).toString(16).padStart(2, '0');
+      const hex = Math.round(value * 255).toString(16).padStart(2, '0');
       return hex;
     };
     
     const hexColor = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-    console.log(`Selected color at x=${x}, y=${y}, hue=${hue}, sat=${saturation}, bright=${brightness}: ${hexColor}`);
+    console.log(`Selected color at x=${x}, y=${y}, hue=${hue}, sat=${saturation}, val=${value}: ${hexColor}`);
     
     // Validate the hex color to make sure it's properly formatted
     if (/^#[0-9A-Fa-f]{6}$/.test(hexColor)) {
@@ -180,59 +178,69 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
     setIsOpen(open);
   };
 
+  // Handle click outside for closing the tooltip
   useEffect(() => {
-    // Create a specific event handler for mouseover on the tooltip
-    // that prevents default behavior and maintains the tooltip open
-    const handleMouseOverTooltip = (e: MouseEvent) => {
-      e.stopPropagation();
-    };
-    
-    // Add event listeners when the tooltip is open
-    if (isOpen && spectrumRef.current) {
-      const element = spectrumRef.current;
-      element.addEventListener('mousemove', handleMouseOverTooltip);
-      element.addEventListener('mouseenter', handleMouseOverTooltip);
+    // Only add event listener if the tooltip is open
+    if (isOpen) {
+      const handleClickOutside = (e: MouseEvent) => {
+        // Check if the click is outside the color picker dialog
+        if (spectrumRef.current && !spectrumRef.current.contains(e.target as Node)) {
+          // Close the tooltip if the click is outside the color picker
+          if (!(e.target as Element)?.closest('.color-picker-content')) {
+            setIsOpen(false);
+          }
+        }
+      };
       
-      // Clean up the event listeners when the component is unmounted or tooltip closes
+      // Add click event listener to the document
+      document.addEventListener('mousedown', handleClickOutside);
+      
+      // Clean up the event listener
       return () => {
-        element.removeEventListener('mousemove', handleMouseOverTooltip);
-        element.removeEventListener('mouseenter', handleMouseOverTooltip);
+        document.removeEventListener('mousedown', handleClickOutside);
       };
     }
   }, [isOpen]);
   
   return (
-    <TooltipProvider delayDuration={100}>
+    <TooltipProvider>
       <Tooltip 
         open={isOpen} 
-        onOpenChange={handleOpenChange}
-        defaultOpen={false}
+        // Only allow opening via explicit click, not hover
+        // and always allow closing (when clicking outside)
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsOpen(false);
+          }
+        }}
       >
         <TooltipTrigger asChild>
           <Button
             variant="ghost"
             size="sm"
-            className={`p-1 h-6 w-6 rounded-full ${className}`}
+            className={`p-1 h-6 w-6 rounded-full ${className} transition-all duration-150 hover:scale-110 relative`}
             style={{ backgroundColor: selectedColor }}
             onClick={(e) => {
               e.stopPropagation();
-              setIsOpen(true);
+              setIsOpen(prev => !prev); // Toggle open state on click
             }}
           >
-            <Pipette className="h-4 w-4 stroke-white" />
+            <Pipette 
+              className={`h-4 w-4 stroke-white transition-all duration-300 ${isOpen ? 'rotate-12 scale-110' : ''}`} 
+            />
+            {/* Add a subtle "click me" indicator */}
+            {!isOpen && (
+              <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+            )}
           </Button>
         </TooltipTrigger>
         <TooltipContent 
           side="top" 
           align="center" 
-          className="w-64 p-3 z-50" 
+          className="w-64 p-3 z-50 color-picker-content" 
           sideOffset={5}
-          /* No need for forceMount as we control open state directly */
-          onPointerMove={handleTooltipInteraction}
-          onClick={handleTooltipInteraction}
-          onPointerDownOutside={(e) => {
-            // Prevent closing when clicking inside or near the tooltip
-            e.preventDefault();
+          onClick={(e) => {
+            // Prevent clicks inside from bubbling to document
             e.stopPropagation();
           }}
         >
