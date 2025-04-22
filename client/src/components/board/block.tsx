@@ -359,11 +359,23 @@ export default function Block({
             {/* Color Picker button */}
             {onColorChange && (
               <div className="flex items-center justify-center relative">
-                <ColorPicker
-                  color={block.color || "#FFFFFFC0"}
-                  onChange={(newColor) => onColorChange(block.id, newColor)}
-                  className="h-6 w-6"
-                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // For now, let's use a simple default color to test
+                    // We'll implement the proper ColorPicker later
+                    onColorChange(block.id, block.color || "#B3FFB3C0");
+                  }}
+                  className={`
+                    flex items-center justify-center w-6 h-6 p-0
+                    rounded bg-white border border-gray-200
+                    text-xs text-gray-600 hover:text-gray-900
+                    shadow-sm hover:shadow hover:border-gray-300
+                    transition-all duration-150
+                  `}
+                >
+                  <Palette className="w-4 h-4" />
+                </button>
               </div>
             )}
           </div>
