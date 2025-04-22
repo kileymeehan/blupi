@@ -45,7 +45,7 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
     }
   }, [color]);
 
-  // Handle color selection from spectrum with improved color calculation
+  // Completely rewritten color spectrum calculation
   const handleSpectrumClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!spectrumRef.current) return;
     
@@ -53,13 +53,44 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
     const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left)); // x position within the element, clamped
     const y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));  // y position within the element, clamped
     
-    // Calculate color from position (improved approach)
+    // Map x coordinate to hue (0-360 degrees)
     const hue = Math.round((x / rect.width) * 360);
-    const saturation = Math.round((y / rect.height) * 100);
-    const lightness = 50; // Fixed at 50% for vibrant colors
     
-    // Convert HSL to HEX with our improved function
-    const hexColor = hslToHex(hue, saturation, lightness);
+    // Map y coordinate to saturation and brightness
+    // Top = high brightness, low saturation (white)
+    // Bottom = high saturation, medium brightness (pure colors)
+    const saturation = Math.round((y / rect.height) * 100); // 0-100%
+    const brightness = Math.round(100 - ((y / rect.height) * 50)); // 50-100%
+    
+    // Convert HSV to RGB
+    // This is more reliable than HSL for user-selected colors
+    const c = brightness / 100 * saturation / 100;
+    const x2 = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+    const m = brightness / 100 - c;
+    
+    let r, g, b;
+    if (hue >= 0 && hue < 60) {
+      [r, g, b] = [c, x2, 0];
+    } else if (hue >= 60 && hue < 120) {
+      [r, g, b] = [x2, c, 0];
+    } else if (hue >= 120 && hue < 180) {
+      [r, g, b] = [0, c, x2];
+    } else if (hue >= 180 && hue < 240) {
+      [r, g, b] = [0, x2, c];
+    } else if (hue >= 240 && hue < 300) {
+      [r, g, b] = [x2, 0, c];
+    } else {
+      [r, g, b] = [c, 0, x2];
+    }
+    
+    // Convert to hex
+    const toHex = (value: number) => {
+      const hex = Math.round((value + m) * 255).toString(16).padStart(2, '0');
+      return hex;
+    };
+    
+    const hexColor = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    console.log(`Selected color at x=${x}, y=${y}, hue=${hue}, sat=${saturation}, bright=${brightness}: ${hexColor}`);
     
     // Validate the hex color to make sure it's properly formatted
     if (/^#[0-9A-Fa-f]{6}$/.test(hexColor)) {
@@ -149,16 +180,44 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
     setIsOpen(open);
   };
 
+  useEffect(() => {
+    // Create a specific event handler for mouseover on the tooltip
+    // that prevents default behavior and maintains the tooltip open
+    const handleMouseOverTooltip = (e: MouseEvent) => {
+      e.stopPropagation();
+    };
+    
+    // Add event listeners when the tooltip is open
+    if (isOpen && spectrumRef.current) {
+      const element = spectrumRef.current;
+      element.addEventListener('mousemove', handleMouseOverTooltip);
+      element.addEventListener('mouseenter', handleMouseOverTooltip);
+      
+      // Clean up the event listeners when the component is unmounted or tooltip closes
+      return () => {
+        element.removeEventListener('mousemove', handleMouseOverTooltip);
+        element.removeEventListener('mouseenter', handleMouseOverTooltip);
+      };
+    }
+  }, [isOpen]);
+  
   return (
-    <TooltipProvider>
-      <Tooltip open={isOpen} onOpenChange={handleOpenChange}>
+    <TooltipProvider delayDuration={100}>
+      <Tooltip 
+        open={isOpen} 
+        onOpenChange={handleOpenChange}
+        defaultOpen={false}
+      >
         <TooltipTrigger asChild>
           <Button
             variant="ghost"
             size="sm"
             className={`p-1 h-6 w-6 rounded-full ${className}`}
             style={{ backgroundColor: selectedColor }}
-            onClick={() => setIsOpen(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(true);
+            }}
           >
             <Pipette className="h-4 w-4 stroke-white" />
           </Button>
@@ -168,10 +227,13 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
           align="center" 
           className="w-64 p-3 z-50" 
           sideOffset={5}
+          /* No need for forceMount as we control open state directly */
+          onPointerMove={handleTooltipInteraction}
           onClick={handleTooltipInteraction}
           onPointerDownOutside={(e) => {
-            // Prevent closing when clicking inside
+            // Prevent closing when clicking inside or near the tooltip
             e.preventDefault();
+            e.stopPropagation();
           }}
         >
           <div className="relative">
@@ -187,12 +249,33 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
             <div className="mb-3 mt-2">
               <div 
                 ref={spectrumRef}
-                className="w-full h-24 rounded-md cursor-crosshair mb-2"
+                className="w-full h-24 rounded-md cursor-crosshair mb-2 relative overflow-hidden"
                 onClick={handleSpectrumClick}
-                style={{
-                  background: "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
-                }}
-              />
+              >
+                {/* Base hue gradient (horizontal) */}
+                <div 
+                  className="absolute inset-0"
+                  style={{
+                    background: "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
+                  }}
+                />
+                
+                {/* White to transparent gradient (vertical from top) */}
+                <div 
+                  className="absolute inset-0"
+                  style={{
+                    background: "linear-gradient(to bottom, white, transparent)",
+                  }}
+                />
+                
+                {/* Transparent to black gradient (vertical from bottom) */}
+                <div 
+                  className="absolute inset-0"
+                  style={{
+                    background: "linear-gradient(to bottom, transparent, black)",
+                  }}
+                />
+              </div>
               <div className="flex items-center gap-2">
                 <div 
                   className="w-8 h-8 rounded-md border border-gray-300" 
