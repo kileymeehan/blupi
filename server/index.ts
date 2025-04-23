@@ -6,13 +6,40 @@ import session from "express-session";
 import { storage } from "./storage";
 import { createServer } from "http";
 import { setupAuth } from "./auth";
+import helmet from "helmet";
 
 async function initializeServer() {
   try {
     const app = express();
     log('[INFO] Created Express application');
 
-    // Body parsing middleware - must be first
+    // Security middleware - should be one of the first middleware
+    app.use(helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://apis.google.com", "https://*.firebaseio.com", "https://*.googleapis.com"],
+          connectSrc: ["'self'", "wss:", "https://*.googleapis.com", "https://*.firebaseio.com", "https://*.firebase.com"],
+          imgSrc: ["'self'", "data:", "https:"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+          fontSrc: ["'self'", "data:", "https:"],
+          formAction: ["'self'"],
+          frameAncestors: ["'self'"],
+          objectSrc: ["'none'"]
+        }
+      },
+      crossOriginEmbedderPolicy: false, // For compatibility with some embedded resources
+      crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow resources to be shared cross-origin
+      // Add HSTS with a generous max age
+      strictTransportSecurity: {
+        maxAge: 63072000, // 2 years in seconds
+        includeSubDomains: true,
+        preload: true
+      }
+    }));
+    log('[INFO] Security middleware initialized');
+    
+    // Body parsing middleware
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
     log('[INFO] Body parsing middleware initialized');
@@ -25,7 +52,9 @@ async function initializeServer() {
         saveUninitialized: false,
         cookie: {
           secure: process.env.NODE_ENV === 'production',
-          maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+          maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+          httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
+          sameSite: 'lax' // Provides some CSRF protection
         },
         store: storage.sessionStore
       }));
