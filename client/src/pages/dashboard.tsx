@@ -422,24 +422,18 @@ export default function Dashboard() {
                           {project.description}
                         </div>
                         <div className="mt-2 flex items-center gap-2">
-                          {project.user && (
-                            <div className="relative group">
-                              <Avatar className="h-6 w-6">
+                          <div className="text-xs text-muted-foreground flex items-center gap-2">
+                            {project.user && (
+                              <Avatar className="h-5 w-5">
                                 <AvatarFallback className="bg-primary text-white text-xs">
                                   {project.user.username.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                                <div className="bg-popover shadow-md rounded px-2 py-1 text-xs text-popover-foreground whitespace-nowrap">
-                                  <div>{project.user.username}</div>
-                                  <div className="text-muted-foreground">{project.user.email}</div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          <div className="text-xs text-muted-foreground">
-                            Created on{" "}
-                            {format(new Date(project.createdAt), "MMM d, yyyy")}
+                            )}
+                            <span>
+                              Created on {format(new Date(project.createdAt), "MMM d, yyyy")}
+                              {project.user && ` by ${project.user.username}`}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -573,24 +567,18 @@ export default function Dashboard() {
                             </div>
                           )}
                           <div className="mt-2 flex items-center gap-2">
-                            {board.user && (
-                              <div className="relative group">
-                                <Avatar className="h-6 w-6">
+                            <div className="text-xs text-muted-foreground flex items-center gap-2">
+                              {board.user && (
+                                <Avatar className="h-5 w-5">
                                   <AvatarFallback className="bg-primary text-white text-xs">
                                     {board.user.username.substring(0, 2).toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                                  <div className="bg-popover shadow-md rounded px-2 py-1 text-xs text-popover-foreground whitespace-nowrap">
-                                    <div>{board.user.username}</div>
-                                    <div className="text-muted-foreground">{board.user.email}</div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            <div className="text-xs text-muted-foreground">
-                              Created on{" "}
-                              {format(new Date(board.createdAt), "MMM d, yyyy")}
+                              )}
+                              <span>
+                                Created on {format(new Date(board.createdAt), "MMM d, yyyy")}
+                                {board.user && ` by ${board.user.username}`}
+                              </span>
                             </div>
                           </div>
                         </CardDescription>
@@ -689,24 +677,18 @@ export default function Dashboard() {
                     <CardDescription>
                       {board.description}
                       <div className="mt-2 flex items-center gap-2">
-                        {board.user && (
-                          <div className="relative group">
-                            <Avatar className="h-6 w-6">
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                          {board.user && (
+                            <Avatar className="h-5 w-5">
                               <AvatarFallback className="bg-primary text-white text-xs">
                                 {board.user.username.substring(0, 2).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                              <div className="bg-popover shadow-md rounded px-2 py-1 text-xs text-popover-foreground whitespace-nowrap">
-                                <div>{board.user.username}</div>
-                                <div className="text-muted-foreground">{board.user.email}</div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        <div className="text-xs text-muted-foreground">
-                          Created on{" "}
-                          {format(new Date(board.createdAt), "MMM d, yyyy")}
+                          )}
+                          <span>
+                            Created on {format(new Date(board.createdAt), "MMM d, yyyy")}
+                            {board.user && ` by ${board.user.username}`}
+                          </span>
                         </div>
                       </div>
                     </CardDescription>
