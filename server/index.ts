@@ -7,10 +7,15 @@ import { storage } from "./storage";
 import { createServer } from "http";
 import { setupAuth } from "./auth";
 import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 async function initializeServer() {
   try {
     const app = express();
+    
+    // Trust proxy - required for rate limiting when behind a proxy
+    app.set('trust proxy', 1);
+    
     log('[INFO] Created Express application');
 
     // Security middleware - should be one of the first middleware
@@ -38,6 +43,34 @@ async function initializeServer() {
       }
     }));
     log('[INFO] Security middleware initialized');
+    
+    // General rate limiting - more permissive
+    const generalLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      limit: 250, // Limit each IP to 250 requests per windowMs
+      standardHeaders: 'draft-7', // Use RFC 6585 standard headers
+      legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+      message: 'Too many requests from this IP, please try again after 15 minutes'
+    });
+    
+    // Apply general rate limiting to all requests
+    app.use(generalLimiter);
+    
+    // More strict rate limiting for authentication endpoints
+    const authLimiter = rateLimit({
+      windowMs: 60 * 60 * 1000, // 1 hour
+      limit: 10, // Limit each IP to 10 login/register attempts per hour
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      message: 'Too many authentication attempts from this IP, please try again after an hour'
+    });
+    
+    // Apply stricter rate limiting to authentication endpoints
+    app.use('/api/login', authLimiter);
+    app.use('/api/register', authLimiter);
+    app.use('/api/auth', authLimiter);
+    
+    log('[INFO] Rate limiting middleware initialized');
     
     // Body parsing middleware
     app.use(express.json());
