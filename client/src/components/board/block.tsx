@@ -1,12 +1,11 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, Palette } from "lucide-react";
+import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown } from "lucide-react";
 import type {
   Block as BlockType,
   Attachment,
   Department,
 } from "@shared/schema";
 import { AttachmentDialog } from "./attachment-dialog";
-import { SimpleColorPicker } from "@/components/simple-color-picker";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +23,6 @@ interface BlockProps {
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
   onEmojiChange?: (blockId: string, emoji: string) => void;
-  onColorChange?: (blockId: string, color: string) => void;
   onDepartmentChange?: (
     blockId: string,
     department: Department | undefined,
@@ -48,7 +46,6 @@ const TYPE_LABELS = {
   question: "Question",
   note: "Note",
   opportunities: "Opportunities",
-  custom: "Custom",
   hidden: "Hidden Step",
   "front-stage": "Front-Stage",
   "back-stage": "Back-Stage",
@@ -72,7 +69,6 @@ export default function Block({
   onAttachmentChange,
   onNotesChange,
   onEmojiChange,
-  onColorChange,
   onDepartmentChange,
   isTemplate = false,
   onCommentClick,
@@ -202,30 +198,31 @@ export default function Block({
             leading-normal
             focus:outline-none
             ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
-            text-white
+            ${block.type === "front-stage" ? "bg-blue-500/75 text-white" : ""}
+            ${block.type === "back-stage" ? "bg-purple-500/75 text-white" : ""}
+            ${block.type === "custom-divider" ? "bg-gray-600/75 text-white" : ""}
             border-2 border-white
             font-semibold
           `}
-          style={{ backgroundColor: block.color }}
           suppressContentEditableWarning={true}
         >
           <div className="absolute inset-0 flex items-center justify-start px-4 pointer-events-none">
             <div className="w-full border-t-2 border-white opacity-50"></div>
           </div>
           
-          <div className="relative z-10 px-4 rounded-md font-bold text-white flex items-center gap-2" style={{ backgroundColor: 'inherit' }}>
+          <div className="relative z-10 px-4 bg-inherit rounded-md font-bold text-white flex items-center gap-2">
             {(block.type === "front-stage" || block.type === "back-stage") && (
-              <div className="flex items-center gap-1">
-                <ChevronDown className="w-5 h-5" />
-                <ChevronDown className="w-5 h-5" />
-              </div>
+              <>
+                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-4 h-4" />
+              </>
             )}
             {isTemplate ? TYPE_LABELS[block.type] : block.content || TYPE_LABELS[block.type]}
             {(block.type === "front-stage" || block.type === "back-stage") && (
-              <div className="flex items-center gap-1">
-                <ChevronDown className="w-5 h-5" />
-                <ChevronDown className="w-5 h-5" />
-              </div>
+              <>
+                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-4 h-4" />
+              </>
             )}
           </div>
           
@@ -248,10 +245,9 @@ export default function Block({
             ${isTemplate ? "flex items-center justify-center" : ""}
             overflow-y-auto whitespace-normal break-words
             leading-normal text
-            focus:outline-none rounded-md
+            focus:outline-none
             ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
           `}
-          style={{ backgroundColor: block.color }}
           suppressContentEditableWarning={true}
         >
           {isTemplate ? TYPE_LABELS[block.type] : block.content}
@@ -355,16 +351,6 @@ export default function Block({
             >
               <Smile className="w-4 h-4" />
             </button>
-            
-            {/* Color Picker button */}
-            {onColorChange && (
-              <div className="flex items-center justify-center relative">
-                <SimpleColorPicker 
-                  onChange={(color) => onColorChange(block.id, color)}
-                  className=""
-                />
-              </div>
-            )}
           </div>
 
           {/* Block type label - only show for regular blocks, not dividers */}

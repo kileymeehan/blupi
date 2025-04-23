@@ -154,7 +154,7 @@ export type Department = z.infer<typeof departmentSchema>;
 // Now we can define blockSchema since its dependencies are defined
 export const blockSchema = z.object({
   id: z.string(),
-  type: z.enum(['touchpoint', 'email', 'pendo', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden', 'front-stage', 'back-stage', 'custom-divider', 'opportunities', 'custom']),
+  type: z.enum(['touchpoint', 'email', 'pendo', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden', 'front-stage', 'back-stage', 'custom-divider']),
   content: z.string(),
   phaseIndex: z.number(),
   columnIndex: z.number(),
@@ -164,9 +164,7 @@ export const blockSchema = z.object({
   emoji: z.string().optional(),
   department: departmentSchema.optional(),
   customDepartment: z.string().optional(), // For when department is 'Custom'
-  isDivider: z.boolean().optional().default(false), // To mark divider-style blocks
-  color: z.string().optional(), // Hex color code for the block
-  isCustom: z.boolean().optional() // To identify custom blocks
+  isDivider: z.boolean().optional().default(false) // To mark divider-style blocks
 });
 
 export type Block = z.infer<typeof blockSchema>;

@@ -333,10 +333,6 @@ export default function BoardGrid({
           defaultContent = "Custom Divider";
         }
 
-        // Find the matching color from LAYER_TYPES
-        const blockLayerType = LAYER_TYPES.find(layer => layer.type === blockType) || LAYER_TYPES[0];
-        const blockColor = blockLayerType?.color || "#BFDBFE"; // Default to light blue if not found
-        
         const newBlock: BlockType = {
           id: nanoid(),
           type: blockType as BlockType["type"],
@@ -349,9 +345,6 @@ export default function BoardGrid({
           emoji: "",
           department: undefined,
           customDepartment: "",
-          color: blockColor,
-          isDivider: blockLayerType?.isDivider || false,
-          isCustom: blockLayerType?.isCustom || false
         };
 
         // Get blocks in destination column to determine insertion point
@@ -489,20 +482,6 @@ export default function BoardGrid({
     const blocks = board.blocks.map((block) =>
       block.id === blockId ? { ...block, department, customDepartment } : block,
     );
-    onBlocksChange(blocks);
-  };
-  
-  // New function to handle color changes for all blocks of the same type
-  const handleBlockColorChange = (blockId: string, color: string) => {
-    // First, find the block that we're changing color for
-    const targetBlock = board.blocks.find(block => block.id === blockId);
-    if (!targetBlock) return;
-    
-    // Apply color to all blocks of the same type
-    const blocks = board.blocks.map((block) =>
-      block.type === targetBlock.type ? { ...block, color } : block,
-    );
-    
     onBlocksChange(blocks);
   };
 
@@ -1517,15 +1496,6 @@ export default function BoardGrid({
                                                       handleEmojiChange(
                                                         blockId,
                                                         emoji,
-                                                      )
-                                                    }
-                                                    onColorChange={(
-                                                      blockId,
-                                                      color,
-                                                    ) =>
-                                                      handleBlockColorChange(
-                                                        blockId,
-                                                        color,
                                                       )
                                                     }
                                                     onDepartmentChange={
