@@ -233,16 +233,16 @@ export default function Block({
       ) : (
         <div className="flex flex-col w-full h-full">
           {/* Display the image first if it exists */}
-          {block.attachments && block.attachments.length > 0 && block.attachments.some(a => a.type.startsWith('image/')) && (
+          {block.attachments && block.attachments.length > 0 && block.attachments.some(a => a.type === 'image' || (a.url && a.url.startsWith('data:image/'))) && (
             <div className="w-full mb-2">
               {block.attachments
-                .filter(a => a.type.startsWith('image/'))
+                .filter(a => a.type === 'image' || (a.url && a.url.startsWith('data:image/')))
                 .slice(0, 1)
                 .map((attachment, idx) => (
                   <img 
                     key={idx}
                     src={attachment.url} 
-                    alt={attachment.name}
+                    alt={attachment.title || 'Image Attachment'}
                     className="w-full object-contain rounded-sm max-h-[180px]"
                   />
                 ))}
