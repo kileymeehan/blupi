@@ -72,10 +72,10 @@ async function initializeServer() {
     
     log('[INFO] Rate limiting middleware initialized');
     
-    // Body parsing middleware
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: false }));
-    log('[INFO] Body parsing middleware initialized');
+    // Body parsing middleware with increased limits for image uploads
+    app.use(express.json({ limit: '5mb' }));
+    app.use(express.urlencoded({ extended: false, limit: '5mb' }));
+    log('[INFO] Body parsing middleware initialized with 5MB limit');
 
     try {
       // Session configuration
@@ -123,12 +123,22 @@ async function initializeServer() {
       next();
     });
 
-    // Error handling for JSON parsing
+    // Error handling for JSON parsing and payload size
     app.use((err: any, req: Request, res: Response, next: NextFunction) => {
       if (err instanceof SyntaxError && 'body' in err) {
         log(`[ERROR] JSON parsing error: ${err.message}`);
         return res.status(400).json({ error: true, message: 'Invalid JSON' });
       }
+      
+      // Handle payload too large errors
+      if (err && err.type === 'entity.too.large') {
+        log(`[ERROR] Payload too large: ${err.message}`);
+        return res.status(413).json({ 
+          error: true, 
+          message: 'Request entity too large. The maximum upload size is 5MB.'
+        });
+      }
+      
       next(err);
     });
 
