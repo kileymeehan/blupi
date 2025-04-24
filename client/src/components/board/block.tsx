@@ -231,49 +231,26 @@ export default function Block({
           </div>
         </div>
       ) : (
-        <div className="flex flex-col w-full h-full">
-          {/* Display the image first if it exists */}
-          {block.attachments && block.attachments.length > 0 && block.attachments.some(a => a.type === 'image' || (a.url && a.url.startsWith('data:image/'))) && (
-            <div className="w-full mb-2">
-              {block.attachments
-                .filter(a => a.type === 'image' || (a.url && a.url.startsWith('data:image/')))
-                .slice(0, 1)
-                .map((attachment, idx) => (
-                  <img 
-                    key={idx}
-                    src={attachment.url} 
-                    alt={attachment.title || 'Image Attachment'}
-                    className="w-full object-contain rounded-sm max-h-[180px]"
-                  />
-                ))}
-            </div>
-          )}
-
-          {/* Step content in a white outlined box */}
-          <div
-            ref={contentRef}
-            contentEditable={(isEditing || !isTemplate) && !block.readOnly}
-            onInput={handleInput}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            onDoubleClick={handleDoubleClick}
-            className={`
-              w-full min-h-[80px] p-3
-              ${block.emoji ? "pr-8" : ""} 
-              ${block.department ? "pb-12" : ""}
-              ${isTemplate ? "flex items-center justify-center" : ""}
-              overflow-y-auto whitespace-normal break-words
-              leading-normal
-              focus:outline-none
-              bg-white
-              border border-gray-200
-              rounded-sm
-              ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
-            `}
-            suppressContentEditableWarning={true}
-          >
-            {isTemplate ? TYPE_LABELS[block.type] : block.content}
-          </div>
+        <div
+          ref={contentRef}
+          contentEditable={(isEditing || !isTemplate) && !block.readOnly}
+          onInput={handleInput}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          onDoubleClick={handleDoubleClick}
+          className={`
+            w-full min-h-[120px] max-h-[200px] p-4
+            ${block.emoji ? "pr-8" : ""} 
+            ${block.department ? "pb-12" : ""}
+            ${isTemplate ? "flex items-center justify-center" : ""}
+            overflow-y-auto whitespace-normal break-words
+            leading-normal text
+            focus:outline-none
+            ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
+          `}
+          suppressContentEditableWarning={true}
+        >
+          {isTemplate ? TYPE_LABELS[block.type] : block.content}
         </div>
       )}
 
