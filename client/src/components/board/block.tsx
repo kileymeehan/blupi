@@ -239,7 +239,7 @@ export default function Block({
           onKeyDown={handleKeyDown}
           onDoubleClick={handleDoubleClick}
           className={`
-            w-full min-h-[120px] max-h-[200px] p-4
+            w-full min-h-[150px] max-h-[250px] p-4
             ${block.emoji ? "pr-8" : ""} 
             ${block.department ? "pb-12" : ""}
             ${isTemplate ? "flex items-center justify-center" : ""}
