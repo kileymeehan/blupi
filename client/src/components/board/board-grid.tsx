@@ -1343,7 +1343,7 @@ export default function BoardGrid({
                                             e.currentTarget.textContent || "",
                                           )
                                         }
-                                        className="text-sm font-bold focus:outline-none focus-visible:border-b focus-visible:border-primary h-[75px] overflow-y-auto whitespace-normal flex items-start pt-2"
+                                        className="text-xs font-bold focus:outline-none focus-visible:border-b focus-visible:border-primary h-[75px] overflow-y-auto whitespace-normal flex items-start pt-2"
                                         suppressContentEditableWarning={true}
                                         title={column.name}
                                       >
