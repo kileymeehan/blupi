@@ -1315,7 +1315,6 @@ export default function BoardGrid({
 
                         <Droppable
                           droppableId={`phase-${phaseIndex}`}
-                          type="COLUMN"
                           direction="horizontal"
                         >
                           {(provided) => (
