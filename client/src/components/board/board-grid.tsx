@@ -220,55 +220,9 @@ export default function BoardGrid({
     if (!result.destination) return;
 
     const { source, destination, type } = result;
-
-    // Handling block duplication when modifier key (Cmd/Ctrl) is pressed
-    if (isModifierKeyPressed && source.droppableId !== "drawer" && type !== "COLUMN") {
-      const blocks = Array.from(board.blocks);
-      
-      // Find the block being duplicated
-      const [sourcePhase, sourceColumn] = source.droppableId.split("-").map(Number);
-      const [destPhase, destColumn] = destination.droppableId.split("-").map(Number);
-      
-      // Get ordered blocks in source column
-      const blocksInSourceColumn = blocks
-        .filter(b => b.phaseIndex === sourcePhase && b.columnIndex === sourceColumn)
-        .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
-      
-      // Find the block to duplicate
-      const blockToDuplicate = blocksInSourceColumn[source.index];
-      if (!blockToDuplicate) return;
-      
-      // Create a duplicate with a new ID
-      const duplicatedBlock = {
-        ...blockToDuplicate,
-        id: nanoid(),
-        phaseIndex: destPhase,
-        columnIndex: destColumn
-      };
-      
-      // Get blocks in destination column to determine insertion point
-      const blocksInDestColumn = blocks
-        .filter(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
-        .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
-      
-      // Find the insertion index
-      const insertIndex = destination.index === 0
-        ? blocks.findIndex(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
-        : blocks.findIndex(b => b === blocksInDestColumn[destination.index - 1]) + 1;
-      
-      // Insert the duplicated block
-      if (insertIndex === -1) {
-        blocks.push(duplicatedBlock);
-      } else {
-        blocks.splice(insertIndex, 0, duplicatedBlock);
-      }
-      
-      onBlocksChange(blocks);
-      return;
-    }
-
-    // Check if we're moving a column
-    if (result.draggableId.startsWith('column-')) {
+    
+    // Handle COLUMN type drags
+    if (type === "COLUMN") {
       const sourcePhaseIndex = Number(source.droppableId.split("-")[1]);
       const destPhaseIndex = Number(destination.droppableId.split("-")[1]);
 
@@ -307,17 +261,18 @@ export default function BoardGrid({
       onBlocksChange(blocks);
       return;
     }
-
-    if (!type || type === "DEFAULT") {
+    
+    // Handle BLOCK type drags
+    if (type === "BLOCK") {
       let blocks = Array.from(board.blocks);
-
+      
       // Handle dropping block in drawer (delete)
       if (destination.droppableId === "drawer") {
         blocks = blocks.filter((b) => b.id !== result.draggableId);
         onBlocksChange(blocks);
         return;
       }
-
+      
       // Handle dragging from drawer (create new)
       if (source.droppableId === "drawer") {
         const blockType = result.draggableId.replace("drawer-", "");
@@ -376,73 +331,93 @@ export default function BoardGrid({
         onBlocksChange(blocks);
         return;
       }
-
-      // Handle moving existing block
-      const [sourcePhase, sourceColumn] = source.droppableId
-        .split("-")
-        .map(Number);
-      const [destPhase, destColumn] = destination.droppableId
-        .split("-")
-        .map(Number);
-
-      // Get ordered blocks in both columns
-      const blocksInSourceColumn = blocks
-        .filter(
-          (b) => b.phaseIndex === sourcePhase && b.columnIndex === sourceColumn,
-        )
-        .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
-
-      // Find the block being moved
-      const blockToMove = blocksInSourceColumn[source.index];
-      if (!blockToMove || blockToMove.id !== result.draggableId) return;
-
-      // Remove the block from its current position
-      blocks = blocks.filter((b) => b.id !== blockToMove.id);
-
-      // Special handling for same column moves
-      if (sourcePhase === destPhase && sourceColumn === destColumn) {
-        const sameColumnBlocks = blocks
-          .filter(
-            (b) => b.phaseIndex === destPhase && b.columnIndex === destColumn,
-          )
+      
+      // Handle block duplication on modifier key
+      if (isModifierKeyPressed) {
+        const [sourcePhase, sourceColumn] = source.droppableId.split("-").map(Number);
+        const [destPhase, destColumn] = destination.droppableId.split("-").map(Number);
+      
+        // Get ordered blocks in source column
+        const blocksInSourceColumn = blocks
+          .filter(b => b.phaseIndex === sourcePhase && b.columnIndex === sourceColumn)
           .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
-
-        const insertAt =
-          destination.index === 0
-            ? 0
-            : blocks.findIndex(
-                (b) => b === sameColumnBlocks[destination.index - 1],
-              ) + 1;
-
-        blocks.splice(insertAt >= 0 ? insertAt : blocks.length, 0, blockToMove);
-      } else {
-        // Moving to a different column
-        const destColumnBlocks = blocks
-          .filter(
-            (b) => b.phaseIndex === destPhase && b.columnIndex === destColumn,
-          )
+      
+        // Find the block to duplicate
+        const blockToDuplicate = blocksInSourceColumn[source.index];
+        if (!blockToDuplicate) return;
+      
+        // Create a duplicate with a new ID
+        const duplicatedBlock = {
+          ...blockToDuplicate,
+          id: nanoid(),
+          phaseIndex: destPhase,
+          columnIndex: destColumn
+        };
+      
+        // Get blocks in destination column to determine insertion point
+        const blocksInDestColumn = blocks
+          .filter(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
           .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
-
-        // Update block's phase and column
-        blockToMove.phaseIndex = destPhase;
-        blockToMove.columnIndex = destColumn;
-
-        // Find insertion point
-        const insertAt =
-          destination.index === 0
-            ? blocks.findIndex(
-                (b) =>
-                  b.phaseIndex === destPhase && b.columnIndex === destColumn,
-              )
-            : blocks.findIndex(
-                (b) => b === destColumnBlocks[destination.index - 1],
-              ) + 1;
-
-        blocks.splice(insertAt >= 0 ? insertAt : blocks.length, 0, blockToMove);
+      
+        // Find the insertion index
+        const insertIndex = destination.index === 0
+          ? blocks.findIndex(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
+          : blocks.findIndex(b => b === blocksInDestColumn[destination.index - 1]) + 1;
+      
+        // Insert the duplicated block
+        if (insertIndex === -1) {
+          blocks.push(duplicatedBlock);
+        } else {
+          blocks.splice(insertIndex, 0, duplicatedBlock);
+        }
+      
+        onBlocksChange(blocks);
+        return;
       }
-
+      
+      // Handle moving an existing block
+      const [sourcePhase, sourceColumn] = source.droppableId.split("-").map(Number);
+      const [destPhase, destColumn] = destination.droppableId.split("-").map(Number);
+    
+      // Get ordered blocks in source column
+      const blocksInSourceColumn = blocks
+        .filter(b => b.phaseIndex === sourcePhase && b.columnIndex === sourceColumn)
+        .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
+    
+      // Find the block to move
+      const blockToMove = blocksInSourceColumn[source.index];
+      if (!blockToMove) return;
+    
+      // Remove the block from its current position
+      blocks = blocks.filter(b => b.id !== blockToMove.id);
+    
+      // Update the block's position
+      blockToMove.phaseIndex = destPhase;
+      blockToMove.columnIndex = destColumn;
+    
+      // Get blocks in destination column to determine insertion point
+      const blocksInDestColumn = blocks
+        .filter(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
+        .sort((a, b) => blocks.indexOf(a) - blocks.indexOf(b));
+    
+      // Find the insertion index
+      const insertIndex = destination.index === 0
+        ? blocks.findIndex(b => b.phaseIndex === destPhase && b.columnIndex === destColumn)
+        : blocks.findIndex(b => b === blocksInDestColumn[destination.index - 1]) + 1;
+    
+      // Insert the block at its new position
+      if (insertIndex === -1) {
+        blocks.push(blockToMove);
+      } else {
+        blocks.splice(insertIndex, 0, blockToMove);
+      }
+    
       onBlocksChange(blocks);
+      return;
     }
+
+    // Show warning for unexpected drag types
+    console.warn(`Unhandled drag type: ${type || "DEFAULT"}`);
   };
 
   const handleBlockChange = (blockId: string, content: string, newType?: string) => {
