@@ -26,7 +26,7 @@ import {
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
-  onChange?: (content: string) => void;
+  onChange?: (content: string, newType?: string) => void;
   onAttachmentChange?: (id: string, attachments: Attachment[]) => void;
   onNotesChange?: (id: string, notes: string) => void;
   onEmojiChange?: (blockId: string, emoji: string) => void;
@@ -176,8 +176,7 @@ export default function Block({
     if (!onChange) return;
     
     // Call the board-grid's updateBlock function via the onChange prop
-    // We are sending the content as the first parameter and the new type as the second
-    // (the board-grid component is setup to handle this second parameter)
+    // passing the content as the first parameter and the new type as the second
     onChange(block.content || '', newType);
     
     // Close the type menu

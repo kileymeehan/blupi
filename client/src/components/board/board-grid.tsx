@@ -444,9 +444,15 @@ export default function BoardGrid({
     }
   };
 
-  const handleBlockChange = (blockId: string, content: string) => {
+  const handleBlockChange = (blockId: string, content: string, newType?: string) => {
     const blocks = board.blocks.map((block) =>
-      block.id === blockId ? { ...block, content: content } : block,
+      block.id === blockId 
+        ? { 
+            ...block, 
+            content: content,
+            ...(newType ? { type: newType } : {})
+          } 
+        : block,
     );
     onBlocksChange(blocks);
   };
