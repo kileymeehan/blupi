@@ -1,11 +1,13 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
 import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown } from "lucide-react";
+import * as Icons from "lucide-react";
 import type {
   Block as BlockType,
   Attachment,
   Department,
 } from "@shared/schema";
 import { AttachmentDialog } from "./attachment-dialog";
+import { getIconForBlockType } from "./type-utils";
 import {
   Dialog,
   DialogContent,
@@ -353,17 +355,31 @@ export default function Block({
             </button>
           </div>
 
-          {/* Block type label - only show for regular blocks, not dividers */}
+          {/* Block type icon and label - only show for regular blocks, not dividers */}
           {block.type !== "front-stage" && block.type !== "back-stage" && block.type !== "custom-divider" && (
             <div
               className={`
               absolute bottom-1 right-2
               text-xs text-gray-700
-              opacity-0 group-hover:opacity-60
+              opacity-0 group-hover:opacity-80
               transition-opacity duration-200
+              flex items-center
             `}
             >
-              {TYPE_LABELS[block.type]}
+              {(() => {
+                // Get the icon name from block type
+                const iconName = getIconForBlockType(block.type);
+                
+                // Dynamically render the icon
+                const IconComponent = (Icons as any)[iconName] || Icons.Square;
+                
+                return (
+                  <>
+                    <IconComponent className="w-3.5 h-3.5 mr-1" />
+                    <span>{TYPE_LABELS[block.type]}</span>
+                  </>
+                );
+              })()}
             </div>
           )}
 

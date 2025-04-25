@@ -1,10 +1,17 @@
 import { LAYER_TYPES } from "./constants";
 import { Draggable } from "react-beautiful-dnd";
+import * as Icons from "lucide-react";
 
 export default function BlockDrawer() {
   // Separate standard blocks from divider blocks
   const standardBlocks = LAYER_TYPES.filter(layer => !layer.isDivider);
   const dividerBlocks = LAYER_TYPES.filter(layer => layer.isDivider);
+
+  // Dynamic icon rendering function
+  const renderIcon = (iconName: string) => {
+    const IconComponent = (Icons as any)[iconName] || Icons.Square;
+    return <IconComponent className="w-4 h-4 mr-1 opacity-80" />;
+  };
 
   return (
     <div className="w-full p-4">
@@ -34,8 +41,9 @@ export default function BlockDrawer() {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="font-medium text-xs text-gray-700/75 text-center">
-                  {layer.label}
+                <div className="font-medium text-xs text-gray-700/75 text-center flex flex-col items-center justify-center">
+                  {renderIcon(layer.icon)}
+                  <span>{layer.label}</span>
                 </div>
               </div>
             )}
@@ -74,8 +82,9 @@ export default function BlockDrawer() {
                   <div className="w-full border-t-2 border-white opacity-50"></div>
                 </div>
                 
-                <div className="relative z-10 px-4 bg-inherit rounded-md font-semibold">
-                  {layer.label}
+                <div className="relative z-10 px-4 bg-inherit rounded-md font-semibold flex items-center">
+                  {renderIcon(layer.icon)}
+                  <span>{layer.label}</span>
                 </div>
                 
                 <div className="absolute inset-0 flex items-center justify-end px-4 pointer-events-none">
