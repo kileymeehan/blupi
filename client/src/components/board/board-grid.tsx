@@ -126,6 +126,7 @@ export default function BoardGrid({
   const [departmentFilter, setDepartmentFilter] = useState<
     Department | undefined
   >(undefined);
+  const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
   const [showMinimap, setShowMinimap] = useState(false);
   const minimapRef = useRef<HTMLDivElement>(null);
 
@@ -960,7 +961,7 @@ export default function BoardGrid({
                 >
                   <Filter className="w-5 h-5" />
                   {isDrawerOpen && (
-                    <span className="text-sm">Department Filter</span>
+                    <span className="text-sm">Filters</span>
                   )}
                 </Button>
               </div>
@@ -1079,6 +1080,9 @@ export default function BoardGrid({
                     <DepartmentFilter
                       blocks={board.blocks}
                       onFilterByDepartment={setDepartmentFilter}
+                      onFilterByType={setTypeFilter}
+                      departmentFilter={departmentFilter}
+                      typeFilter={typeFilter}
                     />
                   </div>
                 </div>
@@ -1401,8 +1405,10 @@ export default function BoardGrid({
                                         {board.blocks
                                           .filter(
                                             (b) =>
-                                              !departmentFilter ||
-                                              b.department === departmentFilter,
+                                              (!departmentFilter ||
+                                               b.department === departmentFilter) &&
+                                              (!typeFilter ||
+                                               b.type === typeFilter)
                                           )
                                           .filter(
                                             (b) =>
