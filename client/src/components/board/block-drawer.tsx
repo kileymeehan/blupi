@@ -82,7 +82,7 @@ export default function BlockDrawer() {
                   <div className="w-full border-t-2 border-white opacity-50"></div>
                 </div>
                 
-                <div className="relative z-10 px-4 bg-inherit rounded-md font-semibold flex items-center">
+                <div className="relative z-10 px-4 bg-inherit rounded-md font-semibold text-xs flex items-center">
                   {renderIcon(layer.icon)}
                   <span>{layer.label}</span>
                 </div>

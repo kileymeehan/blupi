@@ -25,7 +25,7 @@ export const LAYER_TYPES: LayerType[] = [
   { type: "hidden", label: "Hidden Step", color: "bg-gray-400", icon: "EyeOff" },
   
   // Divider blocks
-  { type: "front-stage", label: "Front-Stage Divider", color: "bg-blue-500/75", icon: "Eye", isDivider: true },
-  { type: "back-stage", label: "Back-Stage Divider", color: "bg-purple-500/75", icon: "EyeOff", isDivider: true },
-  { type: "custom-divider", label: "Custom Divider", color: "bg-gray-600/75", icon: "Separator", isDivider: true }
+  { type: "front-stage", label: "Front-Stage", color: "bg-blue-500/75", icon: "Eye", isDivider: true },
+  { type: "back-stage", label: "Back-Stage", color: "bg-purple-500/75", icon: "EyeOff", isDivider: true },
+  { type: "custom-divider", label: "Custom", color: "bg-gray-600/75", icon: "Separator", isDivider: true }
 ];
