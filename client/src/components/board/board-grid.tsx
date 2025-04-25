@@ -1317,11 +1317,13 @@ export default function BoardGrid({
                           droppableId={`phase-${phaseIndex}`}
                           direction="horizontal"
                         >
-                          {(provided) => (
+                          {(provided, snapshot) => (
                             <div
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className="flex gap-8"
+                              className={`flex gap-8 transition-all duration-300 ease-in-out ${
+                                snapshot.isDraggingOver ? "bg-primary/5 rounded-lg p-2 scale-[1.01]" : "p-2"
+                              }`}
                             >
                               {phase.columns.map((column, columnIndex) => (
                                 <Draggable
@@ -1337,7 +1339,10 @@ export default function BoardGrid({
                                       className="flex-shrink-0 w-[225px] flex flex-col"
                                       style={{
                                         ...provided.draggableProps.style,
-                                        zIndex: snapshot.isDragging ? 9999 : 'auto'
+                                        zIndex: snapshot.isDragging ? 9999 : 'auto',
+                                        transition: snapshot.isDragging 
+                                          ? 'transform 0.15s cubic-bezier(0.2, 0, 0, 1)' 
+                                          : 'transform 0.3s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease-in-out'
                                       }}
                                     >
                                       <div className="flex items-center gap-2 mb-2 mt-4">
@@ -1419,10 +1424,10 @@ export default function BoardGrid({
                                               space-y-4 min-h-[100px] p-4 rounded-lg border-1 border-gray-300 flex-1
                                               ${
                                                 snapshot.isDraggingOver
-                                                  ? "border-primary/50 bg-primary/5"
+                                                  ? "border-primary/50 bg-primary/5 shadow-inner scale-[1.02]"
                                                   : "hover:border-gray-300"
                                               }
-                                              transition-colors duration-200
+                                              transition-all duration-300 ease-in-out
                                             `}
                                           >
                                             {board.blocks
@@ -1458,7 +1463,10 @@ export default function BoardGrid({
                                                   `}
                                                   style={{
                                                     ...provided.draggableProps.style,
-                                                    zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                    zIndex: snapshot.isDragging ? 9999 : "auto",
+                                                    transition: snapshot.isDragging 
+                                                      ? 'transform 0.15s cubic-bezier(0.2, 0, 0, 1)' 
+                                                      : 'transform 0.3s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease-in-out'
                                                   }}
                                                 >
                                                   {/* Create handles on the edges that are draggable but leave the center free for editing */}
