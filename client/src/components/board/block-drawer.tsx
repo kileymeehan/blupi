@@ -10,7 +10,7 @@ export default function BlockDrawer() {
   // Dynamic icon rendering function
   const renderIcon = (iconName: string) => {
     const IconComponent = (Icons as any)[iconName] || Icons.Square;
-    return <IconComponent className="w-3 h-3 mr-0.5 opacity-80" />;
+    return <IconComponent className="w-3.5 h-3.5 mr-0.5 text-gray-900" />;
   };
 
   return (
@@ -41,9 +41,9 @@ export default function BlockDrawer() {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="font-medium text-[10px] text-gray-700/75 text-center flex flex-col items-center justify-center">
+                <div className="font-semibold text-[10px] text-gray-900 text-center flex flex-col items-center justify-center">
                   {renderIcon(layer.icon)}
-                  <span className="mt-0.5">{layer.label}</span>
+                  <span className="mt-0.5 tracking-wide">{layer.label}</span>
                 </div>
               </div>
             )}
@@ -82,9 +82,9 @@ export default function BlockDrawer() {
                   <div className="w-full border-t-2 border-white opacity-50"></div>
                 </div>
                 
-                <div className="relative z-10 px-4 bg-inherit rounded-md font-semibold text-[10px] flex items-center">
+                <div className="relative z-10 px-4 bg-inherit rounded-md font-bold text-[10px] flex items-center">
                   {renderIcon(layer.icon)}
-                  <span className="ml-0.5">{layer.label}</span>
+                  <span className="ml-0.5 tracking-wide">{layer.label}</span>
                 </div>
                 
                 <div className="absolute inset-0 flex items-center justify-end px-4 pointer-events-none">
