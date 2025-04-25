@@ -1481,10 +1481,11 @@ export default function BoardGrid({
                                                   
                                                   <Block
                                                       block={block}
-                                                      onChange={(content) =>
+                                                      onChange={(content, newType) =>
                                                         handleBlockChange(
                                                           block.id,
                                                           content,
+                                                          newType
                                                         )
                                                       }
                                                     onAttachmentChange={(
