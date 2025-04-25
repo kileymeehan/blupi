@@ -267,7 +267,8 @@ export default function BoardGrid({
       return;
     }
 
-    if (type === "COLUMN") {
+    // Check if we're moving a column
+    if (result.draggableId.startsWith('column-')) {
       const sourcePhaseIndex = Number(source.droppableId.split("-")[1]);
       const destPhaseIndex = Number(destination.droppableId.split("-")[1]);
 
@@ -1326,9 +1327,8 @@ export default function BoardGrid({
                               {phase.columns.map((column, columnIndex) => (
                                 <Draggable
                                   key={column.id}
-                                  draggableId={`${phaseIndex}-${columnIndex}-${column.id}`}
+                                  draggableId={`column-${phaseIndex}-${columnIndex}-${column.id}`}
                                   index={columnIndex}
-                                  type="COLUMN"
                                 >
                                   {(provided, snapshot) => (
                                     <div
@@ -1367,85 +1367,85 @@ export default function BoardGrid({
                                           >
                                             {column.name}
                                           </div>
-                                      {column.name && column.name.length > 25 && (
-                                        <div className="absolute top-0 right-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <button 
-                                            className="text-xs text-gray-500 bg-white p-1 rounded-md shadow"
-                                            onClick={() => {
-                                              // Store the phase and column indices along with the text
-                                              // We'll parse these when saving
-                                              setExpandedStepText(`${phaseIndex}|${columnIndex}|${column.name}`);
-                                              setStepTextDialogOpen(true);
-                                            }}
-                                          >
-                                            Expand
-                                          </button>
+                                          {column.name && column.name.length > 25 && (
+                                            <div className="absolute top-0 right-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                              <button 
+                                                className="text-xs text-gray-500 bg-white p-1 rounded-md shadow"
+                                                onClick={() => {
+                                                  // Store the phase and column indices along with the text
+                                                  // We'll parse these when saving
+                                                  setExpandedStepText(`${phaseIndex}|${columnIndex}|${column.name}`);
+                                                  setStepTextDialogOpen(true);
+                                                }}
+                                              >
+                                                Expand
+                                              </button>
+                                            </div>
+                                          )}
                                         </div>
-                                      )}
-                                    </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() =>
-                                        handleDeleteColumn(
-                                          phaseIndex,
-                                          columnIndex,
-                                        )
-                                      }
-                                      className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-
-                                  <ImageUpload
-                                    currentImage={column.image}
-                                    onImageChange={(image) =>
-                                      handleImageChange(
-                                        phaseIndex,
-                                        columnIndex,
-                                        image,
-                                      )
-                                    }
-                                  />
-
-                                  <Droppable
-                                    droppableId={`${phaseIndex}-${columnIndex}`}
-                                  >
-                                    {(provided, snapshot) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.droppableProps}
-                                        className={`
-                                          space-y-4 min-h-[100px] p-4 rounded-lg border-1 border-gray-300 flex-1
-                                          ${
-                                            snapshot.isDraggingOver
-                                              ? "border-primary/50 bg-primary/5"
-                                              : "hover:border-gray-300"
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleDeleteColumn(
+                                              phaseIndex,
+                                              columnIndex,
+                                            )
                                           }
-                                          transition-colors duration-200
-                                        `}
+                                          className="h-6 w-6 p-0 hover:text-red-500 hide-in-pdf"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      </div>
+
+                                      <ImageUpload
+                                        currentImage={column.image}
+                                        onImageChange={(image) =>
+                                          handleImageChange(
+                                            phaseIndex,
+                                            columnIndex,
+                                            image,
+                                          )
+                                        }
+                                      />
+
+                                      <Droppable
+                                        droppableId={`${phaseIndex}-${columnIndex}`}
                                       >
-                                        {board.blocks
-                                          .filter(
-                                            (b) =>
-                                              (!departmentFilter ||
-                                               b.department === departmentFilter) &&
-                                              (!typeFilter ||
-                                               b.type === typeFilter)
-                                          )
-                                          .filter(
-                                            (b) =>
-                                              b.phaseIndex === phaseIndex &&
-                                              b.columnIndex === columnIndex,
-                                          )
-                                          .map((block, index) => (
-                                            <Draggable
-                                              key={block.id}
-                                              draggableId={block.id}
-                                              index={index}
-                                            >
-                                              {(provided, snapshot) => (
+                                        {(provided, snapshot) => (
+                                          <div
+                                            ref={provided.innerRef}
+                                            {...provided.droppableProps}
+                                            className={`
+                                              space-y-4 min-h-[100px] p-4 rounded-lg border-1 border-gray-300 flex-1
+                                              ${
+                                                snapshot.isDraggingOver
+                                                  ? "border-primary/50 bg-primary/5"
+                                                  : "hover:border-gray-300"
+                                              }
+                                              transition-colors duration-200
+                                            `}
+                                          >
+                                            {board.blocks
+                                              .filter(
+                                                (b) =>
+                                                  (!departmentFilter ||
+                                                   b.department === departmentFilter) &&
+                                                  (!typeFilter ||
+                                                   b.type === typeFilter)
+                                              )
+                                              .filter(
+                                                (b) =>
+                                                  b.phaseIndex === phaseIndex &&
+                                                  b.columnIndex === columnIndex,
+                                              )
+                                              .map((block, index) => (
+                                                <Draggable
+                                                  key={block.id}
+                                                  draggableId={block.id}
+                                                  index={index}
+                                                >
+                                                  {(provided, snapshot) => (
                                                 <div
                                                   id={block.id}
                                                   ref={provided.innerRef}
