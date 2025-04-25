@@ -154,7 +154,7 @@ export type Department = z.infer<typeof departmentSchema>;
 // Now we can define blockSchema since its dependencies are defined
 export const blockSchema = z.object({
   id: z.string(),
-  type: z.enum(['touchpoint', 'email', 'pendo', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden', 'front-stage', 'back-stage', 'custom-divider']),
+  type: z.enum(['touchpoint', 'email', 'pendo', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden', 'metrics', 'front-stage', 'back-stage', 'custom-divider']),
   content: z.string(),
   phaseIndex: z.number(),
   columnIndex: z.number(),
