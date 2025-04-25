@@ -260,12 +260,12 @@ export default function Block({
           onKeyDown={handleKeyDown}
           onDoubleClick={handleDoubleClick}
           className={`
-            w-full min-h-[150px] max-h-[250px] p-4
+            w-full min-h-[100px] max-h-[180px] p-3
             ${block.emoji ? "pr-8" : ""} 
-            ${block.department ? "pb-12" : ""}
+            ${block.department ? "pb-10" : ""}
             ${isTemplate ? "flex items-center justify-center" : ""}
             overflow-y-auto whitespace-normal break-words
-            leading-normal text
+            leading-normal text-sm
             focus:outline-none
             ${isEditing ? "cursor-text" : block.readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
           `}

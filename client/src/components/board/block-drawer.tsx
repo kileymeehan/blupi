@@ -10,7 +10,7 @@ export default function BlockDrawer() {
   // Dynamic icon rendering function
   const renderIcon = (iconName: string) => {
     const IconComponent = (Icons as any)[iconName] || Icons.Square;
-    return <IconComponent className="w-4 h-4 mr-1 opacity-80" />;
+    return <IconComponent className="w-3 h-3 mr-0.5 opacity-80" />;
   };
 
   return (
@@ -31,7 +31,7 @@ export default function BlockDrawer() {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-[100px] h-[50px] relative flex items-center justify-center
+                className={`${layer.color} rounded-lg w-[90px] h-[40px] relative flex items-center justify-center
                   ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
                   transition-shadow duration-200
                 `}
@@ -41,9 +41,9 @@ export default function BlockDrawer() {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="font-medium text-xs text-gray-700/75 text-center flex flex-col items-center justify-center">
+                <div className="font-medium text-[10px] text-gray-700/75 text-center flex flex-col items-center justify-center">
                   {renderIcon(layer.icon)}
-                  <span>{layer.label}</span>
+                  <span className="mt-0.5">{layer.label}</span>
                 </div>
               </div>
             )}
@@ -68,7 +68,7 @@ export default function BlockDrawer() {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-[205px] h-[40px] relative flex items-center justify-center border-2 border-white text-white
+                className={`${layer.color} rounded-lg w-[180px] h-[35px] relative flex items-center justify-center border-2 border-white text-white
                   ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
                   transition-shadow duration-200
                 `}
@@ -82,9 +82,9 @@ export default function BlockDrawer() {
                   <div className="w-full border-t-2 border-white opacity-50"></div>
                 </div>
                 
-                <div className="relative z-10 px-4 bg-inherit rounded-md font-semibold text-xs flex items-center">
+                <div className="relative z-10 px-4 bg-inherit rounded-md font-semibold text-[10px] flex items-center">
                   {renderIcon(layer.icon)}
-                  <span>{layer.label}</span>
+                  <span className="ml-0.5">{layer.label}</span>
                 </div>
                 
                 <div className="absolute inset-0 flex items-center justify-end px-4 pointer-events-none">
