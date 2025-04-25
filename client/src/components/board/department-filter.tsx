@@ -39,10 +39,29 @@ export function DepartmentFilter({
     return <IconComponent className="w-4 h-4 mr-2" />;
   };
 
+  // Function to clear all filters
+  const clearAllFilters = () => {
+    onFilterByDepartment(undefined);
+    onFilterByType(undefined);
+  };
+  
+  // Check if any filters are active
+  const hasActiveFilters = departmentFilter !== undefined || typeFilter !== undefined;
+
   return (
     <div className="p-4 bg-blue-50 h-full">
-      <div className="flex items-center mb-4">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-gray-700">Filters</h2>
+        {hasActiveFilters && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={clearAllFilters}
+            className="text-xs bg-white"
+          >
+            Clear All
+          </Button>
+        )}
       </div>
 
       <Tabs defaultValue="departments" className="w-full">
