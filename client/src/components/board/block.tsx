@@ -48,6 +48,7 @@ const TYPE_LABELS = {
   question: "Question",
   note: "Note",
   opportunities: "Opportunities",
+  metrics: "Metrics",
   hidden: "Hidden Step",
   "front-stage": "Front-Stage",
   "back-stage": "Back-Stage",
