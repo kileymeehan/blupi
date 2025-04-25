@@ -1324,31 +1324,49 @@ export default function BoardGrid({
                               className="flex gap-8"
                             >
                               {phase.columns.map((column, columnIndex) => (
-                                <div
+                                <Draggable
                                   key={column.id}
-                                  data-column-id={column.id}
-                                  className="flex-shrink-0 w-[225px] flex flex-col"
+                                  draggableId={`${phaseIndex}-${columnIndex}-${column.id}`}
+                                  index={columnIndex}
+                                  type="COLUMN"
                                 >
-                                  <div className="flex items-center gap-2 mb-2 mt-4">
-                                    <div className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing">
-                                      <GripVertical className="w-4 h-4" />
-                                    </div>
-                                    <div className="relative flex-1 group">
-                                      <div
-                                        contentEditable
-                                        onBlur={(e) =>
-                                          handleColumnNameChange(
-                                            phaseIndex,
-                                            columnIndex,
-                                            e.currentTarget.textContent || "",
-                                          )
-                                        }
-                                        className="text-xs font-bold focus:outline-none focus-visible:border-b focus-visible:border-primary h-[75px] overflow-y-auto whitespace-normal flex items-start pt-2"
-                                        suppressContentEditableWarning={true}
-                                        title={column.name}
-                                      >
-                                        {column.name}
-                                      </div>
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      data-column-id={column.id}
+                                      className="flex-shrink-0 w-[225px] flex flex-col"
+                                      style={{
+                                        ...provided.draggableProps.style,
+                                        zIndex: snapshot.isDragging ? 9999 : 'auto'
+                                      }}
+                                    >
+                                      <div className="flex items-center gap-2 mb-2 mt-4">
+                                        <div 
+                                          {...provided.dragHandleProps}
+                                          className="cursor-grab hover:text-gray-900 text-gray-600 p-1 -ml-1 rounded hover:bg-gray-100 active:cursor-grabbing"
+                                          style={{
+                                            cursor: snapshot.isDragging ? "grabbing" : "grab"
+                                          }}
+                                        >
+                                          <GripVertical className="w-4 h-4" />
+                                        </div>
+                                        <div className="relative flex-1 group">
+                                          <div
+                                            contentEditable
+                                            onBlur={(e) =>
+                                              handleColumnNameChange(
+                                                phaseIndex,
+                                                columnIndex,
+                                                e.currentTarget.textContent || "",
+                                              )
+                                            }
+                                            className="text-xs font-bold focus:outline-none focus-visible:border-b focus-visible:border-primary h-[75px] overflow-y-auto whitespace-normal flex items-start pt-2"
+                                            suppressContentEditableWarning={true}
+                                            title={column.name}
+                                          >
+                                            {column.name}
+                                          </div>
                                       {column.name && column.name.length > 25 && (
                                         <div className="absolute top-0 right-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                           <button 
@@ -1530,7 +1548,9 @@ export default function BoardGrid({
                                       </div>
                                     )}
                                   </Droppable>
-                                </div>
+                                    </div>
+                                  )}
+                                </Draggable>
                               ))}
                               {provided.placeholder}
                             </div>
