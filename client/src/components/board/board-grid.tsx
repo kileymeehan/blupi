@@ -1054,7 +1054,7 @@ export default function BoardGrid({
                   </div>
 
                   <div className={`flex-1 ${showBlocks ? "block" : "hidden"}`}>
-                    <Droppable droppableId="drawer" type="DEFAULT">
+                    <Droppable droppableId="drawer" type="BLOCK">
                       {(provided) => (
                         <div
                           ref={provided.innerRef}
@@ -1411,6 +1411,7 @@ export default function BoardGrid({
 
                                       <Droppable
                                         droppableId={`${phaseIndex}-${columnIndex}`}
+                                        type="BLOCK"
                                       >
                                         {(provided, snapshot) => (
                                           <div
