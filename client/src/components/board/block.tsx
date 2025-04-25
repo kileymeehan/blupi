@@ -355,15 +355,15 @@ export default function Block({
             </button>
           </div>
 
-          {/* Block type icon and label - only show for regular blocks, not dividers */}
+          {/* Block type icon - only show for regular blocks, not dividers */}
           {block.type !== "front-stage" && block.type !== "back-stage" && block.type !== "custom-divider" && (
             <div
               className={`
               absolute bottom-1 right-2
               text-xs text-gray-700
-              opacity-0 group-hover:opacity-80
-              transition-opacity duration-200
-              flex items-center
+              flex items-center justify-center
+              bg-white/80 rounded-full p-1
+              shadow-sm
             `}
             >
               {(() => {
@@ -373,12 +373,7 @@ export default function Block({
                 // Dynamically render the icon
                 const IconComponent = (Icons as any)[iconName] || Icons.Square;
                 
-                return (
-                  <>
-                    <IconComponent className="w-3.5 h-3.5 mr-1" />
-                    <span>{TYPE_LABELS[block.type]}</span>
-                  </>
-                );
+                return <IconComponent className="w-4 h-4" />;
               })()}
             </div>
           )}
