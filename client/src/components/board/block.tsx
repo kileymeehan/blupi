@@ -1,5 +1,5 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown } from "lucide-react";
+import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, X } from "lucide-react";
 import * as Icons from "lucide-react";
 import type {
   Block as BlockType,
@@ -18,6 +18,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
@@ -88,6 +93,7 @@ export default function Block({
   const [notes, setNotes] = useState(block.notes || "");
   const [localContent, setLocalContent] = useState(block.content || "");
   const [isEditing, setIsEditing] = useState(false);
+  const [typeMenuOpen, setTypeMenuOpen] = useState(false);
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
@@ -163,6 +169,19 @@ export default function Block({
     if (!onEmojiChange) return;
     onEmojiChange(block.id, emoji.native);
     setEmojiPickerOpen(false);
+  };
+  
+  // Function to handle changing block type
+  const handleTypeChange = (newType: string) => {
+    if (!onChange) return;
+    
+    // Call the board-grid's updateBlock function via the onChange prop
+    // We are sending the content as the first parameter and the new type as the second
+    // (the board-grid component is setup to handle this second parameter)
+    onChange(block.content || '', newType);
+    
+    // Close the type menu
+    setTypeMenuOpen(false);
   };
 
   const commentCount = block.comments?.length || 0;
@@ -358,25 +377,63 @@ export default function Block({
 
           {/* Block type icon - only show for regular blocks, not dividers */}
           {block.type !== "front-stage" && block.type !== "back-stage" && block.type !== "custom-divider" && (
-            <div
-              className={`
-              absolute bottom-1 right-2
-              text-xs text-gray-700
-              flex items-center justify-center
-              bg-white/80 rounded-full p-1
-              shadow-sm
-            `}
-            >
-              {(() => {
-                // Get the icon name from block type
-                const iconName = getIconForBlockType(block.type);
-                
-                // Dynamically render the icon
-                const IconComponent = (Icons as any)[iconName] || Icons.Square;
-                
-                return <IconComponent className="w-4 h-4" />;
-              })()}
-            </div>
+            <Popover open={typeMenuOpen} onOpenChange={setTypeMenuOpen}>
+              <PopoverTrigger asChild>
+                <div
+                  className={`
+                  absolute bottom-1 right-2
+                  text-xs text-gray-700
+                  flex items-center justify-center
+                  bg-white/80 rounded-full p-1
+                  shadow-sm
+                  ${!block.readOnly ? "cursor-pointer hover:bg-gray-100" : ""}
+                  transition-colors duration-150
+                `}
+                  onClick={(e) => {
+                    if (block.readOnly) return;
+                    e.stopPropagation();
+                  }}
+                  title={!block.readOnly ? "Click to change block type" : ""}
+                >
+                  {(() => {
+                    // Get the icon name for the current block type
+                    const iconName = getIconForBlockType(block.type);
+                    
+                    // Dynamically render the icon
+                    const IconComponent = (Icons as any)[iconName] || Icons.Square;
+                    
+                    return <IconComponent className="w-4 h-4" />;
+                  })()}
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2">
+                <div className="text-sm font-medium mb-2">Change Block Type</div>
+                <div className="grid grid-cols-2 gap-1">
+                  {Object.entries(TYPE_LABELS)
+                    .filter(([type]) => !['front-stage', 'back-stage', 'custom-divider'].includes(type))
+                    .map(([type, label]) => {
+                      const iconName = getIconForBlockType(type);
+                      const IconComponent = (Icons as any)[iconName] || Icons.Square;
+                      
+                      return (
+                        <button
+                          key={type}
+                          className={`
+                            flex items-center gap-2 p-2 text-xs rounded
+                            ${type === block.type ? "bg-blue-100 text-blue-700" : "hover:bg-gray-100"}
+                            transition-colors
+                          `}
+                          onClick={() => handleTypeChange(type)}
+                        >
+                          <IconComponent className="w-4 h-4" />
+                          <span>{label}</span>
+                        </button>
+                      );
+                    })
+                  }
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
 
           <AttachmentDialog
