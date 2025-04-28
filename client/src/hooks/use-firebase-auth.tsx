@@ -90,7 +90,7 @@ export function useFirebaseAuth() {
           
           toast({
             title: "Domain Authorization Required",
-            description: `Add exactly "${currentDomain}" to your Firebase Console under Authentication > Settings > Authorized domains. Current domain not authorized.`,
+            description: `Add exactly "${currentDomain}" to Firebase Console Authentication settings. Domain registration can take up to 15 minutes to propagate.`,
             variant: "destructive",
             duration: 10000,
           });
@@ -140,7 +140,7 @@ export function useFirebaseAuth() {
         
         toast({
           title: "Domain Authorization Required",
-          description: `Add exactly "${currentDomain}" to your Firebase Console under Authentication > Settings > Authorized domains. Current domain not authorized.`,
+          description: `Add exactly "${currentDomain}" to Firebase Console Authentication settings. Domain registration can take up to 15 minutes to propagate.`,
           variant: "destructive",
           duration: 10000, // Show longer for this important message
         });

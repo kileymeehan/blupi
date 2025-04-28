@@ -112,17 +112,23 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col space-y-2">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-sm">
+                <h3 className="font-medium text-yellow-800">Domain Authorization Required</h3>
+                <p className="text-yellow-700 mt-1">
+                  We're experiencing issues with Firebase domain authorization. Please use email login below instead.
+                </p>
+              </div>
               <Button
                 type="button"
                 variant="outline"
-                className="w-full hover:bg-[#302E87]/5 border-[#A1D9F5]"
+                className="w-full hover:bg-[#302E87]/5 border-[#A1D9F5] opacity-70"
                 onClick={handleGoogleSignIn}
               >
                 <SiGoogle className="mr-2 h-4 w-4 text-[#302E87]" />
-                Sign in with Google
+                Sign in with Google (May not work)
               </Button>
-              <p className="text-xs text-gray-500 text-center italic">
-                Note: Add <span className="font-mono text-xs text-amber-600">{window.location.hostname}</span> to Firebase Console authorized domains
+              <p className="text-xs text-gray-500 text-center">
+                <span className="italic">Domain Authorization Error:</span> Add <span className="font-mono text-xs text-amber-600 font-bold">{window.location.hostname}</span> to Firebase authorized domains
               </p>
             </div>
             <div className="relative">

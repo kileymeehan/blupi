@@ -67,15 +67,24 @@ export default function RegisterPage() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-sm mb-4">
+            <h3 className="font-medium text-yellow-800">Domain Authorization Required</h3>
+            <p className="text-yellow-700 mt-1">
+              We're experiencing issues with Firebase domain authorization. Please use email registration below instead.
+            </p>
+          </div>
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="w-full opacity-70"
             onClick={handleGoogleSignIn}
           >
             <SiGoogle className="mr-2 h-4 w-4" />
-            Sign up with Google
+            Sign up with Google (May not work)
           </Button>
+          <p className="text-xs text-gray-500 text-center mt-1">
+            <span className="italic">Domain Authorization Error:</span> Add <span className="font-mono text-xs text-amber-600 font-bold">{window.location.hostname}</span> to Firebase authorized domains
+          </p>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
