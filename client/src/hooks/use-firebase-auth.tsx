@@ -90,7 +90,7 @@ export function useFirebaseAuth() {
           
           toast({
             title: "Domain Authorization Required",
-            description: `Add "${currentDomain}" to your Firebase authorized domains list. Your current domain is not authorized yet.`,
+            description: `Add exactly "${currentDomain}" to your Firebase Console under Authentication > Settings > Authorized domains. Current domain not authorized.`,
             variant: "destructive",
             duration: 10000,
           });
@@ -127,7 +127,7 @@ export function useFirebaseAuth() {
         
         toast({
           title: "Domain Authorization Required",
-          description: `Add "${currentDomain}" to your Firebase authorized domains list. Your current domain is not authorized yet.`,
+          description: `Add exactly "${currentDomain}" to your Firebase Console under Authentication > Settings > Authorized domains. Current domain not authorized.`,
           variant: "destructive",
           duration: 10000, // Show longer for this important message
         });

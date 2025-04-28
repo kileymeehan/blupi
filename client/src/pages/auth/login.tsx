@@ -122,7 +122,7 @@ export default function LoginPage() {
                 Sign in with Google
               </Button>
               <p className="text-xs text-gray-500 text-center italic">
-                Note: Requires authorizing domain in Firebase Console
+                Note: Add <span className="font-mono text-xs text-amber-600">{window.location.hostname}</span> to Firebase Console authorized domains
               </p>
             </div>
             <div className="relative">

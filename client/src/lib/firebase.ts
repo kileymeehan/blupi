@@ -17,11 +17,8 @@ let auth: Auth;
 
 // Log current hostname for Firebase domain debugging
 const hostname = window.location.hostname;
-const fullUrl = window.location.href;
-const isMainDomain = hostname === 'replit.dev' || hostname.endsWith('.replit.dev');
-
-console.log('Current host is:', hostname);
-console.log('Is main domain?', isMainDomain);
+// The exact domain that needs to be authorized in Firebase Console:
+console.log('Current hostname:', hostname);
 
 try {
   app = initializeApp(firebaseConfig);
