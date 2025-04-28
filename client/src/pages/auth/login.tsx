@@ -111,16 +111,19 @@ export default function LoginPage() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-center">
+            <div className="flex flex-col space-y-2">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full max-w-xs hover:bg-[#302E87]/5 border-[#A1D9F5]"
+                className="w-full hover:bg-[#302E87]/5 border-[#A1D9F5]"
                 onClick={handleGoogleSignIn}
               >
                 <SiGoogle className="mr-2 h-4 w-4 text-[#302E87]" />
                 Sign in with Google
               </Button>
+              <p className="text-xs text-gray-500 text-center">
+                Note: Google Sign-in requires domain authorization in the Firebase Console.
+              </p>
             </div>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

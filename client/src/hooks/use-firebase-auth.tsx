@@ -107,11 +107,21 @@ export function useFirebaseAuth() {
       // The actual auth handling happens in the useEffect with getRedirectResult
     } catch (error: any) {
       console.error('Sign-in error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start Google sign-in",
-        variant: "destructive",
-      });
+      
+      // Better error handling for domain issues
+      if (error.code === 'auth/unauthorized-domain') {
+        toast({
+          title: "Domain Error",
+          description: "This domain isn't authorized in Firebase. Please use email login or add this domain in Firebase Console.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to start Google sign-in",
+          variant: "destructive",
+        });
+      }
       throw error;
     }
   };
