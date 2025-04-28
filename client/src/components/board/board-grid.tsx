@@ -871,10 +871,10 @@ export default function BoardGrid({
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div
-            className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col`}
+            className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out relative min-h-[calc(100vh-5rem)] flex flex-col sticky top-[5rem] self-start h-[calc(100vh-5rem)]`}
           >
             <div className="flex flex-col flex-grow">
               <div className="border-b border-gray-200 bg-white shadow-sm">
@@ -962,7 +962,7 @@ export default function BoardGrid({
               </Button>
 
               {isDrawerOpen && (
-                <div className="flex-1 flex flex-col bg-blue-50">
+                <div className="flex-1 flex flex-col bg-blue-50 overflow-y-auto">
                   <div className={`flex-1 ${showContext ? "block" : "hidden"}`}>
                     <div className="p-4 space-y-4">
                       <div>
@@ -1072,7 +1072,7 @@ export default function BoardGrid({
             </div>
           </div>
 
-          <div className="flex-1 overflow-x-auto relative">
+          <div className="flex-1 overflow-x-auto overflow-y-auto relative">
             {showMinimap && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
                 <div className="bg-white border border-gray-300 shadow-xl rounded-lg p-4 w-[80%] max-w-[1000px] max-h-[80vh]">

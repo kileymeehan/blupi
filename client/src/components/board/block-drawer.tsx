@@ -1,6 +1,7 @@
 import { LAYER_TYPES } from "./constants";
 import { Draggable } from "react-beautiful-dnd";
 import * as Icons from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function BlockDrawer() {
   // Separate standard blocks from divider blocks
