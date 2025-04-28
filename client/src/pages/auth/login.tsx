@@ -145,8 +145,22 @@ export default function LoginPage() {
               </Button>
             </form>
           </CardContent>
-          <CardFooter>
-            <p className="text-sm text-[#6B6B97]">
+          <CardFooter className="flex flex-col space-y-3">
+            <div className="w-full flex items-center">
+              <span className="border-t flex-grow"></span>
+              <span className="px-3 text-sm text-[#6B6B97]">or</span>
+              <span className="border-t flex-grow"></span>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              className="w-full border-[#A1D9F5] text-[#302E87]"
+              onClick={() => setLocation(`/auth/magic-link`)}
+            >
+              Sign in with Magic Link
+            </Button>
+            
+            <p className="text-sm text-[#6B6B97] pt-2">
               Don't have an account?{" "}
               <Button
                 variant="link"

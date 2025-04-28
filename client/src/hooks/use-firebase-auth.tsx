@@ -4,6 +4,9 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
   type User,
   updateProfile
 } from '@firebase/auth';
@@ -238,11 +241,156 @@ export function useFirebaseAuth() {
     }
   };
 
+  // Send magic link email
+  const sendMagicLink = async (email: string) => {
+    try {
+      console.log('Sending magic link to email:', email.substring(0, 3) + '***@***' + email.split('@')[1]);
+      
+      // Store the email in localStorage so we can use it on redirect
+      localStorage.setItem('emailForSignIn', email);
+      
+      // URL to redirect to after sign-in
+      const currentUrl = window.location.href;
+      const baseUrl = currentUrl.split('/').slice(0, 3).join('/');
+      const actionCodeSettings = {
+        // URL you want to redirect back to. The domain must be in the authorized domains list in the Firebase Console.
+        url: `${baseUrl}/auth/confirm-signin`,
+        // This must be true
+        handleCodeInApp: true
+      };
+      
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      
+      console.log('Magic link email sent successfully');
+      toast({
+        title: "Check Your Email",
+        description: "We've sent a sign-in link to your email. Click the link to sign in.",
+        duration: 6000,
+      });
+      
+      return true;
+    } catch (error: any) {
+      console.error('Magic link error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      
+      // User-friendly error messages
+      if (error.code === 'auth/invalid-email') {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+      } else if (error.code === 'auth/operation-not-allowed') {
+        toast({
+          title: "Email Link Sign-In Not Enabled",
+          description: "Email link authentication needs to be enabled in the Firebase Console. Please contact the administrator.",
+          variant: "destructive",
+          duration: 8000,
+        });
+        console.error('IMPORTANT: Enable Email Link authentication in Firebase Console → Authentication → Sign-in methods');
+      } else if (error.code === 'auth/network-request-failed') {
+        toast({
+          title: "Network Error",
+          description: "There was a problem connecting to the authentication service. Please check your internet connection.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "An error occurred while sending the sign-in link",
+          variant: "destructive",
+        });
+      }
+      throw error;
+    }
+  };
+  
+  // Complete sign-in with email link
+  const completeMagicLinkSignIn = async (url: string, email?: string) => {
+    try {
+      console.log('Attempting to sign in with email link...');
+      
+      // Check if the link is a sign-in link
+      if (!isSignInWithEmailLink(auth, url)) {
+        console.error('Invalid sign-in link');
+        toast({
+          title: "Invalid Link",
+          description: "The link you clicked is not a valid sign-in link. Please request a new one.",
+          variant: "destructive",
+        });
+        return null;
+      }
+      
+      // Get the email from localStorage if not provided
+      let emailToUse = email;
+      if (!emailToUse) {
+        const storedEmail = localStorage.getItem('emailForSignIn');
+        if (!storedEmail) {
+          console.log('No email found. Asking user to provide email...');
+          // We'll handle this in the UI by showing a form
+          return { needsEmail: true };
+        }
+        emailToUse = storedEmail;
+      }
+      
+      console.log('Signing in with email link with email:', emailToUse.substring(0, 3) + '***@***' + emailToUse.split('@')[1]);
+      
+      // Sign in with email link
+      const result = await signInWithEmailLink(auth, emailToUse, url);
+      
+      // Clear email from storage
+      localStorage.removeItem('emailForSignIn');
+      
+      console.log('Email link sign-in successful');
+      toast({
+        title: "Welcome back!",
+        description: "You've successfully signed in",
+      });
+      
+      return result.user;
+    } catch (error: any) {
+      console.error('Email link sign-in error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      
+      // User-friendly error messages
+      if (error.code === 'auth/invalid-email') {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+      } else if (error.code === 'auth/invalid-action-code') {
+        toast({
+          title: "Invalid or Expired Link",
+          description: "The sign-in link has expired or has already been used. Please request a new one.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sign-In Error",
+          description: error.message || "An error occurred during sign-in",
+          variant: "destructive",
+        });
+      }
+      throw error;
+    }
+  };
+
+  // Check if current URL is a sign-in link
+  const isSignInLink = (url: string) => {
+    return isSignInWithEmailLink(auth, url);
+  };
+
   return {
     user,
     loading,
     signInWithEmail,
     signUpWithEmail,
+    sendMagicLink,
+    completeMagicLinkSignIn,
+    isSignInLink,
     logout,
     updateUserProfile
   };
