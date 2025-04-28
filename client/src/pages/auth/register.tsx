@@ -117,10 +117,11 @@ export default function RegisterPage() {
               setIsGoogleSigningIn(true);
               try {
                 await signInWithGoogle();
-              } catch (err: any) {
+              } catch (error: unknown) {
+                const err = error as { code?: string, message?: string };
                 if (err.code !== 'auth/popup-closed-by-user' && 
                     err.code !== 'auth/cancelled-popup-request') {
-                  setError(err instanceof Error ? err.message : "Google sign-in failed");
+                  setError(err.message || "Google sign-in failed");
                 }
               } finally {
                 setIsGoogleSigningIn(false);
