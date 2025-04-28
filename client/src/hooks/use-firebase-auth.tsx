@@ -144,53 +144,7 @@ export function useFirebaseAuth() {
     }
   };
 
-  const signInAsGuest = async () => {
-    try {
-      const result = await signInAnonymously(auth);
-      
-      // Update the user's display name to "Guest User"
-      if (result.user) {
-        await updateProfile(result.user, {
-          displayName: "Guest User"
-        });
-        
-        // Force a reload to get the updated profile
-        await result.user.reload();
-        setUser(auth.currentUser);
-        
-        // Manually sync with the backend to set up the guest session
-        try {
-          const response = await fetch('/api/auth/check', {
-            credentials: 'include',
-            headers: {
-              'X-Guest-User': 'true'
-            }
-          });
-          
-          if (response.ok) {
-            // Store guest identifier for websocket identification
-            localStorage.setItem('userEmail', 'Guest User');
-          }
-        } catch (error) {
-          console.error('Guest auth sync error:', error);
-        }
-      }
-      
-      toast({
-        title: "Success",
-        description: "Signed in as guest successfully",
-      });
-      return result.user;
-    } catch (error: any) {
-      console.error('Guest sign-in error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to sign in as guest",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
+  // Guest login functionality removed for security in production
 
   return {
     user,
