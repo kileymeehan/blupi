@@ -7,8 +7,7 @@ import {
   signOut,
   onAuthStateChanged,
   type User,
-  updateProfile,
-  signInAnonymously
+  updateProfile
 } from '@firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -200,7 +199,6 @@ export function useFirebaseAuth() {
     signInWithEmail,
     signUpWithEmail,
     logout,
-    updateUserProfile,
-    signInAsGuest
+    updateUserProfile
   };
 }

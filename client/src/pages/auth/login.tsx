@@ -18,7 +18,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [_, setLocation] = useLocation();
-  const { signInWithEmail, signInWithGoogle, signInAsGuest, user } = useFirebaseAuth();
+  const { signInWithEmail, signInWithGoogle, user } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<LoginForm>({
@@ -51,13 +51,7 @@ export default function LoginPage() {
     }
   };
   
-  const handleGuestSignIn = async () => {
-    try {
-      await signInAsGuest();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Guest sign-in failed");
-    }
-  };
+  // Guest login removed for security in production
 
   if (user) {
     return null;
@@ -117,27 +111,15 @@ export default function LoginPage() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex justify-center">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full hover:bg-[#302E87]/5 border-[#A1D9F5]"
+                className="w-full max-w-xs hover:bg-[#302E87]/5 border-[#A1D9F5]"
                 onClick={handleGoogleSignIn}
               >
                 <SiGoogle className="mr-2 h-4 w-4 text-[#302E87]" />
                 Sign in with Google
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full hover:bg-[#F2918C]/5 border-[#F2918C]"
-                onClick={handleGuestSignIn}
-              >
-                <svg className="mr-2 h-4 w-4 text-[#F2918C]" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="8" r="5" />
-                  <path d="M20 21a8 8 0 0 0-16 0" />
-                </svg>
-                Try as Guest
               </Button>
             </div>
             <div className="relative">
