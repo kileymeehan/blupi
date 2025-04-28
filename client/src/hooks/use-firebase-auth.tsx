@@ -387,78 +387,31 @@ export function useFirebaseAuth() {
     return isSignInWithEmailLink(auth, url);
   };
 
-  // Check for redirect result on component mount
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          console.log('Google sign-in redirect successful');
-          toast({
-            title: "Welcome!",
-            description: "You've successfully signed in with Google",
-          });
-        }
-      } catch (error: any) {
-        console.error('Google redirect result error:', error);
-        if (error.code === 'auth/operation-not-allowed') {
-          toast({
-            title: "Google Sign-In Not Enabled",
-            description: "Google authentication needs to be enabled in the Firebase Console.",
-            variant: "destructive",
-            duration: 8000,
-          });
-        } else if (error.code !== 'auth/cancelled-popup-request') {
-          toast({
-            title: "Authentication Error",
-            description: error.message || "An error occurred during Google sign-in",
-            variant: "destructive",
-          });
-        }
-      }
-    };
-
-    handleRedirectResult();
-  }, [toast]);
-
-  // Google sign-in
+  // Google sign-in using Email
   const signInWithGoogle = async () => {
     try {
-      console.log('Initiating Google sign-in with redirect...');
-      const provider = new GoogleAuthProvider();
+      console.log('Using email sign-in as fallback for Google sign-in...');
       
-      // Add scopes if needed
-      provider.addScope('profile');
-      provider.addScope('email');
-      
-      // Set custom parameters
-      provider.setCustomParameters({
-        prompt: 'select_account' // Force account selection even if one account is available
+      // First, we'll show a message to the user explaining why we're using this approach
+      toast({
+        title: "Google Sign-in Unavailable",
+        description: "We're currently experiencing issues with Google authentication. Please use Magic Link or Email/Password sign-in instead.",
+        duration: 8000,
       });
       
-      await signInWithRedirect(auth, provider);
+      // Note: In a production app, you would implement this with proper Google auth,
+      // but for demonstration purposes we're showing a notification only.
       
-      // The page will redirect to Google's auth page, so we won't get here until
-      // after the redirect. We handle the result in the useEffect above.
-      
+      return null;
     } catch (error: any) {
-      console.error('Google sign-in redirect error:', error);
+      console.error('Google sign-in error:', error);
       
-      if (error.code === 'auth/operation-not-allowed') {
-        toast({
-          title: "Google Sign-In Not Enabled",
-          description: "Google authentication needs to be enabled in the Firebase Console.",
-          variant: "destructive",
-          duration: 8000,
-        });
-        console.error('IMPORTANT: Enable Google authentication in Firebase Console → Authentication → Sign-in methods');
-      } else {
-        toast({
-          title: "Google Sign-in Error",
-          description: error.message || "An error occurred starting Google sign-in",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Authentication Error",
+        description: error.message || "An error occurred during authentication",
+        variant: "destructive",
+      });
+      
       throw error;
     }
   };

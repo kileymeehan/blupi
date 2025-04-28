@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
-import { FcGoogle } from "react-icons/fc";
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -18,10 +17,9 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const [_, setLocation] = useLocation();
-  const { signUpWithEmail, signInWithGoogle, user } = useFirebaseAuth();
+  const { signUpWithEmail, user } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -103,32 +101,7 @@ export default function RegisterPage() {
             </Button>
           </form>
           
-          <div className="w-full flex items-center">
-            <span className="border-t flex-grow"></span>
-            <span className="px-3 text-sm text-[#6B6B97]">or</span>
-            <span className="border-t flex-grow"></span>
-          </div>
-          
-          <Button 
-            variant="outline" 
-            className="w-full border-[#A1D9F5] text-[#302E87] flex items-center justify-center gap-2"
-            onClick={() => {
-              setError(null);
-              setIsGoogleSigningIn(true);
-              // The signInWithGoogle function will now handle redirects
-              // We won't return to this page until after the Google authentication flow
-              signInWithGoogle().catch(error => {
-                // We'll only get here if there's an error initiating the redirect
-                const err = error as { code?: string, message?: string };
-                setError(err.message || "Could not start Google sign-in");
-                setIsGoogleSigningIn(false);
-              });
-            }}
-            disabled={isGoogleSigningIn}
-          >
-            <FcGoogle className="h-5 w-5" />
-            {isGoogleSigningIn ? "Signing in..." : "Sign up with Google"}
-          </Button>
+
         </CardContent>
         <CardFooter>
           <p className="text-sm text-[#6B6B97]">
