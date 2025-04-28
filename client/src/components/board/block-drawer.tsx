@@ -52,11 +52,11 @@ export default function BlockDrawer() {
       </div>
 
       {/* Divider blocks section */}
-      <div className="flex items-center mb-4 mt-6">
+      <div className="flex items-center mb-4 mt-6 justify-start">
         <h2 className="font-semibold text-gray-700">Stage Dividers</h2>
       </div>
       
-      <div className="space-y-4 flex flex-col items-center">
+      <div className="grid grid-cols-1 gap-2">
         {dividerBlocks.map((layer, index) => (
           <Draggable
             key={layer.type}
@@ -68,7 +68,7 @@ export default function BlockDrawer() {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-[180px] h-[35px] relative flex items-center justify-center border-2 border-white text-white
+                className={`${layer.color} rounded-lg w-full h-[40px] relative flex items-center justify-center text-white
                   ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
                   transition-shadow duration-200
                 `}
@@ -78,17 +78,9 @@ export default function BlockDrawer() {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="absolute inset-0 flex items-center justify-start px-4 pointer-events-none">
-                  <div className="w-full border-t-2 border-white opacity-50"></div>
-                </div>
-                
-                <div className="relative z-10 px-4 bg-inherit rounded-md font-bold text-[10px] flex items-center">
+                <div className="font-semibold text-[10px] text-white text-center flex items-center justify-center">
                   {renderIcon(layer.icon)}
                   <span className="ml-0.5 tracking-wide">{layer.label}</span>
-                </div>
-                
-                <div className="absolute inset-0 flex items-center justify-end px-4 pointer-events-none">
-                  <div className="w-full border-t-2 border-white opacity-50"></div>
                 </div>
               </div>
             )}
