@@ -113,9 +113,22 @@ export function useFirebaseAuth() {
         prompt: 'select_account'
       });
 
-      // Using redirect instead of popup to avoid iframe issues
-      await signInWithRedirect(auth, provider);
-      // The actual auth handling happens in the useEffect with getRedirectResult
+      // Try popup method instead of redirect
+      const result = await signInWithPopup(auth, provider);
+      // Success! Handle the result directly
+      if (result && result.user) {
+        toast({
+          title: "Success",
+          description: "Successfully signed in with Google",
+        });
+        
+        // Ensure backend session is synced
+        await fetch('/api/auth/check', {
+          credentials: 'include'
+        });
+        
+        return result.user;
+      }
     } catch (error: any) {
       console.error('Sign-in error:', error);
       
