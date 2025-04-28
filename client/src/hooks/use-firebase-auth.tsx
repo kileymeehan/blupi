@@ -82,6 +82,11 @@ export function useFirebaseAuth() {
   const signInWithEmail = async (email: string, password: string) => {
     try {
       console.log('Attempting email/password sign-in...');
+      console.log('Authentication status check - auth object exists:', !!auth);
+      
+      // Sanitized email for logging (privacy protection)
+      console.log('Login attempt for email:', email.substring(0, 3) + '***@***' + email.split('@')[1]);
+      
       const result = await signInWithEmailAndPassword(auth, email, password);
       
       console.log('Email sign-in successful');
@@ -93,9 +98,11 @@ export function useFirebaseAuth() {
       return result.user;
     } catch (error: any) {
       console.error('Email sign-in error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
       
-      // User-friendly error messages
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+      // User-friendly error messages with more comprehensive handling
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         toast({
           title: "Authentication Failed",
           description: "Invalid email or password. Please try again.",
@@ -108,9 +115,36 @@ export function useFirebaseAuth() {
           variant: "destructive",
           duration: 6000,
         });
+      } else if (error.code === 'auth/operation-not-allowed') {
+        toast({
+          title: "Email/Password Sign-In Not Enabled",
+          description: "Email/Password authentication needs to be enabled in the Firebase Console. Please contact the administrator.",
+          variant: "destructive",
+          duration: 8000,
+        });
+        console.error('IMPORTANT: Enable Email/Password authentication in Firebase Console → Authentication → Sign-in methods');
+      } else if (error.code === 'auth/invalid-email') {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+      } else if (error.code === 'auth/network-request-failed') {
+        toast({
+          title: "Network Error",
+          description: "There was a problem connecting to the authentication service. Please check your internet connection.",
+          variant: "destructive",
+        });
+      } else if (error.code === 'auth/internal-error') {
+        toast({
+          title: "Authentication Service Error",
+          description: "There was an internal error in the authentication service. Please try again later.",
+          variant: "destructive",
+        });
+        console.error('Firebase internal error. Check Firebase console and configuration.');
       } else {
         toast({
-          title: "Error",
+          title: "Sign-in Error",
           description: error.message || "An error occurred during sign-in",
           variant: "destructive",
         });
@@ -123,6 +157,10 @@ export function useFirebaseAuth() {
   const signUpWithEmail = async (email: string, password: string) => {
     try {
       console.log('Creating new account...');
+      
+      // More detailed logging to help diagnose the issue
+      console.log('Registration attempt for email:', email.substring(0, 3) + '***@***' + email.split('@')[1]);
+      
       const result = await createUserWithEmailAndPassword(auth, email, password);
       
       console.log('Account creation successful');
@@ -134,8 +172,10 @@ export function useFirebaseAuth() {
       return result.user;
     } catch (error: any) {
       console.error('Email sign-up error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
       
-      // User-friendly error messages
+      // Detailed error handling for debugging
       if (error.code === 'auth/email-already-in-use') {
         toast({
           title: "Email Already Registered",
@@ -146,6 +186,26 @@ export function useFirebaseAuth() {
         toast({
           title: "Weak Password",
           description: "Please choose a stronger password (at least 6 characters).",
+          variant: "destructive",
+        });
+      } else if (error.code === 'auth/operation-not-allowed') {
+        toast({
+          title: "Email/Password Sign-Up Not Enabled",
+          description: "Email/Password authentication needs to be enabled in the Firebase Console. Please contact the administrator.",
+          variant: "destructive",
+          duration: 8000,
+        });
+        console.error('IMPORTANT: Enable Email/Password authentication in Firebase Console → Authentication → Sign-in methods');
+      } else if (error.code === 'auth/invalid-email') {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+      } else if (error.code === 'auth/network-request-failed') {
+        toast({
+          title: "Network Error",
+          description: "There was a problem connecting to the authentication service. Please check your internet connection.",
           variant: "destructive",
         });
       } else {
