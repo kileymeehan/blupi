@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { 
   GoogleAuthProvider, 
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -68,25 +70,48 @@ export function useFirebaseAuth() {
     }
   };
 
+  useEffect(() => {
+    // Check for redirect result when component mounts
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          toast({
+            title: "Success",
+            description: "Successfully signed in with Google",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('Redirect sign-in error:', error);
+        if (error.code !== 'auth/no-auth-event') {
+          toast({
+            title: "Error",
+            description: "Failed to sign in with Google",
+            variant: "destructive",
+          });
+        }
+      });
+  }, [toast]);
+
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
       provider.setCustomParameters({
-        prompt: 'select_account',
-        mobile: '1',
-        embedded: '1'
+        prompt: 'select_account'
       });
 
-      const result = await signInWithPopup(auth, provider);
-      toast({
-        title: "Success",
-        description: "Successfully signed in with Google",
-      });
-      return result.user;
+      // Using redirect instead of popup to avoid iframe issues
+      await signInWithRedirect(auth, provider);
+      // The actual auth handling happens in the useEffect with getRedirectResult
     } catch (error: any) {
       console.error('Sign-in error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start Google sign-in",
+        variant: "destructive",
+      });
       throw error;
     }
   };

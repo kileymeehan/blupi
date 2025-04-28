@@ -1,19 +1,19 @@
 import { initializeApp } from "@firebase/app";
-import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import { getAuth, onAuthStateChanged, type Auth } from "@firebase/auth";
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDALLWQjfh2pqyPPhj8qaJK-C9yISk6X2c",
-  authDomain: "blueprints-48648.firebaseapp.com",
-  projectId: "blueprints-48648",
-  storageBucket: "blueprints-48648.appspot.com",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDALLWQjfh2pqyPPhj8qaJK-C9yISk6X2c",
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "blueprints-48648"}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "blueprints-48648",
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "blueprints-48648"}.appspot.com`,
   messagingSenderId: "345099176849",
-  appId: "1:345099176849:web:d22dc10d20986e3a2aa830",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:345099176849:web:d22dc10d20986e3a2aa830",
   measurementId: "G-5ZGZX4SLYS"
 };
 
 let app;
-let auth;
+let auth: Auth;
 
 try {
   app = initializeApp(firebaseConfig);
