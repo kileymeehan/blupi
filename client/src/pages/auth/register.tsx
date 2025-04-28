@@ -48,7 +48,20 @@ export default function RegisterPage() {
     try {
       await signInWithGoogle();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Google sign-in failed");
+      // Log error for debugging
+      if (err instanceof Error) {
+        console.error('Google Sign-in error:', err);
+        
+        if (err.toString().includes('auth/unauthorized-domain')) {
+          // Domain authorization issue - show specific error with instructions
+          const currentDomain = window.location.hostname;
+          setError(`Domain Authorization Required: Add "${currentDomain}" to Firebase Console → Authentication → Settings → Authorized domains. This can take up to 15 minutes to propagate.`);
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError("Google sign-in failed");
+      }
     }
   };
 

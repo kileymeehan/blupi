@@ -17,8 +17,16 @@ let auth: Auth;
 
 // Log current hostname for Firebase domain debugging
 const hostname = window.location.hostname;
+const isMainDomain = !hostname.includes('-00-');  // Check if we're on the main replit domain
+
 // The exact domain that needs to be authorized in Firebase Console:
-console.log('Current hostname:', hostname);
+console.log('Current host is:', hostname);
+console.log('Is main domain?', isMainDomain);
+
+// Note: When using Replit, you need to authorize all possible domains in Firebase console
+// For Replit Dev environment, add these domains to Firebase authorized domains:
+// 1. Your specific replit.dev domain (the one logged above)
+// 2. *.replit.dev as a wildcard if possible
 
 try {
   app = initializeApp(firebaseConfig);

@@ -47,11 +47,35 @@ export default function LoginPage() {
     try {
       await signInWithGoogle();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Google sign-in failed");
+      // Log error for debugging
+      if (err instanceof Error) {
+        console.error('Google Sign-in error:', err);
+        
+        if (err.toString().includes('auth/unauthorized-domain')) {
+          // Domain authorization issue - show specific error with instructions
+          const currentDomain = window.location.hostname;
+          setError(`Domain Authorization Required: Add "${currentDomain}" to Firebase Console → Authentication → Settings → Authorized domains. This can take up to 15 minutes to propagate.`);
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError("Google sign-in failed");
+      }
     }
   };
   
-  // Guest login removed for security in production
+  // Alternative authentication explanation
+  const alternativeAuthInfo = (
+    <div className="mt-4 text-sm text-muted-foreground">
+      <p className="font-medium">Firebase Domain Authorization Issue?</p>
+      <p className="mt-1">If Google Sign-in doesn't work, please:</p>
+      <ol className="list-decimal pl-5 mt-1 space-y-1">
+        <li>Add your current domain to Firebase Console</li>
+        <li>Wait up to 15 minutes for changes to propagate</li>
+        <li>Or use email/password authentication in the meantime</li>
+      </ol>
+    </div>
+  );
 
   if (user) {
     return null;
