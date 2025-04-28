@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
 import { 
-  GoogleAuthProvider, 
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -19,18 +15,31 @@ export function useFirebaseAuth() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  // Set up auth state listener
   useEffect(() => {
+    console.log('Setting up Firebase auth state listener');
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        console.log('Auth state changed: User is signed in');
         try {
-          // Force a reload to get the latest profile data
+          // Refresh user data
           await user.reload();
-          // Get the fresh user object after reload
           setUser(auth.currentUser);
+          
+          // Sync with backend
+          try {
+            await fetch('/api/auth/check', {
+              credentials: 'include'
+            });
+          } catch (err) {
+            console.error('Error syncing with backend:', err);
+          }
         } catch (error) {
-          console.error('Error reloading user:', error);
+          console.error('Error refreshing user data:', error);
         }
       } else {
+        console.log('Auth state changed: No user');
         setUser(null);
       }
       setLoading(false);
@@ -39,18 +48,17 @@ export function useFirebaseAuth() {
     return () => unsubscribe();
   }, []);
 
+  // Update user profile (e.g., avatar)
   const updateUserProfile = async (updates: { photoURL?: string }) => {
     if (!auth.currentUser) return;
 
     try {
       await updateProfile(auth.currentUser, updates);
-      // Force a reload to ensure we have the latest data
       await auth.currentUser.reload();
-      // Get fresh user object and update state
       const freshUser = auth.currentUser;
       setUser(freshUser);
 
-      // Broadcast a custom event to notify other components
+      // Notify other components
       window.dispatchEvent(new CustomEvent('userProfileUpdated', { 
         detail: { photoURL: freshUser.photoURL } 
       }));
@@ -70,136 +78,80 @@ export function useFirebaseAuth() {
     }
   };
 
-  useEffect(() => {
-    // Check for redirect result when component mounts, but only if not on the auth handler page
-    // which has its own redirect handling logic
-    if (window.location.pathname.startsWith('/auth/handler') || 
-        window.location.pathname.startsWith('/auth/callback') || 
-        window.location.pathname.startsWith('/auth/action')) {
-      return; // Skip redirect handling on auth handler pages
-    }
-      
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          console.log('Redirect result processed in auth hook');
-          toast({
-            title: "Success",
-            description: "Successfully signed in with Google",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error('Redirect sign-in error:', error);
-        if (error.code === 'auth/unauthorized-domain') {
-          // Get the exact domain from window.location
-          const currentDomain = window.location.hostname;
-          console.log('Current hostname (redirect):', currentDomain);
-          
-          toast({
-            title: "Domain Authorization Required",
-            description: `Add exactly "${currentDomain}" to Firebase Console Authentication settings. Domain registration can take up to 15 minutes to propagate.`,
-            variant: "destructive",
-            duration: 10000,
-          });
-        } else if (error.code !== 'auth/no-auth-event') {
-          toast({
-            title: "Sign-in Error",
-            description: error.message || "Failed to complete Google sign-in",
-            variant: "destructive",
-          });
-        }
-      });
-  }, [toast]);
-
-  const signInWithGoogle = async () => {
+  // Email/password signin
+  const signInWithEmail = async (email: string, password: string) => {
     try {
-      const provider = new GoogleAuthProvider();
-      provider.addScope('profile');
-      provider.addScope('email');
+      console.log('Attempting email/password sign-in...');
+      const result = await signInWithEmailAndPassword(auth, email, password);
       
-      // Important: Add login_hint with a default email to prevent the Google account selection dialog
-      // which can help bypass certain authentication issues in development environments
-      provider.setCustomParameters({
-        prompt: 'select_account',
-        // login_hint: 'user@example.com' // Uncomment to pre-fill email
+      console.log('Email sign-in successful');
+      toast({
+        title: "Welcome back!",
+        description: "You've successfully signed in",
       });
-
-      // Detect the environment to use the appropriate auth method
-      const isReplit = window.location.hostname.includes('replit');
       
-      console.log('Attempting Google sign-in...');
-      
-      // For Replit environments, we'll always try popup first, then fallback to redirect
-      // as popup works better in many Replit scenarios
-      let result;
-      
-      try {
-        // Popup method (primary attempt)
-        result = await signInWithPopup(auth, provider);
-        console.log('Popup sign-in successful');
-      } catch (popupError: any) {
-        console.error('Popup sign-in failed:', popupError.code);
-        
-        // If we got an unauthorized domain error with popup, don't try redirect
-        // as it will fail for the same reason
-        if (popupError.code === 'auth/unauthorized-domain') {
-          throw popupError;
-        }
-        
-        // For other errors, try redirect as fallback (less reliable in Replit)
-        console.log('Falling back to redirect method...');
-        await signInWithRedirect(auth, provider);
-        return; // The page will reload after redirect
-      }
-      
-      // Success! Handle the result directly
-      if (result && result.user) {
-        console.log('Sign-in successful:', result.user.email);
-        toast({
-          title: "Success",
-          description: "Successfully signed in with Google",
-        });
-        
-        // Ensure backend session is synced
-        await fetch('/api/auth/check', {
-          credentials: 'include'
-        });
-        
-        return result.user;
-      }
+      return result.user;
     } catch (error: any) {
-      console.error('Sign-in error:', error);
+      console.error('Email sign-in error:', error);
       
-      // Enhanced error handling
-      if (error.code === 'auth/unauthorized-domain') {
-        // Get the exact domain from window.location
-        const currentDomain = window.location.hostname;
-        console.log('Current hostname:', currentDomain);
-        
-        // Suggest email-based authentication as alternative
+      // User-friendly error messages
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
         toast({
-          title: "Domain Authorization Required",
-          description: `Add "${currentDomain}" to Firebase Console Authentication settings → Authorized domains. Email/password login is available as an alternative.`,
+          title: "Authentication Failed",
+          description: "Invalid email or password. Please try again.",
           variant: "destructive",
-          duration: 10000, // Show longer for this important message
         });
-      } else if (error.code === 'auth/popup-closed-by-user') {
+      } else if (error.code === 'auth/too-many-requests') {
         toast({
-          title: "Authentication Canceled",
-          description: "Sign-in was canceled. Please try again.",
-          variant: "default",
+          title: "Too Many Attempts",
+          description: "Account temporarily locked due to too many failed login attempts. Please try again later or reset your password.",
+          variant: "destructive",
+          duration: 6000,
         });
-      } else if (error.code === 'auth/popup-blocked') {
+      } else {
         toast({
-          title: "Popup Blocked",
-          description: "Please allow popups for this site and try again, or use email/password login instead.",
+          title: "Error",
+          description: error.message || "An error occurred during sign-in",
+          variant: "destructive",
+        });
+      }
+      throw error;
+    }
+  };
+
+  // Email/password registration
+  const signUpWithEmail = async (email: string, password: string) => {
+    try {
+      console.log('Creating new account...');
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      
+      console.log('Account creation successful');
+      toast({
+        title: "Welcome to Blupi!",
+        description: "Your account has been created successfully",
+      });
+      
+      return result.user;
+    } catch (error: any) {
+      console.error('Email sign-up error:', error);
+      
+      // User-friendly error messages
+      if (error.code === 'auth/email-already-in-use') {
+        toast({
+          title: "Email Already Registered",
+          description: "This email is already associated with an account. Please sign in instead.",
+          variant: "destructive",
+        });
+      } else if (error.code === 'auth/weak-password') {
+        toast({
+          title: "Weak Password",
+          description: "Please choose a stronger password (at least 6 characters).",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Sign-in Error",
-          description: error.message || "Failed to complete Google sign-in. Try email/password login instead.",
+          title: "Registration Error",
+          description: error.message || "An error occurred during registration",
           variant: "destructive",
         });
       }
@@ -207,65 +159,28 @@ export function useFirebaseAuth() {
     }
   };
 
-  const signInWithEmail = async (email: string, password: string) => {
-    try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      toast({
-        title: "Success",
-        description: "Successfully signed in",
-      });
-      return result.user;
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  const signUpWithEmail = async (email: string, password: string) => {
-    try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      toast({
-        title: "Success",
-        description: "Account created successfully",
-      });
-      return result.user;
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
+  // Sign out
   const logout = async () => {
     try {
       await signOut(auth);
       toast({
-        title: "Success",
-        description: "Successfully signed out",
+        title: "Signed Out",
+        description: "You have been successfully signed out",
       });
     } catch (error: any) {
+      console.error('Sign-out error:', error);
       toast({
         title: "Error",
-        description: "Failed to sign out",
+        description: "Failed to sign out. Please try again.",
         variant: "destructive",
       });
       throw error;
     }
   };
 
-  // Guest login functionality removed for security in production
-
   return {
     user,
     loading,
-    signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
     logout,

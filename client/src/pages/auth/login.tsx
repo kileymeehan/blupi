@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
-import { SiGoogle } from "react-icons/si";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -18,8 +17,9 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [_, setLocation] = useLocation();
-  const { signInWithEmail, signInWithGoogle, user } = useFirebaseAuth();
+  const { signInWithEmail, user } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -36,46 +36,17 @@ export default function LoginPage() {
   }, [user, setLocation]);
 
   const onSubmit = form.handleSubmit(async (data) => {
+    setIsSubmitting(true);
+    setError(null);
+    
     try {
       await signInWithEmail(data.email, data.password);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setIsSubmitting(false);
     }
   });
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (err) {
-      // Log error for debugging
-      if (err instanceof Error) {
-        console.error('Google Sign-in error:', err);
-        
-        if (err.toString().includes('auth/unauthorized-domain')) {
-          // Domain authorization issue - show specific error with instructions
-          const currentDomain = window.location.hostname;
-          setError(`Domain Authorization Required: Add "${currentDomain}" to Firebase Console → Authentication → Settings → Authorized domains. This can take up to 15 minutes to propagate.`);
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("Google sign-in failed");
-      }
-    }
-  };
-  
-  // Alternative authentication explanation
-  const alternativeAuthInfo = (
-    <div className="mt-4 text-sm text-muted-foreground">
-      <p className="font-medium">Firebase Domain Authorization Issue?</p>
-      <p className="mt-1">If Google Sign-in doesn't work, please:</p>
-      <ol className="list-decimal pl-5 mt-1 space-y-1">
-        <li>Add your current domain to Firebase Console</li>
-        <li>Wait up to 15 minutes for changes to propagate</li>
-        <li>Or use email/password authentication in the meantime</li>
-      </ol>
-    </div>
-  );
 
   if (user) {
     return null;
@@ -135,36 +106,6 @@ export default function LoginPage() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-col space-y-2">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-sm">
-                <h3 className="font-medium text-yellow-800">Domain Authorization Required</h3>
-                <p className="text-yellow-700 mt-1">
-                  We're experiencing issues with Firebase domain authorization. Please use email login below instead.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full hover:bg-[#302E87]/5 border-[#A1D9F5] opacity-70"
-                onClick={handleGoogleSignIn}
-              >
-                <SiGoogle className="mr-2 h-4 w-4 text-[#302E87]" />
-                Sign in with Google (May not work)
-              </Button>
-              <p className="text-xs text-gray-500 text-center">
-                <span className="italic">Domain Authorization Error:</span> Add <span className="font-mono text-xs text-amber-600 font-bold">{window.location.hostname}</span> to Firebase authorized domains
-              </p>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-[#A1D9F5]/50" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-[#6B6B97]">
-                  Or continue with
-                </span>
-              </div>
-            </div>
             <form onSubmit={onSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Input
@@ -195,8 +136,12 @@ export default function LoginPage() {
               {error && (
                 <p className="text-sm text-[#F2918C]">{error}</p>
               )}
-              <Button type="submit" className="w-full bg-[#302E87] hover:bg-[#252270]">
-                Sign in
+              <Button 
+                type="submit" 
+                className="w-full bg-[#302E87] hover:bg-[#252270]"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </CardContent>

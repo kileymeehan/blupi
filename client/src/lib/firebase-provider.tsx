@@ -1,11 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { 
-  User,
-  onAuthStateChanged,
-  getRedirectResult
-} from '@firebase/auth';
+import { User, onAuthStateChanged } from '@firebase/auth';
 import { auth } from './firebase';
-import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 
 type FirebaseContextType = {
@@ -18,7 +13,6 @@ const FirebaseContext = createContext<FirebaseContextType | null>(null);
 export function FirebaseProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     console.log('Setting up Firebase auth state listener');
@@ -38,12 +32,8 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
             await queryClient.invalidateQueries();
             localStorage.removeItem('userEmail');
           } else {
-            // For anonymous users, use "Guest User" as identifier
-            const userIdentifier = user.isAnonymous 
-              ? 'Guest User' 
-              : (user.email || 'Anonymous');
-            
-            // Store identifier for websocket identification
+            // Store email for websocket identification
+            const userIdentifier = user.email || 'Anonymous';
             localStorage.setItem('userEmail', userIdentifier);
             
             // Refetch data after successful auth
@@ -61,26 +51,11 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    // Check for redirect result on mount
-    getRedirectResult(auth).catch((error) => {
-      if (error.code === 'auth/unauthorized-domain') {
-        console.error('Domain authorization error:', {
-          currentDomain: window.location.hostname,
-          message: error.message
-        });
-        toast({
-          title: "Domain Error",
-          description: `Please ensure ${window.location.hostname} is added to Firebase Console > Authentication > Settings > Authorized domains`,
-          variant: "destructive",
-        });
-      }
-    });
-
     return () => {
       console.log('Cleaning up Firebase auth state listener');
       unsubscribe();
     };
-  }, [toast]);
+  }, []);
 
   return (
     <FirebaseContext.Provider value={{ user, loading }}>
