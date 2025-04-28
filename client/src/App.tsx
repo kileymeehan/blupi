@@ -4,7 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { FirebaseProvider } from "@/lib/firebase-provider";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Board from "@/pages/board";
@@ -15,9 +15,6 @@ import Project from "@/pages/project";
 import Profile from "@/pages/profile";
 import PublicBoard from "@/pages/public-board";
 import LandingPage from "@/pages/landing";
-
-// Auth handler component to handle redirects from authentication providers
-const AuthHandlerPage = lazy(() => import("@/pages/auth/auth-handler"));
 
 function Router() {
   // Get URL parameters
@@ -60,15 +57,6 @@ function Router() {
         <Route path="/landing" component={LandingPage} />
         <Route path="/auth/login" component={LoginPage} />
         <Route path="/auth/register" component={RegisterPage} />
-        <Route path="/auth/handler">
-          <AuthHandlerPage />
-        </Route>
-        <Route path="/auth/action">
-          <AuthHandlerPage />
-        </Route>
-        <Route path="/auth/callback">
-          <AuthHandlerPage />
-        </Route>
         <Route path="/auth">
           <LoginPage />
         </Route>

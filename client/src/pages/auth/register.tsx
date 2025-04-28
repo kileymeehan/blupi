@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
-import { SiGoogle } from "react-icons/si";
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -18,8 +17,9 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const [_, setLocation] = useLocation();
-  const { signUpWithEmail, signInWithGoogle, user } = useFirebaseAuth();
+  const { signUpWithEmail, user } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -29,7 +29,6 @@ export default function RegisterPage() {
     },
   });
 
-  // Handle redirect in useEffect instead of during render
   useEffect(() => {
     if (user) {
       setLocation("/");
@@ -37,86 +36,42 @@ export default function RegisterPage() {
   }, [user, setLocation]);
 
   const onSubmit = form.handleSubmit(async (data) => {
+    setIsSubmitting(true);
+    setError(null);
+    
     try {
       await signUpWithEmail(data.email, data.password);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
+    } finally {
+      setIsSubmitting(false);
     }
   });
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (err) {
-      // Log error for debugging
-      if (err instanceof Error) {
-        console.error('Google Sign-in error:', err);
-        
-        if (err.toString().includes('auth/unauthorized-domain')) {
-          // Domain authorization issue - show specific error with instructions
-          const currentDomain = window.location.hostname;
-          setError(`Domain Authorization Required: Add "${currentDomain}" to Firebase Console → Authentication → Settings → Authorized domains. This can take up to 15 minutes to propagate.`);
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("Google sign-in failed");
-      }
-    }
-  };
-
-  // Return null during user state transitions
   if (user) {
     return null;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-[#FFE8D6]/30">
+      <Card className="w-full max-w-md border-[#A1D9F5] shadow-lg">
         <CardHeader className="space-y-1">
-          <h2 className="text-2xl font-bold tracking-tight">Create an account</h2>
-          <p className="text-sm text-muted-foreground">
-            Choose your preferred sign up method
+          <h2 className="text-2xl font-bold tracking-tight text-[#302E87]">Create an account</h2>
+          <p className="text-sm text-[#6B6B97]">
+            Register to start creating blueprints
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-sm mb-4">
-            <h3 className="font-medium text-yellow-800">Domain Authorization Required</h3>
-            <p className="text-yellow-700 mt-1">
-              We're experiencing issues with Firebase domain authorization. Please use email registration below instead.
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full opacity-70"
-            onClick={handleGoogleSignIn}
-          >
-            <SiGoogle className="mr-2 h-4 w-4" />
-            Sign up with Google (May not work)
-          </Button>
-          <p className="text-xs text-gray-500 text-center mt-1">
-            <span className="italic">Domain Authorization Error:</span> Add <span className="font-mono text-xs text-amber-600 font-bold">{window.location.hostname}</span> to Firebase authorized domains
-          </p>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <Input
                 type="email"
                 placeholder="Email"
                 {...form.register("email")}
+                className="bg-white border-[#A1D9F5] focus-visible:ring-[#302E87]"
               />
               {form.formState.errors.email && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-[#F2918C]">
                   {form.formState.errors.email.message}
                 </p>
               )}
@@ -126,27 +81,32 @@ export default function RegisterPage() {
                 type="password"
                 placeholder="Password"
                 {...form.register("password")}
+                className="bg-white border-[#A1D9F5] focus-visible:ring-[#302E87]"
               />
               {form.formState.errors.password && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-[#F2918C]">
                   {form.formState.errors.password.message}
                 </p>
               )}
             </div>
             {error && (
-              <p className="text-sm text-destructive">{error}</p>
+              <p className="text-sm text-[#F2918C]">{error}</p>
             )}
-            <Button type="submit" className="w-full">
-              Create account
+            <Button 
+              type="submit" 
+              className="w-full bg-[#302E87] hover:bg-[#252270]"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating account..." : "Create account"}
             </Button>
           </form>
         </CardContent>
         <CardFooter>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-[#6B6B97]">
             Already have an account?{" "}
             <Button
               variant="link"
-              className="px-0"
+              className="px-0 text-[#302E87] hover:text-[#252270]"
               onClick={() => setLocation("/auth/login")}
             >
               Sign in
