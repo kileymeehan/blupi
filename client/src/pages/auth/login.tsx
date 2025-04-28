@@ -165,20 +165,17 @@ export default function LoginPage() {
             <Button 
               variant="outline" 
               className="w-full border-[#A1D9F5] text-[#302E87] flex items-center justify-center gap-2"
-              onClick={async () => {
+              onClick={() => {
                 setError(null);
                 setIsGoogleSigningIn(true);
-                try {
-                  await signInWithGoogle();
-                } catch (error: unknown) {
+                // The signInWithGoogle function will now handle redirects
+                // We won't return to this page until after the Google authentication flow
+                signInWithGoogle().catch(error => {
+                  // We'll only get here if there's an error initiating the redirect
                   const err = error as { code?: string, message?: string };
-                  if (err.code !== 'auth/popup-closed-by-user' && 
-                      err.code !== 'auth/cancelled-popup-request') {
-                    setError(err.message || "Google sign-in failed");
-                  }
-                } finally {
+                  setError(err.message || "Could not start Google sign-in");
                   setIsGoogleSigningIn(false);
-                }
+                });
               }}
               disabled={isGoogleSigningIn}
             >

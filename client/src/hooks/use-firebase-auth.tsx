@@ -9,6 +9,8 @@ import {
   signInWithEmailLink,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   type User,
   updateProfile
 } from '@firebase/auth';
@@ -385,41 +387,67 @@ export function useFirebaseAuth() {
     return isSignInWithEmailLink(auth, url);
   };
 
+  // Check for redirect result on component mount
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          console.log('Google sign-in redirect successful');
+          toast({
+            title: "Welcome!",
+            description: "You've successfully signed in with Google",
+          });
+        }
+      } catch (error: any) {
+        console.error('Google redirect result error:', error);
+        if (error.code === 'auth/operation-not-allowed') {
+          toast({
+            title: "Google Sign-In Not Enabled",
+            description: "Google authentication needs to be enabled in the Firebase Console.",
+            variant: "destructive",
+            duration: 8000,
+          });
+        } else if (error.code !== 'auth/cancelled-popup-request') {
+          toast({
+            title: "Authentication Error",
+            description: error.message || "An error occurred during Google sign-in",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
+    handleRedirectResult();
+  }, [toast]);
+
   // Google sign-in
   const signInWithGoogle = async () => {
     try {
-      console.log('Attempting Google sign-in...');
+      console.log('Initiating Google sign-in with redirect...');
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
       
-      console.log('Google sign-in successful');
-      toast({
-        title: "Welcome!",
-        description: "You've successfully signed in with Google",
+      // Add scopes if needed
+      provider.addScope('profile');
+      provider.addScope('email');
+      
+      // Set custom parameters
+      provider.setCustomParameters({
+        prompt: 'select_account' // Force account selection even if one account is available
       });
       
-      return result.user;
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
+      await signInWithRedirect(auth, provider);
       
-      if (error.code === 'auth/popup-closed-by-user') {
-        toast({
-          title: "Sign-in Cancelled",
-          description: "You closed the Google sign-in window",
-        });
-      } else if (error.code === 'auth/popup-blocked') {
-        toast({
-          title: "Popup Blocked",
-          description: "The sign-in popup was blocked by your browser. Please allow popups for this site.",
-          variant: "destructive",
-        });
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        // This is a normal behavior, no need to show an error
-        console.log('User cancelled popup request');
-      } else if (error.code === 'auth/operation-not-allowed') {
+      // The page will redirect to Google's auth page, so we won't get here until
+      // after the redirect. We handle the result in the useEffect above.
+      
+    } catch (error: any) {
+      console.error('Google sign-in redirect error:', error);
+      
+      if (error.code === 'auth/operation-not-allowed') {
         toast({
           title: "Google Sign-In Not Enabled",
-          description: "Google authentication needs to be enabled in the Firebase Console. Please contact the administrator.",
+          description: "Google authentication needs to be enabled in the Firebase Console.",
           variant: "destructive",
           duration: 8000,
         });
@@ -427,7 +455,7 @@ export function useFirebaseAuth() {
       } else {
         toast({
           title: "Google Sign-in Error",
-          description: error.message || "An error occurred during Google sign-in",
+          description: error.message || "An error occurred starting Google sign-in",
           variant: "destructive",
         });
       }
