@@ -16,9 +16,21 @@ const getAuthDomain = () => {
   if (isReplitEnvironment()) {
     // Log for debugging
     console.log('Running in Replit environment, using special auth configuration');
-    // During development on Replit, provide a more flexible authDomain
-    // In Firebase Console, you should add BOTH your specific Replit domain AND your deployment domain
-    return hostname;
+    
+    // In Replit, we have a few options:
+    // 1. Try using the Firebase provided auth domain (most reliable when configured)
+    // 2. Try using the current hostname (works if this specific domain is authorized)
+    // 3. For deployment, use a consistent subdomain
+    
+    // If we're in development with a random Replit subdomain
+    if (hostname.includes('-00-')) {
+      // Option 2: Try using the current hostname directly
+      return hostname;
+    }
+    
+    // For a stable Replit deployment
+    // Option 1: Firebase default (if you've manually authorized this in Firebase Console)
+    return `${projectId}.firebaseapp.com`;
   }
   
   // Default Firebase authDomain for production

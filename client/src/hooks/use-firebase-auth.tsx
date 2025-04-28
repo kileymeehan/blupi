@@ -71,10 +71,18 @@ export function useFirebaseAuth() {
   };
 
   useEffect(() => {
-    // Check for redirect result when component mounts
+    // Check for redirect result when component mounts, but only if not on the auth handler page
+    // which has its own redirect handling logic
+    if (window.location.pathname.startsWith('/auth/handler') || 
+        window.location.pathname.startsWith('/auth/callback') || 
+        window.location.pathname.startsWith('/auth/action')) {
+      return; // Skip redirect handling on auth handler pages
+    }
+      
     getRedirectResult(auth)
       .then((result) => {
         if (result) {
+          console.log('Redirect result processed in auth hook');
           toast({
             title: "Success",
             description: "Successfully signed in with Google",
