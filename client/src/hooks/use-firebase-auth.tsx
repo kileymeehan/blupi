@@ -84,9 +84,13 @@ export function useFirebaseAuth() {
       .catch((error) => {
         console.error('Redirect sign-in error:', error);
         if (error.code === 'auth/unauthorized-domain') {
+          // Get the exact domain from window.location
+          const currentDomain = window.location.hostname;
+          console.log('Current hostname (redirect):', currentDomain);
+          
           toast({
             title: "Domain Authorization Required",
-            description: "To enable Google Sign-in, add this Replit domain to your Firebase Console under Authentication > Settings > Authorized domains.",
+            description: `Add "${currentDomain}" to your Firebase authorized domains list. Your current domain is not authorized yet.`,
             variant: "destructive",
             duration: 10000,
           });
@@ -117,9 +121,13 @@ export function useFirebaseAuth() {
       
       // Better error handling for domain issues
       if (error.code === 'auth/unauthorized-domain') {
+        // Get the exact domain from window.location
+        const currentDomain = window.location.hostname;
+        console.log('Current hostname:', currentDomain);
+        
         toast({
           title: "Domain Authorization Required",
-          description: "To enable Google Sign-in, add this Replit domain to your Firebase Console under Authentication > Settings > Authorized domains.",
+          description: `Add "${currentDomain}" to your Firebase authorized domains list. Your current domain is not authorized yet.`,
           variant: "destructive",
           duration: 10000, // Show longer for this important message
         });

@@ -15,10 +15,20 @@ const firebaseConfig = {
 let app;
 let auth: Auth;
 
+// Log current hostname for Firebase domain debugging
+const hostname = window.location.hostname;
+const fullUrl = window.location.href;
+const isMainDomain = hostname === 'replit.dev' || hostname.endsWith('.replit.dev');
+
+console.log('Current host is:', hostname);
+console.log('Is main domain?', isMainDomain);
+
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   auth.useDeviceLanguage();
+  
+  console.log('Setting up Firebase auth state listener');
 
   // Initialize auth state listener
   onAuthStateChanged(auth, async (user) => {
