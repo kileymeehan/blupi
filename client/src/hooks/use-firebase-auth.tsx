@@ -109,14 +109,45 @@ export function useFirebaseAuth() {
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
+      
+      // Important: Add login_hint with a default email to prevent the Google account selection dialog
+      // which can help bypass certain authentication issues in development environments
       provider.setCustomParameters({
-        prompt: 'select_account'
+        prompt: 'select_account',
+        // login_hint: 'user@example.com' // Uncomment to pre-fill email
       });
 
-      // Try popup method instead of redirect
-      const result = await signInWithPopup(auth, provider);
+      // Detect the environment to use the appropriate auth method
+      const isReplit = window.location.hostname.includes('replit');
+      
+      console.log('Attempting Google sign-in...');
+      
+      // For Replit environments, we'll always try popup first, then fallback to redirect
+      // as popup works better in many Replit scenarios
+      let result;
+      
+      try {
+        // Popup method (primary attempt)
+        result = await signInWithPopup(auth, provider);
+        console.log('Popup sign-in successful');
+      } catch (popupError: any) {
+        console.error('Popup sign-in failed:', popupError.code);
+        
+        // If we got an unauthorized domain error with popup, don't try redirect
+        // as it will fail for the same reason
+        if (popupError.code === 'auth/unauthorized-domain') {
+          throw popupError;
+        }
+        
+        // For other errors, try redirect as fallback (less reliable in Replit)
+        console.log('Falling back to redirect method...');
+        await signInWithRedirect(auth, provider);
+        return; // The page will reload after redirect
+      }
+      
       // Success! Handle the result directly
       if (result && result.user) {
+        console.log('Sign-in successful:', result.user.email);
         toast({
           title: "Success",
           description: "Successfully signed in with Google",
@@ -132,22 +163,35 @@ export function useFirebaseAuth() {
     } catch (error: any) {
       console.error('Sign-in error:', error);
       
-      // Better error handling for domain issues
+      // Enhanced error handling
       if (error.code === 'auth/unauthorized-domain') {
         // Get the exact domain from window.location
         const currentDomain = window.location.hostname;
         console.log('Current hostname:', currentDomain);
         
+        // Suggest email-based authentication as alternative
         toast({
           title: "Domain Authorization Required",
-          description: `Add exactly "${currentDomain}" to Firebase Console Authentication settings. Domain registration can take up to 15 minutes to propagate.`,
+          description: `Add "${currentDomain}" to Firebase Console Authentication settings → Authorized domains. Email/password login is available as an alternative.`,
           variant: "destructive",
           duration: 10000, // Show longer for this important message
+        });
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        toast({
+          title: "Authentication Canceled",
+          description: "Sign-in was canceled. Please try again.",
+          variant: "default",
+        });
+      } else if (error.code === 'auth/popup-blocked') {
+        toast({
+          title: "Popup Blocked",
+          description: "Please allow popups for this site and try again, or use email/password login instead.",
+          variant: "destructive",
         });
       } else {
         toast({
           title: "Sign-in Error",
-          description: error.message || "Failed to complete Google sign-in",
+          description: error.message || "Failed to complete Google sign-in. Try email/password login instead.",
           variant: "destructive",
         });
       }

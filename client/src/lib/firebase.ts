@@ -1,10 +1,34 @@
 import { initializeApp } from "@firebase/app";
-import { getAuth, onAuthStateChanged, type Auth } from "@firebase/auth";
+import { getAuth, onAuthStateChanged, connectAuthEmulator, type Auth } from "@firebase/auth";
+
+// Function to determine if we're running in a Replit environment
+const isReplitEnvironment = () => {
+  const hostname = window.location.hostname;
+  return hostname.includes('replit.dev') || hostname.includes('repl.co');
+};
+
+// Function to get the appropriate authDomain based on environment
+const getAuthDomain = () => {
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || "blueprints-48648";
+  const hostname = window.location.hostname;
+  
+  // If we're in a Replit environment, we need special handling
+  if (isReplitEnvironment()) {
+    // Log for debugging
+    console.log('Running in Replit environment, using special auth configuration');
+    // During development on Replit, provide a more flexible authDomain
+    // In Firebase Console, you should add BOTH your specific Replit domain AND your deployment domain
+    return hostname;
+  }
+  
+  // Default Firebase authDomain for production
+  return `${projectId}.firebaseapp.com`;
+};
 
 // Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDALLWQjfh2pqyPPhj8qaJK-C9yISk6X2c",
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "blueprints-48648"}.firebaseapp.com`,
+  authDomain: getAuthDomain(),
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "blueprints-48648",
   storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "blueprints-48648"}.appspot.com`,
   messagingSenderId: "345099176849",
@@ -20,8 +44,9 @@ const hostname = window.location.hostname;
 const isMainDomain = !hostname.includes('-00-');  // Check if we're on the main replit domain
 
 // The exact domain that needs to be authorized in Firebase Console:
-console.log('Current host is:', hostname);
+console.log('Current hostname:', hostname);
 console.log('Is main domain?', isMainDomain);
+console.log('Auth domain set to:', firebaseConfig.authDomain);
 
 // Note: When using Replit, you need to authorize all possible domains in Firebase console
 // For Replit Dev environment, add these domains to Firebase authorized domains:
@@ -29,15 +54,24 @@ console.log('Is main domain?', isMainDomain);
 // 2. *.replit.dev as a wildcard if possible
 
 try {
+  // Initialize Firebase
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   auth.useDeviceLanguage();
+  
+  // In development, we can use a local auth emulator (optional)
+  if (import.meta.env.DEV && false) { // Set to true to enable emulator
+    // Connect to Firebase Auth Emulator
+    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+    console.log('Connected to Firebase Auth Emulator');
+  }
   
   console.log('Setting up Firebase auth state listener');
 
   // Initialize auth state listener
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      console.log('Auth state changed:', 'User signed in');
       try {
         // When Firebase authenticates, sync with backend session
         const response = await fetch('/api/auth/check', {
@@ -53,6 +87,7 @@ try {
         console.error('Auth sync error:', error);
       }
     } else {
+      console.log('Auth state changed:', 'No user');
       // Clear any stored auth data
       localStorage.removeItem('userEmail');
     }
