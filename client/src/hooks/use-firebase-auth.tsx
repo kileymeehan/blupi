@@ -83,10 +83,17 @@ export function useFirebaseAuth() {
       })
       .catch((error) => {
         console.error('Redirect sign-in error:', error);
-        if (error.code !== 'auth/no-auth-event') {
+        if (error.code === 'auth/unauthorized-domain') {
           toast({
-            title: "Error",
-            description: "Failed to sign in with Google",
+            title: "Domain Authorization Required",
+            description: "To enable Google Sign-in, add this Replit domain to your Firebase Console under Authentication > Settings > Authorized domains.",
+            variant: "destructive",
+            duration: 10000,
+          });
+        } else if (error.code !== 'auth/no-auth-event') {
+          toast({
+            title: "Sign-in Error",
+            description: error.message || "Failed to complete Google sign-in",
             variant: "destructive",
           });
         }
@@ -111,14 +118,15 @@ export function useFirebaseAuth() {
       // Better error handling for domain issues
       if (error.code === 'auth/unauthorized-domain') {
         toast({
-          title: "Domain Error",
-          description: "This domain isn't authorized in Firebase. Please use email login or add this domain in Firebase Console.",
+          title: "Domain Authorization Required",
+          description: "To enable Google Sign-in, add this Replit domain to your Firebase Console under Authentication > Settings > Authorized domains.",
           variant: "destructive",
+          duration: 10000, // Show longer for this important message
         });
       } else {
         toast({
-          title: "Error",
-          description: "Failed to start Google sign-in",
+          title: "Sign-in Error",
+          description: error.message || "Failed to complete Google sign-in",
           variant: "destructive",
         });
       }

@@ -18,7 +18,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [_, setLocation] = useLocation();
-  const { signInWithEmail, user } = useFirebaseAuth();
+  const { signInWithEmail, signInWithGoogle, user } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<LoginForm>({
@@ -43,7 +43,14 @@ export default function LoginPage() {
     }
   });
 
-  // Google sign-in disabled due to domain authorization requirements
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in failed");
+    }
+  };
+  
   // Guest login removed for security in production
 
   if (user) {
@@ -109,14 +116,13 @@ export default function LoginPage() {
                 type="button"
                 variant="outline"
                 className="w-full hover:bg-[#302E87]/5 border-[#A1D9F5]"
-                disabled={true}
-                title="Domain authorization needed in Firebase Console"
+                onClick={handleGoogleSignIn}
               >
                 <SiGoogle className="mr-2 h-4 w-4 text-[#302E87]" />
                 Sign in with Google
               </Button>
-              <p className="text-xs text-amber-600 text-center">
-                Google Sign-in disabled - domain needs authorization
+              <p className="text-xs text-gray-500 text-center italic">
+                Note: Requires authorizing domain in Firebase Console
               </p>
             </div>
             <div className="relative">
