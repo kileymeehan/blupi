@@ -75,9 +75,9 @@ export function ConfirmSignInPage() {
         setSuccess(true);
         setIsProcessing(false);
         
-        // Redirect to dashboard after short delay
+        // Redirect to home page after short delay
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate("/");
         }, 2000);
       } catch (error) {
         console.error("Error processing sign-in link:", error);
@@ -96,9 +96,9 @@ export function ConfirmSignInPage() {
       await completeMagicLinkSignIn(window.location.href, data.email);
       setSuccess(true);
       
-      // Redirect to dashboard after short delay
+      // Redirect to home page after short delay
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/");
       }, 2000);
     } catch (error) {
       console.error("Error signing in with email:", error);
@@ -150,7 +150,7 @@ export function ConfirmSignInPage() {
               <AlertDescription className="text-center py-4">
                 <p className="font-semibold mb-2">Sign-in Successful!</p>
                 <p>
-                  You are now signed in. You'll be redirected to the dashboard
+                  You are now signed in. You'll be redirected to the home page
                   in a moment.
                 </p>
               </AlertDescription>
