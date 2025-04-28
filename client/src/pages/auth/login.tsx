@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
+import { FcGoogle } from "react-icons/fc";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -17,9 +18,10 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [_, setLocation] = useLocation();
-  const { signInWithEmail, user } = useFirebaseAuth();
+  const { signInWithEmail, signInWithGoogle, user } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -154,10 +156,33 @@ export default function LoginPage() {
             
             <Button 
               variant="outline" 
-              className="w-full border-[#A1D9F5] text-[#302E87]"
+              className="w-full border-[#A1D9F5] text-[#302E87] mb-2"
               onClick={() => setLocation(`/auth/magic-link`)}
             >
               Sign in with Magic Link
+            </Button>
+
+            <Button 
+              variant="outline" 
+              className="w-full border-[#A1D9F5] text-[#302E87] flex items-center justify-center gap-2"
+              onClick={async () => {
+                setError(null);
+                setIsGoogleSigningIn(true);
+                try {
+                  await signInWithGoogle();
+                } catch (err) {
+                  if (err.code !== 'auth/popup-closed-by-user' && 
+                      err.code !== 'auth/cancelled-popup-request') {
+                    setError(err instanceof Error ? err.message : "Google sign-in failed");
+                  }
+                } finally {
+                  setIsGoogleSigningIn(false);
+                }
+              }}
+              disabled={isGoogleSigningIn}
+            >
+              <FcGoogle className="h-5 w-5" />
+              {isGoogleSigningIn ? "Signing in..." : "Sign in with Google"}
             </Button>
             
             <p className="text-sm text-[#6B6B97] pt-2">

@@ -7,6 +7,8 @@ import {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
+  GoogleAuthProvider,
+  signInWithPopup,
   type User,
   updateProfile
 } from '@firebase/auth';
@@ -383,6 +385,56 @@ export function useFirebaseAuth() {
     return isSignInWithEmailLink(auth, url);
   };
 
+  // Google sign-in
+  const signInWithGoogle = async () => {
+    try {
+      console.log('Attempting Google sign-in...');
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      console.log('Google sign-in successful');
+      toast({
+        title: "Welcome!",
+        description: "You've successfully signed in with Google",
+      });
+      
+      return result.user;
+    } catch (error: any) {
+      console.error('Google sign-in error:', error);
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast({
+          title: "Sign-in Cancelled",
+          description: "You closed the Google sign-in window",
+        });
+      } else if (error.code === 'auth/popup-blocked') {
+        toast({
+          title: "Popup Blocked",
+          description: "The sign-in popup was blocked by your browser. Please allow popups for this site.",
+          variant: "destructive",
+        });
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // This is a normal behavior, no need to show an error
+        console.log('User cancelled popup request');
+      } else if (error.code === 'auth/operation-not-allowed') {
+        toast({
+          title: "Google Sign-In Not Enabled",
+          description: "Google authentication needs to be enabled in the Firebase Console. Please contact the administrator.",
+          variant: "destructive",
+          duration: 8000,
+        });
+        console.error('IMPORTANT: Enable Google authentication in Firebase Console → Authentication → Sign-in methods');
+      } else {
+        toast({
+          title: "Google Sign-in Error",
+          description: error.message || "An error occurred during Google sign-in",
+          variant: "destructive",
+        });
+      }
+      throw error;
+    }
+  };
+
   return {
     user,
     loading,
@@ -391,6 +443,7 @@ export function useFirebaseAuth() {
     sendMagicLink,
     completeMagicLinkSignIn,
     isSignInLink,
+    signInWithGoogle,
     logout,
     updateUserProfile
   };
