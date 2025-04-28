@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/icons";
+import { Loader2 } from "lucide-react";
 
 // Form schema for when the email isn't available
 const emailSchema = z.object({
@@ -34,8 +34,7 @@ const emailSchema = z.object({
 type EmailForm = z.infer<typeof emailSchema>;
 
 export function ConfirmSignInPage() {
-  const [location] = useLocation();
-  const [, navigate] = useRouter();
+  const [location, navigate] = useLocation();
   const { completeMagicLinkSignIn, isSignInLink } = useFirebaseAuth();
   
   // UI States
@@ -134,7 +133,7 @@ export function ConfirmSignInPage() {
         <CardContent className="pt-4">
           {isProcessing && (
             <div className="flex justify-center py-8">
-              <Icons.spinner className="h-8 w-8 animate-spin text-primary" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           )}
 
@@ -196,7 +195,7 @@ export function ConfirmSignInPage() {
                   >
                     {isProcessing ? (
                       <>
-                        <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Signing In...
                       </>
                     ) : (

@@ -10,6 +10,8 @@ import Home from "@/pages/home";
 import Board from "@/pages/board";
 import LoginPage from "@/pages/auth/login";
 import RegisterPage from "@/pages/auth/register";
+import MagicLinkPage from "@/pages/auth/magic-link";
+import ConfirmSignInPage from "@/pages/auth/confirm-signin";
 import Dashboard from "@/pages/dashboard";
 import Project from "@/pages/project";
 import Profile from "@/pages/profile";
@@ -57,6 +59,8 @@ function Router() {
         <Route path="/landing" component={LandingPage} />
         <Route path="/auth/login" component={LoginPage} />
         <Route path="/auth/register" component={RegisterPage} />
+        <Route path="/auth/magic-link" component={MagicLinkPage} />
+        <Route path="/auth/confirm-signin" component={ConfirmSignInPage} />
         <Route path="/auth">
           <LoginPage />
         </Route>

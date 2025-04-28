@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icons } from "@/components/icons";
+import { Loader2 } from "lucide-react";
 
 // Form schema
 const magicLinkSchema = z.object({
@@ -115,7 +115,7 @@ export function MagicLinkPage() {
                 >
                   {isSubmitting ? (
                     <>
-                      <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Sending...
                     </>
                   ) : (
