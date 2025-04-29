@@ -231,32 +231,23 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
     const blocks = [];
     let blockIndex = 0;
     
-    // Add front-stage divider at the top spanning all columns
-    blocks.push({
-      id: `block-${blockIndex++}`,
-      type: 'front-stage',
-      content: 'CUSTOMER FACING',
-      phaseIndex: 0,
-      columnIndex: 0, // First column
-      comments: [],
-      attachments: [],
-      notes: '',
-      emoji: '',
-      customDepartment: '',
-      isDivider: true
-    });
+    // No longer add front-stage divider at the top
     
     // Process each row of funnel data
     data.forEach((row, index) => {
+      // Extract step number from original step (or use index+1 if not available)
+      const stepMatch = row.step.match(/^(\d+)\./);
+      const stepNumber = stepMatch ? stepMatch[1] : (index + 1).toString();
+      
       // Extract step name (remove numbering prefix)
       const stepName = row.step.replace(/^\d+\.\s*/, '').trim();
       let verticalPosition = 0; // Used to stack blocks vertically in the same column
       
-      // Create touchpoint block for this step in its own column
+      // Create touchpoint block for this step in its own column with step number
       blocks.push({
         id: `block-${blockIndex++}`,
         type: 'touchpoint',
-        content: stepName,
+        content: `${stepNumber}. ${stepName}`,
         phaseIndex: 0,
         columnIndex: index, // Each step gets its own column
         comments: [],
