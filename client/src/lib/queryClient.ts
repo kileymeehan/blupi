@@ -12,9 +12,21 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // Check if we're using development bypass mode
+  const isDevBypass = localStorage.getItem('blupi_dev_bypass') === 'true';
+  
+  // Create headers object with dev bypass flag if needed
+  const headers: Record<string, string> = {};
+  if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
+  if (isDevBypass) {
+    headers['X-Dev-Bypass'] = 'true';
+  }
+  
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include", // Important: Include credentials for session persistence
   });
@@ -29,8 +41,18 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // Check if we're using development bypass mode
+    const isDevBypass = localStorage.getItem('blupi_dev_bypass') === 'true';
+    
+    // Create headers object with dev bypass flag if needed
+    const headers: Record<string, string> = {};
+    if (isDevBypass) {
+      headers['X-Dev-Bypass'] = 'true';
+    }
+    
     const res = await fetch(queryKey[0] as string, {
       credentials: "include", // Important: Include credentials for session persistence
+      headers
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

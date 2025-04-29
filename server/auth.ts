@@ -100,10 +100,11 @@ export function setupAuth(app: Express) {
       });
     }
 
-    // Support for anonymous/guest users from Firebase
+    // Support for development bypass mode and anonymous/guest users from Firebase
     const isGuestUser = req.headers['x-guest-user'] === 'true';
+    const isDevBypass = req.headers['x-dev-bypass'] === 'true';
     
-    if (!req.user && !isGuestUser) {
+    if (!req.user && !isGuestUser && !isDevBypass) {
       console.log('[Auth] No user found during auth check');
       return res.status(401).json({ 
         error: true,
@@ -111,6 +112,19 @@ export function setupAuth(app: Express) {
       });
     }
 
+    if (isDevBypass) {
+      console.log('[Auth] Development bypass mode activated');
+      return res.json({
+        authenticated: true,
+        user: {
+          id: 999, // Dev bypass uses a special ID
+          email: 'dev@example.com',
+          username: 'Development User'
+        },
+        isDev: true
+      });
+    }
+    
     if (isGuestUser) {
       console.log('[Auth] Guest user authenticated');
       return res.json({
