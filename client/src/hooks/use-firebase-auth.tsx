@@ -17,14 +17,65 @@ import {
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
+// Create a development user type that mimics Firebase User
+interface DevUser {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL: string | null;
+  emailVerified: boolean;
+  isAnonymous: boolean;
+  metadata: {
+    creationTime: string;
+    lastSignInTime: string;
+  };
+  reload: () => Promise<void>;
+  // Add other properties as needed
+}
+
+// Check if we're in development mode
+const isDevelopment = true; // Always true for Replit
+
+// Create a dev user to bypass Firebase auth
+const createDevUser = (): DevUser => {
+  const now = new Date().toISOString();
+  return {
+    uid: 'dev-user-123',
+    email: 'dev@example.com',
+    displayName: 'Development User',
+    photoURL: null,
+    emailVerified: true,
+    isAnonymous: false,
+    metadata: {
+      creationTime: now,
+      lastSignInTime: now
+    },
+    reload: async () => Promise.resolve()
+  };
+};
+
 export function useFirebaseAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | DevUser | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  
+  // Check for dev bypass in localStorage
+  const [devBypassEnabled, setDevBypassEnabled] = useState(() => {
+    return localStorage.getItem('blupi_dev_bypass') === 'true';
+  });
 
   // Set up auth state listener
   useEffect(() => {
     console.log('Setting up Firebase auth state listener');
+    
+    // If dev bypass is enabled, use a dev user
+    if (isDevelopment && devBypassEnabled) {
+      console.log('Using development user bypass');
+      const devUser = createDevUser();
+      setUser(devUser as any);
+      setLoading(false);
+      return () => {};
+    }
     
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -53,7 +104,7 @@ export function useFirebaseAuth() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [devBypassEnabled]);
 
   // Update user profile (e.g., avatar)
   const updateUserProfile = async (updates: { photoURL?: string }) => {
@@ -416,6 +467,26 @@ export function useFirebaseAuth() {
     }
   };
 
+  // Dev mode bypass functions
+  const enableDevBypass = () => {
+    localStorage.setItem('blupi_dev_bypass', 'true');
+    setDevBypassEnabled(true);
+    toast({
+      title: "Development Mode Enabled",
+      description: "You are now bypassing Firebase authentication.",
+    });
+  };
+  
+  const disableDevBypass = () => {
+    localStorage.removeItem('blupi_dev_bypass');
+    setDevBypassEnabled(false);
+    setUser(null);
+    toast({
+      title: "Development Mode Disabled",
+      description: "Firebase authentication is now required.",
+    });
+  };
+
   return {
     user,
     loading,
@@ -426,6 +497,10 @@ export function useFirebaseAuth() {
     isSignInLink,
     signInWithGoogle,
     logout,
-    updateUserProfile
+    updateUserProfile,
+    // Development mode properties
+    devBypassEnabled,
+    enableDevBypass,
+    disableDevBypass
   };
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
+import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -17,9 +18,10 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [_, setLocation] = useLocation();
-  const { signInWithEmail, user } = useFirebaseAuth();
+  const { signInWithEmail, user, enableDevBypass, devBypassEnabled } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -158,6 +160,24 @@ export default function LoginPage() {
               onClick={() => setLocation(`/auth/magic-link`)}
             >
               Sign in with Magic Link
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className={`w-full border-amber-400 ${devBypassEnabled ? 'bg-amber-100' : ''} text-amber-700 mt-2`}
+              onClick={() => {
+                enableDevBypass();
+                toast({
+                  title: "Development Bypass Enabled",
+                  description: "You can now access the app without Firebase authentication.",
+                });
+                // Redirect to home page after a short delay
+                setTimeout(() => {
+                  setLocation("/");
+                }, 500);
+              }}
+            >
+              Development Bypass Mode
             </Button>
             
             <p className="text-sm text-[#6B6B97] pt-2">
