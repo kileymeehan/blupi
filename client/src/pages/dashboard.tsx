@@ -91,7 +91,7 @@ function getAnimalEmoji(id: string): string {
 }
 
 export default function Dashboard() {
-  const { user, logout } = useFirebaseAuth();
+  const { user, logout, devBypassEnabled, enableDevBypass, disableDevBypass } = useFirebaseAuth();
   const [, navigate] = useLocation();
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
@@ -288,6 +288,32 @@ export default function Dashboard() {
                     Profile Settings
                   </Link>
                 </DropdownMenuItem>
+                
+                {/* Development Mode Toggle */}
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (devBypassEnabled) {
+                      disableDevBypass();
+                      toast({
+                        title: "Development Mode Disabled",
+                        description: "Firebase authentication is now required.",
+                      });
+                    } else {
+                      enableDevBypass();
+                      toast({
+                        title: "Development Mode Enabled",
+                        description: "You are now bypassing Firebase authentication.",
+                      });
+                    }
+                  }}
+                  className={`cursor-pointer text-sm py-1.5 ${devBypassEnabled ? 'bg-amber-100 text-amber-700' : ''}`}
+                >
+                  <div className="w-3.5 h-3.5 mr-2 flex items-center justify-center">
+                    {devBypassEnabled ? "🔓" : "🔐"}
+                  </div>
+                  {devBypassEnabled ? "Disable Dev Mode" : "Enable Dev Mode"}
+                </DropdownMenuItem>
+                
                 <DropdownMenuItem
                   onClick={logout}
                   className="cursor-pointer text-sm py-1.5"
