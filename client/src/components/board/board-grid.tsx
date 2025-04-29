@@ -948,20 +948,33 @@ export default function BoardGrid({
                 </Button>
               </div>
 
-              <div className="absolute top-0 right-0" style={{ transform: 'translateX(50%)' }}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleSidebar}
-                  className="w-8 h-8 mt-2 rounded-full bg-white shadow-md z-50 hover:bg-gray-100"
-                >
-                  {isDrawerOpen ? (
-                    <ChevronLeft className="w-4 h-4" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
+              {/* Sidebar toggle button for narrow sidebar - visible when sidebar is collapsed */}
+              {!isDrawerOpen && (
+                <div className="absolute top-2 right-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleSidebar}
+                    className="w-6 h-6 rounded-full bg-blue-100 shadow-sm z-50 hover:bg-blue-200 flex items-center justify-center p-0"
+                  >
+                    <ChevronRight className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
+              
+              {/* Sidebar toggle button for wide sidebar - visible when sidebar is expanded */}
+              {isDrawerOpen && (
+                <div className="absolute top-2 right-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleSidebar}
+                    className="w-6 h-6 rounded-full bg-blue-100 shadow-sm z-50 hover:bg-blue-200 flex items-center justify-center p-0"
+                  >
+                    <ChevronLeft className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
 
               {isDrawerOpen && (
                 <div className="flex-1 flex flex-col bg-blue-50 max-h-[calc(100vh-8.5rem)] overflow-hidden">
