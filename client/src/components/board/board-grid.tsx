@@ -877,13 +877,29 @@ export default function BoardGrid({
             className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-40 h-auto flex flex-col overflow-y-auto`}
           >
             <div className="flex flex-col flex-grow overflow-hidden relative">
-              <div className="border-b border-gray-200 bg-white shadow-sm">
+              {/* Always present toggle button at the very top */}
+              <div className="relative border-b border-gray-200 bg-white shadow-sm py-2">
+                <div className={`absolute ${isDrawerOpen ? "right-4" : "right-2"} top-2 z-50`}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleSidebar}
+                    className="w-6 h-6 rounded-full bg-blue-100 shadow-sm hover:bg-blue-200 flex items-center justify-center p-0"
+                  >
+                    {isDrawerOpen ? (
+                      <ChevronLeft className="w-3 h-3" />
+                    ) : (
+                      <ChevronRight className="w-3 h-3" />
+                    )}
+                  </Button>
+                </div>
+                
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={toggleContext}
                   className={`
-                    w-full h-12 px-4
+                    w-full h-12 px-4 mt-6
                     flex items-center gap-2
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
@@ -947,34 +963,6 @@ export default function BoardGrid({
                   )}
                 </Button>
               </div>
-
-              {/* Sidebar toggle button for narrow sidebar - visible when sidebar is collapsed */}
-              {!isDrawerOpen && (
-                <div className="absolute top-2 right-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleSidebar}
-                    className="w-6 h-6 rounded-full bg-blue-100 shadow-sm z-50 hover:bg-blue-200 flex items-center justify-center p-0"
-                  >
-                    <ChevronRight className="w-3 h-3" />
-                  </Button>
-                </div>
-              )}
-              
-              {/* Sidebar toggle button for wide sidebar - visible when sidebar is expanded */}
-              {isDrawerOpen && (
-                <div className="absolute top-2 right-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleSidebar}
-                    className="w-6 h-6 rounded-full bg-blue-100 shadow-sm z-50 hover:bg-blue-200 flex items-center justify-center p-0"
-                  >
-                    <ChevronLeft className="w-3 h-3" />
-                  </Button>
-                </div>
-              )}
 
               {isDrawerOpen && (
                 <div className="flex-1 flex flex-col bg-blue-50 max-h-[calc(100vh-8.5rem)] overflow-hidden">
