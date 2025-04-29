@@ -45,14 +45,21 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
       const values = row.split(',');
       const cleanValues = values.map(val => val.replace(/"/g, '').trim());
       
+      // Parse numeric values correctly - handle thousands separators
+      const parseNumericValue = (value: string): number => {
+        if (!value || value === '--') return 0;
+        // Remove commas, spaces and any non-numeric characters except decimal points
+        return parseFloat(value.replace(/[^\d.]/g, '')) || 0;
+      };
+      
       return {
         step: cleanValues[0] || '',
         filters: cleanValues[1] || '',
-        visitorsStarted: parseInt(cleanValues[2]?.replace(/[^0-9]/g, '') || '0'),
-        dropped: parseInt(cleanValues[3]?.replace(/[^0-9]/g, '') || '0'),
+        visitorsStarted: parseNumericValue(cleanValues[2]),
+        dropped: parseNumericValue(cleanValues[3]),
         conversionRate: cleanValues[4] || '0%',
-        avgTimeFromPrevious: parseFloat(cleanValues[5] || '0'),
-        medianTimeFromPrevious: parseFloat(cleanValues[6] || '0')
+        avgTimeFromPrevious: parseNumericValue(cleanValues[5]),
+        medianTimeFromPrevious: parseNumericValue(cleanValues[6])
       };
     });
   };
@@ -215,6 +222,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
     data.forEach((row, index) => {
       // Extract step name (remove numbering prefix)
       const stepName = row.step.replace(/^\d+\.\s*/, '').trim();
+      let verticalPosition = 0; // Used to stack blocks vertically in the same column
       
       // Create touchpoint block for this step in its own column
       blocks.push({
@@ -231,34 +239,92 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
         customDepartment: ''
       });
       
-      // Create metrics block with conversion and time data below the touchpoint
-      const metricsContent = `Visitors: ${row.visitorsStarted.toLocaleString()}
-${row.dropped > 0 ? `Drop-off: ${row.dropped.toLocaleString()}` : ''}
-Conversion: ${row.conversionRate}
-${row.avgTimeFromPrevious > 0 ? `Avg. Time: ${formatTime(row.avgTimeFromPrevious)}` : ''}`;
+      verticalPosition++; // Move down for the next block
       
-      blocks.push({
-        id: `block-${blockIndex++}`,
-        type: 'metrics',
-        content: metricsContent,
-        phaseIndex: 0,
-        columnIndex: index, // Same column as the touchpoint
-        comments: [],
-        attachments: [],
-        notes: '',
-        emoji: '',
-        department: 'Analytics',
-        customDepartment: ''
-      });
+      // Create individual metrics blocks for each metric
+      
+      // Visitors Started
+      if (row.visitorsStarted > 0) {
+        blocks.push({
+          id: `block-${blockIndex++}`,
+          type: 'metrics',
+          content: `Visitors: ${row.visitorsStarted.toLocaleString()}`,
+          phaseIndex: 0,
+          columnIndex: index,
+          comments: [],
+          attachments: [],
+          notes: '',
+          emoji: '',
+          department: 'Analytics',
+          customDepartment: ''
+        });
+        verticalPosition++;
+      }
+      
+      // Dropped
+      if (row.dropped > 0) {
+        blocks.push({
+          id: `block-${blockIndex++}`,
+          type: 'metrics',
+          content: `Drop-off: ${row.dropped.toLocaleString()}`,
+          phaseIndex: 0,
+          columnIndex: index,
+          comments: [],
+          attachments: [],
+          notes: '',
+          emoji: '',
+          department: 'Analytics',
+          customDepartment: ''
+        });
+        verticalPosition++;
+      }
+      
+      // Conversion Rate
+      if (row.conversionRate) {
+        blocks.push({
+          id: `block-${blockIndex++}`,
+          type: 'metrics',
+          content: `Conversion: ${row.conversionRate}`,
+          phaseIndex: 0,
+          columnIndex: index,
+          comments: [],
+          attachments: [],
+          notes: '',
+          emoji: '',
+          department: 'Analytics',
+          customDepartment: ''
+        });
+        verticalPosition++;
+      }
+      
+      // Average Time
+      if (row.avgTimeFromPrevious > 0) {
+        blocks.push({
+          id: `block-${blockIndex++}`,
+          type: 'metrics',
+          content: `Avg. Time: ${formatTime(row.avgTimeFromPrevious)}`,
+          phaseIndex: 0,
+          columnIndex: index,
+          comments: [],
+          attachments: [],
+          notes: '',
+          emoji: '',
+          department: 'Analytics',
+          customDepartment: ''
+        });
+        verticalPosition++;
+      }
       
       // Create friction block if there's significant drop-off (> 30%)
-      if (row.conversionRate && parseInt(row.conversionRate) < 70) {
+      // Parse conversion rate to get numeric value (remove % sign)
+      const conversionRateValue = parseInt(row.conversionRate?.replace('%', '') || '100');
+      if (conversionRateValue < 70) {
         blocks.push({
           id: `block-${blockIndex++}`,
           type: 'friction',
           content: `Friction point: ${stepName}`,
           phaseIndex: 0,
-          columnIndex: index, // Same column as the touchpoint
+          columnIndex: index,
           comments: [],
           attachments: [],
           notes: `High drop-off point at ${stepName}. Investigate user experience issues.`,
@@ -266,6 +332,7 @@ ${row.avgTimeFromPrevious > 0 ? `Avg. Time: ${formatTime(row.avgTimeFromPrevious
           department: 'UX',
           customDepartment: ''
         });
+        verticalPosition++;
       }
       
       // Add process block for backend activity if it's not the first step
@@ -275,7 +342,7 @@ ${row.avgTimeFromPrevious > 0 ? `Avg. Time: ${formatTime(row.avgTimeFromPrevious
           type: 'process',
           content: `Process ${stepName} request`,
           phaseIndex: 0,
-          columnIndex: index, // Same column as the touchpoint
+          columnIndex: index,
           comments: [],
           attachments: [],
           notes: '',
