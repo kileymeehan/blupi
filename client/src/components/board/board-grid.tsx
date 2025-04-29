@@ -727,7 +727,7 @@ export default function BoardGrid({
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0 sticky top-0 left-0 right-0 z-20">
+      <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0 sticky top-0 left-0 right-0 z-50">
         <div className="flex items-center gap-4 pl-4">
           <Button
             variant="ghost"
