@@ -726,8 +726,8 @@ export default function BoardGrid({
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0">
+    <div className="min-h-screen bg-background overflow-x-hidden">
+      <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0 sticky top-0 left-0 right-0 z-20">
         <div className="flex items-center gap-4 pl-4">
           <Button
             variant="ghost"
@@ -871,10 +871,10 @@ export default function BoardGrid({
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden relative pt-0.5">
         <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div
-            className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-[5rem] left-0 bottom-0 z-10 h-auto flex flex-col overflow-y-auto`}
+            className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-10 h-auto flex flex-col overflow-y-auto`}
           >
             <div className="flex flex-col flex-grow">
               <div className="border-b border-gray-200 bg-white shadow-sm">
