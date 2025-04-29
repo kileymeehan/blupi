@@ -119,7 +119,16 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
 
         const project = await projectResponse.json();
         
-        // Create a new board
+        // Create a new board with a column for each step in the funnel
+        const columns = parsedData.map((row, index) => {
+          // Extract step name without numbering prefix
+          const stepName = row.step.replace(/^\d+\.\s*/, '').trim();
+          return { 
+            id: `col-${index + 1}`, 
+            name: stepName 
+          };
+        });
+        
         const boardResponse = await fetch('/api/boards', {
           method: 'POST',
           headers: {
@@ -133,10 +142,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
               {
                 id: 'phase-1',
                 name: 'Customer Journey',
-                columns: [
-                  { id: 'col-1', name: 'Touchpoint' },
-                  { id: 'col-2', name: 'Metrics' }
-                ]
+                columns: columns
               }
             ],
             blocks: generateBlocks(parsedData)
@@ -190,13 +196,13 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
     const blocks = [];
     let blockIndex = 0;
     
-    // Add front-stage divider
+    // Add front-stage divider at the top spanning all columns
     blocks.push({
       id: `block-${blockIndex++}`,
       type: 'front-stage',
       content: 'CUSTOMER FACING',
       phaseIndex: 0,
-      columnIndex: 0,
+      columnIndex: 0, // First column
       comments: [],
       attachments: [],
       notes: '',
@@ -210,13 +216,13 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
       // Extract step name (remove numbering prefix)
       const stepName = row.step.replace(/^\d+\.\s*/, '').trim();
       
-      // Create touchpoint block for this step
+      // Create touchpoint block for this step in its own column
       blocks.push({
         id: `block-${blockIndex++}`,
         type: 'touchpoint',
         content: stepName,
         phaseIndex: 0,
-        columnIndex: 0,
+        columnIndex: index, // Each step gets its own column
         comments: [],
         attachments: [],
         notes: '',
@@ -225,7 +231,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
         customDepartment: ''
       });
       
-      // Create metrics block with conversion and time data
+      // Create metrics block with conversion and time data below the touchpoint
       const metricsContent = `Visitors: ${row.visitorsStarted.toLocaleString()}
 ${row.dropped > 0 ? `Drop-off: ${row.dropped.toLocaleString()}` : ''}
 Conversion: ${row.conversionRate}
@@ -236,7 +242,7 @@ ${row.avgTimeFromPrevious > 0 ? `Avg. Time: ${formatTime(row.avgTimeFromPrevious
         type: 'metrics',
         content: metricsContent,
         phaseIndex: 0,
-        columnIndex: 1,
+        columnIndex: index, // Same column as the touchpoint
         comments: [],
         attachments: [],
         notes: '',
@@ -252,7 +258,7 @@ ${row.avgTimeFromPrevious > 0 ? `Avg. Time: ${formatTime(row.avgTimeFromPrevious
           type: 'friction',
           content: `Friction point: ${stepName}`,
           phaseIndex: 0,
-          columnIndex: 1,
+          columnIndex: index, // Same column as the touchpoint
           comments: [],
           attachments: [],
           notes: `High drop-off point at ${stepName}. Investigate user experience issues.`,
@@ -269,7 +275,7 @@ ${row.avgTimeFromPrevious > 0 ? `Avg. Time: ${formatTime(row.avgTimeFromPrevious
           type: 'process',
           content: `Process ${stepName} request`,
           phaseIndex: 0,
-          columnIndex: 0,
+          columnIndex: index, // Same column as the touchpoint
           comments: [],
           attachments: [],
           notes: '',
@@ -280,13 +286,13 @@ ${row.avgTimeFromPrevious > 0 ? `Avg. Time: ${formatTime(row.avgTimeFromPrevious
       }
     });
     
-    // Add back-stage divider
+    // Add back-stage divider at the bottom spanning all columns
     blocks.push({
       id: `block-${blockIndex++}`,
       type: 'back-stage',
       content: 'BACKEND PROCESSES',
       phaseIndex: 0,
-      columnIndex: 0,
+      columnIndex: 0, // First column 
       comments: [],
       attachments: [],
       notes: '',
