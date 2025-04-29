@@ -1,0 +1,5 @@
+﻿Step,Filters,Visitors started,Dropped,Conversion rate by step,Average time from previous step (s),Median time from previous step (s)
+1. Dashboard,"	--","11,096","	--",100%,,
+2. Invoices,"	--","6,088","5,008",55%,34325.523021024965,227.292
+3. Invoices: Add Item to Invoice [Line Item],"	--","2,279","3,809",37%,96061.42962000878,333.283
+4. New Invoice: Send Invoice [Button],"	--",679,"1,600",30%,84251.41122091311,142.776
