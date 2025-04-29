@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 
 interface CSVRow {
   step: string;
@@ -26,7 +26,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
   const [projectName, setProjectName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const [, navigate] = useNavigate();
+  const [, navigate] = useLocation();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {

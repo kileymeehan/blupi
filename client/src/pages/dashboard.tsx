@@ -11,6 +11,7 @@ import {
   Briefcase,
   Loader2,
   X,
+  Upload, // Using Upload instead of FileImport
 } from "lucide-react";
 import {
   Card,
@@ -39,6 +40,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { ProfileIcon } from "@/components/profile-icon";
 import { ColorPicker } from "@/components/color-picker";
+import { PendoImportDialog } from "@/components/csv-import/pendo-import-dialog";
 
 // Loading skeleton component for projects/boards
 function LoadingSkeleton({ count = 3 }) {
@@ -104,6 +106,7 @@ export default function Dashboard() {
   const [showArchived, setShowArchived] = useState(false);
   const [showArchivedBlueprints, setShowArchivedBlueprints] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: projects = [], isLoading: projectLoading } = useQuery<
@@ -262,6 +265,13 @@ export default function Dashboard() {
                 >
                   <LayoutGrid className="mr-2 h-4 w-4 text-[#302E87]" />
                   New Blueprint
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setImportDialogOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <Upload className="mr-2 h-4 w-4 text-[#302E87]" />
+                  Import from Pendo
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
