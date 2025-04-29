@@ -192,14 +192,18 @@ export class DatabaseStorage {
         throw new Error('projectId is required when creating a board');
       }
 
+      // Preserve blocks and phases if provided
+      const blocks = insertBoard.blocks || [];
+      const phases = insertBoard.phases || [];
+      
       const [board] = await db.insert(boardsTable).values({
         ...insertBoard,
         userId: 1, // Default for now until we implement proper user management
         status: insertBoard.status || 'draft',
         createdAt: new Date(),
         updatedAt: new Date(),
-        blocks: [],
-        phases: []
+        blocks: blocks,
+        phases: phases
       }).returning();
 
       if (!board) {
