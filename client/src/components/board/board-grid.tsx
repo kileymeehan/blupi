@@ -876,7 +876,7 @@ export default function BoardGrid({
           <div
             className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-40 h-auto flex flex-col overflow-y-auto`}
           >
-            <div className="flex flex-col flex-grow">
+            <div className="flex flex-col flex-grow overflow-hidden">
               <div className="border-b border-gray-200 bg-white shadow-sm">
                 <Button
                   variant="ghost"
@@ -952,7 +952,7 @@ export default function BoardGrid({
                 variant="ghost"
                 size="sm"
                 onClick={toggleSidebar}
-                className="absolute top-2 -right-4 w-8 h-8 rounded-full bg-white shadow-md z-50 hover:bg-gray-100"
+                className="absolute top-2 right-[-16px] w-8 h-8 rounded-full bg-white shadow-md z-50 hover:bg-gray-100"
               >
                 {isDrawerOpen ? (
                   <ChevronLeft className="w-4 h-4" />
