@@ -1,19 +1,27 @@
 /**
- * Pendo API utility functions
+ * Pendo API utility functions with OAuth authentication
  */
 import axios from 'axios';
 
 // Pendo API base URL
 const PENDO_API_BASE_URL = 'https://app.pendo.io/api/v1';
 
-interface PendoConfig {
-  apiKey: string;
+interface PendoOAuthConfig {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  tokenUrl: string;
+  authUrl: string;
 }
 
-// Initialize with environment variables
-const pendoConfig: PendoConfig = {
-  apiKey: process.env.PENDO_API_KEY || '',
-};
+interface OAuthToken {
+  access_token: string;
+  refresh_token: string;
+  expires_at: number; // Timestamp when the token expires
+}
+
+// Initialize with environment variables (will be set after OAuth flow)
+let currentToken: OAuthToken | null = null;
 
 // Interfaces for Pendo data
 export interface PendoMetric {
@@ -33,20 +41,150 @@ export interface FrictionData {
 }
 
 /**
+ * Generate the OAuth authorization URL to redirect the user to
+ */
+export function getAuthorizationUrl(): string {
+  // These values would typically come from environment variables
+  const clientId = process.env.PENDO_CLIENT_ID || 'demo-client-id';
+  const redirectUri = process.env.PENDO_REDIRECT_URI || 'https://blupi.app/api/pendo/callback';
+  const authUrl = 'https://app.pendo.io/oauth/authorize';
+  
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    scope: 'read:analytics write:features'
+  });
+  
+  return `${authUrl}?${params.toString()}`;
+}
+
+/**
+ * Exchange an authorization code for access and refresh tokens
+ */
+export async function exchangeCodeForToken(code: string): Promise<OAuthToken | null> {
+  try {
+    // These values would typically come from environment variables
+    const clientId = process.env.PENDO_CLIENT_ID || 'demo-client-id';
+    const clientSecret = process.env.PENDO_CLIENT_SECRET || 'demo-client-secret';
+    const redirectUri = process.env.PENDO_REDIRECT_URI || 'https://blupi.app/api/pendo/callback';
+    const tokenUrl = 'https://app.pendo.io/oauth/token';
+    
+    const response = await axios.post(tokenUrl, {
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: redirectUri,
+      client_id: clientId,
+      client_secret: clientSecret
+    }, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+    
+    if (response.status === 200 && response.data.access_token) {
+      // Calculate expiry time (usually expires_in is in seconds)
+      const expiresAt = Date.now() + (response.data.expires_in * 1000);
+      
+      // Store the token
+      currentToken = {
+        access_token: response.data.access_token,
+        refresh_token: response.data.refresh_token,
+        expires_at: expiresAt
+      };
+      
+      return currentToken;
+    }
+    
+    throw new Error('Failed to exchange code for token');
+  } catch (error) {
+    console.error('[Pendo OAuth] Error exchanging code for token:', error);
+    return null;
+  }
+}
+
+/**
+ * Refresh the access token using the refresh token
+ */
+async function refreshAccessToken(): Promise<boolean> {
+  if (!currentToken?.refresh_token) {
+    return false;
+  }
+  
+  try {
+    // These values would typically come from environment variables
+    const clientId = process.env.PENDO_CLIENT_ID || 'demo-client-id';
+    const clientSecret = process.env.PENDO_CLIENT_SECRET || 'demo-client-secret';
+    const tokenUrl = 'https://app.pendo.io/oauth/token';
+    
+    const response = await axios.post(tokenUrl, {
+      grant_type: 'refresh_token',
+      refresh_token: currentToken.refresh_token,
+      client_id: clientId,
+      client_secret: clientSecret
+    }, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+    
+    if (response.status === 200 && response.data.access_token) {
+      // Calculate expiry time
+      const expiresAt = Date.now() + (response.data.expires_in * 1000);
+      
+      // Update the token
+      currentToken = {
+        access_token: response.data.access_token,
+        refresh_token: response.data.refresh_token || currentToken.refresh_token,
+        expires_at: expiresAt
+      };
+      
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('[Pendo OAuth] Error refreshing token:', error);
+    return false;
+  }
+}
+
+/**
+ * Get a valid access token, refreshing if necessary
+ */
+async function getValidAccessToken(): Promise<string | null> {
+  if (!currentToken) {
+    return null;
+  }
+  
+  // Check if token is expired or about to expire (within 5 minutes)
+  if (Date.now() > (currentToken.expires_at - 5 * 60 * 1000)) {
+    const refreshed = await refreshAccessToken();
+    if (!refreshed) {
+      return null;
+    }
+  }
+  
+  return currentToken.access_token;
+}
+
+/**
  * Get metrics for a specific friction point
  */
 export async function getFrictionMetrics(frictionId: string, touchpointId?: string): Promise<FrictionData | null> {
-  // If no API key is configured, return simulated data for development
-  if (!pendoConfig.apiKey) {
-    console.log('[Pendo] No API key found, returning development data');
+  const accessToken = await getValidAccessToken();
+  
+  // If no access token is available, return simulated data for development
+  if (!accessToken) {
+    console.log('[Pendo] No access token available, returning development data');
     return generateDevData(frictionId);
   }
 
   try {
-    // This would be replaced with actual Pendo API calls once API key is configured
+    // Make API request to Pendo with OAuth token
     const headers = {
       'Content-Type': 'application/json',
-      'x-pendo-integration-key': pendoConfig.apiKey
+      'Authorization': `Bearer ${accessToken}`
     };
 
     // Make API request to Pendo
@@ -110,7 +248,7 @@ function processApiResponse(data: any): FrictionData {
 }
 
 /**
- * Generate development data when no Pendo API key is available
+ * Generate development data when no OAuth token is available
  * This allows for UI testing without an active Pendo integration
  * NOTE: This should only be used for development/testing
  */
@@ -162,8 +300,15 @@ function generateDevData(frictionId: string): FrictionData {
 }
 
 /**
- * Check if Pendo API is configured
+ * Check if Pendo API is configured via OAuth
  */
 export function isPendoConfigured(): boolean {
-  return !!pendoConfig.apiKey;
+  return !!currentToken;
+}
+
+/**
+ * Store OAuth token received from the authorization flow
+ */
+export function setOAuthToken(token: OAuthToken): void {
+  currentToken = token;
 }

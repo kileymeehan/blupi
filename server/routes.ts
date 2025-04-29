@@ -5,6 +5,7 @@ import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { WebSocketServer, WebSocket } from 'ws';
+import { getFrictionMetrics, isPendoConfigured } from './utils/pendo';
 
 interface ConnectedUser {
   id: string;
@@ -124,6 +125,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ping", (_req, res) => {
     console.log('[HTTP] Handling ping request');
     res.json({ status: "ok" });
+  });
+  
+  // Pendo Data API endpoints with OAuth support
+  app.get("/api/pendo/status", (_req, res) => {
+    console.log('[HTTP] Checking Pendo API status');
+    res.json({ 
+      configured: isPendoConfigured(),
+      status: isPendoConfigured() ? "connected" : "unconfigured"
+    });
+  });
+  
+  // OAuth authorization initiation endpoint
+  app.get("/api/pendo/authorize", (_req, res) => {
+    console.log('[HTTP] Initiating Pendo OAuth flow');
+    const authUrl = getAuthorizationUrl();
+    res.json({ authUrl });
+  });
+  
+  // OAuth callback endpoint
+  app.get("/api/pendo/callback", async (req, res) => {
+    const { code } = req.query;
+    
+    if (!code || typeof code !== 'string') {
+      console.error('[HTTP] Missing authorization code in callback');
+      return res.status(400).json({
+        error: true,
+        message: "Missing authorization code"
+      });
+    }
+    
+    console.log('[HTTP] Received OAuth callback with code');
+    
+    try {
+      const token = await exchangeCodeForToken(code);
+      
+      if (!token) {
+        return res.status(500).json({
+          error: true,
+          message: "Failed to exchange authorization code for token"
+        });
+      }
+      
+      setOAuthToken(token);
+      
+      // Redirect to a success page or back to the app
+      res.redirect('/pendo-connected?status=success');
+    } catch (err) {
+      console.error('[HTTP] OAuth token exchange error:', err);
+      res.status(500).json({
+        error: true,
+        message: "Failed to complete OAuth authentication"
+      });
+    }
+  });
+  
+  // Get metrics for a specific friction point
+  app.get("/api/pendo/friction/:id", async (req, res) => {
+    const frictionId = req.params.id;
+    const touchpointId = req.query.touchpointId as string | undefined;
+    
+    console.log(`[HTTP] Fetching Pendo metrics for friction ID: ${frictionId}${touchpointId ? ` related to touchpoint ${touchpointId}` : ''}`);
+    
+    try {
+      const data = await getFrictionMetrics(frictionId, touchpointId);
+      
+      if (!data) {
+        return res.status(404).json({ 
+          error: true, 
+          message: "No Pendo data found for this friction point",
+          pendoConfigured: isPendoConfigured()
+        });
+      }
+      
+      res.json(data);
+    } catch (err) {
+      console.error('[HTTP] Error fetching Pendo data:', err);
+      res.status(500).json({ 
+        error: true, 
+        message: "Failed to fetch Pendo data",
+        pendoConfigured: isPendoConfigured()
+      });
+    }
   });
 
   // Basic routes without WebSocket functionality
