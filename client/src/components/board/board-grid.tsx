@@ -877,19 +877,20 @@ export default function BoardGrid({
             className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white border-r border-gray-300 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-40 h-auto flex flex-col overflow-y-auto`}
           >
             <div className="flex flex-col flex-grow overflow-hidden relative">
-              {/* Always present toggle button at the very top */}
-              <div className="relative border-b border-gray-200 bg-white shadow-sm py-2">
-                <div className={`absolute ${isDrawerOpen ? "right-4" : "right-2"} top-2 z-50`}>
+              {/* Always present toggle button in line with navigation */}
+              <div className="border-b border-gray-200 bg-white shadow-sm py-0">
+                <div className="h-12 flex items-center justify-end pr-3">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={toggleSidebar}
-                    className="w-6 h-6 rounded-full bg-blue-100 shadow-sm hover:bg-blue-200 flex items-center justify-center p-0"
+                    className="w-7 h-7 rounded-full bg-blue-100 shadow-md hover:bg-blue-200 flex items-center justify-center p-0"
+                    style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}
                   >
                     {isDrawerOpen ? (
-                      <ChevronLeft className="w-3 h-3" />
+                      <ChevronLeft className="w-4 h-4" />
                     ) : (
-                      <ChevronRight className="w-3 h-3" />
+                      <ChevronRight className="w-4 h-4" />
                     )}
                   </Button>
                 </div>
@@ -899,7 +900,7 @@ export default function BoardGrid({
                   size="sm"
                   onClick={toggleContext}
                   className={`
-                    w-full h-12 px-4 mt-6
+                    w-full h-12 px-4
                     flex items-center gap-2
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
