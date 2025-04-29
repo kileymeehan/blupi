@@ -343,6 +343,24 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
         verticalPosition++;
       }
       
+      // Median Time
+      if (row.medianTimeFromPrevious > 0) {
+        blocks.push({
+          id: `block-${blockIndex++}`,
+          type: 'metrics',
+          content: `Median Time: ${formatTime(row.medianTimeFromPrevious)}`,
+          phaseIndex: 0,
+          columnIndex: index,
+          comments: [],
+          attachments: [],
+          notes: '',
+          emoji: '',
+          department: 'Analytics',
+          customDepartment: ''
+        });
+        verticalPosition++;
+      }
+      
       // Create friction block if there's significant drop-off (> 30%)
       // Parse conversion rate to get numeric value (remove % sign)
       const conversionRateValue = parseInt(row.conversionRate?.replace('%', '') || '100');
@@ -399,16 +417,26 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
     return blocks;
   };
   
-  // Helper function to format time in seconds to human-readable format
+  // Helper function to format time in seconds to human-readable format with more precision
   const formatTime = (seconds: number): string => {
     if (seconds < 60) {
+      // Less than a minute - show seconds
       return `${seconds.toFixed(1)} sec`;
     } else if (seconds < 3600) {
-      return `${(seconds / 60).toFixed(1)} min`;
+      // Less than an hour - show minutes and seconds
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = Math.round(seconds % 60);
+      return `${minutes} min ${remainingSeconds} sec`;
     } else if (seconds < 86400) {
-      return `${(seconds / 3600).toFixed(1)} hrs`;
+      // Less than a day - show hours and minutes
+      const hours = Math.floor(seconds / 3600);
+      const remainingMinutes = Math.floor((seconds % 3600) / 60);
+      return `${hours} hrs ${remainingMinutes} min`;
     } else {
-      return `${(seconds / 86400).toFixed(1)} days`;
+      // More than a day - show days and hours
+      const days = Math.floor(seconds / 86400);
+      const remainingHours = Math.floor((seconds % 86400) / 3600);
+      return `${days} days ${remainingHours} hrs`;
     }
   };
 
