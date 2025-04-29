@@ -263,7 +263,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
         attachments: [],
         notes: '',
         emoji: '',
-        department: 'Marketing',
+        department: '', // No default department
         customDepartment: ''
       });
       
@@ -283,7 +283,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
           attachments: [],
           notes: '',
           emoji: '',
-          department: 'Analytics',
+          department: '', // No default department
           customDepartment: ''
         });
         verticalPosition++;
@@ -301,7 +301,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
           attachments: [],
           notes: '',
           emoji: '',
-          department: 'Analytics',
+          department: '', // No default department
           customDepartment: ''
         });
         verticalPosition++;
@@ -319,43 +319,25 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
           attachments: [],
           notes: '',
           emoji: '',
-          department: 'Analytics',
+          department: '', // No default department
           customDepartment: ''
         });
         verticalPosition++;
       }
       
-      // Average Time
-      if (row.avgTimeFromPrevious > 0) {
-        blocks.push({
-          id: `block-${blockIndex++}`,
-          type: 'metrics',
-          content: `Avg. Time: ${formatTime(row.avgTimeFromPrevious)}`,
-          phaseIndex: 0,
-          columnIndex: index,
-          comments: [],
-          attachments: [],
-          notes: '',
-          emoji: '',
-          department: 'Analytics',
-          customDepartment: ''
-        });
-        verticalPosition++;
-      }
-      
-      // Median Time
+      // Only include Median Time, not Average Time
       if (row.medianTimeFromPrevious > 0) {
         blocks.push({
           id: `block-${blockIndex++}`,
           type: 'metrics',
-          content: `Median Time: ${formatTime(row.medianTimeFromPrevious)}`,
+          content: `Time: ${formatTime(row.medianTimeFromPrevious)}`,
           phaseIndex: 0,
           columnIndex: index,
           comments: [],
           attachments: [],
           notes: '',
           emoji: '',
-          department: 'Analytics',
+          department: '', // No default department
           customDepartment: ''
         });
         verticalPosition++;
@@ -375,7 +357,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
           attachments: [],
           notes: `High drop-off point at ${stepName}. Investigate user experience issues.`,
           emoji: '',
-          department: 'UX',
+          department: '', // No default department
           customDepartment: ''
         });
         verticalPosition++;
@@ -393,7 +375,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
           attachments: [],
           notes: '',
           emoji: '',
-          department: 'Engineering',
+          department: '', // No default department
           customDepartment: ''
         });
       }
