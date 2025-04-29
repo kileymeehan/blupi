@@ -17,6 +17,7 @@ import Project from "@/pages/project";
 import Profile from "@/pages/profile";
 import PublicBoard from "@/pages/public-board";
 import LandingPage from "@/pages/landing";
+import PendoConnectedPage from "@/pages/pendo-connected";
 
 function Router() {
   // Get URL parameters
@@ -65,6 +66,7 @@ function Router() {
           <LoginPage />
         </Route>
         <Route path="/public/board/:id" component={PublicBoard} />
+        <Route path="/pendo-connected" component={PendoConnectedPage} />
         <ProtectedRoute path="/" component={Dashboard} />
         <ProtectedRoute path="/profile" component={Profile} />
         <ProtectedRoute path="/project/:id" component={Project} />
