@@ -803,6 +803,12 @@ export default function Dashboard() {
           projectName={projectToDelete.name}
         />
       )}
+      
+      {/* Pendo CSV Import Dialog */}
+      <PendoImportDialog
+        isOpen={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+      />
     </div>
   );
 }
