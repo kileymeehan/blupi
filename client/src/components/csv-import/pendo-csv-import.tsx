@@ -35,31 +35,59 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
   };
 
   const parseCSV = (csvContent: string): CSVRow[] => {
+    // First, properly handle CSV by processing quoted fields correctly
+    const processCSVLine = (line: string): string[] => {
+      const result: string[] = [];
+      let inQuotes = false;
+      let currentField = '';
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          inQuotes = !inQuotes;
+          continue;
+        }
+        
+        if (char === ',' && !inQuotes) {
+          result.push(currentField.trim());
+          currentField = '';
+          continue;
+        }
+        
+        currentField += char;
+      }
+      
+      // Don't forget to push the last field
+      result.push(currentField.trim());
+      
+      return result;
+    };
+    
     const lines = csvContent.split('\n');
-    const headers = lines[0].split(',');
+    const headers = processCSVLine(lines[0]);
     
     // Skip header row
     const rows = lines.slice(1).filter(line => line.trim().length > 0);
     
     return rows.map(row => {
-      const values = row.split(',');
-      const cleanValues = values.map(val => val.replace(/"/g, '').trim());
+      const values = processCSVLine(row);
       
-      // Parse numeric values correctly - handle thousands separators
+      // Parse numeric values correctly - preserve commas for display but convert for calculations
       const parseNumericValue = (value: string): number => {
         if (!value || value === '--') return 0;
-        // Remove commas, spaces and any non-numeric characters except decimal points
-        return parseFloat(value.replace(/[^\d.]/g, '')) || 0;
+        // Remove non-numeric characters, but keep the numeric value
+        return parseFloat(value.replace(/[^0-9.]/g, '')) || 0;
       };
       
       return {
-        step: cleanValues[0] || '',
-        filters: cleanValues[1] || '',
-        visitorsStarted: parseNumericValue(cleanValues[2]),
-        dropped: parseNumericValue(cleanValues[3]),
-        conversionRate: cleanValues[4] || '0%',
-        avgTimeFromPrevious: parseNumericValue(cleanValues[5]),
-        medianTimeFromPrevious: parseNumericValue(cleanValues[6])
+        step: values[0] || '',
+        filters: values[1] || '',
+        visitorsStarted: parseNumericValue(values[2]),
+        dropped: parseNumericValue(values[3]),
+        conversionRate: values[4] || '0%',
+        avgTimeFromPrevious: parseNumericValue(values[5]),
+        medianTimeFromPrevious: parseNumericValue(values[6])
       };
     });
   };
