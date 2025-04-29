@@ -343,57 +343,25 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
         verticalPosition++;
       }
       
-      // Create friction block if there's significant drop-off (> 30%)
+      // Only create a friction block if conversion rate is less than 50%
       // Parse conversion rate to get numeric value (remove % sign)
       const conversionRateValue = parseInt(row.conversionRate?.replace('%', '') || '100');
-      if (conversionRateValue < 70) {
+      if (conversionRateValue < 50) {
         blocks.push({
           id: `block-${blockIndex++}`,
           type: 'friction',
-          content: `Friction point: ${stepName}`,
+          content: `High Dropoff at ${conversionRateValue}%`,
           phaseIndex: 0,
           columnIndex: index,
           comments: [],
           attachments: [],
-          notes: `High drop-off point at ${stepName}. Investigate user experience issues.`,
+          notes: `High drop-off point at ${stepName}. Conversion rate: ${conversionRateValue}%`,
           emoji: '',
-          department: '', // No default department
+          department: '', 
           customDepartment: ''
         });
         verticalPosition++;
       }
-      
-      // Add process block for backend activity if it's not the first step
-      if (index > 0) {
-        blocks.push({
-          id: `block-${blockIndex++}`,
-          type: 'process',
-          content: `Process ${stepName} request`,
-          phaseIndex: 0,
-          columnIndex: index,
-          comments: [],
-          attachments: [],
-          notes: '',
-          emoji: '',
-          department: '', // No default department
-          customDepartment: ''
-        });
-      }
-    });
-    
-    // Add back-stage divider at the bottom spanning all columns
-    blocks.push({
-      id: `block-${blockIndex++}`,
-      type: 'back-stage',
-      content: 'BACKEND PROCESSES',
-      phaseIndex: 0,
-      columnIndex: 0, // First column 
-      comments: [],
-      attachments: [],
-      notes: '',
-      emoji: '',
-      customDepartment: '',
-      isDivider: true
     });
     
     return blocks;
