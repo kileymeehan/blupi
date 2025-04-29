@@ -16,6 +16,7 @@ import {
 } from '@firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 
 // Create a development user type that mimics Firebase User
 interface DevUser {
@@ -468,13 +469,62 @@ export function useFirebaseAuth() {
   };
 
   // Dev mode bypass functions
-  const enableDevBypass = () => {
-    localStorage.setItem('blupi_dev_bypass', 'true');
-    setDevBypassEnabled(true);
-    toast({
-      title: "Development Mode Enabled",
-      description: "You are now bypassing Firebase authentication.",
-    });
+  const enableDevBypass = async () => {
+    try {
+      // Set local storage flag for dev bypass
+      localStorage.setItem('blupi_dev_bypass', 'true');
+      setDevBypassEnabled(true);
+      
+      // Make the API call with dev bypass header to sync with backend
+      const response = await fetch('/api/auth/check', {
+        credentials: 'include',
+        headers: {
+          'X-Dev-Bypass': 'true'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to sync dev bypass with backend:', await response.text());
+        toast({
+          title: "Error Enabling Dev Mode",
+          description: "Could not sync with backend. Please try again.",
+          variant: "destructive",
+        });
+        // Rollback if failed
+        localStorage.removeItem('blupi_dev_bypass');
+        setDevBypassEnabled(false);
+        return;
+      }
+      
+      // Save user email for websocket identification
+      localStorage.setItem('userEmail', 'dev@example.com');
+      
+      // Refetch important data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['/api/projects'] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/boards'] }),
+      ]);
+      
+      toast({
+        title: "Development Mode Enabled",
+        description: "You are now bypassing Firebase authentication.",
+      });
+      
+      // Create dev user so current user is set
+      const devUser = createDevUser();
+      setUser(devUser as any);
+      
+    } catch (error) {
+      console.error('Error enabling dev bypass mode:', error);
+      toast({
+        title: "Error Enabling Dev Mode",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+      // Rollback on error
+      localStorage.removeItem('blupi_dev_bypass');
+      setDevBypassEnabled(false);
+    }
   };
   
   const disableDevBypass = () => {
