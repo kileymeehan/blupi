@@ -5,7 +5,7 @@ import { insertBoardSchema, insertProjectSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { WebSocketServer, WebSocket } from 'ws';
-import { getFrictionMetrics, isPendoConfigured } from './utils/pendo';
+import { getFrictionMetrics, isPendoConfigured, getAuthorizationUrl, exchangeCodeForToken, setOAuthToken } from './utils/pendo';
 
 interface ConnectedUser {
   id: string;

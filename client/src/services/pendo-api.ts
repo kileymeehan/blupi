@@ -1,14 +1,13 @@
 /**
- * Service for connecting to the Pendo API to fetch analytics data
+ * Client-side service for interacting with the Pendo API through our backend
  */
 
-// Define interfaces for Pendo API responses
 export interface PendoMetric {
   id: string;
   name: string;
   value: number;
   formattedValue: string;
-  trend?: number; // percentage change (positive or negative)
+  trend?: number;
   timestamp: string;
 }
 
@@ -19,44 +18,65 @@ export interface FrictionData {
   errorRate?: PendoMetric;
 }
 
-// Cache data to reduce API calls
-const metricsCache = new Map<string, FrictionData>();
-
 /**
- * Fetch friction data for a specific touchpoint
- * @param frictionId - The ID of the friction point
- * @param touchpointId - The ID of the associated touchpoint (optional)
+ * Get metrics data for a specific friction point
  */
-export async function getFrictionData(frictionId: string, touchpointId?: string): Promise<FrictionData | null> {
-  // Check if we have cached data
-  const cacheKey = `${frictionId}:${touchpointId || 'default'}`;
-  if (metricsCache.has(cacheKey)) {
-    return metricsCache.get(cacheKey) || null;
-  }
-  
+export async function getFrictionData(frictionId: string, touchpointId?: string): Promise<FrictionData> {
   try {
-    // Make API call to fetch data from your backend
-    const response = await fetch(`/api/pendo/friction/${frictionId}${touchpointId ? `?touchpointId=${touchpointId}` : ''}`);
+    const url = new URL('/api/pendo/friction', window.location.origin);
+    url.searchParams.append('frictionId', frictionId);
+    if (touchpointId) {
+      url.searchParams.append('touchpointId', touchpointId);
+    }
+
+    const response = await fetch(url.toString());
     
     if (!response.ok) {
-      console.error('Failed to fetch Pendo data:', await response.text());
-      return null;
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch Pendo metrics: ${errorText || response.statusText}`);
     }
     
     const data = await response.json();
-    
-    // Cache the results
-    metricsCache.set(cacheKey, data);
     return data;
   } catch (error) {
-    console.error('Error fetching Pendo friction data:', error);
-    return null;
+    console.error('Error fetching Pendo metrics:', error);
+    throw error;
   }
 }
 
 /**
- * Clear the metrics cache
+ * Check if Pendo is configured
  */
-export function clearPendoCache(): void {
-  metricsCache.clear();
+export async function isPendoConfigured(): Promise<boolean> {
+  try {
+    const response = await fetch('/api/pendo/status');
+    if (!response.ok) {
+      return false;
+    }
+    
+    const data = await response.json();
+    return data.configured || false;
+  } catch (error) {
+    console.error('Error checking Pendo status:', error);
+    return false;
+  }
+}
+
+/**
+ * Initialize Pendo OAuth flow
+ */
+export async function initiatePendoAuth(): Promise<string | null> {
+  try {
+    const response = await fetch('/api/pendo/authorize');
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to initiate Pendo OAuth: ${errorText || response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.authUrl || null;
+  } catch (error) {
+    console.error('Error initiating Pendo OAuth flow:', error);
+    return null;
+  }
 }

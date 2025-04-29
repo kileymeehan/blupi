@@ -273,6 +273,16 @@ export default function Block({
           suppressContentEditableWarning={true}
         >
           {isTemplate ? TYPE_LABELS[block.type] : block.content}
+          
+          {/* Add Pendo metrics for friction blocks */}
+          {!isTemplate && block.type === 'friction' && (
+            <div className="mt-3 border-t border-gray-200 pt-2">
+              <PendoMetrics 
+                frictionId={block.id} 
+                className="max-w-full bg-gray-50 border-none shadow-none"
+              />
+            </div>
+          )}
         </div>
       )}
 
