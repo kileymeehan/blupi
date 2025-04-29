@@ -23,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { PendoMetrics } from "../pendo/pendo-metrics";
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
