@@ -23,8 +23,7 @@ export interface FrictionData {
  */
 export async function getFrictionData(frictionId: string, touchpointId?: string): Promise<FrictionData> {
   try {
-    const url = new URL('/api/pendo/friction', window.location.origin);
-    url.searchParams.append('frictionId', frictionId);
+    const url = new URL(`/api/pendo/friction/${frictionId}`, window.location.origin);
     if (touchpointId) {
       url.searchParams.append('touchpointId', touchpointId);
     }

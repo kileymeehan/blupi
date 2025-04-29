@@ -63,12 +63,11 @@ export function PendoMetrics({ frictionId, touchpointId, className = '' }: Pendo
   // Function to initiate Pendo OAuth flow
   const handleConnectPendo = async () => {
     try {
-      const response = await fetch('/api/pendo/authorize');
-      const data = await response.json();
+      const authUrl = await initiatePendoAuth();
       
-      if (data.authUrl) {
+      if (authUrl) {
         // Open the authorization URL in a new window
-        window.open(data.authUrl, '_blank', 'width=800,height=600');
+        window.open(authUrl, '_blank', 'width=800,height=600');
       }
     } catch (error) {
       console.error('Failed to initiate Pendo OAuth flow:', error);
