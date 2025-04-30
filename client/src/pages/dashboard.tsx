@@ -687,31 +687,7 @@ export default function Dashboard() {
                       </TableHead>
                       <TableHead 
                         className="w-[200px] cursor-pointer hover:text-primary"
-                        onClick={() => {
-                          // Create a new sorted array to avoid modifying the original
-                          const sorted = [...boards].sort((a, b) => {
-                            const projectA = projects.find(p => p.id === a.projectId)?.name || '';
-                            const projectB = projects.find(p => p.id === b.projectId)?.name || '';
-                            return projectA.localeCompare(projectB);
-                          });
-                          
-                          // Get current sort state by checking a few items
-                          const getProjectName = (board) => projects.find(p => p.id === board.projectId)?.name || '';
-                          
-                          // Check if it's already sorted by project name in ascending order
-                          const isAscending = boards.every((board, index) => 
-                            index === 0 || 
-                            getProjectName(board).localeCompare(getProjectName(boards[index-1])) >= 0
-                          );
-                          
-                          // If already sorted ascending, sort descending
-                          if (isAscending) {
-                            sorted.reverse();
-                          }
-                          
-                          // Replace the boards array with our sorted version
-                          queryClient.setQueryData(["/api/boards"], sorted);
-                        }}
+                        onClick={() => requestSort('project')}
                       >
                         <div className="flex items-center gap-1">
                           <FolderSymlink size={14} />
