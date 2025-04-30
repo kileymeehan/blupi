@@ -135,31 +135,11 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
 
   const createNewBoard = async (csvData: string) => {
     try {
-      // First create a project
-      const projectResponse = await fetch('/api/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: projectName || 'Google Sheets Import',
-          description: 'Created from Google Sheets import',
-          status: 'in-progress',
-          userId: 1, // Using default development user ID
-        }),
-      });
-
-      if (!projectResponse.ok) {
-        throw new Error('Failed to create project');
-      }
-
-      const project = await projectResponse.json();
-
-      // Then create a board with the CSV data
+      // Create a board directly with the CSV data
       const formData = new FormData();
       formData.append('csvData', csvData);
-      formData.append('projectId', project.id.toString());
-      formData.append('name', `${projectName || 'Google Sheets Import'} - Customer Journey`);
+      // Project ID is optional, blueprint can be assigned to a project later
+      formData.append('name', projectName || 'Google Sheets Import - Customer Journey');
 
       const boardResponse = await fetch('/api/boards/import-csv', {
         method: 'POST',
@@ -205,7 +185,7 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
       <CardContent className="pb-2">
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="project-name">Project Name</Label>
+            <Label htmlFor="project-name">Blueprint Name</Label>
             <Input
               id="project-name"
               value={projectName}

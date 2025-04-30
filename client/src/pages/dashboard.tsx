@@ -11,7 +11,10 @@ import {
   Briefcase,
   Loader2,
   X,
-  Upload, // Using Upload instead of FileImport
+  Upload,
+  Calendar,
+  FolderSymlink,
+  Clock,
 } from "lucide-react";
 import {
   Card,
@@ -20,6 +23,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import {
@@ -146,8 +157,7 @@ export default function Dashboard() {
       const dateA = new Date(a.updatedAt || a.createdAt);
       const dateB = new Date(b.updatedAt || b.createdAt);
       return dateB.getTime() - dateA.getTime();
-    })
-    .slice(0, 3);
+    });
 
   const unassignedBoards = filteredBoards.filter((board) => !board.projectId);
 
