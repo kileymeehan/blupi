@@ -15,6 +15,10 @@ import {
   Calendar,
   FolderSymlink,
   Clock,
+  ChevronDown,
+  FileBarChart,
+  Sheet,
+  FileSpreadsheet,
 } from "lucide-react";
 import {
   Card,
@@ -256,9 +260,10 @@ export default function Dashboard() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  className="bg-[#F2918C] text-[#302E87] hover:bg-[#f07a73] font-bold h-9 border border-white shadow-sm"
+                  className="bg-[#F2918C] text-[#302E87] hover:bg-[#f07a73] font-bold h-9 border border-white shadow-sm flex items-center gap-1"
                 >
                   Create New
+                  <ChevronDown size={14} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -276,12 +281,28 @@ export default function Dashboard() {
                   <LayoutGrid className="mr-2 h-4 w-4 text-[#302E87]" />
                   New Blueprint
                 </DropdownMenuItem>
+                
+                {/* Import options */}
                 <DropdownMenuItem 
                   onClick={() => setImportDialogOpen(true)}
                   className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
                 >
-                  <Upload className="mr-2 h-4 w-4 text-[#302E87]" />
+                  <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
                   Import from Pendo
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setImportDialogOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <Sheet className="mr-2 h-4 w-4 text-[#302E87]" />
+                  Import from Google Sheets
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setImportDialogOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <FileSpreadsheet className="mr-2 h-4 w-4 text-[#302E87]" />
+                  Import from CSV
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -540,14 +561,50 @@ export default function Dashboard() {
               <LayoutGrid className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Blueprints</h2>
             </div>
-            <Button
-              variant="primary-cta"
-              size="icon"
-              onClick={() => setCreateBlueprintOpen(true)}
-              className="h-9 w-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white rounded-full"
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="primary-cta"
+                  className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white flex items-center gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create New
+                  <ChevronDown size={14} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem 
+                  onClick={() => setCreateBlueprintOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <LayoutGrid className="mr-2 h-4 w-4 text-[#302E87]" />
+                  New Blueprint
+                </DropdownMenuItem>
+                
+                {/* Import options */}
+                <DropdownMenuItem 
+                  onClick={() => setImportDialogOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
+                  Import from Pendo
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setImportDialogOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <Sheet className="mr-2 h-4 w-4 text-[#302E87]" />
+                  Import from Google Sheets
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setImportDialogOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <FileSpreadsheet className="mr-2 h-4 w-4 text-[#302E87]" />
+                  Import from CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           {boardsLoading ? (
             <div className="animate-pulse p-4 rounded-md bg-gray-100">

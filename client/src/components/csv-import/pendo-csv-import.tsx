@@ -23,7 +23,7 @@ interface PendoCSVImportProps {
 
 export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [projectName, setProjectName] = useState('');
+  const [blueprintName, setBlueprintName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -106,10 +106,10 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
         return;
       }
 
-      if (!projectName.trim()) {
+      if (!blueprintName.trim()) {
         toast({
-          title: 'Project name required',
-          description: 'Please enter a name for the new project',
+          title: 'Blueprint name required',
+          description: 'Please enter a name for the new blueprint',
           variant: 'destructive'
         });
         setIsLoading(false);
