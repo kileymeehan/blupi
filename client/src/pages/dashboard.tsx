@@ -17,6 +17,8 @@ import {
   Clock,
   ChevronDown,
   FileBarChart,
+  Eye,
+  EyeOff,
   Trash,
   FileText,
 } from "lucide-react";
@@ -949,7 +951,7 @@ export default function Dashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentBoards.map((board) => {
+                    {displayedBoards.map((board) => {
                       const project = projects.find((p) => p.id === board.projectId);
                       return (
                         <TableRow key={board.id} className="hover:bg-gray-50">
