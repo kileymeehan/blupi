@@ -18,6 +18,7 @@ import {
   ChevronDown,
   FileBarChart,
   Trash,
+  FileText,
 } from "lucide-react";
 import {
   Card,
@@ -35,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import {
   DropdownMenu,
@@ -154,11 +156,14 @@ export default function Dashboard() {
     return !board.projectId;
   });
 
+  // Filter boards based on archived status
   const recentBoards = boards
     .filter((board) => {
-      // If showArchivedBlueprints is true, only show archived blueprints
-      // Otherwise, only show non-archived blueprints
-      return showArchivedBlueprints ? board.status === "archived" : board.status !== "archived";
+      // If showArchivedBlueprints is true, show only archived blueprints
+      // Otherwise, show only non-archived blueprints
+      return showArchivedBlueprints 
+        ? board.status === "archived" 
+        : board.status !== "archived";
     })
     .sort((a, b) => {
       const dateA = new Date(a.updatedAt || a.createdAt);
@@ -554,7 +559,7 @@ export default function Dashboard() {
           {/* Blueprint section header */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
-              <LayoutGrid className="h-6 w-6 text-primary" />
+              <FileText className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Blueprints</h2>
             </div>
             <DropdownMenu>
@@ -706,7 +711,6 @@ export default function Dashboard() {
                             <div className="flex items-center gap-1 text-gray-600">
                               <Clock size={14} />
                               <span>{format(new Date(board.createdAt), "MMM d, yyyy")}</span>
-                              {board.user && <span> by {board.user.username}</span>}
                             </div>
                           </TableCell>
                           <TableCell>
