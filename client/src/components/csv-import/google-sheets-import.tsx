@@ -26,151 +26,133 @@ const formatNumber = (value: number | string): string => {
   return value as string;
 };
 
-// Function to generate blocks from the CSV data
+// Function to generate blocks from the CSV data - completely rewritten for stability
 const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
   const blocks: any[] = [];
   let blockIndex = 0;
   
-  // Check if this is a funnel-like structure with steps
-  const stepColumnIndex = headers.findIndex(h => h.toLowerCase() === 'step');
-  const hasStepColumn = stepColumnIndex !== -1;
+  console.log("Headers being processed:", headers);
+  console.log("Data rows being processed:", data.length);
   
-  // If we have a structured funnel with steps, process it exactly like the CSV import
-  if (hasStepColumn) {
-    // Process each row as a separate column (horizontally distributed)
-    data.forEach((row, rowIndex) => {
-      // Get the step information
-      const stepRaw = row[headers[stepColumnIndex]] || '';
-      const stepMatch = stepRaw.match(/^(\d+)\.\s*(.+)$/);
+  // Function to safely generate a block
+  const createBlock = (type: string, content: string, columnIndex: number) => {
+    blocks.push({
+      id: `block-${blockIndex++}`,
+      type,
+      content,
+      phaseIndex: 0,
+      columnIndex,
+      comments: [],
+      attachments: [],
+      notes: '',
+      emoji: '',
+      department: '',
+      customDepartment: ''
+    });
+  };
+  
+  // Process each row in the data
+  data.forEach((row, rowIndex) => {
+    // Try to find which column contains the step information
+    // Look for columns with "Step" in the name, or for rows that have step-like data
+    const stepColumnKey = headers.find(header => 
+      header.toLowerCase().includes('step') || 
+      (row[header] && row[header].match(/^\d+\./))
+    );
+    
+    // If we found a step column, use it to organize data horizontally
+    if (stepColumnKey) {
+      const stepValue = row[stepColumnKey] || '';
+      console.log(`Processing step row: ${stepValue}`);
       
-      if (!stepMatch) return; // Skip rows without proper step format
+      // Extract step number and name
+      const stepMatch = stepValue.match(/^(\d+)\.\s*(.+)$/);
       
-      const stepNumber = parseInt(stepMatch[1]) - 1; // 0-indexed for column position
-      const stepName = stepMatch[2].trim();
-      
-      // Create touchpoint block for the step name
-      blocks.push({
-        id: `block-${blockIndex++}`,
-        type: 'touchpoint',
-        content: stepName,
-        phaseIndex: 0,
-        columnIndex: stepNumber,
-        comments: [],
-        attachments: [],
-        notes: '',
-        emoji: '',
-        department: '',
-        customDepartment: ''
-      });
-      
-      // Identify metric columns we want to include
-      const metricsToInclude = [
-        { name: 'visitors started', label: 'Visitors' },
-        { name: 'dropped', label: 'Dropped' },
-        { name: 'conversion rate', label: 'Conversion' }
-      ];
-      
-      // Add metrics blocks for specific columns (visitors, dropped, conversion)
-      metricsToInclude.forEach(metricInfo => {
-        const metricColumnIndex = headers.findIndex(h => 
-          h.toLowerCase().includes(metricInfo.name.toLowerCase())
-        );
+      if (stepMatch) {
+        const stepNumber = parseInt(stepMatch[1]) - 1; // 0-indexed
+        const stepName = stepMatch[2].trim();
         
-        if (metricColumnIndex !== -1) {
-          const metricValue = row[headers[metricColumnIndex]];
+        // Create the step touchpoint block
+        createBlock('touchpoint', stepName, stepNumber);
+        
+        // Add metrics for this step
+        for (const header of headers) {
+          // Skip the step column itself
+          if (header === stepColumnKey) continue;
           
-          if (metricValue && metricValue.trim() !== '--' && metricValue.trim() !== '') {
-            // Handle numeric values with commas (don't split them)
-            let displayValue = metricValue.trim();
+          const value = row[header] || '';
+          if (value && value.trim() && value.trim() !== '--') {
+            // Label the metric with its header
+            const metricLabel = header.includes('visitor') ? 'Visitors' :
+                              header.includes('dropped') ? 'Dropped' :
+                              header.includes('conversion') ? 'Conversion' :
+                              header;
+                              
+            createBlock('metrics', `${metricLabel}: ${value}`, stepNumber);
             
-            blocks.push({
-              id: `block-${blockIndex++}`,
-              type: 'metrics',
-              content: `${metricInfo.label}: ${displayValue}`,
-              phaseIndex: 0,
-              columnIndex: stepNumber,
-              comments: [],
-              attachments: [],
-              notes: '',
-              emoji: '',
-              department: '',
-              customDepartment: ''
-            });
+            // Check for friction points in conversion rates
+            if (header.toLowerCase().includes('conversion') || header.toLowerCase().includes('rate')) {
+              // Extract numeric value (remove % and other non-numeric chars)
+              const numericMatch = value.match(/(\d+)%/);
+              const numericValue = numericMatch ? parseInt(numericMatch[1]) : 
+                                  parseFloat(value.replace(/[^\d.]/g, ''));
+                                  
+              if (!isNaN(numericValue) && numericValue < 50) {
+                createBlock(
+                  'friction', 
+                  `High Dropoff: ${stepName}`, 
+                  stepNumber
+                );
+              }
+            }
           }
         }
+      } else {
+        // Fallback for rows that don't match the expected step format
+        // Create a generic touchpoint with the value
+        createBlock('touchpoint', stepValue, rowIndex);
+      }
+    } else {
+      // Process as generic data where each row is simply displayed as is
+      let columnIndex = rowIndex % 4; // Distribute across 4 columns max
+      
+      // For the first row, create column headers
+      if (rowIndex === 0) {
+        headers.forEach((header, headerIndex) => {
+          createBlock('touchpoint', header, headerIndex % 4);
+        });
+      }
+      
+      // For all rows, create metric blocks for each value
+      headers.forEach((header, headerIndex) => {
+        const value = row[header];
+        if (value && value.trim() && value.trim() !== '--') {
+          createBlock('metrics', `${header}: ${value}`, headerIndex % 4);
+        }
       });
-      
-      // Check for conversion rate friction points
-      const conversionColumnIndex = headers.findIndex(h => 
-        h.toLowerCase().includes('conversion')
-      );
-      
-      if (conversionColumnIndex !== -1) {
-        const conversionValue = row[headers[conversionColumnIndex]];
-        if (conversionValue) {
-          // Extract numeric value from percentage
-          const percentMatch = conversionValue.match(/(\d+)%/);
-          const numericValue = percentMatch ? parseInt(percentMatch[1]) : 
-                              parseFloat(conversionValue.replace(/[^\d.]/g, ''));
-          
-          // If conversion is less than 50%, add a friction point
-          if (!isNaN(numericValue) && numericValue < 50) {
-            blocks.push({
-              id: `block-${blockIndex++}`,
-              type: 'friction',
-              content: `High Dropoff: ${stepName}`,
-              phaseIndex: 0,
-              columnIndex: stepNumber,
-              comments: [],
-              attachments: [],
-              notes: `Only ${numericValue}% of users continue to the next step`,
-              emoji: '',
-              department: '',
-              customDepartment: ''
-            });
-          }
+    }
+  });
+  
+  // If after all that we still have no blocks, create a simple default layout
+  if (blocks.length === 0) {
+    console.log("No blocks created, generating default layout");
+    
+    // Create headers as touchpoints
+    for (let i = 0; i < Math.min(headers.length, 4); i++) {
+      createBlock('touchpoint', headers[i] || `Column ${i+1}`, i);
+    }
+    
+    // Add some metrics from the first row as a fallback
+    if (data.length > 0) {
+      const firstRow = data[0];
+      for (let i = 0; i < Math.min(headers.length, 4); i++) {
+        const header = headers[i];
+        const value = firstRow[header];
+        if (value && value.trim() && value.trim() !== '--') {
+          createBlock('metrics', `${value}`, i);
         }
       }
-    });
-  } else {
-    // Handle generic data formats (not funnel steps)
-    headers.slice(0, Math.min(headers.length, 10)).forEach((header, columnIndex) => {
-      // Create a title block for each column
-      blocks.push({
-        id: `block-${blockIndex++}`,
-        type: 'touchpoint',
-        content: header.trim(),
-        phaseIndex: 0,
-        columnIndex: columnIndex,
-        comments: [],
-        attachments: [],
-        notes: '',
-        emoji: '',
-        department: '',
-        customDepartment: ''
-      });
-      
-      // For each row of data, create metrics blocks
-      data.forEach((row, rowIndex) => {
-        const cellValue = row[header];
-        if (cellValue && cellValue.trim() && cellValue.trim() !== '--') {
-          // Create a metrics block
-          blocks.push({
-            id: `block-${blockIndex++}`,
-            type: 'metrics',
-            content: cellValue,
-            phaseIndex: 0,
-            columnIndex: columnIndex,
-            comments: [],
-            attachments: [],
-            notes: '',
-            emoji: '',
-            department: '',
-            customDepartment: ''
-          });
-        }
-      });
-    });
+    }
   }
   
   return blocks;
@@ -420,6 +402,67 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
       
       // Generate blocks from the CSV data
       const blocks = generateBlocks(headers, data);
+      
+      // Log the generated blocks for debugging
+      console.log("Generated blocks:", JSON.stringify(blocks, null, 2));
+      
+      // Check if we have any blocks
+      if (blocks.length === 0) {
+        console.error("No blocks generated from data:", data);
+        // Log the original CSV data for debugging
+        console.log("Original CSV data:", csvData);
+        
+        // Try to generate some default blocks as a fallback
+        try {
+          data.forEach((row, rowIndex) => {
+            if (rowIndex < 4) { // Just display the first 4 rows as a fallback
+              // Determine which column has the step info, if any
+              const stepColIdx = headers.findIndex(h => h.toLowerCase() === 'step');
+              
+              // Create touchpoint for step name or first column as fallback
+              blocks.push({
+                id: `block-fallback-${rowIndex*3}`,
+                type: 'touchpoint',
+                content: stepColIdx !== -1 ? 
+                  (row[headers[stepColIdx]] || `Step ${rowIndex+1}`) : 
+                  `${headers[0]}: ${row[headers[0]] || ''}`,
+                phaseIndex: 0,
+                columnIndex: rowIndex,
+                comments: [],
+                attachments: [],
+                notes: '',
+                emoji: '',
+                department: '',
+                customDepartment: ''
+              });
+              
+              // Add a metrics block with a sample value from the row
+              if (headers.length > 1) {
+                blocks.push({
+                  id: `block-fallback-${rowIndex*3+1}`,
+                  type: 'metrics',
+                  content: headers.slice(1, 3).map(h => 
+                    `${h}: ${row[h] || '--'}`
+                  ).join('\n'),
+                  phaseIndex: 0,
+                  columnIndex: rowIndex,
+                  comments: [],
+                  attachments: [],
+                  notes: '',
+                  emoji: '',
+                  department: '',
+                  customDepartment: ''
+                });
+              }
+            }
+          });
+          
+          // Log the fallback blocks
+          console.log("Using fallback blocks:", JSON.stringify(blocks, null, 2));
+        } catch (error) {
+          console.error("Error generating fallback blocks:", error);
+        }
+      }
       
       // Create a new board with the parsed data
       const boardData = {
