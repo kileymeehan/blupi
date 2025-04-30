@@ -188,10 +188,8 @@ export class DatabaseStorage {
   async createBoard(insertBoard: InsertBoard): Promise<Board> {
     try {
       console.log('[Storage] Creating board:', insertBoard);
-      if (!insertBoard.projectId) {
-        throw new Error('projectId is required when creating a board');
-      }
-
+      // projectId is now optional, so we don't check for it
+      
       // Preserve blocks and phases if provided
       const blocks = insertBoard.blocks || [];
       const phases = insertBoard.phases || [];
