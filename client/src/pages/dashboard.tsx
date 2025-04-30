@@ -155,7 +155,11 @@ export default function Dashboard() {
   });
 
   const recentBoards = boards
-    .filter((board) => !showArchivedBlueprints || board.status !== "archived")
+    .filter((board) => {
+      // If showArchivedBlueprints is true, only show archived blueprints
+      // Otherwise, only show non-archived blueprints
+      return showArchivedBlueprints ? board.status === "archived" : board.status !== "archived";
+    })
     .sort((a, b) => {
       const dateA = new Date(a.updatedAt || a.createdAt);
       const dateB = new Date(b.updatedAt || b.createdAt);
@@ -601,17 +605,88 @@ export default function Dashboard() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50">
-                      <TableHead className="w-[300px]">Blueprint Name</TableHead>
-                      <TableHead className="w-[200px]">
+                      <TableHead 
+                        className="w-[250px] cursor-pointer hover:text-primary"
+                        onClick={() => {
+                          // Sort by name
+                          const sortedBoards = [...recentBoards].sort((a, b) => a.name.localeCompare(b.name));
+                          // If already sorted by name, reverse the order
+                          if (JSON.stringify(sortedBoards) === JSON.stringify(recentBoards)) {
+                            sortedBoards.reverse();
+                          }
+                          // Update recentBoards (by refetching)
+                          queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+                        }}
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Blueprint Name</span>
+                          <ChevronDown size={14} />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="w-[150px] cursor-pointer hover:text-primary"
+                        onClick={() => {
+                          // Sort by date
+                          const sortedBoards = [...recentBoards].sort((a, b) => {
+                            const dateA = new Date(a.updatedAt || a.createdAt);
+                            const dateB = new Date(b.updatedAt || b.createdAt);
+                            return dateB.getTime() - dateA.getTime();
+                          });
+                          // If already sorted by date, reverse the order
+                          if (JSON.stringify(sortedBoards) === JSON.stringify(recentBoards)) {
+                            sortedBoards.reverse();
+                          }
+                          // Update recentBoards (by refetching)
+                          queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+                        }}
+                      >
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
                           <span>Created</span>
+                          <ChevronDown size={14} />
                         </div>
                       </TableHead>
-                      <TableHead className="w-[250px]">
+                      <TableHead 
+                        className="w-[100px] cursor-pointer hover:text-primary"
+                        onClick={() => {
+                          // Sort by status
+                          const sortedBoards = [...recentBoards].sort((a, b) => {
+                            return a.status.localeCompare(b.status);
+                          });
+                          // If already sorted by status, reverse the order
+                          if (JSON.stringify(sortedBoards) === JSON.stringify(recentBoards)) {
+                            sortedBoards.reverse();
+                          }
+                          // Update recentBoards (by refetching)
+                          queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+                        }}
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Status</span>
+                          <ChevronDown size={14} />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="w-[200px] cursor-pointer hover:text-primary"
+                        onClick={() => {
+                          // Sort by project name
+                          const sortedBoards = [...recentBoards].sort((a, b) => {
+                            const projectA = projects.find(p => p.id === a.projectId)?.name || '';
+                            const projectB = projects.find(p => p.id === b.projectId)?.name || '';
+                            return projectA.localeCompare(projectB);
+                          });
+                          // If already sorted by project, reverse the order
+                          if (JSON.stringify(sortedBoards) === JSON.stringify(recentBoards)) {
+                            sortedBoards.reverse();
+                          }
+                          // Update recentBoards (by refetching)
+                          queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+                        }}
+                      >
                         <div className="flex items-center gap-1">
                           <FolderSymlink size={14} />
                           <span>Assigned Project</span>
+                          <ChevronDown size={14} />
                         </div>
                       </TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -633,6 +708,20 @@ export default function Dashboard() {
                               <span>{format(new Date(board.createdAt), "MMM d, yyyy")}</span>
                               {board.user && <span> by {board.user.username}</span>}
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={
+                                board.status === "draft" ? "outline" : 
+                                board.status === "in-progress" ? "secondary" : 
+                                board.status === "review" ? "default" : 
+                                board.status === "complete" ? "success" : 
+                                "destructive"
+                              }
+                              className="capitalize"
+                            >
+                              {board.status}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             {board.projectId ? (
@@ -659,14 +748,6 @@ export default function Dashboard() {
                             )}
                           </TableCell>
                           <TableCell className="text-right space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-gray-500 hover:text-[#302E87]"
-                              onClick={() => navigate(`/boards/${board.id}`)}
-                            >
-                              <LayoutGrid size={16} />
-                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
