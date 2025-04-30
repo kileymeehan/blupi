@@ -83,7 +83,7 @@ export const boards = pgTable("boards", {
   blocks: jsonb("blocks").$type<Block[]>().notNull().default([]),
   phases: jsonb("phases").$type<Phase[]>().notNull().default([]),
   status: text("status").notNull().default('draft'),
-  projectId: integer("project_id").references(() => projects.id).notNull(),
+  projectId: integer("project_id").references(() => projects.id), // Made optional for blueprint-first approach
   userId: integer("user_id").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
@@ -188,6 +188,7 @@ export const boardStatuses = ["draft", "in-progress", "review", "complete"] as c
 export const insertBoardSchema = createInsertSchema(boards)
   .extend({
     status: z.enum(boardStatuses).optional(),
+    projectId: z.number().optional(), // Make projectId optional for blueprint-first approach
   })
   .omit({ id: true, userId: true, createdAt: true, updatedAt: true });
 
