@@ -610,14 +610,21 @@ export default function Dashboard() {
                       <TableHead 
                         className="w-[250px] cursor-pointer hover:text-primary"
                         onClick={() => {
-                          // Sort by name
-                          const sortedBoards = [...recentBoards].sort((a, b) => a.name.localeCompare(b.name));
-                          // If already sorted by name, reverse the order
-                          if (JSON.stringify(sortedBoards) === JSON.stringify(recentBoards)) {
-                            sortedBoards.reverse();
+                          // Create a new sorted array to avoid modifying the original
+                          const sorted = [...boards].sort((a, b) => a.name.localeCompare(b.name));
+                          
+                          // Check if it's already sorted in ascending order 
+                          const isAscending = boards.every((board, index) => 
+                            index === 0 || board.name.localeCompare(boards[index-1].name) >= 0
+                          );
+                          
+                          // If already sorted ascending, sort descending
+                          if (isAscending) {
+                            sorted.reverse();
                           }
-                          // Update recentBoards (by refetching)
-                          queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+                          
+                          // Replace the boards array with our sorted version
+                          queryClient.setQueryData(["/api/boards"], sorted);
                         }}
                       >
                         <div className="flex items-center gap-1">
@@ -628,18 +635,27 @@ export default function Dashboard() {
                       <TableHead 
                         className="w-[150px] cursor-pointer hover:text-primary"
                         onClick={() => {
-                          // Sort by date
-                          const sortedBoards = [...recentBoards].sort((a, b) => {
+                          // Create a new sorted array to avoid modifying the original
+                          const sorted = [...boards].sort((a, b) => {
                             const dateA = new Date(a.updatedAt || a.createdAt);
                             const dateB = new Date(b.updatedAt || b.createdAt);
                             return dateB.getTime() - dateA.getTime();
                           });
-                          // If already sorted by date, reverse the order
-                          if (JSON.stringify(sortedBoards) === JSON.stringify(recentBoards)) {
-                            sortedBoards.reverse();
+                          
+                          // Check if it's already sorted by date in descending order
+                          const isDescending = boards.every((board, index) => 
+                            index === 0 || 
+                            new Date(board.updatedAt || board.createdAt).getTime() <= 
+                            new Date(boards[index-1].updatedAt || boards[index-1].createdAt).getTime()
+                          );
+                          
+                          // If already sorted descending, sort ascending
+                          if (isDescending) {
+                            sorted.reverse();
                           }
-                          // Update recentBoards (by refetching)
-                          queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+                          
+                          // Replace the boards array with our sorted version
+                          queryClient.setQueryData(["/api/boards"], sorted);
                         }}
                       >
                         <div className="flex items-center gap-1">
@@ -651,16 +667,23 @@ export default function Dashboard() {
                       <TableHead 
                         className="w-[100px] cursor-pointer hover:text-primary"
                         onClick={() => {
-                          // Sort by status
-                          const sortedBoards = [...recentBoards].sort((a, b) => {
+                          // Create a new sorted array to avoid modifying the original
+                          const sorted = [...boards].sort((a, b) => {
                             return a.status.localeCompare(b.status);
                           });
-                          // If already sorted by status, reverse the order
-                          if (JSON.stringify(sortedBoards) === JSON.stringify(recentBoards)) {
-                            sortedBoards.reverse();
+                          
+                          // Check if it's already sorted by status in ascending order
+                          const isAscending = boards.every((board, index) => 
+                            index === 0 || board.status.localeCompare(boards[index-1].status) >= 0
+                          );
+                          
+                          // If already sorted ascending, sort descending
+                          if (isAscending) {
+                            sorted.reverse();
                           }
-                          // Update recentBoards (by refetching)
-                          queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+                          
+                          // Replace the boards array with our sorted version
+                          queryClient.setQueryData(["/api/boards"], sorted);
                         }}
                       >
                         <div className="flex items-center gap-1">
@@ -671,18 +694,29 @@ export default function Dashboard() {
                       <TableHead 
                         className="w-[200px] cursor-pointer hover:text-primary"
                         onClick={() => {
-                          // Sort by project name
-                          const sortedBoards = [...recentBoards].sort((a, b) => {
+                          // Create a new sorted array to avoid modifying the original
+                          const sorted = [...boards].sort((a, b) => {
                             const projectA = projects.find(p => p.id === a.projectId)?.name || '';
                             const projectB = projects.find(p => p.id === b.projectId)?.name || '';
                             return projectA.localeCompare(projectB);
                           });
-                          // If already sorted by project, reverse the order
-                          if (JSON.stringify(sortedBoards) === JSON.stringify(recentBoards)) {
-                            sortedBoards.reverse();
+                          
+                          // Get current sort state by checking a few items
+                          const getProjectName = (board) => projects.find(p => p.id === board.projectId)?.name || '';
+                          
+                          // Check if it's already sorted by project name in ascending order
+                          const isAscending = boards.every((board, index) => 
+                            index === 0 || 
+                            getProjectName(board).localeCompare(getProjectName(boards[index-1])) >= 0
+                          );
+                          
+                          // If already sorted ascending, sort descending
+                          if (isAscending) {
+                            sorted.reverse();
                           }
-                          // Update recentBoards (by refetching)
-                          queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+                          
+                          // Replace the boards array with our sorted version
+                          queryClient.setQueryData(["/api/boards"], sorted);
                         }}
                       >
                         <div className="flex items-center gap-1">
