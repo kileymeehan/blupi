@@ -538,7 +538,7 @@ export default function Dashboard() {
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <LayoutGrid className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-semibold">Recent Blueprints</h2>
+              <h2 className="text-2xl font-semibold">Blueprints</h2>
             </div>
             <Button
               variant="primary-cta"
@@ -550,99 +550,112 @@ export default function Dashboard() {
             </Button>
           </div>
           {boardsLoading ? (
-            <LoadingSkeleton count={3} />
+            <div className="animate-pulse p-4 rounded-md bg-gray-100">
+              <div className="h-8 bg-gray-200 rounded mb-4"></div>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="h-12 bg-gray-200 rounded"></div>
+                ))}
+              </div>
+            </div>
           ) : (
             <>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-                {recentBoards.map((board) => {
-                  const project = projects.find(
-                    (p) => p.id === board.projectId,
-                  );
-                  return (
-                    <Card
-                      key={board.id}
-                      className="relative overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col border border-gray-300"
-                    >
-                      {project && (
-                        <div
-                          className="absolute inset-y-0 left-0 w-1"
-                          style={{
-                            backgroundColor: project.color || "#4F46E5",
-                            opacity: 1,
-                            zIndex: 10,
-                          }}
-                        />
-                      )}
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">
-                            {board.name}
-                          </CardTitle>
-                          <div className="flex items-center gap-2">
+              <div className="overflow-hidden rounded-md border mb-8">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="w-[300px]">Blueprint Name</TableHead>
+                      <TableHead className="w-[200px]">
+                        <div className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          <span>Created</span>
+                        </div>
+                      </TableHead>
+                      <TableHead className="w-[250px]">
+                        <div className="flex items-center gap-1">
+                          <FolderSymlink size={14} />
+                          <span>Assigned Project</span>
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentBoards.map((board) => {
+                      const project = projects.find((p) => p.id === board.projectId);
+                      return (
+                        <TableRow key={board.id} className="hover:bg-gray-50">
+                          <TableCell className="font-medium">
+                            <Link href={`/boards/${board.id}`} className="text-[#302E87] hover:underline">
+                              {board.name}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <Clock size={14} />
+                              <span>{format(new Date(board.createdAt), "MMM d, yyyy")}</span>
+                              {board.user && <span> by {board.user.username}</span>}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {board.projectId ? (
+                              <div className="flex items-center">
+                                <div 
+                                  className="w-3 h-3 rounded-full mr-2" 
+                                  style={{ backgroundColor: project?.color || "#4F46E5" }}
+                                ></div>
+                                <span>{project?.name}</span>
+                              </div>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-sm text-gray-500 hover:text-[#302E87]"
+                                onClick={() => {
+                                  setSelectedBoardId(String(board.id));
+                                  setAddToProjectOpen(true);
+                                }}
+                              >
+                                <FolderSymlink size={14} className="mr-1" />
+                                Assign to project
+                              </Button>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right space-x-1">
                             <Button
                               variant="ghost"
                               size="sm"
+                              className="h-8 w-8 p-0 text-gray-500 hover:text-[#302E87]"
+                              onClick={() => navigate(`/boards/${board.id}`)}
+                            >
+                              <LayoutGrid size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-gray-500 hover:text-red-600"
                               onClick={() =>
                                 updateBoardStatus.mutate({
                                   boardId: board.id,
                                   status: "archived",
                                 })
                               }
-                              className="text-muted-foreground hover:text-red-600 p-1 h-auto"
                             >
-                              <Archive className="h-4 w-4" />
+                              <Archive size={16} />
                             </Button>
-                            <StatusSelector
-                              type="board"
-                              value={board.status}
-                              onChange={(status) =>
-                                updateBoardStatus.mutate({
-                                  boardId: board.id,
-                                  status,
-                                })
-                              }
-                              disabled={updateBoardStatus.isPending}
-                            />
-                          </div>
-                        </div>
-                        <CardDescription>
-                          {board.description}
-                          {project && (
-                            <div className="mt-1 text-xs text-muted-foreground">
-                              Project: {project.name}
-                            </div>
-                          )}
-                          <div className="mt-2 flex items-center gap-2">
-                            <div className="text-xs text-muted-foreground flex items-center gap-2">
-                              {board.user && (
-                                <Avatar className="h-5 w-5">
-                                  <AvatarFallback className="bg-primary text-white text-xs">
-                                    {board.user.username.substring(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                              )}
-                              <span>
-                                Created on {format(new Date(board.createdAt), "MMM d, yyyy")}
-                                {board.user && ` by ${board.user.username}`}
-                              </span>
-                            </div>
-                          </div>
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="mt-auto">
-                        <Button
-                          variant="ghost"
-                          asChild
-                          className="border border-gray-100 hover:bg-gray-100"
-                        >
-                          <Link href={`/board/${board.id}`}>
-                            View Blueprint
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {recentBoards.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-6 text-gray-500">
+                          No blueprints found. Create your first blueprint to get started.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
 
               <div className="flex justify-end mt-8 border-t pt-4">
@@ -664,122 +677,7 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <LayoutGrid className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-semibold">Unassigned Blueprints</h2>
-            </div>
-            <Button
-              variant="primary-cta"
-              size="icon"
-              onClick={() => setCreateBlueprintOpen(true)}
-              className="h-9 w-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white rounded-full"
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-            {unassignedBoards.map((board) => {
-              const assignedProject = projects.find(
-                (p) => p.id === board.projectId,
-              );
 
-              return (
-                <Card
-                  key={board.id}
-                  className="hover:shadow-lg transition-all duration-200 flex flex-col border border-gray-300"
-                >
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>{board.name}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            updateBoardStatus.mutate({
-                              boardId: board.id,
-                              status: "archived",
-                            })
-                          }
-                          className="text-muted-foreground hover:text-red-600 p-1 h-auto"
-                        >
-                          <Archive className="h-4 w-4" />
-                        </Button>
-                        <StatusSelector
-                          type="board"
-                          value={board.status}
-                          onChange={(status) =>
-                            updateBoardStatus.mutate({
-                              boardId: board.id,
-                              status,
-                            })
-                          }
-                          disabled={updateBoardStatus.isPending}
-                        />
-                      </div>
-                    </div>
-                    <CardDescription>
-                      {board.description}
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground flex items-center gap-2">
-                          {board.user && (
-                            <Avatar className="h-5 w-5">
-                              <AvatarFallback className="bg-primary text-white text-xs">
-                                {board.user.username.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                          )}
-                          <span>
-                            Created on {format(new Date(board.createdAt), "MMM d, yyyy")}
-                            {board.user && ` by ${board.user.username}`}
-                          </span>
-                        </div>
-                      </div>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="mt-auto">
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        variant="ghost"
-                        asChild
-                        className="border border-gray-100 hover:bg-gray-100"
-                      >
-                        <Link href={`/board/${board.id}`}>View Blueprint</Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className=" text-muted-foreground hover:text-foreground"
-                        onClick={() => {
-                          setSelectedBoardId(String(board.id));
-                          setAddToProjectOpen(true);
-                        }}
-                      >
-                        <Briefcase className="w-4 h-4 mr-2" />
-                        {assignedProject
-                          ? `Assigned to ${assignedProject.name}`
-                          : "Add to Project"}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-
-            {unassignedBoards.length === 0 && !boardsLoading && (
-              <Card className="border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
-                <CardHeader>
-                  <CardTitle>Create your first blueprint</CardTitle>
-                  <CardDescription>
-                    Start designing your workflow
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            )}
-          </div>
-        </section>
       </main>
 
       <CreateProjectDialog
