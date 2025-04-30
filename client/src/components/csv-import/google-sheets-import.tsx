@@ -185,11 +185,11 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
       <CardContent className="pb-2">
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="project-name">Blueprint Name</Label>
+            <Label htmlFor="blueprint-name">Blueprint Name</Label>
             <Input
-              id="project-name"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
+              id="blueprint-name"
+              value={blueprintName}
+              onChange={(e) => setBlueprintName(e.target.value)}
               placeholder="e.g., Sales Funnel Analysis"
             />
           </div>
