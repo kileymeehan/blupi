@@ -656,25 +656,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log(`[HTTP] Fetching data from Google Sheet: ${sheetId}, Sheet: ${sheetName || 'default'}`);
-      const data = await fetchSheetData(sheetId, sheetName);
       
-      if (!data || data.length === 0) {
-        return res.status(404).json({
+      try {
+        const data = await fetchSheetData(sheetId, sheetName);
+        console.log(`[HTTP] Successfully fetched sheet data. Row count: ${data?.length || 0}`);
+        
+        if (!data || data.length === 0) {
+          return res.status(404).json({
+            error: true,
+            message: "No data found in the specified sheet"
+          });
+        }
+        
+        // Convert to CSV format
+        const csvData = convertSheetDataToCsv(data);
+        console.log(`[HTTP] Successfully converted sheet data to CSV. CSV length: ${csvData.length}`);
+        
+        res.json({
+          sheetId,
+          sheetName,
+          rowCount: data.length,
+          data: data,
+          csv: csvData
+        });
+      } catch (fetchError) {
+        console.error('[HTTP] Error during Google Sheets API call:', fetchError);
+        return res.status(500).json({
           error: true,
-          message: "No data found in the specified sheet"
+          message: `Failed to fetch data: ${(fetchError as Error).message}`
         });
       }
-      
-      // Convert to CSV format
-      const csvData = convertSheetDataToCsv(data);
-      
-      res.json({
-        sheetId,
-        sheetName,
-        rowCount: data.length,
-        data: data,
-        csv: csvData
-      });
     } catch (error) {
       console.error('[HTTP] Error fetching Google Sheet data:', error);
       res.status(500).json({

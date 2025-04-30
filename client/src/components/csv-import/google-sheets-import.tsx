@@ -144,7 +144,8 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
         body: JSON.stringify({
           name: projectName || 'Google Sheets Import',
           description: 'Created from Google Sheets import',
-          status: 'active',
+          status: 'in-progress',
+          userId: 1, // Using default development user ID
         }),
       });
 

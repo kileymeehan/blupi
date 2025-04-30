@@ -48,22 +48,39 @@ export function parseSheetId(url: string): string | null {
  */
 export async function fetchSheetData(sheetId: string, sheetName?: string): Promise<any[][]> {
   try {
+    // Check if API key is available
+    if (!process.env.GOOGLE_API_KEY) {
+      console.error('[Google Sheets] Missing API key');
+      throw new Error("Google API key not configured");
+    }
+    console.log(`[Google Sheets] API Key exists and is set`);
+    
     // Configure the Google Sheets API client
     const sheets = google.sheets({ version: 'v4', auth: process.env.GOOGLE_API_KEY });
     
     // Construct the range (if sheet name provided, use it; otherwise fetch all)
-    const range = sheetName ? `${sheetName}!A1:Z1000` : '';
+    const range = sheetName ? `${sheetName}!A1:Z1000` : 'A1:Z1000';
+    console.log(`[Google Sheets] Attempting to fetch data from sheetId: ${sheetId}, range: ${range}`);
     
-    // Make the API request
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: sheetId,
-      range: range,
-    });
-    
-    // Return the values (or empty array if no data)
-    return response.data.values || [];
+    try {
+      // Make the API request
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: sheetId,
+        range: range,
+      });
+      
+      // Return the values (or empty array if no data)
+      const values = response.data.values || [];
+      console.log(`[Google Sheets] Successfully retrieved ${values.length} rows of data`);
+      
+      return values;
+    } catch (apiError) {
+      console.error(`[Google Sheets] API Error: ${(apiError as Error).message}`);
+      console.error('[Google Sheets] Full error:', JSON.stringify(apiError, null, 2));
+      throw new Error(`Google Sheets API error: ${(apiError as Error).message}`);
+    }
   } catch (error) {
-    console.error(`Error fetching sheet data: ${(error as Error).message}`);
+    console.error(`[Google Sheets] Error fetching sheet data: ${(error as Error).message}`);
     throw new Error(`Failed to fetch Google Sheet data: ${(error as Error).message}`);
   }
 }
@@ -75,28 +92,44 @@ export async function fetchSheetData(sheetId: string, sheetName?: string): Promi
  */
 export async function getSheetNames(sheetId: string): Promise<string[]> {
   try {
+    // Check if API key is available
+    if (!process.env.GOOGLE_API_KEY) {
+      console.error('[Google Sheets] Missing API key');
+      throw new Error("Google API key not configured");
+    }
+    console.log(`[Google Sheets] API Key exists and is set`);
+    
     // Configure the Google Sheets API client
     const sheets = google.sheets({ version: 'v4', auth: process.env.GOOGLE_API_KEY });
     
-    // Make the API request to get spreadsheet metadata
-    const response = await sheets.spreadsheets.get({
-      spreadsheetId: sheetId,
-    });
+    console.log(`[Google Sheets] Attempting to fetch sheet names for sheetId: ${sheetId}`);
     
-    // Extract sheet names from the response
-    const sheetNames: string[] = [];
-    
-    if (response.data.sheets) {
-      for (const sheet of response.data.sheets) {
-        if (sheet.properties && sheet.properties.title) {
-          sheetNames.push(sheet.properties.title);
+    try {
+      // Make the API request to get spreadsheet metadata
+      const response = await sheets.spreadsheets.get({
+        spreadsheetId: sheetId,
+      });
+      
+      // Extract sheet names from the response
+      const sheetNames: string[] = [];
+      
+      if (response.data.sheets) {
+        for (const sheet of response.data.sheets) {
+          if (sheet.properties && sheet.properties.title) {
+            sheetNames.push(sheet.properties.title);
+          }
         }
       }
+      
+      console.log(`[Google Sheets] Found ${sheetNames.length} sheets: ${sheetNames.join(', ')}`);
+      return sheetNames;
+    } catch (apiError) {
+      console.error(`[Google Sheets] API Error getting sheet names: ${(apiError as Error).message}`);
+      console.error('[Google Sheets] Full error:', JSON.stringify(apiError, null, 2));
+      throw new Error(`Google Sheets API error: ${(apiError as Error).message}`);
     }
-    
-    return sheetNames;
   } catch (error) {
-    console.error(`Error getting sheet names: ${(error as Error).message}`);
+    console.error(`[Google Sheets] Error getting sheet names: ${(error as Error).message}`);
     throw new Error(`Failed to get Google Sheet names: ${(error as Error).message}`);
   }
 }
