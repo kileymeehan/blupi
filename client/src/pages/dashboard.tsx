@@ -150,14 +150,6 @@ export default function Dashboard() {
     }
   }, [projectToDelete]);
 
-  const filteredBoards = boards.filter((board) => {
-    if (showArchivedBlueprints) {
-      const project = projects.find((p) => p.id === board.projectId);
-      return project?.status === "archived";
-    }
-    return !board.projectId;
-  });
-
   // State for sorted boards
   const [sortedBoards, setSortedBoards] = useState<Board[]>([]);
   const [sortConfig, setSortConfig] = useState<{
@@ -227,8 +219,6 @@ export default function Dashboard() {
   const recentBoards = sortedBoards;
   // Limit blueprints to 10 unless showAllBlueprints is true
   const displayedBoards = showAllBlueprints ? recentBoards : recentBoards.slice(0, 10);
-
-  const unassignedBoards = filteredBoards.filter((board) => !board.projectId);
 
   const filteredProjects = projects.filter((project) =>
     showArchived
@@ -343,7 +333,7 @@ export default function Dashboard() {
                   onClick={() => setCreateBlueprintOpen(true)}
                   className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
                 >
-                  <LayoutGrid className="mr-2 h-4 w-4 text-[#302E87]" />
+                  <FileText className="mr-2 h-4 w-4 text-[#302E87]" />
                   New Blueprint
                 </DropdownMenuItem>
                 
@@ -453,22 +443,29 @@ export default function Dashboard() {
               </div>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold mb-1.5">Welcome Back!</h1>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Continue working on your blueprints and projects.
+                <p className="text-gray-600 mb-4 max-w-2xl">
+                  Continue managing your product design lifecycle with Blupi. Create new
+                  blueprints, organize them into projects, and collaborate with your team.
                 </p>
-                <div className="flex gap-4">
-                  <Button 
-                    onClick={() => setCreateProjectOpen(true)}
-                    className="bg-[#302E87] hover:bg-[#252270] text-white"
-                  >
-                    Create New Project
-                  </Button>
-                  <Button 
-                    onClick={() => setCreateBlueprintOpen(true)}
+                <div className="flex flex-wrap gap-3">
+                  <Button
                     variant="outline"
-                    className="border-[#302E87] text-[#302E87] hover:bg-[#FFE8D6]/20"
+                    size="sm"
+                    className="border-[#302E87] text-[#302E87]"
+                    onClick={() => setCreateBlueprintOpen(true)}
                   >
+                    <FileText className="mr-2 h-4 w-4" />
                     Create New Blueprint
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-[#302E87] text-[#302E87]"
+                    onClick={() => setImportDialogOpen(true)}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Import from CSV
                   </Button>
                 </div>
               </div>
@@ -476,6 +473,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* BLUEPRINTS SECTION FIRST */}
         <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
           {/* Blueprint section header */}
           <div className="flex justify-between items-center mb-6">
@@ -483,422 +481,62 @@ export default function Dashboard() {
               <FileText className="h-6 w-6 text-primary" />
               <h2 className="text-2xl font-semibold">Blueprints</h2>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="primary-cta"
-                  className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white flex items-center gap-1"
-                >
-                  <Plus className="h-4 w-4" />
-                  Create New
-                  <ChevronDown size={14} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem 
-                  onClick={() => setCreateBlueprintOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
-                >
-                  <FileText className="mr-2 h-4 w-4 text-[#302E87]" />
-                  New Empty Blueprint
-                </DropdownMenuItem>
-                
-                {/* Import options */}
-                <DropdownMenuItem 
-                  onClick={() => setImportDialogOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
-                >
-                  <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
-                  Import from Pendo
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setImportDialogOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
-                >
-                  <Upload className="mr-2 h-4 w-4 text-[#302E87]" />
-                  Import from CSV
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          {boardsLoading ? (
-            <LoadingSkeleton count={3} />
-          ) : (
-            <>
-              <div className="overflow-hidden rounded-md border mb-8">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead 
-                        className="w-[250px] cursor-pointer hover:text-primary"
-                        onClick={() => requestSort('name')}
-                      >
-                        <div className="flex items-center gap-1">
-                          <span>Blueprint Name</span>
-                          <ChevronDown size={14} />
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="w-[150px] cursor-pointer hover:text-primary"
-                        onClick={() => requestSort('date')}
-                      >
-                        <div className="flex items-center gap-1">
-                          <Calendar size={14} />
-                          <span>Created</span>
-                          <ChevronDown size={14} />
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="w-[100px] cursor-pointer hover:text-primary"
-                        onClick={() => requestSort('status')}
-                      >
-                        <div className="flex items-center gap-1">
-                          <span>Status</span>
-                          <ChevronDown size={14} />
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="w-[200px] cursor-pointer hover:text-primary"
-                        onClick={() => requestSort('project')}
-                      >
-                        <div className="flex items-center gap-1">
-                          <FolderSymlink size={14} />
-                          <span>Assigned Project</span>
-                          <ChevronDown size={14} />
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {displayedBoards.map((board) => {
-                      const project = projects.find((p) => p.id === board.projectId);
-                      return (
-                        <TableRow key={board.id} className="hover:bg-gray-50">
-                          <TableCell className="font-medium">
-                            <Link href={`/boards/${board.id}`} className="text-[#302E87] hover:underline">
-                              {board.name}
-                            </Link>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1 text-gray-600">
-                              <Clock size={14} />
-                              <span>{format(new Date(board.createdAt), "MMM d, yyyy")}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant={
-                                board.status === "draft" ? "outline" : 
-                                board.status === "in-progress" ? "secondary" : 
-                                board.status === "review" ? "default" : 
-                                board.status === "complete" ? "default" : 
-                                "destructive"
-                              }
-                              className={`capitalize ${board.status === "complete" ? "bg-green-500 hover:bg-green-600" : ""}`}
-                            >
-                              {board.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {board.projectId ? (
-                              <div className="flex items-center">
-                                <div 
-                                  className="w-3 h-3 rounded-full mr-2" 
-                                  style={{ backgroundColor: project?.color || "#4F46E5" }}
-                                ></div>
-                                <span>{project?.name}</span>
-                              </div>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 px-2 text-sm text-gray-500 hover:text-[#302E87]"
-                                onClick={() => {
-                                  setSelectedBoardId(String(board.id));
-                                  setAddToProjectOpen(true);
-                                }}
-                              >
-                                <FolderSymlink size={14} className="mr-1" />
-                                Assign to project
-                              </Button>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-gray-500 hover:text-red-600"
-                              onClick={() =>
-                                updateBoardStatus.mutate({
-                                  boardId: board.id,
-                                  status: "archived",
-                                })
-                              }
-                            >
-                              <Archive size={16} />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-gray-500 hover:text-red-600"
-                              onClick={() => {
-                                if (confirm("Are you sure you want to permanently delete this blueprint? This action cannot be undone.")) {
-                                  fetch(`/api/boards/${board.id}`, { method: 'DELETE' })
-                                    .then(res => {
-                                      if (res.ok) {
-                                        toast({
-                                          title: "Success",
-                                          description: "Blueprint permanently deleted."
-                                        });
-                                        queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
-                                      } else {
-                                        toast({
-                                          title: "Error",
-                                          description: "Failed to delete blueprint.",
-                                          variant: "destructive"
-                                        });
-                                      }
-                                    });
-                                }
-                              }}
-                            >
-                              <Trash size={16} />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                    {recentBoards.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-6 text-gray-500">
-                          No blueprints found. Create your first blueprint to get started.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              <div className="flex justify-between items-center mt-8 border-t pt-4">
-                <div>
-                  {!showAllBlueprints && recentBoards.length > 10 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowAllBlueprints(true)}
-                      className="flex items-center gap-2 text-[#302E87]"
-                    >
-                      <Eye className="h-4 w-4" />
-                      Show All Blueprints ({recentBoards.length})
-                    </Button>
-                  )}
-                  {showAllBlueprints && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowAllBlueprints(false)}
-                      className="flex items-center gap-2 text-[#302E87]"
-                    >
-                      <EyeOff className="h-4 w-4" />
-                      Show Only 10 Blueprints
-                    </Button>
-                  )}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowArchivedBlueprints(!showArchivedBlueprints)}
-                  className="flex items-center gap-2"
-                >
-                  <Archive className="h-4 w-4" />
-                  {showArchivedBlueprints
-                    ? "Hide Archived Blueprints"
-                    : "Show Archived Blueprints"}
-                </Button>
-              </div>
-            </>
-          )}
-        </section>
-        
-        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
-          {/* Project section header */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <Folder className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-semibold">Projects</h2>
-            </div>
-            <Button
-              variant="primary-cta"
-              size="icon"
-              onClick={() => setCreateProjectOpen(true)}
-              className="h-9 w-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white rounded-full"
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
-          </div>
-          {projectLoading ? (
-            <LoadingSkeleton count={3} />
-          ) : (
-            <>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-                {filteredProjects.map((project) => (
-                  <Card
-                    key={project.id}
-                    className="relative overflow-hidden group hover:shadow-lg transition-all duration-200 flex flex-col border border-gray-300"
-                  >
-                    <div
-                      className="absolute inset-y-0 left-0 w-1"
-                      style={{
-                        backgroundColor: project.color || "#4F46E5",
-                        opacity: 1,
-                        zIndex: 10,
-                      }}
-                    />
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <CardTitle className="text-lg">
-                            {project.name}
-                          </CardTitle>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              updateProjectStatus.mutate({
-                                projectId: project.id,
-                                status: "archived",
-                              })
-                            }
-                            className="text-muted-foreground hover:text-red-600 p-1 h-auto"
-                          >
-                            <Archive className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <StatusSelector
-                          type="project"
-                          value={project.status}
-                          onChange={(status) =>
-                            updateProjectStatus.mutate({
-                              projectId: project.id,
-                              status,
-                            })
-                          }
-                          disabled={updateProjectStatus.isPending}
-                        />
-                      </div>
-                      <div className="mt-2">
-                        <div className="text-sm text-muted-foreground">
-                          {project.description}
-                        </div>
-                        <div className="mt-2 flex items-center gap-2">
-                          <div className="text-xs text-muted-foreground flex items-center gap-2">
-                            <Avatar className="h-5 w-5">
-                              <AvatarFallback className="bg-primary text-white text-xs">
-                                {getAnimalEmoji(project.id.toString()).substring(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span>
-                              Created on {format(new Date(project.createdAt), "MMM d, yyyy")}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="mt-auto">
-                      <Button
-                        variant="ghost"
-                        asChild
-                        className="border border-gray-100 hover:bg-gray-100"
-                      >
-                        <Link href={`/project/${project.id}`}>
-                          View Project
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-
-                {filteredProjects.length === 0 && (
-                  <Card className="border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
-                    <CardHeader>
-                      <CardTitle>
-                        {showArchived
-                          ? "No archived projects"
-                          : "Get started with a project"}
-                      </CardTitle>
-                      <CardDescription>
-                        {showArchived
-                          ? "When you archive projects, they'll appear here"
-                          : "Create a project to organize your blueprints"}
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAllBlueprints(!showAllBlueprints)}
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#302E87]"
+              >
+                {showAllBlueprints ? (
+                  <>
+                    <EyeOff className="h-4 w-4" />
+                    Show Less
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    Show All ({recentBoards.length})
+                  </>
                 )}
-              </div>
-
-              <div className="flex justify-end mt-8 border-t pt-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowArchived(!showArchived)}
-                  className="flex items-center gap-2"
-                >
-                  <Archive className="h-4 w-4" />
-                  {showArchived
-                    ? "Hide Archived Projects"
-                    : "Show Archived Projects"}
-                </Button>
-              </div>
-            </>
-          )}
-        </section>
-
-        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
-          {/* Blueprint section header */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <FileText className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-semibold">Blueprints</h2>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="primary-cta"
+                    className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white flex items-center gap-1"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create Blueprint
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem 
+                    onClick={() => setCreateBlueprintOpen(true)}
+                    className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                  >
+                    <FileText className="mr-2 h-4 w-4 text-[#302E87]" />
+                    New Empty Blueprint
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setImportDialogOpen(true)}
+                    className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                  >
+                    <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
+                    Import from Pendo
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setImportDialogOpen(true)}
+                    className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                  >
+                    <Upload className="mr-2 h-4 w-4 text-[#302E87]" />
+                    Import from CSV
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="primary-cta"
-                  className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white flex items-center gap-1"
-                >
-                  <Plus className="h-4 w-4" />
-                  Create New
-                  <ChevronDown size={14} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem 
-                  onClick={() => setCreateBlueprintOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
-                >
-                  <LayoutGrid className="mr-2 h-4 w-4 text-[#302E87]" />
-                  New Blueprint
-                </DropdownMenuItem>
-                
-                {/* Import options */}
-                <DropdownMenuItem 
-                  onClick={() => setImportDialogOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
-                >
-                  <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
-                  Import from Pendo
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setImportDialogOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
-                >
-                  <Upload className="mr-2 h-4 w-4 text-[#302E87]" />
-                  Import from CSV
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
+          
           {boardsLoading ? (
             <div className="animate-pulse p-4 rounded-md bg-gray-100">
               <div className="h-8 bg-gray-200 rounded mb-4"></div>
@@ -1079,6 +717,171 @@ export default function Dashboard() {
           )}
         </section>
 
+        {/* PROJECTS SECTION SECOND */}
+        <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
+          {/* Project section header */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-2">
+              <Folder className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-semibold">Projects</h2>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="primary-cta"
+                  className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white flex items-center gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Project
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem 
+                  onClick={() => setCreateProjectOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <Folder className="mr-2 h-4 w-4 text-[#302E87]" />
+                  New Empty Project
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setImportDialogOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
+                  Import from Pendo
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          {projectLoading ? (
+            <LoadingSkeleton />
+          ) : (
+            <>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredProjects.map((project) => (
+                  <Card
+                    key={project.id}
+                    className="relative overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-200"
+                  >
+                    <div
+                      className="absolute h-1 w-full top-0 left-0"
+                      style={{ backgroundColor: project.color || "#4F46E5" }}
+                    ></div>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{
+                              backgroundColor: project.color || "#4F46E5",
+                            }}
+                          ></div>
+                          <CardTitle className="text-lg">{project.name}</CardTitle>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                              <span className="sr-only">Open menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setProjectToDelete({
+                                  id: project.id,
+                                  name: project.name,
+                                });
+                              }}
+                              className="text-red-600"
+                            >
+                              <Trash className="mr-2 h-4 w-4" />
+                              <span>Delete</span>
+                            </DropdownMenuItem>
+                            {project.status !== "archived" && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  updateProjectStatus.mutate({
+                                    projectId: project.id,
+                                    status: "archived",
+                                  })
+                                }
+                              >
+                                <Archive className="mr-2 h-4 w-4" />
+                                <span>Archive</span>
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <CardDescription className="mt-1.5">
+                        {project.description || "No description provided."}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex justify-between items-center">
+                      <StatusSelector
+                        value={project.status}
+                        onChange={(status) =>
+                          updateProjectStatus.mutate({
+                            projectId: project.id,
+                            status,
+                          })
+                        }
+                      />
+                      <div className="flex items-center space-x-3">
+                        <Button asChild variant="ghost" size="sm">
+                          <Link href={`/projects/${project.id}`}>
+                            View
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {filteredProjects.length === 0 && (
+                  <div className="col-span-full">
+                    <div className="text-center py-12 bg-gray-50 rounded-md border border-gray-200">
+                      <Briefcase className="text-gray-400 h-12 w-12 mx-auto mb-4" />
+                      <h3 className="font-medium text-lg mb-1">No projects found</h3>
+                      <p className="text-gray-500 mb-4">
+                        {showArchived
+                          ? "You don't have any archived projects."
+                          : "Create your first project to get started."}
+                      </p>
+                      {!showArchived && (
+                        <Button
+                          onClick={() => setCreateProjectOpen(true)}
+                          className="mt-2 bg-primary"
+                        >
+                          <Plus className="h-4 w-4 mr-1.5" />
+                          Create New Project
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end mt-8 border-t pt-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowArchived(!showArchived)}
+                  className="flex items-center gap-2"
+                >
+                  <Archive className="h-4 w-4" />
+                  {showArchived
+                    ? "Hide Archived Projects"
+                    : "Show Archived Projects"}
+                </Button>
+              </div>
+            </>
+          )}
+        </section>
 
       </main>
 
