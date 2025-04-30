@@ -289,6 +289,13 @@ export default function Dashboard() {
                   <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
                   Import from Pendo
                 </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setImportDialogOpen(true)}
+                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                >
+                  <Upload className="mr-2 h-4 w-4 text-[#302E87]" />
+                  Import from CSV
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             
@@ -578,13 +585,6 @@ export default function Dashboard() {
                   onClick={() => setImportDialogOpen(true)}
                   className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
                 >
-                  <Sheet className="mr-2 h-4 w-4 text-[#302E87]" />
-                  Import from Google Sheets
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setImportDialogOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
-                >
                   <Upload className="mr-2 h-4 w-4 text-[#302E87]" />
                   Import from CSV
                 </DropdownMenuItem>
@@ -679,6 +679,33 @@ export default function Dashboard() {
                               }
                             >
                               <Archive size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-gray-500 hover:text-red-600"
+                              onClick={() => {
+                                if (confirm("Are you sure you want to permanently delete this blueprint? This action cannot be undone.")) {
+                                  fetch(`/api/boards/${board.id}`, { method: 'DELETE' })
+                                    .then(res => {
+                                      if (res.ok) {
+                                        toast({
+                                          title: "Success",
+                                          description: "Blueprint permanently deleted."
+                                        });
+                                        queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+                                      } else {
+                                        toast({
+                                          title: "Error",
+                                          description: "Failed to delete blueprint.",
+                                          variant: "destructive"
+                                        });
+                                      }
+                                    });
+                                }
+                              }}
+                            >
+                              <Trash size={16} />
                             </Button>
                           </TableCell>
                         </TableRow>
