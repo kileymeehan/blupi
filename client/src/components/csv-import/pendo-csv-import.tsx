@@ -120,38 +120,34 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
       const reader = new FileReader();
       
       reader.onload = async (event) => {
-        if (!event.target?.result) return;
-        
-        const csvContent = event.target.result as string;
-        const parsedData = parseCSV(csvContent);
-        
-        if (parsedData.length === 0) {
-          toast({
-            title: 'Invalid CSV format',
-            description: 'Could not parse any data from the CSV file',
-            variant: 'destructive'
-          });
-          setIsLoading(false);
-          return;
-        }
+        try {
+          if (!event.target?.result) return;
+          
+          const csvContent = event.target.result as string;
+          const parsedData = parseCSV(csvContent);
+          
+          if (parsedData.length === 0) {
+            toast({
+              title: 'Invalid CSV format',
+              description: 'Could not parse any data from the CSV file',
+              variant: 'destructive'
+            });
+            setIsLoading(false);
+            return;
+          }
 
-        // Create a new board with a column for each step in the funnel
-        const columns = parsedData.map((row, index) => {
-          return { 
-            id: `col-${index + 1}`, 
-            name: `Step ${index + 1}` // Use "Step X" instead of the actual step name
-          };
-        });
-        
-        // Create blueprint directly without creating a project first
-        const boardResponse = await fetch('/api/boards', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
+          // Create a new board with a column for each step in the funnel
+          const columns = parsedData.map((row, index) => {
+            return { 
+              id: `col-${index + 1}`, 
+              name: `Step ${index + 1}` // Use "Step X" instead of the actual step name
+            };
+          });
+          
+          // Create blueprint directly without creating a project first
+          // Don't send projectId at all instead of sending null
+          const boardData = {
             name: blueprintName, // Use the blueprint name directly
-            projectId: null, // No project association initially
             status: 'draft',
             phases: [
               {
@@ -161,26 +157,46 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
               }
             ],
             blocks: generateBlocks(parsedData)
-          })
-        });
+          };
+          
+          console.log('Sending board creation request:', boardData);
+          
+          const boardResponse = await fetch('/api/boards', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(boardData)
+          });
 
-        if (!boardResponse.ok) {
-          throw new Error('Failed to create board');
-        }
+          if (!boardResponse.ok) {
+            const errorData = await boardResponse.json();
+            console.error('Server error:', errorData);
+            throw new Error(errorData.message || 'Failed to create blueprint');
+          }
 
-        const board = await boardResponse.json();
-        
-        toast({
-          title: 'Import Successful',
-          description: 'Created new blueprint from Pendo funnel data',
-          variant: 'default'
-        });
-        
-        // Navigate to the new board
-        navigate(`/boards/${board.id}`);
-        
-        if (onClose) {
-          onClose();
+          const board = await boardResponse.json();
+          
+          toast({
+            title: 'Import Successful',
+            description: 'Created new blueprint from Pendo funnel data',
+            variant: 'default'
+          });
+          
+          // Navigate to the new board
+          navigate(`/boards/${board.id}`);
+          
+          if (onClose) {
+            onClose();
+          }
+        } catch (error) {
+          console.error('Error processing CSV data:', error);
+          toast({
+            title: 'Import failed',
+            description: error instanceof Error ? error.message : 'Failed to process CSV data',
+            variant: 'destructive'
+          });
+          setIsLoading(false);
         }
       };
       

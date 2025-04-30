@@ -135,26 +135,63 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
 
   const createNewBoard = async (csvData: string) => {
     try {
-      // Create a board directly with the CSV data
-      const formData = new FormData();
-      formData.append('csvData', csvData);
-      // Project ID is optional, blueprint can be assigned to a project later
-      formData.append('name', blueprintName || 'Google Sheets Import - Customer Journey');
-
-      const boardResponse = await fetch('/api/boards/import-csv', {
+      console.log('Processing Google Sheets data for import');
+      
+      // Parse the CSV data to create a more structured board
+      const lines = csvData.split('\n');
+      const headers = lines[0].split(',');
+      const data = lines.slice(1).filter(line => line.trim()).map(line => {
+        const values = line.split(',');
+        return headers.reduce((obj, header, i) => {
+          obj[header.trim()] = values[i]?.trim() || '';
+          return obj;
+        }, {} as Record<string, string>);
+      });
+      
+      // Create columns based on CSV structure
+      const columns = headers.slice(0, Math.min(headers.length, 10)).map((header, index) => {
+        return {
+          id: `col-${index + 1}`,
+          name: `Step ${index + 1}`
+        };
+      });
+      
+      // Create a new board with the parsed data
+      const boardData = {
+        name: blueprintName || 'Google Sheets Import - Customer Journey',
+        status: 'draft',
+        // Do not include projectId at all rather than setting it to null
+        phases: [
+          {
+            id: 'phase-1',
+            name: 'Customer Journey',
+            columns: columns
+          }
+        ],
+        blocks: []  // We'll generate blocks on the server side
+      };
+      
+      console.log('Sending board creation request:', boardData);
+      
+      const boardResponse = await fetch('/api/boards', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(boardData)
       });
 
       if (!boardResponse.ok) {
-        throw new Error('Failed to create board from CSV data');
+        const errorData = await boardResponse.json();
+        console.error('Server error:', errorData);
+        throw new Error(errorData.message || 'Failed to create blueprint');
       }
 
       const board = await boardResponse.json();
 
       toast({
         title: "Import successful",
-        description: "New board created from Google Sheet data",
+        description: "New blueprint created from Google Sheet data",
         variant: "default"
       });
 
@@ -165,7 +202,7 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
       
       toast({
         title: "Import failed",
-        description: (error as Error).message || "Couldn't create a new board.",
+        description: (error as Error).message || "Couldn't create a new blueprint.",
         variant: "destructive"
       });
     }
