@@ -594,7 +594,7 @@ export default function Dashboard() {
                       return (
                         <TableRow key={board.id} className="hover:bg-gray-50">
                           <TableCell className="font-medium">
-                            <Link href={`/boards/${board.id}`} className="text-[#302E87] hover:underline">
+                            <Link href={`/board/${board.id}`} className="text-[#302E87] hover:underline">
                               {board.name}
                             </Link>
                           </TableCell>
@@ -824,6 +824,7 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent className="flex justify-between items-center">
                       <StatusSelector
+                        type="project"
                         value={project.status}
                         onChange={(status) =>
                           updateProjectStatus.mutate({
@@ -834,7 +835,7 @@ export default function Dashboard() {
                       />
                       <div className="flex items-center space-x-3">
                         <Button asChild variant="ghost" size="sm">
-                          <Link href={`/projects/${project.id}`}>
+                          <Link href={`/project/${project.id}`}>
                             View
                           </Link>
                         </Button>
