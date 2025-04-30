@@ -31,79 +31,160 @@ const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
   const blocks: any[] = [];
   let blockIndex = 0;
   
-  // Create columns based on the headers (first row of the CSV)
-  headers.slice(0, Math.min(headers.length, 10)).forEach((header, columnIndex) => {
-    // Create a title block for each column
-    blocks.push({
-      id: `block-${blockIndex++}`,
-      type: 'touchpoint',
-      content: header.trim(),
-      phaseIndex: 0,
-      columnIndex: columnIndex,
-      comments: [],
-      attachments: [],
-      notes: '',
-      emoji: '',
-      department: '',
-      customDepartment: ''
-    });
+  // Check if this is a funnel-like structure with steps
+  const isStepData = headers.some(h => h.toLowerCase() === 'step') || 
+                     data.some(row => Object.keys(row).some(key => 
+                       row[key].toLowerCase().includes('step') || /^\d+\.\s+.+$/.test(row[key])
+                     ));
+                     
+  if (isStepData) {
+    // Special handling for step/funnel data - similar to CSV import
+    // Find the column that contains step data
+    const stepColumn = headers.find(h => h.toLowerCase() === 'step') || headers[0];
     
-    // For each row of data, create metrics blocks
+    // Process each row as a separate step (horizontally distributed)
     data.forEach((row, rowIndex) => {
-      const cellValue = row[header];
-      if (cellValue && cellValue.trim()) {
-        // Create a metrics block - the quotes should already be properly preserved
-        // from the data parsing step, so we don't need to add them here
-        blocks.push({
-          id: `block-${blockIndex++}`,
-          type: 'metrics',
-          // Use the cell value directly as it was already processed correctly in the data parsing step
-          content: cellValue,
-          phaseIndex: 0,
-          columnIndex: columnIndex,
-          comments: [],
-          attachments: [],
-          notes: '',
-          emoji: '',
-          department: '',
-          customDepartment: ''
-        });
+      const stepValue = row[stepColumn];
+      if (!stepValue) return;
+      
+      // Extract step name (with or without numbering prefix)
+      const stepNameMatch = stepValue.match(/^(\d+)\.\s*(.+)$/);
+      let stepName = stepValue;
+      let stepNumber = rowIndex;
+      
+      if (stepNameMatch) {
+        stepNumber = parseInt(stepNameMatch[1]) - 1;
+        stepName = stepNameMatch[2].trim();
       }
+      
+      // Create touchpoint block for the step name
+      blocks.push({
+        id: `block-${blockIndex++}`,
+        type: 'touchpoint',
+        content: stepName,
+        phaseIndex: 0,
+        columnIndex: stepNumber, // Position based on step number
+        comments: [],
+        attachments: [],
+        notes: '',
+        emoji: '',
+        department: '',
+        customDepartment: ''
+      });
+      
+      // Add metrics blocks for each column's data
+      headers.forEach((header, headerIndex) => {
+        if (header === stepColumn) return; // Skip the step column
+        
+        const cellValue = row[header];
+        if (cellValue && cellValue.trim()) {
+          // Create metrics blocks for each data point
+          blocks.push({
+            id: `block-${blockIndex++}`,
+            type: 'metrics',
+            content: cellValue,
+            phaseIndex: 0,
+            columnIndex: stepNumber, // Same column as its step
+            comments: [],
+            attachments: [],
+            notes: '',
+            emoji: '',
+            department: '',
+            customDepartment: ''
+          });
+          
+          // Check for friction points
+          const cleanValue = cellValue.replace(/[",]/g, '').toLowerCase();
+          const numberValue = parseFloat(cleanValue);
+          
+          // Check for low percentages or conversion rates
+          if (!isNaN(numberValue) && 
+              (cellValue.includes('%') && numberValue < 50) || 
+              (header.toLowerCase().includes('conversion') && numberValue < 0.5)) {
+            blocks.push({
+              id: `block-${blockIndex++}`,
+              type: 'friction',
+              content: `Friction Point: ${stepName}`,
+              phaseIndex: 0,
+              columnIndex: stepNumber,
+              comments: [],
+              attachments: [],
+              notes: `Low conversion: ${cellValue}`,
+              emoji: '',
+              department: '',
+              customDepartment: ''
+            });
+          }
+        }
+      });
     });
-    
-    // Check for values that might indicate friction points (low numbers, "failed", etc.)
-    const frictionIndicators = ['low', 'fail', 'error', 'drop', 'abandon'];
-    data.forEach((row, rowIndex) => {
-      // Handle quoted strings properly in the comparison
-      let cellValue = String(row[header]).toLowerCase();
-      let cleanValue = cellValue;
+  } else {
+    // Default generic handling for non-step data
+    headers.slice(0, Math.min(headers.length, 10)).forEach((header, columnIndex) => {
+      // Create a title block for each column
+      blocks.push({
+        id: `block-${blockIndex++}`,
+        type: 'touchpoint',
+        content: header.trim(),
+        phaseIndex: 0,
+        columnIndex: columnIndex,
+        comments: [],
+        attachments: [],
+        notes: '',
+        emoji: '',
+        department: '',
+        customDepartment: ''
+      });
       
-      // Remove quotes if present for numeric comparison
-      if (cellValue.startsWith('"') && cellValue.endsWith('"')) {
-        cleanValue = cellValue.substring(1, cellValue.length - 1);
-      }
+      // For each row of data, create metrics blocks
+      data.forEach((row, rowIndex) => {
+        const cellValue = row[header];
+        if (cellValue && cellValue.trim()) {
+          // Create a metrics block
+          blocks.push({
+            id: `block-${blockIndex++}`,
+            type: 'metrics',
+            content: cellValue,
+            phaseIndex: 0,
+            columnIndex: columnIndex,
+            comments: [],
+            attachments: [],
+            notes: '',
+            emoji: '',
+            department: '',
+            customDepartment: ''
+          });
+        }
+      });
       
-      // Check for low numeric values (below 50)
-      const numberValue = parseFloat(cleanValue);
-      const isLowNumber = !isNaN(numberValue) && numberValue < 50;
-      
-      if (isLowNumber || frictionIndicators.some(indicator => cellValue.includes(indicator))) {
-        blocks.push({
-          id: `block-${blockIndex++}`,
-          type: 'friction',
-          content: `Friction Point: ${row[header]}`,
-          phaseIndex: 0,
-          columnIndex: columnIndex,
-          comments: [],
-          attachments: [],
-          notes: `Potential friction identified in ${header}`,
-          emoji: '',
-          department: '',
-          customDepartment: ''
-        });
-      }
+      // Check for friction points
+      const frictionIndicators = ['low', 'fail', 'error', 'drop', 'abandon'];
+      data.forEach((row, rowIndex) => {
+        let cellValue = String(row[header]).toLowerCase();
+        let cleanValue = cellValue.replace(/[",]/g, '');
+        
+        // Check for low numeric values
+        const numberValue = parseFloat(cleanValue);
+        const isLowNumber = !isNaN(numberValue) && numberValue < 50;
+        
+        if (isLowNumber || frictionIndicators.some(indicator => cellValue.includes(indicator))) {
+          blocks.push({
+            id: `block-${blockIndex++}`,
+            type: 'friction',
+            content: `Friction Point: ${row[header]}`,
+            phaseIndex: 0,
+            columnIndex: columnIndex,
+            comments: [],
+            attachments: [],
+            notes: `Potential friction identified in ${header}`,
+            emoji: '',
+            department: '',
+            customDepartment: ''
+          });
+        }
+      });
     });
-  });
+  }
   
   return blocks;
 };
@@ -232,29 +313,70 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
     try {
       console.log('Processing Google Sheets data for import');
       
+      // First, properly handle CSV by processing quoted fields correctly
+      const processCSVLine = (line: string): string[] => {
+        const result: string[] = [];
+        let inQuotes = false;
+        let currentField = '';
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          
+          if (char === '"') {
+            inQuotes = !inQuotes;
+            continue;
+          }
+          
+          if (char === ',' && !inQuotes) {
+            result.push(currentField.trim());
+            currentField = '';
+            continue;
+          }
+          
+          currentField += char;
+        }
+        
+        // Don't forget to push the last field
+        result.push(currentField.trim());
+        
+        return result;
+      };
+      
       // Parse the CSV data to create a more structured board
       const lines = csvData.split('\n');
-      const headers = lines[0].split(',');
+      const headers = processCSVLine(lines[0]);
       
-      // More carefully parse the CSV data to preserve quotes
+      // More carefully parse the CSV data to preserve quotes and handle commas properly
       const data = lines.slice(1).filter(line => line.trim()).map(line => {
-        const values = line.split(',').map(val => {
-          // Check if this value is quoted and preserve quotes in numeric values
-          if (val.trim().startsWith('"') && val.trim().endsWith('"')) {
-            return val.trim(); // Keep quotes intact
-          }
-          // For numeric values in the CSV, ensure we allow correct quotation in display
+        const values = processCSVLine(line).map(val => {
+          // Format the value to match expected format
           const valTrimmed = val.trim();
-          const isNumeric = !isNaN(parseFloat(valTrimmed)) && isFinite(Number(valTrimmed));
           
-          // If it's a number that should have quotes according to the CSV import style, add them
-          if (isNumeric && (valTrimmed === "1" || valTrimmed === "2" || 
-              valTrimmed === "6" || valTrimmed === "11" || 
-              parseInt(valTrimmed) < 20)) {
-            return `"${valTrimmed}"`;
+          // For numeric values, ensure we handle special cases correctly
+          if (valTrimmed.match(/^[\d,.]+$/)) {
+            // Handle numeric values with commas (like 1,000)
+            const rawNumber = valTrimmed.replace(/,/g, '');
+            const num = parseFloat(rawNumber);
+            
+            // If it's a number that should have quotes according to the CSV import style, add them
+            if (!isNaN(num) && (num === 1 || num === 2 || num === 6 || num === 11 || num < 20)) {
+              return `"${num}"`;
+            }
+            
+            // For large numbers that had commas, restore proper formatting with commas
+            if (!isNaN(num) && num >= 1000) {
+              return num.toLocaleString();
+            }
+            
+            return valTrimmed;
           }
           
-          return valTrimmed || '';
+          // Check if this value is or should be quoted
+          if (valTrimmed.startsWith('"') && valTrimmed.endsWith('"')) {
+            return valTrimmed; // Keep quotes intact
+          }
+          
+          return valTrimmed;
         });
         
         return headers.reduce((obj, header, i) => {
@@ -263,13 +385,40 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
         }, {} as Record<string, string>);
       });
       
+      // Check if we're dealing with step data to generate appropriate columns
+      const isStepData = headers.some(h => h.toLowerCase() === 'step') || 
+                         data.some(row => Object.keys(row).some(key => 
+                           row[key].toLowerCase().includes('step') || /^\d+\.\s+.+$/.test(row[key])
+                         ));
+                         
       // Create columns based on CSV structure
-      const columns = headers.slice(0, Math.min(headers.length, 10)).map((header, index) => {
-        return {
-          id: `col-${index + 1}`,
-          name: `Step ${index + 1}`
-        };
-      });
+      let columns;
+      
+      if (isStepData) {
+        // For step data, determine the number of steps
+        const stepColumn = headers.find(h => h.toLowerCase() === 'step') || headers[0];
+        const maxStepNumber = data.reduce((max, row) => {
+          const stepMatch = row[stepColumn]?.match(/^(\d+)\./) || ['', '0'];
+          return Math.max(max, parseInt(stepMatch[1]) || 0);
+        }, 0);
+        
+        // Create a column for each step (at least 4 columns)
+        const numColumns = Math.max(maxStepNumber, data.length, 4);
+        columns = Array.from({ length: numColumns }).map((_, index) => {
+          return {
+            id: `col-${index + 1}`,
+            name: `Step ${index + 1}`
+          };
+        });
+      } else {
+        // Default column generation for non-step data
+        columns = headers.slice(0, Math.min(headers.length, 10)).map((header, index) => {
+          return {
+            id: `col-${index + 1}`,
+            name: `Step ${index + 1}`
+          };
+        });
+      }
       
       // Generate blocks from the CSV data
       const blocks = generateBlocks(headers, data);

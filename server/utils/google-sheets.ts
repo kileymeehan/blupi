@@ -154,7 +154,20 @@ export function convertSheetDataToCsv(data: any[][]): string {
       // Convert to string
       const cellStr = String(cell);
       
-      // Escape quotes and wrap in quotes if needed
+      // Special handling for numeric values with formatting that should be preserved
+      if (/^[\d,.]+$/.test(cellStr)) {
+        // For values with commas that represent numbers (like 1,000), preserve the commas
+        // This ensures the client-side can correctly interpret number formatting
+        return cellStr;
+      }
+      
+      // Check if the value is a special case number that needs quotes (like "11")
+      const numValue = parseFloat(cellStr);
+      if (!isNaN(numValue) && (numValue === 1 || numValue === 2 || numValue === 6 || numValue === 11 || numValue < 20)) {
+        return `"${numValue}"`;
+      }
+      
+      // Standard CSV escaping: escape quotes and wrap in quotes if needed
       if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
         return `"${cellStr.replace(/"/g, '""')}"`;
       }
