@@ -156,20 +156,70 @@ export default function Dashboard() {
     return !board.projectId;
   });
 
-  // Filter boards based on archived status
-  const recentBoards = boards
-    .filter((board) => {
-      // If showArchivedBlueprints is true, show only archived blueprints
-      // Otherwise, show only non-archived blueprints
+  // State for sorted boards
+  const [sortedBoards, setSortedBoards] = useState<Board[]>([]);
+  const [sortConfig, setSortConfig] = useState<{
+    key: 'name' | 'date' | 'status' | 'project',
+    direction: 'ascending' | 'descending'
+  }>({ key: 'date', direction: 'descending' });
+  
+  // Filter and sort boards when relevant states change
+  useEffect(() => {
+    // First filter based on archived status
+    const filtered = boards.filter((board) => {
       return showArchivedBlueprints 
         ? board.status === "archived" 
         : board.status !== "archived";
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.updatedAt || a.createdAt);
-      const dateB = new Date(b.updatedAt || b.createdAt);
-      return dateB.getTime() - dateA.getTime();
     });
+    
+    // Then sort based on current sort configuration
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortConfig.key) {
+        case 'name':
+          return sortConfig.direction === 'ascending' 
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
+          
+        case 'date':
+          const dateA = new Date(a.updatedAt || a.createdAt).getTime();
+          const dateB = new Date(b.updatedAt || b.createdAt).getTime();
+          return sortConfig.direction === 'ascending'
+            ? dateA - dateB
+            : dateB - dateA;
+          
+        case 'status':
+          return sortConfig.direction === 'ascending'
+            ? a.status.localeCompare(b.status)
+            : b.status.localeCompare(a.status);
+          
+        case 'project':
+          const projectA = projects.find(p => p.id === a.projectId)?.name || '';
+          const projectB = projects.find(p => p.id === b.projectId)?.name || '';
+          return sortConfig.direction === 'ascending'
+            ? projectA.localeCompare(projectB)
+            : projectB.localeCompare(projectA);
+            
+        default:
+          return 0;
+      }
+    });
+    
+    setSortedBoards(sorted);
+  }, [boards, showArchivedBlueprints, sortConfig, projects]);
+  
+  // Function to request sorting
+  const requestSort = (key: 'name' | 'date' | 'status' | 'project') => {
+    setSortConfig(prevConfig => ({
+      key,
+      direction: 
+        prevConfig.key === key && prevConfig.direction === 'ascending'
+          ? 'descending'
+          : 'ascending'
+    }));
+  };
+  
+  // For convenience in the UI
+  const recentBoards = sortedBoards;
 
   const unassignedBoards = filteredBoards.filter((board) => !board.projectId);
 
@@ -609,23 +659,7 @@ export default function Dashboard() {
                     <TableRow className="bg-gray-50">
                       <TableHead 
                         className="w-[250px] cursor-pointer hover:text-primary"
-                        onClick={() => {
-                          // Create a new sorted array to avoid modifying the original
-                          const sorted = [...boards].sort((a, b) => a.name.localeCompare(b.name));
-                          
-                          // Check if it's already sorted in ascending order 
-                          const isAscending = boards.every((board, index) => 
-                            index === 0 || board.name.localeCompare(boards[index-1].name) >= 0
-                          );
-                          
-                          // If already sorted ascending, sort descending
-                          if (isAscending) {
-                            sorted.reverse();
-                          }
-                          
-                          // Replace the boards array with our sorted version
-                          queryClient.setQueryData(["/api/boards"], sorted);
-                        }}
+                        onClick={() => requestSort('name')}
                       >
                         <div className="flex items-center gap-1">
                           <span>Blueprint Name</span>
@@ -634,29 +668,7 @@ export default function Dashboard() {
                       </TableHead>
                       <TableHead 
                         className="w-[150px] cursor-pointer hover:text-primary"
-                        onClick={() => {
-                          // Create a new sorted array to avoid modifying the original
-                          const sorted = [...boards].sort((a, b) => {
-                            const dateA = new Date(a.updatedAt || a.createdAt);
-                            const dateB = new Date(b.updatedAt || b.createdAt);
-                            return dateB.getTime() - dateA.getTime();
-                          });
-                          
-                          // Check if it's already sorted by date in descending order
-                          const isDescending = boards.every((board, index) => 
-                            index === 0 || 
-                            new Date(board.updatedAt || board.createdAt).getTime() <= 
-                            new Date(boards[index-1].updatedAt || boards[index-1].createdAt).getTime()
-                          );
-                          
-                          // If already sorted descending, sort ascending
-                          if (isDescending) {
-                            sorted.reverse();
-                          }
-                          
-                          // Replace the boards array with our sorted version
-                          queryClient.setQueryData(["/api/boards"], sorted);
-                        }}
+                        onClick={() => requestSort('date')}
                       >
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
@@ -666,25 +678,7 @@ export default function Dashboard() {
                       </TableHead>
                       <TableHead 
                         className="w-[100px] cursor-pointer hover:text-primary"
-                        onClick={() => {
-                          // Create a new sorted array to avoid modifying the original
-                          const sorted = [...boards].sort((a, b) => {
-                            return a.status.localeCompare(b.status);
-                          });
-                          
-                          // Check if it's already sorted by status in ascending order
-                          const isAscending = boards.every((board, index) => 
-                            index === 0 || board.status.localeCompare(boards[index-1].status) >= 0
-                          );
-                          
-                          // If already sorted ascending, sort descending
-                          if (isAscending) {
-                            sorted.reverse();
-                          }
-                          
-                          // Replace the boards array with our sorted version
-                          queryClient.setQueryData(["/api/boards"], sorted);
-                        }}
+                        onClick={() => requestSort('status')}
                       >
                         <div className="flex items-center gap-1">
                           <span>Status</span>
