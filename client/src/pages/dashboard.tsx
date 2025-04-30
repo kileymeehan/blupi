@@ -491,16 +491,13 @@ export default function Dashboard() {
                         </div>
                         <div className="mt-2 flex items-center gap-2">
                           <div className="text-xs text-muted-foreground flex items-center gap-2">
-                            {project.user && (
-                              <Avatar className="h-5 w-5">
-                                <AvatarFallback className="bg-primary text-white text-xs">
-                                  {project.user.username.substring(0, 2).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                            )}
+                            <Avatar className="h-5 w-5">
+                              <AvatarFallback className="bg-primary text-white text-xs">
+                                {getAnimalEmoji(project.id.toString()).substring(0, 2)}
+                              </AvatarFallback>
+                            </Avatar>
                             <span>
                               Created on {format(new Date(project.createdAt), "MMM d, yyyy")}
-                              {project.user && ` by ${project.user.username}`}
                             </span>
                           </div>
                         </div>
@@ -719,10 +716,10 @@ export default function Dashboard() {
                                 board.status === "draft" ? "outline" : 
                                 board.status === "in-progress" ? "secondary" : 
                                 board.status === "review" ? "default" : 
-                                board.status === "complete" ? "success" : 
+                                board.status === "complete" ? "default" : 
                                 "destructive"
                               }
-                              className="capitalize"
+                              className={`capitalize ${board.status === "complete" ? "bg-green-500 hover:bg-green-600" : ""}`}
                             >
                               {board.status}
                             </Badge>
