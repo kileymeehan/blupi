@@ -183,8 +183,8 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
             variant: 'default'
           });
           
-          // Navigate to the new board
-          navigate(`/boards/${board.id}`);
+          // Navigate to the new board (using singular "board" not plural "boards")
+          navigate(`/board/${board.id}`);
           
           if (onClose) {
             onClose();

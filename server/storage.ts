@@ -195,7 +195,9 @@ export class DatabaseStorage {
       const phases = insertBoard.phases || [];
       
       const [board] = await db.insert(boardsTable).values({
-        ...insertBoard,
+        name: insertBoard.name,
+        description: insertBoard.description || '',
+        projectId: insertBoard.projectId, // Now optional
         userId: 1, // Default for now until we implement proper user management
         status: insertBoard.status || 'draft',
         createdAt: new Date(),

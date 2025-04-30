@@ -196,7 +196,7 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
       });
 
       if (onClose) onClose();
-      navigate(`/boards/${board.id}`);
+      navigate(`/board/${board.id}`);
     } catch (error) {
       console.error('Error creating board from Google Sheet data:', error);
       
