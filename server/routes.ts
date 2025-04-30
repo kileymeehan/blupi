@@ -6,6 +6,7 @@ import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { WebSocketServer, WebSocket } from 'ws';
 import { getFrictionMetrics, isPendoConfigured, getAuthorizationUrl, exchangeCodeForToken, setOAuthToken } from './utils/pendo';
+import { parseSheetId, fetchSheetData, getSheetNames, convertSheetDataToCsv } from './utils/google-sheets';
 
 interface ConnectedUser {
   id: string;
@@ -592,6 +593,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error('[HTTP] Error toggling comment completion:', err);
       res.status(500).json({ error: true, message: "Failed to update comment" });
+    }
+  });
+  
+  // Google Sheets Integration API endpoints
+  app.post("/api/google-sheets/validate", async (req, res) => {
+    try {
+      const { url } = req.body;
+      
+      if (!url) {
+        return res.status(400).json({
+          error: true,
+          message: "Google Sheet URL is required"
+        });
+      }
+      
+      console.log(`[HTTP] Validating Google Sheet URL: ${url}`);
+      const sheetId = parseSheetId(url);
+      
+      if (!sheetId) {
+        return res.status(400).json({
+          error: true,
+          message: "Invalid Google Sheet URL format"
+        });
+      }
+      
+      // Try to fetch sheet names to validate the sheet exists and is accessible
+      try {
+        const sheetNames = await getSheetNames(sheetId);
+        console.log(`[HTTP] Found ${sheetNames.length} sheets in the Google Sheet`);
+        
+        res.json({
+          valid: true,
+          sheetId,
+          sheetNames
+        });
+      } catch (error) {
+        console.error('[HTTP] Error validating Google Sheet:', error);
+        return res.status(400).json({
+          error: true,
+          message: "Unable to access this Google Sheet. Please check the URL and make sure the sheet is publicly accessible."
+        });
+      }
+    } catch (error) {
+      console.error('[HTTP] Error in Google Sheet validation:', error);
+      res.status(500).json({
+        error: true,
+        message: "Failed to validate Google Sheet URL"
+      });
+    }
+  });
+  
+  app.post("/api/google-sheets/data", async (req, res) => {
+    try {
+      const { sheetId, sheetName } = req.body;
+      
+      if (!sheetId) {
+        return res.status(400).json({
+          error: true,
+          message: "Google Sheet ID is required"
+        });
+      }
+      
+      console.log(`[HTTP] Fetching data from Google Sheet: ${sheetId}, Sheet: ${sheetName || 'default'}`);
+      const data = await fetchSheetData(sheetId, sheetName);
+      
+      if (!data || data.length === 0) {
+        return res.status(404).json({
+          error: true,
+          message: "No data found in the specified sheet"
+        });
+      }
+      
+      // Convert to CSV format
+      const csvData = convertSheetDataToCsv(data);
+      
+      res.json({
+        sheetId,
+        sheetName,
+        rowCount: data.length,
+        data: data,
+        csv: csvData
+      });
+    } catch (error) {
+      console.error('[HTTP] Error fetching Google Sheet data:', error);
+      res.status(500).json({
+        error: true,
+        message: "Failed to fetch data from Google Sheet"
+      });
     }
   });
 
