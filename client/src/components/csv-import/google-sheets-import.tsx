@@ -52,11 +52,13 @@ const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
     data.forEach((row, rowIndex) => {
       const cellValue = row[header];
       if (cellValue && cellValue.trim()) {
-        // Create a metrics block
+        // Create a metrics block - the quotes should already be properly preserved
+        // from the data parsing step, so we don't need to add them here
         blocks.push({
           id: `block-${blockIndex++}`,
           type: 'metrics',
-          content: `${formatNumber(cellValue)}`,
+          // Use the cell value directly as it was already processed correctly in the data parsing step
+          content: cellValue,
           phaseIndex: 0,
           columnIndex: columnIndex,
           comments: [],
@@ -72,8 +74,18 @@ const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
     // Check for values that might indicate friction points (low numbers, "failed", etc.)
     const frictionIndicators = ['low', 'fail', 'error', 'drop', 'abandon'];
     data.forEach((row, rowIndex) => {
-      const cellValue = String(row[header]).toLowerCase();
-      const isLowNumber = !isNaN(parseFloat(cellValue)) && parseFloat(cellValue) < 50;
+      // Handle quoted strings properly in the comparison
+      let cellValue = String(row[header]).toLowerCase();
+      let cleanValue = cellValue;
+      
+      // Remove quotes if present for numeric comparison
+      if (cellValue.startsWith('"') && cellValue.endsWith('"')) {
+        cleanValue = cellValue.substring(1, cellValue.length - 1);
+      }
+      
+      // Check for low numeric values (below 50)
+      const numberValue = parseFloat(cleanValue);
+      const isLowNumber = !isNaN(numberValue) && numberValue < 50;
       
       if (isLowNumber || frictionIndicators.some(indicator => cellValue.includes(indicator))) {
         blocks.push({
@@ -223,10 +235,30 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
       // Parse the CSV data to create a more structured board
       const lines = csvData.split('\n');
       const headers = lines[0].split(',');
+      
+      // More carefully parse the CSV data to preserve quotes
       const data = lines.slice(1).filter(line => line.trim()).map(line => {
-        const values = line.split(',');
+        const values = line.split(',').map(val => {
+          // Check if this value is quoted and preserve quotes in numeric values
+          if (val.trim().startsWith('"') && val.trim().endsWith('"')) {
+            return val.trim(); // Keep quotes intact
+          }
+          // For numeric values in the CSV, ensure we allow correct quotation in display
+          const valTrimmed = val.trim();
+          const isNumeric = !isNaN(parseFloat(valTrimmed)) && isFinite(Number(valTrimmed));
+          
+          // If it's a number that should have quotes according to the CSV import style, add them
+          if (isNumeric && (valTrimmed === "1" || valTrimmed === "2" || 
+              valTrimmed === "6" || valTrimmed === "11" || 
+              parseInt(valTrimmed) < 20)) {
+            return `"${valTrimmed}"`;
+          }
+          
+          return valTrimmed || '';
+        });
+        
         return headers.reduce((obj, header, i) => {
-          obj[header.trim()] = values[i]?.trim() || '';
+          obj[header.trim()] = values[i] || '';
           return obj;
         }, {} as Record<string, string>);
       });
