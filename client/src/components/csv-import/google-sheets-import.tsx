@@ -32,30 +32,21 @@ const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
   let blockIndex = 0;
   
   // Check if this is a funnel-like structure with steps
-  const isStepData = headers.some(h => h.toLowerCase() === 'step') || 
-                     data.some(row => Object.keys(row).some(key => 
-                       row[key].toLowerCase().includes('step') || /^\d+\.\s+.+$/.test(row[key])
-                     ));
-                     
-  if (isStepData) {
-    // Special handling for step/funnel data - similar to CSV import
-    // Find the column that contains step data
-    const stepColumn = headers.find(h => h.toLowerCase() === 'step') || headers[0];
-    
-    // Process each row as a separate step (horizontally distributed)
+  const stepColumnIndex = headers.findIndex(h => h.toLowerCase() === 'step');
+  const hasStepColumn = stepColumnIndex !== -1;
+  
+  // If we have a structured funnel with steps, process it exactly like the CSV import
+  if (hasStepColumn) {
+    // Process each row as a separate column (horizontally distributed)
     data.forEach((row, rowIndex) => {
-      const stepValue = row[stepColumn];
-      if (!stepValue) return;
+      // Get the step information
+      const stepRaw = row[headers[stepColumnIndex]] || '';
+      const stepMatch = stepRaw.match(/^(\d+)\.\s*(.+)$/);
       
-      // Extract step name (with or without numbering prefix)
-      const stepNameMatch = stepValue.match(/^(\d+)\.\s*(.+)$/);
-      let stepName = stepValue;
-      let stepNumber = rowIndex;
+      if (!stepMatch) return; // Skip rows without proper step format
       
-      if (stepNameMatch) {
-        stepNumber = parseInt(stepNameMatch[1]) - 1;
-        stepName = stepNameMatch[2].trim();
-      }
+      const stepNumber = parseInt(stepMatch[1]) - 1; // 0-indexed for column position
+      const stepName = stepMatch[2].trim();
       
       // Create touchpoint block for the step name
       blocks.push({
@@ -63,7 +54,7 @@ const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
         type: 'touchpoint',
         content: stepName,
         phaseIndex: 0,
-        columnIndex: stepNumber, // Position based on step number
+        columnIndex: stepNumber,
         comments: [],
         attachments: [],
         notes: '',
@@ -72,44 +63,35 @@ const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
         customDepartment: ''
       });
       
-      // Add metrics blocks for each column's data
-      headers.forEach((header, headerIndex) => {
-        if (header === stepColumn) return; // Skip the step column
+      // Identify metric columns we want to include
+      const metricsToInclude = [
+        { name: 'visitors started', label: 'Visitors' },
+        { name: 'dropped', label: 'Dropped' },
+        { name: 'conversion rate', label: 'Conversion' }
+      ];
+      
+      // Add metrics blocks for specific columns (visitors, dropped, conversion)
+      metricsToInclude.forEach(metricInfo => {
+        const metricColumnIndex = headers.findIndex(h => 
+          h.toLowerCase().includes(metricInfo.name.toLowerCase())
+        );
         
-        const cellValue = row[header];
-        if (cellValue && cellValue.trim()) {
-          // Create metrics blocks for each data point
-          blocks.push({
-            id: `block-${blockIndex++}`,
-            type: 'metrics',
-            content: cellValue,
-            phaseIndex: 0,
-            columnIndex: stepNumber, // Same column as its step
-            comments: [],
-            attachments: [],
-            notes: '',
-            emoji: '',
-            department: '',
-            customDepartment: ''
-          });
+        if (metricColumnIndex !== -1) {
+          const metricValue = row[headers[metricColumnIndex]];
           
-          // Check for friction points
-          const cleanValue = cellValue.replace(/[",]/g, '').toLowerCase();
-          const numberValue = parseFloat(cleanValue);
-          
-          // Check for low percentages or conversion rates
-          if (!isNaN(numberValue) && 
-              (cellValue.includes('%') && numberValue < 50) || 
-              (header.toLowerCase().includes('conversion') && numberValue < 0.5)) {
+          if (metricValue && metricValue.trim() !== '--' && metricValue.trim() !== '') {
+            // Handle numeric values with commas (don't split them)
+            let displayValue = metricValue.trim();
+            
             blocks.push({
               id: `block-${blockIndex++}`,
-              type: 'friction',
-              content: `Friction Point: ${stepName}`,
+              type: 'metrics',
+              content: `${metricInfo.label}: ${displayValue}`,
               phaseIndex: 0,
               columnIndex: stepNumber,
               comments: [],
               attachments: [],
-              notes: `Low conversion: ${cellValue}`,
+              notes: '',
               emoji: '',
               department: '',
               customDepartment: ''
@@ -117,9 +99,41 @@ const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
           }
         }
       });
+      
+      // Check for conversion rate friction points
+      const conversionColumnIndex = headers.findIndex(h => 
+        h.toLowerCase().includes('conversion')
+      );
+      
+      if (conversionColumnIndex !== -1) {
+        const conversionValue = row[headers[conversionColumnIndex]];
+        if (conversionValue) {
+          // Extract numeric value from percentage
+          const percentMatch = conversionValue.match(/(\d+)%/);
+          const numericValue = percentMatch ? parseInt(percentMatch[1]) : 
+                              parseFloat(conversionValue.replace(/[^\d.]/g, ''));
+          
+          // If conversion is less than 50%, add a friction point
+          if (!isNaN(numericValue) && numericValue < 50) {
+            blocks.push({
+              id: `block-${blockIndex++}`,
+              type: 'friction',
+              content: `High Dropoff: ${stepName}`,
+              phaseIndex: 0,
+              columnIndex: stepNumber,
+              comments: [],
+              attachments: [],
+              notes: `Only ${numericValue}% of users continue to the next step`,
+              emoji: '',
+              department: '',
+              customDepartment: ''
+            });
+          }
+        }
+      }
     });
   } else {
-    // Default generic handling for non-step data
+    // Handle generic data formats (not funnel steps)
     headers.slice(0, Math.min(headers.length, 10)).forEach((header, columnIndex) => {
       // Create a title block for each column
       blocks.push({
@@ -139,7 +153,7 @@ const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
       // For each row of data, create metrics blocks
       data.forEach((row, rowIndex) => {
         const cellValue = row[header];
-        if (cellValue && cellValue.trim()) {
+        if (cellValue && cellValue.trim() && cellValue.trim() !== '--') {
           // Create a metrics block
           blocks.push({
             id: `block-${blockIndex++}`,
@@ -150,33 +164,6 @@ const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
             comments: [],
             attachments: [],
             notes: '',
-            emoji: '',
-            department: '',
-            customDepartment: ''
-          });
-        }
-      });
-      
-      // Check for friction points
-      const frictionIndicators = ['low', 'fail', 'error', 'drop', 'abandon'];
-      data.forEach((row, rowIndex) => {
-        let cellValue = String(row[header]).toLowerCase();
-        let cleanValue = cellValue.replace(/[",]/g, '');
-        
-        // Check for low numeric values
-        const numberValue = parseFloat(cleanValue);
-        const isLowNumber = !isNaN(numberValue) && numberValue < 50;
-        
-        if (isLowNumber || frictionIndicators.some(indicator => cellValue.includes(indicator))) {
-          blocks.push({
-            id: `block-${blockIndex++}`,
-            type: 'friction',
-            content: `Friction Point: ${row[header]}`,
-            phaseIndex: 0,
-            columnIndex: columnIndex,
-            comments: [],
-            attachments: [],
-            notes: `Potential friction identified in ${header}`,
             emoji: '',
             department: '',
             customDepartment: ''
@@ -385,39 +372,50 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
         }, {} as Record<string, string>);
       });
       
-      // Check if we're dealing with step data to generate appropriate columns
-      const isStepData = headers.some(h => h.toLowerCase() === 'step') || 
-                         data.some(row => Object.keys(row).some(key => 
-                           row[key].toLowerCase().includes('step') || /^\d+\.\s+.+$/.test(row[key])
-                         ));
-                         
-      // Create columns based on CSV structure
-      let columns;
+      // Find which column contains the step information
+      const stepColumnIndex = headers.findIndex(h => h.toLowerCase() === 'step');
+      const hasStepColumn = stepColumnIndex !== -1;
       
-      if (isStepData) {
-        // For step data, determine the number of steps
-        const stepColumn = headers.find(h => h.toLowerCase() === 'step') || headers[0];
-        const maxStepNumber = data.reduce((max, row) => {
-          const stepMatch = row[stepColumn]?.match(/^(\d+)\./) || ['', '0'];
-          return Math.max(max, parseInt(stepMatch[1]) || 0);
-        }, 0);
-        
-        // Create a column for each step (at least 4 columns)
-        const numColumns = Math.max(maxStepNumber, data.length, 4);
-        columns = Array.from({ length: numColumns }).map((_, index) => {
-          return {
-            id: `col-${index + 1}`,
-            name: `Step ${index + 1}`
-          };
+      // Create columns based on the data structure
+      let columns = [];
+      
+      if (hasStepColumn) {
+        // Find the maximum step number to determine how many columns we need
+        let maxStep = 0;
+        data.forEach(row => {
+          const stepRaw = row[headers[stepColumnIndex]] || '';
+          const stepMatch = stepRaw.match(/^(\d+)\./);
+          if (stepMatch) {
+            maxStep = Math.max(maxStep, parseInt(stepMatch[1]));
+          }
         });
+        
+        // Create a column for each step
+        for (let i = 0; i < maxStep; i++) {
+          columns.push({
+            id: `col-${i + 1}`,
+            name: `Step ${i + 1}`
+          });
+        }
       } else {
-        // Default column generation for non-step data
+        // For generic data, create a column for each header (up to 10)
         columns = headers.slice(0, Math.min(headers.length, 10)).map((header, index) => {
           return {
             id: `col-${index + 1}`,
             name: `Step ${index + 1}`
           };
         });
+      }
+      
+      // Always ensure we have at least 4 columns for layout purposes
+      if (columns.length < 4) {
+        const currentCount = columns.length;
+        for (let i = currentCount; i < 4; i++) {
+          columns.push({
+            id: `col-${i + 1}`,
+            name: `Step ${i + 1}`
+          });
+        }
       }
       
       // Generate blocks from the CSV data
