@@ -1,25 +1,43 @@
 import { google } from 'googleapis';
 
-// Initialize the Google Sheets API client with our API key
-const sheets = google.sheets({ version: 'v4', auth: process.env.GOOGLE_API_KEY });
-
 /**
  * Parse a Google Sheet ID from a URL
  * @param url Google Sheets URL
  * @returns Sheet ID or null if invalid URL
  */
 export function parseSheetId(url: string): string | null {
-  try {
-    // Extract the sheet ID from different URL formats
-    // Standard format: https://docs.google.com/spreadsheets/d/SHEET_ID/edit
-    // Shared format: https://docs.google.com/spreadsheets/d/SHEET_ID/edit?usp=sharing
-    const regex = /\/d\/([a-zA-Z0-9_-]+)/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
-  } catch (error) {
-    console.error('Error parsing Google Sheet ID:', error);
-    return null;
+  // Handle different formats of Google Sheets URLs
+  
+  // Format: https://docs.google.com/spreadsheets/d/SHEET_ID/edit#gid=0
+  const standardRegex = /https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9_-]+)\/edit/;
+  
+  // Format: https://docs.google.com/spreadsheets/d/SHEET_ID/edit?usp=sharing
+  const sharingRegex = /https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9_-]+)\/edit\?usp=sharing/;
+  
+  // Format: https://docs.google.com/spreadsheets/d/SHEET_ID/viewform
+  const viewRegex = /https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9_-]+)\/viewform/;
+  
+  // Format: https://docs.google.com/spreadsheets/d/SHEET_ID/view
+  const publicRegex = /https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9_-]+)\/view/;
+  
+  // Try all regex patterns
+  const match = 
+    url.match(standardRegex) || 
+    url.match(sharingRegex) || 
+    url.match(viewRegex) || 
+    url.match(publicRegex);
+    
+  // If a match is found, return the sheet ID
+  if (match && match[1]) {
+    return match[1];
   }
+  
+  // Direct ID format
+  if (/^[a-zA-Z0-9_-]+$/.test(url)) {
+    return url;
+  }
+  
+  return null;
 }
 
 /**
@@ -28,22 +46,25 @@ export function parseSheetId(url: string): string | null {
  * @param range Sheet range (e.g., 'Sheet1!A1:Z1000')
  * @returns Array of arrays representing the sheet data
  */
-export async function fetchSheetData(sheetId: string, range: string = ''): Promise<any[][]> {
+export async function fetchSheetData(sheetId: string, sheetName?: string): Promise<any[][]> {
   try {
-    // If no range is provided, fetch first sheet data
-    const actualRange = range || 'Sheet1';
+    // Configure the Google Sheets API client
+    const sheets = google.sheets({ version: 'v4', auth: process.env.GOOGLE_API_KEY });
     
-    // Call the Google Sheets API
+    // Construct the range (if sheet name provided, use it; otherwise fetch all)
+    const range = sheetName ? `${sheetName}!A1:Z1000` : '';
+    
+    // Make the API request
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: actualRange,
+      range: range,
     });
     
-    // Return the data
-    return response.data.values as any[][] || [];
+    // Return the values (or empty array if no data)
+    return response.data.values || [];
   } catch (error) {
-    console.error('Error fetching Google Sheet data:', error);
-    throw new Error(`Failed to fetch data from Google Sheet: ${error.message}`);
+    console.error(`Error fetching sheet data: ${(error as Error).message}`);
+    throw new Error(`Failed to fetch Google Sheet data: ${(error as Error).message}`);
   }
 }
 
@@ -54,17 +75,23 @@ export async function fetchSheetData(sheetId: string, range: string = ''): Promi
  */
 export async function getSheetNames(sheetId: string): Promise<string[]> {
   try {
-    // Call the Google Sheets API to get spreadsheet metadata
+    // Configure the Google Sheets API client
+    const sheets = google.sheets({ version: 'v4', auth: process.env.GOOGLE_API_KEY });
+    
+    // Make the API request to get spreadsheet metadata
     const response = await sheets.spreadsheets.get({
       spreadsheetId: sheetId,
     });
     
-    // Extract sheet names
-    const sheetNames = response.data.sheets.map(sheet => sheet.properties.title);
+    // Extract sheet names from the response
+    const sheetNames = response.data.sheets?.map(sheet => 
+      sheet.properties?.title || null
+    ).filter(name => name !== null) as string[];
+    
     return sheetNames;
   } catch (error) {
-    console.error('Error getting Google Sheet names:', error);
-    throw new Error(`Failed to get sheet names: ${error.message}`);
+    console.error(`Error getting sheet names: ${(error as Error).message}`);
+    throw new Error(`Failed to get Google Sheet names: ${(error as Error).message}`);
   }
 }
 
@@ -78,20 +105,22 @@ export function convertSheetDataToCsv(data: any[][]): string {
     return '';
   }
   
-  // Convert each row to a CSV line
-  return data.map(row => {
-    // Handle cells with commas, quotes, or newlines
-    return row.map(cell => {
+  return data.map(row => 
+    row.map(cell => {
+      // Handle different cell types and ensure proper CSV formatting
       if (cell === null || cell === undefined) {
         return '';
       }
       
+      // Convert to string
       const cellStr = String(cell);
+      
       // Escape quotes and wrap in quotes if needed
       if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
         return `"${cellStr.replace(/"/g, '""')}"`;
       }
+      
       return cellStr;
-    }).join(',');
-  }).join('\n');
+    }).join(',')
+  ).join('\n');
 }
