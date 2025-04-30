@@ -125,7 +125,7 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
       
       toast({
         title: "Import failed",
-        description: error.message || "Couldn't retrieve data from the Google Sheet.",
+        description: (error as Error).message || "Couldn't retrieve data from the Google Sheet.",
         variant: "destructive"
       });
     } finally {
@@ -184,7 +184,7 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
       
       toast({
         title: "Import failed",
-        description: error.message || "Couldn't create a new board.",
+        description: (error as Error).message || "Couldn't create a new board.",
         variant: "destructive"
       });
     }

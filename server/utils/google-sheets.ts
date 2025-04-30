@@ -84,9 +84,15 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
     });
     
     // Extract sheet names from the response
-    const sheetNames = response.data.sheets?.map(sheet => 
-      sheet.properties?.title || null
-    ).filter(name => name !== null) as string[];
+    const sheetNames: string[] = [];
+    
+    if (response.data.sheets) {
+      for (const sheet of response.data.sheets) {
+        if (sheet.properties && sheet.properties.title) {
+          sheetNames.push(sheet.properties.title);
+        }
+      }
+    }
     
     return sheetNames;
   } catch (error) {
