@@ -135,25 +135,6 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
           return;
         }
 
-        // Create new project
-        const projectResponse = await fetch('/api/projects', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: projectName,
-            color: '#A1D9F5',
-            status: 'draft'
-          })
-        });
-
-        if (!projectResponse.ok) {
-          throw new Error('Failed to create project');
-        }
-
-        const project = await projectResponse.json();
-        
         // Create a new board with a column for each step in the funnel
         const columns = parsedData.map((row, index) => {
           return { 
@@ -162,14 +143,15 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
           };
         });
         
+        // Create blueprint directly without creating a project first
         const boardResponse = await fetch('/api/boards', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            name: `${projectName} - Customer Journey`,
-            projectId: project.id,
+            name: blueprintName, // Use the blueprint name directly
+            projectId: null, // No project association initially
             status: 'draft',
             phases: [
               {
@@ -195,7 +177,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
         });
         
         // Navigate to the new board
-        navigate(`/board/${board.id}`);
+        navigate(`/boards/${board.id}`);
         
         if (onClose) {
           onClose();
@@ -226,7 +208,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
 
   // Generate blocks from CSV data
   const generateBlocks = (data: CSVRow[]) => {
-    const blocks = [];
+    const blocks: any[] = [];
     let blockIndex = 0;
     
     // No longer add front-stage divider at the top
@@ -385,12 +367,12 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="projectName">Project Name</Label>
+          <Label htmlFor="blueprintName">Blueprint Name</Label>
           <Input
-            id="projectName"
-            placeholder="Enter project name"
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
+            id="blueprintName"
+            placeholder="Enter blueprint name"
+            value={blueprintName}
+            onChange={(e) => setBlueprintName(e.target.value)}
           />
         </div>
         

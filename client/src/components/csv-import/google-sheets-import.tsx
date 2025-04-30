@@ -15,7 +15,7 @@ interface GoogleSheetsImportProps {
 
 export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportProps) {
   const [sheetUrl, setSheetUrl] = useState('');
-  const [projectName, setProjectName] = useState('');
+  const [blueprintName, setBlueprintName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isValidated, setIsValidated] = useState(false);
   const [sheetId, setSheetId] = useState('');
@@ -113,7 +113,7 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
 
       // If onCSVData is provided, call it with the CSV data (parent will handle processing)
       if (onCSVData) {
-        onCSVData(data.csv, projectName);
+        onCSVData(data.csv, blueprintName);
         if (onClose) onClose();
         return;
       }
@@ -139,7 +139,7 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
       const formData = new FormData();
       formData.append('csvData', csvData);
       // Project ID is optional, blueprint can be assigned to a project later
-      formData.append('name', projectName || 'Google Sheets Import - Customer Journey');
+      formData.append('name', blueprintName || 'Google Sheets Import - Customer Journey');
 
       const boardResponse = await fetch('/api/boards/import-csv', {
         method: 'POST',
