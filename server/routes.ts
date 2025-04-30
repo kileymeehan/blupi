@@ -389,7 +389,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/boards", async (req, res) => {
     try {
       console.log('[HTTP] Creating board with data:', req.body);
-      const parseResult = insertBoardSchema.safeParse(req.body);
+      
+      // Handle the case where projectId is null by removing it
+      // This allows the schema validation to use the optional behavior
+      const boardData = { ...req.body };
+      if (boardData.projectId === null) {
+        delete boardData.projectId;
+      }
+      
+      const parseResult = insertBoardSchema.safeParse(boardData);
 
       if (!parseResult.success) {
         console.error('[HTTP] Board validation error:', parseResult.error);
@@ -692,6 +700,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: true,
         message: "Failed to fetch data from Google Sheet"
       });
+    }
+  });
+  
+  // Add endpoint for creating a board directly from CSV data
+  app.post("/api/boards/import-csv", async (req, res) => {
+    try {
+      const { name } = req.body;
+      const csvData = req.body.csvData;
+      
+      if (!csvData) {
+        return res.status(400).json({
+          error: true,
+          message: "CSV data is required"
+        });
+      }
+      
+      console.log('[HTTP] Creating board from CSV data');
+      
+      // Process CSV data to create board structure
+      // This would be similar to the frontend processing but server-side
+      // For now just create a basic board with the name
+      
+      const boardData = {
+        name: name || 'CSV Import - Customer Journey',
+        status: 'draft',
+        // Do not include projectId at all, rather than setting it to null
+        // This way it will use the default/optional behavior defined in the schema
+        phases: [
+          {
+            id: 'phase-1',
+            name: 'Customer Journey',
+            columns: [
+              { id: 'col-1', name: 'Step 1' }
+            ]
+          }
+        ],
+        blocks: []
+      };
+      
+      const parseResult = insertBoardSchema.safeParse(boardData);
+      
+      if (!parseResult.success) {
+        console.error('[HTTP] Board validation error when importing CSV:', parseResult.error);
+        return res.status(400).json({
+          error: true,
+          message: parseResult.error.errors[0].message
+        });
+      }
+      
+      const board = await storage.createBoard(parseResult.data);
+      console.log('[HTTP] Successfully created board from CSV data:', board.id);
+      
+      res.json(board);
+    } catch (err) {
+      console.error('[HTTP] Error creating board from CSV:', err);
+      if (err instanceof ZodError) {
+        return res.status(400).json({
+          error: true,
+          message: err.errors[0].message
+        });
+      }
+      res.status(500).json({ error: true, message: "Failed to create board from CSV data" });
     }
   });
 
