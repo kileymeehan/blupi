@@ -13,6 +13,89 @@ interface GoogleSheetsImportProps {
   onCSVData?: (csvData: string, name: string) => void;
 }
 
+// Helper function to format numbers with commas
+const formatNumber = (value: number | string): string => {
+  if (typeof value === 'number') {
+    return value.toLocaleString();
+  }
+  // Try to parse a string number
+  const num = parseFloat(value as string);
+  if (!isNaN(num)) {
+    return num.toLocaleString();
+  }
+  return value as string;
+};
+
+// Function to generate blocks from the CSV data
+const generateBlocks = (headers: string[], data: Record<string, string>[]) => {
+  const blocks: any[] = [];
+  let blockIndex = 0;
+  
+  // Create columns based on the headers (first row of the CSV)
+  headers.slice(0, Math.min(headers.length, 10)).forEach((header, columnIndex) => {
+    // Create a title block for each column
+    blocks.push({
+      id: `block-${blockIndex++}`,
+      type: 'touchpoint',
+      content: header.trim(),
+      phaseIndex: 0,
+      columnIndex: columnIndex,
+      comments: [],
+      attachments: [],
+      notes: '',
+      emoji: '',
+      department: '',
+      customDepartment: ''
+    });
+    
+    // For each row of data, create metrics blocks
+    data.forEach((row, rowIndex) => {
+      const cellValue = row[header];
+      if (cellValue && cellValue.trim()) {
+        // Create a metrics block
+        blocks.push({
+          id: `block-${blockIndex++}`,
+          type: 'metrics',
+          content: `${formatNumber(cellValue)}`,
+          phaseIndex: 0,
+          columnIndex: columnIndex,
+          comments: [],
+          attachments: [],
+          notes: '',
+          emoji: '',
+          department: '',
+          customDepartment: ''
+        });
+      }
+    });
+    
+    // Check for values that might indicate friction points (low numbers, "failed", etc.)
+    const frictionIndicators = ['low', 'fail', 'error', 'drop', 'abandon'];
+    data.forEach((row, rowIndex) => {
+      const cellValue = String(row[header]).toLowerCase();
+      const isLowNumber = !isNaN(parseFloat(cellValue)) && parseFloat(cellValue) < 50;
+      
+      if (isLowNumber || frictionIndicators.some(indicator => cellValue.includes(indicator))) {
+        blocks.push({
+          id: `block-${blockIndex++}`,
+          type: 'friction',
+          content: `Friction Point: ${row[header]}`,
+          phaseIndex: 0,
+          columnIndex: columnIndex,
+          comments: [],
+          attachments: [],
+          notes: `Potential friction identified in ${header}`,
+          emoji: '',
+          department: '',
+          customDepartment: ''
+        });
+      }
+    });
+  });
+  
+  return blocks;
+};
+
 export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportProps) {
   const [sheetUrl, setSheetUrl] = useState('');
   const [blueprintName, setBlueprintName] = useState('');
@@ -156,6 +239,9 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
         };
       });
       
+      // Generate blocks from the CSV data
+      const blocks = generateBlocks(headers, data);
+      
       // Create a new board with the parsed data
       const boardData = {
         name: blueprintName || 'Google Sheets Import - Customer Journey',
@@ -168,7 +254,7 @@ export function GoogleSheetsImport({ onClose, onCSVData }: GoogleSheetsImportPro
             columns: columns
           }
         ],
-        blocks: []  // We'll generate blocks on the server side
+        blocks: blocks
       };
       
       console.log('Sending board creation request:', boardData);
