@@ -17,8 +17,7 @@ import {
   Clock,
   ChevronDown,
   FileBarChart,
-  Sheet,
-  FileSpreadsheet,
+  Trash,
 } from "lucide-react";
 import {
   Card,
