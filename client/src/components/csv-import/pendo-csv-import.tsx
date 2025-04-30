@@ -156,11 +156,9 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
         
         // Create a new board with a column for each step in the funnel
         const columns = parsedData.map((row, index) => {
-          // Extract step name without numbering prefix
-          const stepName = row.step.replace(/^\d+\.\s*/, '').trim();
           return { 
             id: `col-${index + 1}`, 
-            name: stepName 
+            name: `Step ${index + 1}` // Use "Step X" instead of the actual step name
           };
         });
         
@@ -235,19 +233,15 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
     
     // Process each row of funnel data
     data.forEach((row, index) => {
-      // Extract step number from original step (or use index+1 if not available)
-      const stepMatch = row.step.match(/^(\d+)\./);
-      const stepNumber = stepMatch ? stepMatch[1] : (index + 1).toString();
-      
       // Extract step name (remove numbering prefix)
       const stepName = row.step.replace(/^\d+\.\s*/, '').trim();
       let verticalPosition = 0; // Used to stack blocks vertically in the same column
       
-      // Create touchpoint block for this step in its own column with step number
+      // Create touchpoint block with "Step X" name (not in the content)
       blocks.push({
         id: `block-${blockIndex++}`,
         type: 'touchpoint',
-        content: `${stepNumber}. ${stepName}`,
+        content: stepName, // Original step name without the number prefix
         phaseIndex: 0,
         columnIndex: index, // Each step gets its own column
         comments: [],
