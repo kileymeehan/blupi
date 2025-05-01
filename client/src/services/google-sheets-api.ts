@@ -19,6 +19,14 @@ export async function validateSheetUrl(url: string): Promise<{ valid: boolean; s
     const data = await response.json();
     
     if (!response.ok) {
+      // Special handling for rate limit errors
+      if (response.status === 429 || data.message?.includes('rate limit') || data.message?.includes('too many requests')) {
+        return {
+          valid: false,
+          message: 'Rate limit exceeded. Please wait a few moments and try again.'
+        };
+      }
+      
       return {
         valid: false,
         message: data.message || 'Failed to validate Google Sheet URL'
@@ -31,9 +39,20 @@ export async function validateSheetUrl(url: string): Promise<{ valid: boolean; s
     };
   } catch (error) {
     console.error('Error validating Google Sheet URL:', error);
+    // Check for rate limit or quota errors in the error message
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (errorMsg.toLowerCase().includes('rate limit') || 
+        errorMsg.toLowerCase().includes('quota') ||
+        errorMsg.toLowerCase().includes('too many requests')) {
+      return {
+        valid: false,
+        message: 'Rate limit exceeded. Please wait a few minutes before trying again.'
+      };
+    }
+    
     return {
       valid: false,
-      message: error instanceof Error ? error.message : 'Unknown error occurred'
+      message: errorMsg
     };
   }
 }

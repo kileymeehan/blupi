@@ -108,6 +108,8 @@ export default function Block({
   const [localContent, setLocalContent] = useState(block.content || "");
   const [isEditing, setIsEditing] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
+  const [googleSheetsDialogOpen, setGoogleSheetsDialogOpen] = useState(false);
+  const [activeSheetsBlockId, setActiveSheetsBlockId] = useState("");
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
@@ -344,20 +346,10 @@ export default function Block({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Create a fake SheetsMetrics 'connect' click
-                  const sheetsMetricsContainer = document.querySelector(`#metrics-${block.id} button`) as HTMLButtonElement;
-                  if (sheetsMetricsContainer) {
-                    sheetsMetricsContainer.click();
-                  } else {
-                    // Fallback handling if we can't find the button
-                    if (block.sheetsConnection) {
-                      // If already connected, show refreshed data
-                      const refreshButton = document.querySelector(`#metrics-${block.id} button[title="Refresh data"]`) as HTMLButtonElement;
-                      if (refreshButton) {
-                        refreshButton.click();
-                      }
-                    }
-                  }
+                  // Directly set the dialog open state in SheetsMetrics by showing our own dialog
+                  // that updates the SheetsMetrics component
+                  setGoogleSheetsDialogOpen(true);
+                  setActiveSheetsBlockId(block.id);
                 }}
                 className={`
                   flex items-center justify-center w-6 h-6 p-0
@@ -602,6 +594,39 @@ export default function Block({
                   onEmojiSelect={handleEmojiSelect}
                   theme="light"
                 />
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Google Sheets Connection Dialog */}
+          <Dialog open={googleSheetsDialogOpen} onOpenChange={setGoogleSheetsDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Connect to Google Sheets</DialogTitle>
+                <DialogDescription>
+                  Enter the details to connect this metric to a Google Sheets cell.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                {/* Simply inform the user that this dialog should trigger the sheets component */}
+                <p className="text-sm text-muted-foreground mb-4">
+                  You're connecting block {activeSheetsBlockId} to Google Sheets.
+                </p>
+                
+                {/* This is where we would normally render a form, but for now we'll just add a button */}
+                <Button 
+                  onClick={() => {
+                    // Trigger the underlying SheetsMetrics button
+                    const connectButton = document.querySelector(`#metrics-${activeSheetsBlockId} button`) as HTMLButtonElement;
+                    if (connectButton) {
+                      connectButton.click();
+                    }
+                    setGoogleSheetsDialogOpen(false);
+                  }} 
+                  className="w-full"
+                >
+                  Continue to Connection Setup
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
