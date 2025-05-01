@@ -44,7 +44,7 @@ const createDevUser = (): DevUser => {
     uid: 'dev-user-123',
     email: 'dev@example.com',
     displayName: 'Development User',
-    photoURL: null,
+    photoURL: "🤖", // Robot emoji for dev mode
     emailVerified: true,
     isAnonymous: false,
     metadata: {
