@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import { TableIcon, ExternalLinkIcon, LinkIcon, RefreshCwIcon, AlertCircleIcon } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -89,13 +89,14 @@ export interface SheetsMetricsHandle {
   openConnectDialog: () => void;
 }
 
-export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>(({ 
-  blockId, 
-  boardId, 
-  className = '', 
-  initialConnection,
-  onUpdate
-}: SheetsMetricsProps, ref) => {
+export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>((props, ref): JSX.Element => {
+  const { 
+    blockId, 
+    boardId, 
+    className = '', 
+    initialConnection,
+    onUpdate
+  } = props;
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -195,17 +196,21 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
     }
   };
 
+  // Use a ref to track processing state
+  const processingRef = useRef(false);
+  
   // Handle the form submission with navigation prevention
   const onSubmit = async (values: ConnectionFormValues) => {
-    // Immediately preventDefault to ensure no navigation happens
+    // Exit if already processing to prevent double-submission
+    if (processingRef.current) {
+      return;
+    }
+    
+    // Set processing flag
+    processingRef.current = true;
+    
     try {
       console.log('Connecting to Google Sheets with form values:', values);
-      
-      // Set a local loading state to avoid state hooks inside handlers
-      let isProcessing = true;
-      // Using a ref to track loading state
-      const processingRef = useRef(false);
-      processingRef.current = true;
       
       // First validate the Google Sheet URL
       let validationResult;
@@ -240,7 +245,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
           description: validationResult?.message || "Please check the URL and try again.",
           variant: "destructive",
         });
-        setIsProcessing(false);
+        processingRef.current = false;
         return;
       }
       
@@ -335,8 +340,9 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
         // Use a timeout to ensure the onUpdate has time to process before invalidating queries
         setTimeout(() => {
           queryClient.invalidateQueries({
-          queryKey: ['/api/google-sheets/cell', connection.sheetId, connection.cellRange, connection.sheetName],
-        });
+            queryKey: ['/api/google-sheets/cell', connection.sheetId, connection.cellRange, connection.sheetName],
+          });
+        }, 500);
       } catch (fetchError) {
         console.error('Error fetching initial cell data:', fetchError);
         
