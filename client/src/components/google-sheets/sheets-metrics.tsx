@@ -233,7 +233,33 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
       
       // Normalize inputs - trim whitespace and ensure proper formatting
       const normalizedCellRange = values.cellRange.trim();
-      const normalizedSheetName = values.sheetName?.trim() || undefined;
+      let normalizedSheetName = values.sheetName?.trim() || undefined;
+      
+      // Special handling for problematic sheet name formats
+      if (normalizedSheetName) {
+        // Case 1: Sheet name is a numeric value (e.g., "1", "2", etc.)
+        if (/^\d+$/.test(normalizedSheetName)) {
+          const formattedSheetName = `Sheet${normalizedSheetName}`;
+          console.log(`Converting numeric sheet name "${normalizedSheetName}" to "${formattedSheetName}" for API compatibility`);
+          normalizedSheetName = formattedSheetName;
+          
+          toast({
+            title: "Sheet Name Format Corrected",
+            description: `Sheet name "${values.sheetName}" was automatically formatted as "${formattedSheetName}" for Google Sheets API compatibility.`,
+          });
+        }
+        // Case 2: Sheet name has a space after "Sheet" (e.g., "Sheet 1")
+        else if (normalizedSheetName.startsWith('Sheet ') && /Sheet\s+\d+/.test(normalizedSheetName)) {
+          const formattedSheetName = normalizedSheetName.replace(/\s+/, '');
+          console.log(`Converting sheet name with space "${normalizedSheetName}" to "${formattedSheetName}" for API compatibility`);
+          normalizedSheetName = formattedSheetName;
+          
+          toast({
+            title: "Sheet Name Format Corrected",
+            description: `Sheet name "${values.sheetName}" was automatically formatted as "${formattedSheetName}" for Google Sheets API compatibility.`,
+          });
+        }
+      }
       
       console.log('Normalized inputs:', {
         sheetId: validationResult.sheetId,
@@ -489,6 +515,34 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                               description: "Attempting to connect to Google Sheets...",
                             });
                             
+                            // Process the sheet name for testing
+                            let sheetName = form.getValues("sheetName");
+                            let originalSheetName = sheetName;
+                            
+                            // Check if we might have sheet name format issues
+                            if (sheetName) {
+                              // Handle numeric sheet names
+                              if (/^\d+$/.test(sheetName)) {
+                                // For testing, try both formats to diagnose issues
+                                console.log(`Testing with numeric sheet name "${sheetName}". Also trying with "Sheet${sheetName}" format.`);
+                                
+                                toast({
+                                  title: "Testing multiple formats",
+                                  description: `Since your sheet name "${sheetName}" is a number, we'll also test with the format "Sheet${sheetName}" which is required by the Google Sheets API.`
+                                });
+                              }
+                              // Handle sheet names with spaces between "Sheet" and number
+                              else if (sheetName.startsWith('Sheet ') && /Sheet\s+\d+/.test(sheetName)) {
+                                const fixedName = sheetName.replace(/\s+/, '');
+                                console.log(`Testing with Sheet+space name "${sheetName}". Also trying with "${fixedName}" format.`);
+                                
+                                toast({
+                                  title: "Testing multiple formats",
+                                  description: `Since your sheet name "${sheetName}" has a space, we'll also test with the format "${fixedName}" which is required by the Google Sheets API.`
+                                });
+                              }
+                            }
+                            
                             // Create advanced test request
                             const response = await fetch('/api/google-sheets/connectivity-test', {
                               method: 'POST',
@@ -497,7 +551,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                               },
                               body: JSON.stringify({
                                 sheetId: validationResult.sheetId,
-                                sheetName: form.getValues("sheetName"),
+                                sheetName: originalSheetName,  // Send original for better diagnostics
                                 cellReference: form.getValues("cellRange")
                               })
                             });

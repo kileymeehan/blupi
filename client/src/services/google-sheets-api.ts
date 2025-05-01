@@ -174,12 +174,33 @@ export async function fetchSheetCell(
       try {
         console.log(`Fetching sheet cell for sheet: ${sheetId}, range: ${cellRange}, sheetName: ${sheetName || 'default'}`);
         
+        // Process sheetName if it's provided
+        let normalizedSheetName = sheetName;
+        if (normalizedSheetName && normalizedSheetName.trim() !== '') {
+          normalizedSheetName = normalizedSheetName.trim();
+          
+          // Auto-correct common sheet name format issues
+          
+          // 1. Numeric sheet names need to be prefixed with "Sheet"
+          if (/^\d+$/.test(normalizedSheetName)) {
+            const oldName = normalizedSheetName;
+            normalizedSheetName = `Sheet${normalizedSheetName}`;
+            console.log(`[Auto-format] Converting numeric sheet name "${oldName}" to "${normalizedSheetName}"`);
+          }
+          // 2. Sheet names with space after "Sheet" (like "Sheet 1")
+          else if (normalizedSheetName.startsWith('Sheet ') && /Sheet\s+\d+/.test(normalizedSheetName)) {
+            const oldName = normalizedSheetName;
+            normalizedSheetName = normalizedSheetName.replace(/\s+/, '');
+            console.log(`[Auto-format] Converting sheet name with space "${oldName}" to "${normalizedSheetName}"`);
+          }
+        }
+        
         // Properly format the request parameters
         const requestBody = {
           sheetId,
           cellRange,
-          // Only include sheetName if it's not undefined and not empty
-          ...(sheetName && sheetName.trim() !== '' ? { sheetName: sheetName.trim() } : {})
+          // Only include normalized sheetName if it's not undefined and not empty
+          ...(normalizedSheetName && normalizedSheetName !== '' ? { sheetName: normalizedSheetName } : {})
         };
         
         console.log('Request body:', JSON.stringify(requestBody));
