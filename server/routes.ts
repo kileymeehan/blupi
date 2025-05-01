@@ -824,19 +824,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (sheetName) {
           // Check if this is a numeric-only sheet name
           if (/^\d+$/.test(sheetName)) {
+            const apiFormat = `Sheet${sheetName}`;
             sheetNameDiagnostics = {
               originalName: sheetName,
-              apiFormat: `Sheet${sheetName}`,
+              apiFormat: apiFormat,
               message: "Numeric sheet names need to be prefixed with 'Sheet' for API calls. Try using the API format."
             };
+            
+            // Test both formats for better diagnostics
+            console.log(`[HTTP] Testing both sheet name formats: original "${sheetName}" and API format "${apiFormat}"`);
+            try {
+              // Try to fetch with the API format
+              const testCell = await fetchSheetCell(sheetId, "A1", apiFormat);
+              if (testCell) {
+                sheetNameDiagnostics.testResult = {
+                  success: true,
+                  apiFormatWorks: true,
+                  message: `Successfully connected using the API format "${apiFormat}". This is the format you should use.`
+                };
+              }
+            } catch (formatError) {
+              sheetNameDiagnostics.testResult = {
+                success: false,
+                apiFormatWorks: false,
+                message: `Failed to connect using both original format and API format. Error: ${(formatError as Error).message}`
+              };
+            }
           } 
           // Check if this is "Sheet N" with a space
           else if (sheetName.startsWith('Sheet ') && /Sheet\s+\d+/.test(sheetName)) {
+            const apiFormat = sheetName.replace(/\s+/, '');
             sheetNameDiagnostics = {
               originalName: sheetName,
-              apiFormat: sheetName.replace(/\s+/, ''),
+              apiFormat: apiFormat,
               message: "Sheet names with spaces need those spaces removed for API calls. Try using the API format."
             };
+            
+            // Test both formats for better diagnostics
+            console.log(`[HTTP] Testing both sheet name formats: original "${sheetName}" and API format "${apiFormat}"`);
+            try {
+              // Try to fetch with the API format
+              const testCell = await fetchSheetCell(sheetId, "A1", apiFormat);
+              if (testCell) {
+                sheetNameDiagnostics.testResult = {
+                  success: true,
+                  apiFormatWorks: true,
+                  message: `Successfully connected using the API format "${apiFormat}". This is the format you should use.`
+                };
+              }
+            } catch (formatError) {
+              sheetNameDiagnostics.testResult = {
+                success: false,
+                apiFormatWorks: false,
+                message: `Failed to connect using both original format and API format. Error: ${(formatError as Error).message}`
+              };
+            }
           }
         }
         
