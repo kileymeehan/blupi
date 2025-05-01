@@ -819,6 +819,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If we get here, the sheet exists and is accessible
         console.log(`[HTTP] Successfully connected to sheet. Available tabs: ${sheetNames.join(", ")}`);
         
+        // Special case: Check if the provided sheet name requires conversion
+        let sheetNameDiagnostics = null;
+        if (sheetName) {
+          // Check if this is a numeric-only sheet name
+          if (/^\d+$/.test(sheetName)) {
+            sheetNameDiagnostics = {
+              originalName: sheetName,
+              apiFormat: `Sheet${sheetName}`,
+              message: "Numeric sheet names need to be prefixed with 'Sheet' for API calls. Try using the API format."
+            };
+          } 
+          // Check if this is "Sheet N" with a space
+          else if (sheetName.startsWith('Sheet ') && /Sheet\s+\d+/.test(sheetName)) {
+            sheetNameDiagnostics = {
+              originalName: sheetName,
+              apiFormat: sheetName.replace(/\s+/, ''),
+              message: "Sheet names with spaces need those spaces removed for API calls. Try using the API format."
+            };
+          }
+        }
+        
         // If a specific sheet name and cell were provided, test that too
         if (sheetName && cellReference) {
           try {
@@ -835,20 +856,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   success: true,
                   value: cellData.value,
                   formattedValue: cellData.formattedValue
-                }
+                },
+                sheetNameDiagnostics
               }
             });
           } catch (cellError) {
+            // If there's a sheet name diagnostic, highlight it for the user
+            let errorMessage = `Sheet exists but could not access the specified cell: ${(cellError as Error).message}`;
+            if (sheetNameDiagnostics) {
+              errorMessage = `Sheet exists but could not access the specified cell. Sheet name "${sheetName}" may need to be specified as "${sheetNameDiagnostics.apiFormat}" in API calls. Error: ${(cellError as Error).message}`;
+            }
+            
             return res.json({
               success: false,
-              message: `Sheet exists but could not access the specified cell: ${(cellError as Error).message}`,
+              message: errorMessage,
               details: {
                 sheetExists: true,
                 sheetNames,
                 cellTest: {
                   success: false,
                   error: (cellError as Error).message
-                }
+                },
+                sheetNameDiagnostics
               }
             });
           }
@@ -909,11 +938,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Ensure sheetName is properly formatted if provided
       let normalizedSheetName = undefined;
+      let originalSheetName = undefined;
+      
       if (sheetName) {
+        originalSheetName = sheetName;
         normalizedSheetName = sheetName.trim();
+        
         // Only use the sheet name if it's not empty after trimming
         if (normalizedSheetName === '') {
           normalizedSheetName = undefined;
+        } else {
+          // Handle special case: Sheet name is a number
+          if (/^\d+$/.test(normalizedSheetName)) {
+            const formattedSheetName = `Sheet${normalizedSheetName}`;
+            console.log(`[HTTP] Converting numeric sheet name "${normalizedSheetName}" to "${formattedSheetName}" for API compatibility`);
+            normalizedSheetName = formattedSheetName;
+          }
+          // Handle special case: Sheet name starts with "Sheet " followed by a number (with a space)
+          else if (normalizedSheetName.startsWith('Sheet ') && /Sheet\s+\d+/.test(normalizedSheetName)) {
+            const formattedSheetName = normalizedSheetName.replace(/\s+/, '');
+            console.log(`[HTTP] Converting sheet name with space "${normalizedSheetName}" to "${formattedSheetName}" for API compatibility`);
+            normalizedSheetName = formattedSheetName;
+          }
         }
       }
       
@@ -949,9 +995,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Check if it's a range parsing error
         if ((error as Error).message.toLowerCase().includes('parse range')) {
+          // Add helpful diagnostics for sheet name issues
+          let errorMessage = `Invalid range format. Please check that both your sheet name and cell reference are valid. Details: ${(error as Error).message}`;
+          let additionalInfo = null;
+          
+          // If original sheet name was numeric or "Sheet N", add a more specific message
+          if (originalSheetName) {
+            if (/^\d+$/.test(originalSheetName)) {
+              additionalInfo = {
+                originalName: originalSheetName,
+                suggestedName: `Sheet${originalSheetName}`,
+                reason: "Numeric sheet names need 'Sheet' prefix for API access"
+              };
+              errorMessage = `Invalid sheet name format. Sheet names that are numbers (like "${originalSheetName}") need to be prefixed with 'Sheet', for example: "Sheet${originalSheetName}". Details: ${(error as Error).message}`;
+            } 
+            else if (originalSheetName.startsWith('Sheet ') && /Sheet\s+\d+/.test(originalSheetName)) {
+              const suggested = originalSheetName.replace(/\s+/, '');
+              additionalInfo = {
+                originalName: originalSheetName,
+                suggestedName: suggested,
+                reason: "Sheet names can't have spaces between 'Sheet' and the number"
+              };
+              errorMessage = `Invalid sheet name format. Sheet names like "${originalSheetName}" should not have spaces, for example: "${suggested}". Details: ${(error as Error).message}`;
+            }
+          }
+          
           return res.status(400).json({
             error: true,
-            message: `Invalid range format. Please check that both your sheet name and cell reference are valid. Details: ${(error as Error).message}`
+            message: errorMessage,
+            additionalInfo
           });
         }
         

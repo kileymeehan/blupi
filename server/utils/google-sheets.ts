@@ -164,10 +164,11 @@ export async function fetchSheetCell(
         } else {
           readableSheetName = trimmedSheetName;
           
-          // Handle numeric-only sheet names specially
+          // Special cases handling
           if (/^\d+$/.test(trimmedSheetName)) {
-            // For numerical sheets (like "1" or "2"), we need to use "Sheet1" or "Sheet2"
-            // This is because Google Sheets interprets '1'! as an invalid range
+            // Case 1: Numeric-only sheet names (like "1" or "2")
+            // These need to be formatted as "Sheet1" or "Sheet2"
+            // because Google Sheets interprets '1'! as an invalid range
             const sheetNameWithPrefix = `Sheet${trimmedSheetName}`;
             console.log(`[Google Sheets] Numeric sheet name "${trimmedSheetName}" - Converting to "${sheetNameWithPrefix}"`);
             
@@ -176,12 +177,34 @@ export async function fetchSheetCell(
             
             // Wrap in quotes and construct the range
             fullRange = `'${escapedSheetName}'!${trimmedCellRange}`;
-          } else {
-            // Handle normal sheet names
-            // Double any single quotes in the sheet name (Google's escaping rules)
+          } else if (trimmedSheetName.startsWith('Sheet ')) {
+            // Case 2: Sheet names with space after "Sheet" (like "Sheet 1")
+            // These need to be formatted as "Sheet1" (remove the space)
+            // This is a common format confusion users encounter
+            const fixedSheetName = trimmedSheetName.replace(/^Sheet\s+(\d+)$/, 'Sheet$1');
+            console.log(`[Google Sheets] Sheet name with space "${trimmedSheetName}" - Converting to "${fixedSheetName}"`);
+            
+            // Double any single quotes in the sheet name
+            const escapedSheetName = fixedSheetName.replace(/'/g, "''");
+            
+            // Wrap in quotes and construct the range
+            fullRange = `'${escapedSheetName}'!${trimmedCellRange}`;
+          } else if (/\s/.test(trimmedSheetName)) {
+            // Case 3: Sheet names containing spaces
+            // These need special handling due to being a common source of errors
+            console.log(`[Google Sheets] Sheet name with spaces: "${trimmedSheetName}"`);
+            
+            // Double any single quotes in the sheet name
             const escapedSheetName = trimmedSheetName.replace(/'/g, "''");
             
-            // Always wrap in quotes for consistency - this handles all special cases
+            // Wrap in quotes and construct the range
+            fullRange = `'${escapedSheetName}'!${trimmedCellRange}`;
+          } else {
+            // Case 4: Normal sheet names
+            // Double any single quotes in the sheet name
+            const escapedSheetName = trimmedSheetName.replace(/'/g, "''");
+            
+            // Always wrap in quotes for consistency - this handles all other cases
             fullRange = `'${escapedSheetName}'!${trimmedCellRange}`;
           }
           
@@ -315,12 +338,34 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
       if (response.data.sheets) {
         for (const sheet of response.data.sheets) {
           if (sheet.properties && sheet.properties.title) {
-            sheetNames.push(sheet.properties.title);
+            // Include the original sheet name as users see it in Google Sheets
+            const sheetTitle = sheet.properties.title;
+            sheetNames.push(sheetTitle);
+            
+            // Log special formats so we can help users troubleshoot
+            if (/^\d+$/.test(sheetTitle)) {
+              console.log(`[Google Sheets] Found numeric-only sheet name: "${sheetTitle}" (use as "Sheet${sheetTitle}" in API calls)`);
+            } else if (sheetTitle.startsWith('Sheet ') && /Sheet\s+\d+/.test(sheetTitle)) {
+              console.log(`[Google Sheets] Found "Sheet N" format with space: "${sheetTitle}" (use as "${sheetTitle.replace(/\s+/, '')}" in API calls)`);
+            }
           }
         }
       }
       
       console.log(`[Google Sheets] Found ${sheetNames.length} sheets: ${sheetNames.join(', ')}`);
+      
+      // Include helpful mapping in the logs
+      if (sheetNames.some(name => /^\d+$/.test(name) || /Sheet\s+\d+/.test(name))) {
+        console.log('[Google Sheets] Sheet name mapping for API usage:');
+        for (const name of sheetNames) {
+          if (/^\d+$/.test(name)) {
+            console.log(`  - "${name}" → use as "Sheet${name}"`);
+          } else if (name.startsWith('Sheet ') && /Sheet\s+\d+/.test(name)) {
+            console.log(`  - "${name}" → use as "${name.replace(/\s+/, '')}"`);
+          }
+        }
+      }
+      
       return sheetNames;
     } catch (apiError) {
       console.error(`[Google Sheets] API Error getting sheet names: ${(apiError as Error).message}`);
