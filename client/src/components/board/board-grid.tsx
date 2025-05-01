@@ -1533,6 +1533,9 @@ export default function BoardGrid({
                                                     onDepartmentChange={
                                                       handleDepartmentChange
                                                     }
+                                                    onSheetsConnectionChange={
+                                                      handleSheetsConnectionChange
+                                                    }
                                                     onCommentClick={() =>
                                                       handleCommentClick(block)
                                                     }

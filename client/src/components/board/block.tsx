@@ -91,6 +91,7 @@ export default function Block({
   onNotesChange,
   onEmojiChange,
   onDepartmentChange,
+  onSheetsConnectionChange,
   isTemplate = false,
   onCommentClick,
   projectId,
@@ -301,14 +302,13 @@ export default function Block({
             <div className="mt-3 border-t border-gray-200 pt-2">
               <SheetsMetrics 
                 blockId={block.id}
-                boardId={Number(block.boardId) || 0}
+                boardId={Number(block.phaseIndex) > -1 ? Number(block.phaseIndex) : 0}
                 initialConnection={block.sheetsConnection}
                 className="max-w-full bg-gray-50 border-none shadow-none"
                 onUpdate={(connection) => {
-                  // This function needs to be passed from the board grid
-                  console.log('Update sheets connection', connection);
-                  // We would update the block here, but we'll need to add this
-                  // functionality to the BlockGrid component first
+                  if (onSheetsConnectionChange) {
+                    onSheetsConnectionChange(block.id, connection);
+                  }
                 }}
               />
             </div>
