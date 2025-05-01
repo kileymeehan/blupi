@@ -86,6 +86,80 @@ export async function fetchSheetData(sheetId: string, sheetName?: string): Promi
 }
 
 /**
+ * Fetch a specific cell or range from a Google Sheet
+ * @param sheetId Google Sheet ID
+ * @param cellRange Cell range (e.g., 'A1', 'B2:C3')
+ * @param sheetName Optional sheet name
+ * @returns Cell value (string) or range values (array)
+ */
+export async function fetchSheetCell(
+  sheetId: string, 
+  cellRange: string, 
+  sheetName?: string
+): Promise<{ value: string | null, formattedValue: string | null, values?: any[][], timestamp: string }> {
+  try {
+    // Check if API key is available
+    if (!process.env.GOOGLE_API_KEY) {
+      console.error('[Google Sheets] Missing API key');
+      throw new Error("Google API key not configured");
+    }
+    
+    // Configure the Google Sheets API client
+    const sheets = google.sheets({ version: 'v4', auth: process.env.GOOGLE_API_KEY });
+    
+    // Construct the full range with sheet name if provided
+    const fullRange = sheetName ? `${sheetName}!${cellRange}` : cellRange;
+    console.log(`[Google Sheets] Fetching cell: ${fullRange} from sheet: ${sheetId}`);
+    
+    // Make the API request
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: fullRange,
+      valueRenderOption: 'FORMATTED_VALUE', // Get the formatted value as displayed in the UI
+    });
+    
+    // Get timestamp
+    const timestamp = new Date().toISOString();
+    
+    // Check if response has values
+    if (!response.data.values || response.data.values.length === 0) {
+      console.log(`[Google Sheets] No values found for range: ${fullRange}`);
+      return { value: null, formattedValue: null, timestamp };
+    }
+    
+    // If it's a single cell (e.g., A1)
+    if (response.data.values.length === 1 && response.data.values[0].length === 1) {
+      const cellValue = response.data.values[0][0] || null;
+      console.log(`[Google Sheets] Retrieved cell value: ${cellValue}`);
+      
+      // Format value for display (if numeric, ensure it has appropriate formatting)
+      let formattedValue = cellValue;
+      if (typeof cellValue === 'number') {
+        formattedValue = cellValue.toLocaleString();
+      }
+      
+      return { 
+        value: cellValue,
+        formattedValue: formattedValue,
+        timestamp
+      };
+    }
+    
+    // If it's a range, return the full range values
+    return { 
+      value: JSON.stringify(response.data.values), 
+      formattedValue: `${response.data.values.length}x${response.data.values[0]?.length || 0} range`,
+      values: response.data.values,
+      timestamp
+    };
+    
+  } catch (error) {
+    console.error(`[Google Sheets] Error fetching cell: ${(error as Error).message}`);
+    throw new Error(`Failed to fetch Google Sheet cell: ${(error as Error).message}`);
+  }
+}
+
+/**
  * Get sheet names from a Google Spreadsheet
  * @param sheetId Google Sheet ID
  * @returns Array of sheet names

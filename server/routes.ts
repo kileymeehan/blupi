@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { WebSocketServer, WebSocket } from 'ws';
 import { getFrictionMetrics, isPendoConfigured, getAuthorizationUrl, exchangeCodeForToken, setOAuthToken } from './utils/pendo';
-import { parseSheetId, fetchSheetData, getSheetNames, convertSheetDataToCsv } from './utils/google-sheets';
+import { parseSheetId, fetchSheetData, getSheetNames, convertSheetDataToCsv, fetchSheetCell } from './utils/google-sheets';
 
 interface ConnectedUser {
   id: string;

@@ -151,6 +151,17 @@ export const departmentSchema = z.enum([
 
 export type Department = z.infer<typeof departmentSchema>;
 
+// Define Google Sheets connection information schema
+export const sheetsConnectionSchema = z.object({
+  sheetId: z.string(),
+  sheetName: z.string().optional(),
+  cellRange: z.string(), // e.g., "A1", "B3:C4"
+  label: z.string().optional(), // Optional label for the data
+  lastUpdated: z.string().optional() // ISO date string of last fetch
+});
+
+export type SheetsConnection = z.infer<typeof sheetsConnectionSchema>;
+
 // Now we can define blockSchema since its dependencies are defined
 export const blockSchema = z.object({
   id: z.string(),
@@ -164,7 +175,8 @@ export const blockSchema = z.object({
   emoji: z.string().optional(),
   department: departmentSchema.optional(),
   customDepartment: z.string().optional(), // For when department is 'Custom'
-  isDivider: z.boolean().optional().default(false) // To mark divider-style blocks
+  isDivider: z.boolean().optional().default(false), // To mark divider-style blocks
+  sheetsConnection: sheetsConnectionSchema.optional() // Google Sheets connection for metrics blocks
 });
 
 export type Block = z.infer<typeof blockSchema>;
