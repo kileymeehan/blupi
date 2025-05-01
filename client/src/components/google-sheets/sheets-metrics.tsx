@@ -482,7 +482,11 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                 className="w-full"
                 id={`sheets-connect-button-${blockId}`}
                 data-testid="sheets-connect-trigger"
-                onClick={() => setIsConnectDialogOpen(true)}
+                onClick={(e) => {
+                  e.preventDefault(); // Prevent default behavior
+                  e.stopPropagation(); // Stop event propagation
+                  setIsConnectDialogOpen(true);
+                }}
               >
                 <LinkIcon className="h-3 w-3 mr-2" />
                 Connect to Google Sheets
@@ -1125,7 +1129,16 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                   Test Connection
                 </Button>
                 
-                <Button type="submit" size="sm" className="w-full">
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    form.handleSubmit(onSubmit)(e);
+                  }}
+                >
                   Update Connection
                 </Button>
               </div>
