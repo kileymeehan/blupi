@@ -765,12 +765,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint to check Google Sheets API key
+  app.get("/api/google-sheets/test", async (req, res) => {
+    try {
+      if (!process.env.GOOGLE_API_KEY) {
+        return res.status(500).json({
+          success: false,
+          message: "Google API key is not configured"
+        });
+      }
+      
+      console.log(`[HTTP] Testing Google Sheets API key: ${process.env.GOOGLE_API_KEY.substring(0, 5)}...`);
+      res.json({
+        success: true,
+        message: "Google API key is configured",
+        keyHint: `${process.env.GOOGLE_API_KEY.substring(0, 5)}...${process.env.GOOGLE_API_KEY.substring(process.env.GOOGLE_API_KEY.length - 5)}`
+      });
+    } catch (error) {
+      console.error(`[HTTP] Error testing Google API key: ${(error as Error).message}`);
+      res.status(500).json({
+        success: false,
+        message: `Error testing Google API key: ${(error as Error).message}`
+      });
+    }
+  });
+  
   // New endpoint for fetching a specific cell or range from a Google Sheet
   app.post("/api/google-sheets/cell", async (req, res) => {
     try {
+      console.log('[HTTP] Received request to fetch Google Sheets cell data');
+      console.log('[HTTP] Request body:', req.body);
+      
       const { sheetId, cellRange, sheetName } = req.body;
       
       if (!sheetId) {
+        console.log('[HTTP] Google Sheet ID is missing in request');
         return res.status(400).json({
           error: true,
           message: "Google Sheet ID is required"
@@ -778,27 +807,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (!cellRange) {
+        console.log('[HTTP] Cell range is missing in request');
         return res.status(400).json({
           error: true,
           message: "Cell range is required (e.g., 'A1' or 'B2:C3')"
         });
       }
       
-      console.log(`[HTTP] Fetching cell data from Google Sheet: ${sheetId}, Cell: ${cellRange}, Sheet: ${sheetName || 'default'}`);
+      // Ensure sheetName is properly formatted if provided
+      let normalizedSheetName = undefined;
+      if (sheetName) {
+        normalizedSheetName = sheetName.trim();
+        // Only use the sheet name if it's not empty after trimming
+        if (normalizedSheetName === '') {
+          normalizedSheetName = undefined;
+        }
+      }
+      
+      // Detailed logging for the request
+      console.log(`[HTTP] Fetching cell data from Google Sheet:
+        - Sheet ID: ${sheetId}
+        - Cell Range: ${cellRange}
+        - Sheet Name: ${normalizedSheetName || '(default)'}
+      `);
+      
+      // Check if API key is configured
+      if (!process.env.GOOGLE_API_KEY) {
+        console.log('[HTTP] Google API key is not configured');
+        return res.status(500).json({
+          error: true,
+          message: "Google Sheets API is not configured. Please set GOOGLE_API_KEY."
+        });
+      }
       
       try {
-        const result = await fetchSheetCell(sheetId, cellRange, sheetName);
+        const result = await fetchSheetCell(sheetId, cellRange, normalizedSheetName);
         console.log(`[HTTP] Successfully fetched cell data: ${result.value}`);
         
         res.json({
           success: true,
           sheetId,
           cellRange,
-          sheetName,
+          sheetName: normalizedSheetName,
           ...result
         });
       } catch (error) {
         console.error(`[HTTP] Error fetching cell data: ${(error as Error).message}`);
+        
+        // Check if it's a range parsing error
+        if ((error as Error).message.toLowerCase().includes('parse range')) {
+          return res.status(400).json({
+            error: true,
+            message: `Invalid range format. Please check that both your sheet name and cell reference are valid. Details: ${(error as Error).message}`
+          });
+        }
+        
+        // Otherwise return a generic server error
         res.status(500).json({
           error: true,
           message: `Error fetching cell data: ${(error as Error).message}`

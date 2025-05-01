@@ -139,8 +139,39 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
   });
 
   // Handle form submission
+  // Function to test the Google Sheets API connection
+  const testGoogleSheetsApi = async () => {
+    try {
+      // First verify that the API key is configured
+      const response = await fetch('/api/google-sheets/test');
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: "Google API Key Check",
+          description: `API key is configured: ${data.keyHint}`,
+        });
+      } else {
+        toast({
+          title: "Google API Key Error",
+          description: data.message || "API key is not configured properly.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error testing Google Sheets API:', error);
+      toast({
+        title: "Connection Error",
+        description: "Could not connect to the Google Sheets API test endpoint.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const onSubmit = async (values: ConnectionFormValues) => {
     try {
+      console.log('Connecting to Google Sheets with form values:', values);
+      
       // First validate the Google Sheet URL with retry logic
       let validationResult;
       let attempts = 0;
@@ -154,10 +185,13 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
       
       while (attempts < maxAttempts) {
         try {
+          console.log(`Validating sheet URL (attempt ${attempts + 1}/${maxAttempts}): ${values.sheetUrl}`);
           validationResult = await validateSheetUrl(values.sheetUrl);
+          console.log('Validation successful:', validationResult);
           break; // Success - exit the loop
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+          console.error(`Error validating sheet URL (attempt ${attempts + 1}/${maxAttempts}):`, errorMsg);
           
           // Check if this is a rate limit error
           if (errorMsg.toLowerCase().includes('rate limit') || 
@@ -188,6 +222,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
       }
       
       if (!validationResult?.valid || !validationResult?.sheetId) {
+        console.error('Sheet validation failed:', validationResult);
         toast({
           title: "Invalid Google Sheet URL",
           description: validationResult?.message || "Please check the URL and try again.",
@@ -196,16 +231,28 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
         return;
       }
       
+      // Normalize inputs - trim whitespace and ensure proper formatting
+      const normalizedCellRange = values.cellRange.trim();
+      const normalizedSheetName = values.sheetName?.trim() || undefined;
+      
+      console.log('Normalized inputs:', {
+        sheetId: validationResult.sheetId,
+        cellRange: normalizedCellRange,
+        sheetName: normalizedSheetName,
+        label: values.label
+      });
+      
       // Create the connection object
       const connection = {
         sheetId: validationResult.sheetId,
-        cellRange: values.cellRange,
-        sheetName: values.sheetName || undefined,
+        cellRange: normalizedCellRange,
+        sheetName: normalizedSheetName,
         label: values.label || undefined,
         lastUpdated: new Date().toISOString(),
       };
       
-      // Call the onUpdate callback
+      // Call the onUpdate callback to save the connection
+      console.log('Updating connection with:', connection);
       onUpdate(connection);
       
       // Close the dialog
@@ -213,14 +260,20 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
       
       // Show success toast
       toast({
-        title: "Connection successful",
-        description: "The metric is now connected to Google Sheets data.",
+        title: "Connection saved",
+        description: "The metric has been connected to Google Sheets. Loading data...",
       });
       
       // Invalidate the query to fetch the new data
+      console.log('Invalidating query with key:', ['/api/google-sheets/cell', connection.sheetId, connection.cellRange, connection.sheetName]);
       queryClient.invalidateQueries({
         queryKey: ['/api/google-sheets/cell', connection.sheetId, connection.cellRange, connection.sheetName],
       });
+      
+      // Initiate an immediate refetch 
+      setTimeout(() => {
+        refetch();
+      }, 500);
     } catch (error) {
       console.error('Error connecting to Google Sheet:', error);
       const errorMsg = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -232,6 +285,12 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
         toast({
           title: "API Rate Limit Reached",
           description: "Google Sheets API rate limit has been reached. Please wait a few minutes before trying again.",
+          variant: "destructive",
+        });
+      } else if (errorMsg.toLowerCase().includes('parse range')) {
+        toast({
+          title: "Invalid Sheet Range",
+          description: "The sheet name or cell reference format is invalid. Make sure to use the correct format (e.g., 'Sheet1' and 'A1').",
           variant: "destructive",
         });
       } else {
@@ -381,11 +440,25 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                       </FormItem>
                     )}
                   />
-                  <DialogFooter className="mt-4">
-                    <Button type="submit" size="sm">
-                      Connect
+                  <div className="mt-4 flex justify-between items-center w-full">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        testGoogleSheetsApi();
+                      }}
+                    >
+                      Test API Key
                     </Button>
-                  </DialogFooter>
+                    
+                    <DialogFooter>
+                      <Button type="submit" size="sm">
+                        Connect
+                      </Button>
+                    </DialogFooter>
+                  </div>
                 </form>
               </Form>
             </DialogContent>
@@ -670,14 +743,29 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                   </FormItem>
                 )}
               />
-              <DialogFooter className="mt-4 space-x-2">
-                <Button type="button" variant="outline" size="sm" onClick={handleDisconnect}>
-                  Disconnect
-                </Button>
-                <Button type="submit" size="sm">
+              <div className="mt-4 flex flex-col space-y-3">
+                <div className="flex items-center justify-between">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      testGoogleSheetsApi();
+                    }}
+                  >
+                    Test API Key
+                  </Button>
+                  
+                  <Button type="button" variant="outline" size="sm" onClick={handleDisconnect}>
+                    Disconnect
+                  </Button>
+                </div>
+                
+                <Button type="submit" size="sm" className="w-full">
                   Update Connection
                 </Button>
-              </DialogFooter>
+              </div>
             </form>
           </Form>
         </DialogContent>
