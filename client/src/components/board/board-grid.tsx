@@ -442,12 +442,19 @@ export default function BoardGrid({
     cellRange: string;
     label?: string;
     lastUpdated: string;
+    formattedValue?: string; // Added to capture the value from Google Sheets
   }) => {
     const blocks = board.blocks.map((block) =>
       block.id === blockId 
         ? { 
             ...block, 
-            sheetsConnection: connection
+            sheetsConnection: connection,
+            // Update the block content with the formatted value if available
+            ...(connection.formattedValue ? { 
+              content: connection.label 
+                ? `${connection.label}: ${connection.formattedValue}`
+                : connection.formattedValue
+            } : {})
           } 
         : block,
     );
