@@ -765,6 +765,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // New endpoint for fetching a specific cell or range from a Google Sheet
+  app.post("/api/google-sheets/cell", async (req, res) => {
+    try {
+      const { sheetId, cellRange, sheetName } = req.body;
+      
+      if (!sheetId) {
+        return res.status(400).json({
+          error: true,
+          message: "Google Sheet ID is required"
+        });
+      }
+      
+      if (!cellRange) {
+        return res.status(400).json({
+          error: true,
+          message: "Cell range is required (e.g., 'A1' or 'B2:C3')"
+        });
+      }
+      
+      console.log(`[HTTP] Fetching cell data from Google Sheet: ${sheetId}, Cell: ${cellRange}, Sheet: ${sheetName || 'default'}`);
+      
+      try {
+        const result = await fetchSheetCell(sheetId, cellRange, sheetName);
+        console.log(`[HTTP] Successfully fetched cell data: ${result.value}`);
+        
+        res.json({
+          success: true,
+          sheetId,
+          cellRange,
+          sheetName,
+          ...result
+        });
+      } catch (error) {
+        console.error(`[HTTP] Error fetching cell data: ${(error as Error).message}`);
+        res.status(500).json({
+          error: true,
+          message: `Error fetching cell data: ${(error as Error).message}`
+        });
+      }
+    } catch (error) {
+      console.error(`[HTTP] Error in Google Sheets cell endpoint: ${(error as Error).message}`);
+      res.status(500).json({
+        error: true,
+        message: `Server error: ${(error as Error).message}`
+      });
+    }
+  });
+
   return httpServer;
 }
 
