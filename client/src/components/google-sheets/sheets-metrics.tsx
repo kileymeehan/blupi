@@ -463,7 +463,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
           <div className="flex justify-between items-center">
             <CardTitle className="text-sm font-medium flex items-center">
               <TableIcon className="h-3 w-3 mr-1" />
-              {initialConnection.label || 'Google Sheets Metric'}
+              {initialConnection?.label || 'Google Sheets Metric'}
             </CardTitle>
             <TooltipProvider>
               <Tooltip>
@@ -489,14 +489,25 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
         </CardHeader>
         <CardContent className="pb-2">
           <div className="text-center py-1">
-            <div className="text-2xl font-bold">
-              Loading...
+            <div className="text-lg font-medium">
+              No data available
             </div>
-            {initialConnection.label && (
+            {initialConnection?.label && (
               <div className="text-xs text-muted-foreground mt-1">
                 {initialConnection.label}
               </div>
             )}
+            <div className="text-xs text-muted-foreground mt-2 px-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="w-full text-xs mt-1"
+                onClick={() => refetch()}
+              >
+                <RefreshCwIcon className="h-3 w-3 mr-1" />
+                Reload data
+              </Button>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="pt-0">

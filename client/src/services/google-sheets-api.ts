@@ -172,14 +172,40 @@ export async function fetchSheetCell(
   return await withRetry(
     async () => {
       try {
+        console.log(`Fetching sheet cell for sheet: ${sheetId}, range: ${cellRange}, sheetName: ${sheetName || 'default'}`);
+        
+        // Properly format the request parameters
+        const requestBody = {
+          sheetId,
+          cellRange,
+          // Only include sheetName if it's not undefined and not empty
+          ...(sheetName && sheetName.trim() !== '' ? { sheetName: sheetName.trim() } : {})
+        };
+        
+        console.log('Request body:', JSON.stringify(requestBody));
+        
         const response = await fetch('/api/google-sheets/cell', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sheetId, cellRange, sheetName })
+          body: JSON.stringify(requestBody)
         });
+        
+        // Log the response status for debugging
+        console.log(`Response status: ${response.status}`);
 
         if (!response.ok) {
-          const errorData = await response.json();
+          const contentType = response.headers.get('content-type');
+          let errorData;
+          
+          // Handle different response types (JSON, text, etc.)
+          if (contentType && contentType.includes('application/json')) {
+            errorData = await response.json();
+            console.error('Error response (JSON):', errorData);
+          } else {
+            const textError = await response.text();
+            console.error('Error response (text):', textError);
+            errorData = { message: textError || 'Unknown error occurred' };
+          }
           
           // Check for rate limit errors
           if (response.status === 429 || 
@@ -189,10 +215,17 @@ export async function fetchSheetCell(
             throw new Error('Rate limit exceeded. Please wait a few minutes before trying again.');
           }
           
+          // Check for parse errors
+          if (errorData.message?.toLowerCase().includes('parse range')) {
+            throw new Error(`Invalid range format. Please check your sheet name and cell reference. Details: ${errorData.message}`);
+          }
+          
           throw new Error(errorData.message || 'Failed to fetch cell data');
         }
 
         const data = await response.json();
+        console.log('Successful response data:', data);
+        
         return {
           value: data.value,
           formattedValue: data.formattedValue,

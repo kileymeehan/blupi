@@ -62,9 +62,27 @@ export async function fetchSheetData(sheetId: string, sheetName?: string): Promi
     let range = 'A1:Z1000'; // Default range for whole sheet
     
     if (sheetName) {
-      // Enclose all sheet names in single quotes to handle special characters and numeric sheet names
-      // This approach is more consistent and helps avoid parsing issues
-      range = `'${sheetName.replace(/'/g, "''")}'!A1:Z1000`;
+      try {
+        // Properly escape the sheet name for Google Sheets API
+        // Handle the following cases:
+        // 1. If sheet name has special characters (spaces, quotes, etc.)
+        // 2. If sheet name is purely numeric
+        // 3. If sheet name contains apostrophes (need to be doubled)
+        
+        // Remove any leading/trailing spaces
+        const trimmedSheetName = sheetName.trim();
+        
+        // Double any single quotes in the sheet name (Google's escaping rules)
+        const escapedSheetName = trimmedSheetName.replace(/'/g, "''");
+        
+        // Always wrap in quotes for consistency - this handles all cases including numeric sheet names
+        range = `'${escapedSheetName}'!A1:Z1000`;
+        
+        console.log(`[Google Sheets] Constructed range: ${range}`);
+      } catch (error) {
+        console.error(`[Google Sheets] Error constructing range: ${error}`);
+        throw new Error(`Invalid sheet name format: ${sheetName}`);
+      }
     }
     console.log(`[Google Sheets] Attempting to fetch data from sheetId: ${sheetId}, range: ${range}`);
     
@@ -117,9 +135,27 @@ export async function fetchSheetCell(
     let fullRange = cellRange;
     
     if (sheetName) {
-      // Enclose all sheet names in single quotes to handle special characters and numeric sheet names
-      // This approach is more consistent and helps avoid parsing issues
-      fullRange = `'${sheetName.replace(/'/g, "''")}'!${cellRange}`;
+      try {
+        // Properly escape the sheet name for Google Sheets API
+        // Handle the following cases:
+        // 1. If sheet name has special characters (spaces, quotes, etc.)
+        // 2. If sheet name is purely numeric
+        // 3. If sheet name contains apostrophes (need to be doubled)
+        
+        // Remove any leading/trailing spaces
+        const trimmedSheetName = sheetName.trim();
+        
+        // Double any single quotes in the sheet name (Google's escaping rules)
+        const escapedSheetName = trimmedSheetName.replace(/'/g, "''");
+        
+        // Always wrap in quotes for consistency - this handles all cases including numeric sheet names
+        fullRange = `'${escapedSheetName}'!${cellRange}`;
+        
+        console.log(`[Google Sheets] Constructed range: ${fullRange}`);
+      } catch (error) {
+        console.error(`[Google Sheets] Error constructing range: ${error}`);
+        throw new Error(`Invalid sheet name format: ${sheetName}`);
+      }
     }
     
     console.log(`[Google Sheets] Fetching cell: ${fullRange} from sheet: ${sheetId}`);
