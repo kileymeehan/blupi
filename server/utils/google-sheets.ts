@@ -62,13 +62,9 @@ export async function fetchSheetData(sheetId: string, sheetName?: string): Promi
     let range = 'A1:Z1000'; // Default range for whole sheet
     
     if (sheetName) {
-      // Handle sheet names with spaces by enclosing in single quotes if needed
-      if (sheetName.includes(' ') || sheetName.includes('-') || /^\d+$/.test(sheetName)) {
-        // Numeric sheet names or sheet names with spaces need special handling
-        range = `'${sheetName}'!A1:Z1000`;
-      } else {
-        range = `${sheetName}!A1:Z1000`;
-      }
+      // Enclose all sheet names in single quotes to handle special characters and numeric sheet names
+      // This approach is more consistent and helps avoid parsing issues
+      range = `'${sheetName.replace(/'/g, "''")}'!A1:Z1000`;
     }
     console.log(`[Google Sheets] Attempting to fetch data from sheetId: ${sheetId}, range: ${range}`);
     
@@ -121,13 +117,9 @@ export async function fetchSheetCell(
     let fullRange = cellRange;
     
     if (sheetName) {
-      // Handle sheet names with spaces by enclosing in single quotes if needed
-      if (sheetName.includes(' ') || sheetName.includes('-') || /^\d+$/.test(sheetName)) {
-        // Numeric sheet names or sheet names with spaces need special handling
-        fullRange = `'${sheetName}'!${cellRange}`;
-      } else {
-        fullRange = `${sheetName}!${cellRange}`;
-      }
+      // Enclose all sheet names in single quotes to handle special characters and numeric sheet names
+      // This approach is more consistent and helps avoid parsing issues
+      fullRange = `'${sheetName.replace(/'/g, "''")}'!${cellRange}`;
     }
     
     console.log(`[Google Sheets] Fetching cell: ${fullRange} from sheet: ${sheetId}`);
