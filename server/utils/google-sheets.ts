@@ -122,86 +122,162 @@ export async function fetchSheetCell(
   sheetName?: string
 ): Promise<{ value: string | null, formattedValue: string | null, values?: any[][], timestamp: string }> {
   try {
-    // Check if API key is available
+    // Check API key first
     if (!process.env.GOOGLE_API_KEY) {
       console.error('[Google Sheets] Missing API key');
       throw new Error("Google API key not configured");
+    }
+    
+    // Check if sheetId is valid
+    if (!sheetId || sheetId.trim() === '') {
+      console.error('[Google Sheets] Invalid sheet ID provided');
+      throw new Error("Invalid Google Sheet ID");
+    }
+    
+    // Check if cellRange is valid
+    if (!cellRange || cellRange.trim() === '') {
+      console.error('[Google Sheets] Invalid cell range provided');
+      throw new Error("Invalid cell range");
+    }
+    
+    // Sanitize and normalize the cell range
+    const trimmedCellRange = cellRange.trim();
+    // Very basic validation of cell range format (e.g., A1, B2:C3)
+    if (!/^[A-Z]+[0-9]+(:[A-Z]+[0-9]+)?$/.test(trimmedCellRange)) {
+      console.error(`[Google Sheets] Cell range format appears invalid: ${trimmedCellRange}`);
+      // We'll proceed anyway and let Google's API validate it
     }
     
     // Configure the Google Sheets API client
     const sheets = google.sheets({ version: 'v4', auth: process.env.GOOGLE_API_KEY });
     
     // Construct the full range with sheet name if provided
-    let fullRange = cellRange;
+    let fullRange = trimmedCellRange;
+    let readableSheetName = '(default)';
     
     if (sheetName) {
       try {
-        // Properly escape the sheet name for Google Sheets API
-        // Handle the following cases:
-        // 1. If sheet name has special characters (spaces, quotes, etc.)
-        // 2. If sheet name is purely numeric
-        // 3. If sheet name contains apostrophes (need to be doubled)
-        
-        // Remove any leading/trailing spaces
+        // If the sheet name is empty after trimming, we'll use the default sheet
         const trimmedSheetName = sheetName.trim();
-        
-        // Double any single quotes in the sheet name (Google's escaping rules)
-        const escapedSheetName = trimmedSheetName.replace(/'/g, "''");
-        
-        // Always wrap in quotes for consistency - this handles all cases including numeric sheet names
-        fullRange = `'${escapedSheetName}'!${cellRange}`;
-        
-        console.log(`[Google Sheets] Constructed range: ${fullRange}`);
+        if (trimmedSheetName === '') {
+          console.log('[Google Sheets] Empty sheet name provided, using default sheet');
+        } else {
+          readableSheetName = trimmedSheetName;
+          
+          // Handle numeric-only sheet names specially
+          if (/^\d+$/.test(trimmedSheetName)) {
+            // For numerical sheets (like "1" or "2"), we need to use "Sheet1" or "Sheet2"
+            // This is because Google Sheets interprets '1'! as an invalid range
+            const sheetNameWithPrefix = `Sheet${trimmedSheetName}`;
+            console.log(`[Google Sheets] Numeric sheet name "${trimmedSheetName}" - Converting to "${sheetNameWithPrefix}"`);
+            
+            // Double any single quotes in the sheet name (Google's escaping rules)
+            const escapedSheetName = sheetNameWithPrefix.replace(/'/g, "''");
+            
+            // Wrap in quotes and construct the range
+            fullRange = `'${escapedSheetName}'!${trimmedCellRange}`;
+          } else {
+            // Handle normal sheet names
+            // Double any single quotes in the sheet name (Google's escaping rules)
+            const escapedSheetName = trimmedSheetName.replace(/'/g, "''");
+            
+            // Always wrap in quotes for consistency - this handles all special cases
+            fullRange = `'${escapedSheetName}'!${trimmedCellRange}`;
+          }
+          
+          console.log(`[Google Sheets] Constructed range with sheet name: ${fullRange}`);
+        }
       } catch (error) {
         console.error(`[Google Sheets] Error constructing range: ${error}`);
         throw new Error(`Invalid sheet name format: ${sheetName}`);
       }
     }
     
-    console.log(`[Google Sheets] Fetching cell: ${fullRange} from sheet: ${sheetId}`);
+    console.log(`[Google Sheets] Fetching data from Sheet ID: ${sheetId}, Sheet Name: ${readableSheetName}, Range: ${fullRange}`);
     
-    // Make the API request
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: sheetId,
-      range: fullRange,
-      valueRenderOption: 'FORMATTED_VALUE', // Get the formatted value as displayed in the UI
-    });
-    
-    // Get timestamp
-    const timestamp = new Date().toISOString();
-    
-    // Check if response has values
-    if (!response.data.values || response.data.values.length === 0) {
-      console.log(`[Google Sheets] No values found for range: ${fullRange}`);
-      return { value: null, formattedValue: null, timestamp };
-    }
-    
-    // If it's a single cell (e.g., A1)
-    if (response.data.values.length === 1 && response.data.values[0].length === 1) {
-      const cellValue = response.data.values[0][0] || null;
-      console.log(`[Google Sheets] Retrieved cell value: ${cellValue}`);
+    try {
+      // Make the API request
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: sheetId,
+        range: fullRange,
+        valueRenderOption: 'FORMATTED_VALUE', // Get the formatted value as displayed in the UI
+      });
       
-      // Format value for display (if numeric, ensure it has appropriate formatting)
-      let formattedValue = cellValue;
-      if (typeof cellValue === 'number') {
-        formattedValue = cellValue.toLocaleString();
+      // Get timestamp
+      const timestamp = new Date().toISOString();
+      
+      // Check if response has values
+      if (!response.data.values || response.data.values.length === 0) {
+        console.log(`[Google Sheets] No values found for range: ${fullRange}`);
+        return { 
+          value: null, 
+          formattedValue: null, 
+          timestamp 
+        };
       }
       
+      // If it's a single cell (e.g., A1)
+      if (response.data.values.length === 1 && response.data.values[0].length === 1) {
+        // Handle various types of cell values
+        const rawCellValue = response.data.values[0][0];
+        const cellValue = rawCellValue === undefined ? null : String(rawCellValue);
+        
+        // For logging, truncate very long values
+        const logValue = cellValue && cellValue.length > 100 
+          ? `${cellValue.substring(0, 100)}... (truncated)`
+          : cellValue;
+          
+        console.log(`[Google Sheets] Retrieved cell value: ${logValue}`);
+        
+        // Format numbers for display
+        let formattedValue = cellValue;
+        if (typeof rawCellValue === 'number') {
+          formattedValue = rawCellValue.toLocaleString();
+        }
+        
+        return { 
+          value: cellValue,
+          formattedValue: formattedValue,
+          timestamp
+        };
+      }
+      
+      // If it's a range, return the full range values
+      console.log(`[Google Sheets] Retrieved range data: ${response.data.values.length}x${response.data.values[0]?.length || 0} cells`);
+      
       return { 
-        value: cellValue,
-        formattedValue: formattedValue,
+        value: JSON.stringify(response.data.values), 
+        formattedValue: `${response.data.values.length}x${response.data.values[0]?.length || 0} range`,
+        values: response.data.values,
         timestamp
       };
+    } catch (apiError: any) {
+      // Check for specific API errors
+      if (apiError.response && apiError.response.data && apiError.response.data.error) {
+        const googleError = apiError.response.data.error;
+        
+        // Log the specific Google API error
+        console.error(`[Google Sheets] Google API Error: ${googleError.code} - ${googleError.message}`);
+        
+        // Check for specific error types
+        if (googleError.status === 'INVALID_ARGUMENT' && googleError.message.includes('Unable to parse range')) {
+          throw new Error(`Unable to parse range. Check that sheet name "${readableSheetName}" exists and cell range "${trimmedCellRange}" is valid.`);
+        }
+        
+        if (googleError.status === 'NOT_FOUND') {
+          throw new Error(`Spreadsheet not found. Check that the Sheet ID is correct and the sheet is shared publicly or with the service account.`);
+        }
+        
+        if (googleError.status === 'PERMISSION_DENIED') {
+          throw new Error(`Permission denied. Make sure the spreadsheet is public or shared with the service account.`);
+        }
+        
+        throw new Error(`Google Sheets API error: ${googleError.message}`);
+      }
+      
+      // Generic API error
+      throw new Error(`Google Sheets API error: ${(apiError as Error).message}`);
     }
-    
-    // If it's a range, return the full range values
-    return { 
-      value: JSON.stringify(response.data.values), 
-      formattedValue: `${response.data.values.length}x${response.data.values[0]?.length || 0} range`,
-      values: response.data.values,
-      timestamp
-    };
-    
   } catch (error) {
     console.error(`[Google Sheets] Error fetching cell: ${(error as Error).message}`);
     throw new Error(`Failed to fetch Google Sheet cell: ${(error as Error).message}`);

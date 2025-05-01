@@ -790,6 +790,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Advanced test endpoint to check connectivity to a specific Google Sheet
+  app.post("/api/google-sheets/connectivity-test", async (req, res) => {
+    try {
+      const { sheetId, sheetName, cellReference } = req.body;
+      
+      if (!process.env.GOOGLE_API_KEY) {
+        return res.status(500).json({
+          success: false,
+          message: "Google API key is not configured"
+        });
+      }
+      
+      if (!sheetId) {
+        return res.status(400).json({
+          success: false,
+          message: "Sheet ID is required for testing"
+        });
+      }
+      
+      console.log(`[HTTP] Performing connectivity test for sheet ID: ${sheetId}`);
+      
+      // First try to get sheet names
+      try {
+        console.log(`[HTTP] Testing sheet existence and permissions...`);
+        const sheetNames = await getSheetNames(sheetId);
+        
+        // If we get here, the sheet exists and is accessible
+        console.log(`[HTTP] Successfully connected to sheet. Available tabs: ${sheetNames.join(", ")}`);
+        
+        // If a specific sheet name and cell were provided, test that too
+        if (sheetName && cellReference) {
+          try {
+            console.log(`[HTTP] Testing specific cell access: ${sheetName}!${cellReference}`);
+            const cellData = await fetchSheetCell(sheetId, cellReference, sheetName);
+            
+            return res.json({
+              success: true,
+              message: "Full connectivity test passed successfully!",
+              details: {
+                sheetExists: true,
+                sheetNames,
+                cellTest: {
+                  success: true,
+                  value: cellData.value,
+                  formattedValue: cellData.formattedValue
+                }
+              }
+            });
+          } catch (cellError) {
+            return res.json({
+              success: false,
+              message: `Sheet exists but could not access the specified cell: ${(cellError as Error).message}`,
+              details: {
+                sheetExists: true,
+                sheetNames,
+                cellTest: {
+                  success: false,
+                  error: (cellError as Error).message
+                }
+              }
+            });
+          }
+        }
+        
+        // If just testing sheet existence
+        return res.json({
+          success: true,
+          message: "Successfully connected to the Google Sheet!",
+          details: {
+            sheetExists: true,
+            sheetNames
+          }
+        });
+        
+      } catch (sheetError) {
+        return res.status(400).json({
+          success: false,
+          message: `Could not connect to the Google Sheet: ${(sheetError as Error).message}`,
+          details: {
+            sheetExists: false,
+            error: (sheetError as Error).message
+          }
+        });
+      }
+    } catch (error) {
+      console.error(`[HTTP] Error in connectivity test: ${(error as Error).message}`);
+      res.status(500).json({
+        success: false,
+        message: `Error during connectivity test: ${(error as Error).message}`
+      });
+    }
+  });
+  
   // New endpoint for fetching a specific cell or range from a Google Sheet
   app.post("/api/google-sheets/cell", async (req, res) => {
     try {

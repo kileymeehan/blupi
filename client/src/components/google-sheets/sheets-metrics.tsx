@@ -440,24 +440,108 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                       </FormItem>
                     )}
                   />
-                  <div className="mt-4 flex justify-between items-center w-full">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        testGoogleSheetsApi();
-                      }}
-                    >
-                      Test API Key
-                    </Button>
-                    
-                    <DialogFooter>
-                      <Button type="submit" size="sm">
-                        Connect
+                  <div className="mt-4 flex flex-col space-y-3">
+                    <div className="flex justify-between items-center w-full">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          testGoogleSheetsApi();
+                        }}
+                      >
+                        Test API Key
                       </Button>
-                    </DialogFooter>
+                      
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          if (!form.getValues("sheetUrl") || !form.getValues("cellRange")) {
+                            toast({
+                              title: "Missing information",
+                              description: "Please provide a Sheet URL and cell reference to test",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          // Extract sheet ID from URL
+                          try {
+                            const sheetUrlValue = form.getValues("sheetUrl");
+                            const validationResult = await validateSheetUrl(sheetUrlValue);
+                            
+                            if (!validationResult?.valid || !validationResult?.sheetId) {
+                              toast({
+                                title: "Invalid Sheet URL",
+                                description: "Please enter a valid Google Sheets URL",
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                            
+                            // Perform connectivity test
+                            toast({
+                              title: "Testing connection",
+                              description: "Attempting to connect to Google Sheets...",
+                            });
+                            
+                            // Create advanced test request
+                            const response = await fetch('/api/google-sheets/connectivity-test', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json'
+                              },
+                              body: JSON.stringify({
+                                sheetId: validationResult.sheetId,
+                                sheetName: form.getValues("sheetName"),
+                                cellReference: form.getValues("cellRange")
+                              })
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                              if (result.details?.cellTest?.success) {
+                                toast({
+                                  title: "Connection successful",
+                                  description: `Successfully retrieved value: "${result.details.cellTest.value || 'empty cell'}"`,
+                                });
+                              } else if (result.details?.sheetExists) {
+                                toast({
+                                  title: "Partial success",
+                                  description: `Sheet exists but couldn't access the specific cell. Available sheets: ${result.details.sheetNames?.join(", ")}`,
+                                  variant: "destructive",
+                                });
+                              }
+                            } else {
+                              toast({
+                                title: "Connection failed",
+                                description: result.message || "Failed to connect to Google Sheets",
+                                variant: "destructive",
+                              });
+                            }
+                            
+                          } catch (error) {
+                            console.error('Error testing connectivity:', error);
+                            toast({
+                              title: "Connection test failed",
+                              description: error instanceof Error ? error.message : "An unknown error occurred",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        Test Connection
+                      </Button>
+                    </div>
+                    
+                    <Button type="submit" size="sm" className="w-full">
+                      Connect
+                    </Button>
                   </div>
                 </form>
               </Form>
@@ -761,6 +845,91 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                     Disconnect
                   </Button>
                 </div>
+                
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  className="w-full"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    if (!form.getValues("sheetUrl") || !form.getValues("cellRange")) {
+                      toast({
+                        title: "Missing information",
+                        description: "Please provide a Sheet URL and cell reference to test",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    
+                    // Extract sheet ID from URL
+                    try {
+                      const sheetUrlValue = form.getValues("sheetUrl");
+                      const validationResult = await validateSheetUrl(sheetUrlValue);
+                      
+                      if (!validationResult?.valid || !validationResult?.sheetId) {
+                        toast({
+                          title: "Invalid Sheet URL",
+                          description: "Please enter a valid Google Sheets URL",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      
+                      // Perform connectivity test
+                      toast({
+                        title: "Testing connection",
+                        description: "Attempting to connect to Google Sheets...",
+                      });
+                      
+                      // Create advanced test request
+                      const response = await fetch('/api/google-sheets/connectivity-test', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          sheetId: validationResult.sheetId,
+                          sheetName: form.getValues("sheetName"),
+                          cellReference: form.getValues("cellRange")
+                        })
+                      });
+                      
+                      const result = await response.json();
+                      
+                      if (result.success) {
+                        if (result.details?.cellTest?.success) {
+                          toast({
+                            title: "Connection successful",
+                            description: `Successfully retrieved value: "${result.details.cellTest.value || 'empty cell'}"`,
+                          });
+                        } else if (result.details?.sheetExists) {
+                          toast({
+                            title: "Partial success",
+                            description: `Sheet exists but couldn't access the specific cell. Available sheets: ${result.details.sheetNames?.join(", ")}`,
+                            variant: "destructive",
+                          });
+                        }
+                      } else {
+                        toast({
+                          title: "Connection failed",
+                          description: result.message || "Failed to connect to Google Sheets",
+                          variant: "destructive",
+                        });
+                      }
+                      
+                    } catch (error) {
+                      console.error('Error testing connectivity:', error);
+                      toast({
+                        title: "Connection test failed",
+                        description: error instanceof Error ? error.message : "An unknown error occurred",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                >
+                  Test Connection
+                </Button>
                 
                 <Button type="submit" size="sm" className="w-full">
                   Update Connection
