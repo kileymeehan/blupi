@@ -1,5 +1,5 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, X } from "lucide-react";
+import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, X, Table as TableIcon } from "lucide-react";
 import * as Icons from "lucide-react";
 import type {
   Block as BlockType,
@@ -299,7 +299,7 @@ export default function Block({
           
           {/* Add Google Sheets metrics for metrics blocks */}
           {!isTemplate && block.type === 'metrics' && (
-            <div className="mt-3 border-t border-gray-200 pt-2">
+            <div className="mt-3 border-t border-gray-200 pt-2" id={`metrics-${block.id}`}>
               <SheetsMetrics 
                 blockId={block.id}
                 boardId={Number(block.phaseIndex) > -1 ? Number(block.phaseIndex) : 0}
@@ -339,25 +339,59 @@ export default function Block({
               )}
             </button>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setAttachmentDialogOpen(true);
-              }}
-              className={`
-                flex items-center justify-center w-6 h-6 p-0
-                rounded bg-white border border-gray-200
-                text-xs text-gray-600 hover:text-gray-900
-                shadow-sm hover:shadow hover:border-gray-300
-                ${attachmentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ""}
-                transition-all duration-150
-              `}
-            >
-              <Paperclip className="w-4 h-4" />
-              {attachmentCount > 0 && (
-                <span className="text-[10px] ml-0.5">{attachmentCount}</span>
-              )}
-            </button>
+            {/* Google Sheets icon for metrics blocks */}
+            {block.type === 'metrics' ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Create a fake SheetsMetrics 'connect' click
+                  const sheetsMetricsContainer = document.querySelector(`#metrics-${block.id} button`) as HTMLButtonElement;
+                  if (sheetsMetricsContainer) {
+                    sheetsMetricsContainer.click();
+                  } else {
+                    // Fallback handling if we can't find the button
+                    if (block.sheetsConnection) {
+                      // If already connected, show refreshed data
+                      const refreshButton = document.querySelector(`#metrics-${block.id} button[title="Refresh data"]`) as HTMLButtonElement;
+                      if (refreshButton) {
+                        refreshButton.click();
+                      }
+                    }
+                  }
+                }}
+                className={`
+                  flex items-center justify-center w-6 h-6 p-0
+                  rounded bg-white border border-gray-200
+                  text-xs text-teal-600 hover:text-teal-900
+                  shadow-sm hover:shadow hover:border-teal-300
+                  ${block.sheetsConnection ? 'after:content-["•"] after:text-teal-500 after:absolute after:top-[-2px] after:right-[-2px]' : ""}
+                  transition-all duration-150
+                `}
+                title={block.sheetsConnection ? "Connected to Google Sheets" : "Connect to Google Sheets"}
+              >
+                <TableIcon className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAttachmentDialogOpen(true);
+                }}
+                className={`
+                  flex items-center justify-center w-6 h-6 p-0
+                  rounded bg-white border border-gray-200
+                  text-xs text-gray-600 hover:text-gray-900
+                  shadow-sm hover:shadow hover:border-gray-300
+                  ${attachmentCount > 0 ? 'after:content-["•"] after:text-blue-500 after:absolute after:top-[-2px] after:right-[-2px]' : ""}
+                  transition-all duration-150
+                `}
+              >
+                <Paperclip className="w-4 h-4" />
+                {attachmentCount > 0 && (
+                  <span className="text-[10px] ml-0.5">{attachmentCount}</span>
+                )}
+              </button>
+            )}
 
             <button
               onClick={(e) => {
