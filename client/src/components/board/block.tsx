@@ -111,6 +111,7 @@ export default function Block({
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [googleSheetsDialogOpen, setGoogleSheetsDialogOpen] = useState(false);
   const [activeSheetsBlockId, setActiveSheetsBlockId] = useState("");
+  const sheetsMetricsRef = useRef<Record<string, { openConnectDialog: () => void }>>({});
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
@@ -304,6 +305,11 @@ export default function Block({
           {!isTemplate && block.type === 'metrics' && (
             <div className="mt-3 border-t border-gray-200 pt-2" id={`metrics-${block.id}`}>
               <SheetsMetrics 
+                ref={(ref) => {
+                  if (ref) {
+                    sheetsMetricsRef.current[block.id] = ref;
+                  }
+                }}
                 blockId={block.id}
                 boardId={Number(block.phaseIndex) > -1 ? Number(block.phaseIndex) : 0}
                 initialConnection={block.sheetsConnection}

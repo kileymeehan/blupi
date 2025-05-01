@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { TableIcon, ExternalLinkIcon, LinkIcon, RefreshCwIcon, AlertCircleIcon } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -72,16 +72,26 @@ const connectionFormSchema = z.object({
 
 type ConnectionFormValues = z.infer<typeof connectionFormSchema>;
 
-export function SheetsMetrics({ 
+// Create a handle type for the component
+export interface SheetsMetricsHandle {
+  openConnectDialog: () => void;
+}
+
+export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>(({ 
   blockId, 
   boardId, 
   className = '', 
   initialConnection,
   onUpdate
-}: SheetsMetricsProps) {
+}: SheetsMetricsProps, ref) => {
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Expose methods to parent component via ref
+  useImperativeHandle(ref, () => ({
+    openConnectDialog: () => setIsConnectDialogOpen(true)
+  }));
   
   // Create form with default values
   const form = useForm<ConnectionFormValues>({
@@ -601,4 +611,4 @@ export function SheetsMetrics({
       </Dialog>
     </Card>
   );
-}
+});
