@@ -148,6 +148,22 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
     enabled: !!initialConnection?.sheetId && !!initialConnection?.cellRange,
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
+  
+  // Update the block content when cell data changes
+  useEffect(() => {
+    if (cellData && initialConnection && onUpdate) {
+      // Update the connection with the latest data (including the content value)
+      const updatedConnection = {
+        ...initialConnection,
+        lastUpdated: new Date().toISOString(),
+        // Add the value as a hidden field to be used by the block
+        formattedValue: cellData.formattedValue || cellData.value
+      };
+      
+      // Update the connection (this will trigger the parent to update the block)
+      onUpdate(updatedConnection);
+    }
+  }, [cellData]);
 
   // Handle form submission
   // Function to test the Google Sheets API connection
