@@ -72,6 +72,13 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
 
     if (!response.ok) {
       const errorData = await response.json();
+      // Check for rate limit errors
+      if (response.status === 429 || 
+          errorData.message?.toLowerCase().includes('rate limit') || 
+          errorData.message?.toLowerCase().includes('quota') ||
+          errorData.message?.toLowerCase().includes('too many requests')) {
+        throw new Error('Rate limit exceeded. Please wait a few minutes before trying again.');
+      }
       throw new Error(errorData.message || 'Failed to fetch sheet names');
     }
 
@@ -79,6 +86,15 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
     return data.sheetNames || [];
   } catch (error) {
     console.error('Error fetching sheet names:', error);
+    
+    // Check for rate limit or quota issues in error message
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (errorMsg.toLowerCase().includes('rate limit') || 
+        errorMsg.toLowerCase().includes('quota') ||
+        errorMsg.toLowerCase().includes('too many requests')) {
+      throw new Error('Rate limit exceeded. Please wait a few minutes before trying again.');
+    }
+    
     throw error;
   }
 }
@@ -108,6 +124,15 @@ export async function fetchSheetCell(
 
     if (!response.ok) {
       const errorData = await response.json();
+      
+      // Check for rate limit errors
+      if (response.status === 429 || 
+          errorData.message?.toLowerCase().includes('rate limit') || 
+          errorData.message?.toLowerCase().includes('quota') ||
+          errorData.message?.toLowerCase().includes('too many requests')) {
+        throw new Error('Rate limit exceeded. Please wait a few minutes before trying again.');
+      }
+      
       throw new Error(errorData.message || 'Failed to fetch cell data');
     }
 
@@ -119,6 +144,15 @@ export async function fetchSheetCell(
     };
   } catch (error) {
     console.error('Error fetching cell data:', error);
+    
+    // Check for rate limit or quota errors in the error message
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (errorMsg.toLowerCase().includes('rate limit') || 
+        errorMsg.toLowerCase().includes('quota') ||
+        errorMsg.toLowerCase().includes('too many requests')) {
+      throw new Error('Rate limit exceeded. Please wait a few minutes before trying again.');
+    }
+    
     throw error;
   }
 }

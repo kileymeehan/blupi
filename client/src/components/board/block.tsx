@@ -12,6 +12,7 @@ import { getIconForBlockType } from "./type-utils";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
