@@ -296,18 +296,17 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
             Connect this metric to data from a Google Sheets cell.
           </p>
           <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
-            <DialogTrigger asChild>
-              <Button 
+            <Button 
                 size="sm" 
                 variant="outline" 
                 className="w-full"
                 id={`sheets-connect-button-${blockId}`}
                 data-testid="sheets-connect-trigger"
+                onClick={() => setIsConnectDialogOpen(true)}
               >
                 <LinkIcon className="h-3 w-3 mr-2" />
                 Connect to Google Sheets
               </Button>
-            </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Connect to Google Sheets</DialogTitle>
@@ -439,21 +438,15 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
               <RefreshCwIcon className="h-3 w-3 mr-1" />
               {isRateLimitError ? 'Please wait...' : 'Retry'}
             </Button>
-            <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="flex-1"
-                >
-                  <LinkIcon className="h-3 w-3 mr-1" />
-                  Reconnect
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                {/* Same dialog content as above */}
-              </DialogContent>
-            </Dialog>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => setIsConnectDialogOpen(true)}
+            >
+              <LinkIcon className="h-3 w-3 mr-1" />
+              Reconnect
+            </Button>
           </div>
         </CardContent>
       </Card>
