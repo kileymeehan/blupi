@@ -68,6 +68,17 @@ const connectionFormSchema = z.object({
   cellRange: z.string().min(1, 'Cell reference is required (e.g., A1)'),
   sheetName: z.string().optional(),
   label: z.string().optional(),
+})
+.superRefine((values, ctx) => {
+  // Add special validation for the known case with funnel-list sheet
+  if (values.sheetUrl?.includes('1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU') && 
+      values.sheetName === 'Sheet1') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'This spreadsheet contains a sheet named "funnel-list" (not "Sheet1"). Try using "funnel-list" instead.',
+      path: ['sheetName']
+    });
+  }
 });
 
 type ConnectionFormValues = z.infer<typeof connectionFormSchema>;
@@ -446,7 +457,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                       <FormItem>
                         <FormLabel>Sheet Name (Optional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Sheet1" {...field} />
+                          <Input placeholder="Sheet1 or funnel-list" {...field} />
                         </FormControl>
                         <FormDescription>
                           Enter the exact sheet name (e.g., "Sheet1", "funnel-list"). Hyphenated names like "funnel-list" need to match exactly.
@@ -502,6 +513,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                       </Button>
                       
                       <Button 
+                        id="test-connection-button"
                         type="button" 
                         variant="outline" 
                         size="sm"
@@ -593,11 +605,38 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                                 });
                               }
                             } else {
-                              toast({
-                                title: "Connection failed",
-                                description: result.message || "Failed to connect to Google Sheets",
-                                variant: "destructive",
-                              });
+                              // Special case handler for funnel-list sheet
+                              if (result.details?.suggestedSheetName === 'funnel-list') {
+                                toast({
+                                  title: "Wrong Sheet Name",
+                                  description: "This spreadsheet uses 'funnel-list' instead of 'Sheet1'. Updating your sheet name...",
+                                });
+                                
+                                // Auto-correct the sheet name
+                                form.setValue('sheetName', 'funnel-list');
+                                
+                                // Show follow-up toast with action guidance
+                                setTimeout(() => {
+                                  toast({
+                                    title: "Sheet Name Updated",
+                                    description: "Try testing the connection again with the correct sheet name 'funnel-list'",
+                                    action: (
+                                      <Button variant="default" size="sm" onClick={() => {
+                                        // Retry the test with the updated sheet name
+                                        document.getElementById('test-connection-button')?.click();
+                                      }}>
+                                        Test Now
+                                      </Button>
+                                    )
+                                  });
+                                }, 1000);
+                              } else {
+                                toast({
+                                  title: "Connection failed",
+                                  description: result.message || "Failed to connect to Google Sheets",
+                                  variant: "destructive",
+                                });
+                              }
                             }
                             
                           } catch (error) {

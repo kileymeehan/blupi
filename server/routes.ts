@@ -809,6 +809,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Special case handling for the known funnel-list sheet
+      if (sheetId === '1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU' && sheetName === 'Sheet1') {
+        console.log('[HTTP] Detected usage of "Sheet1" with funnel-list spreadsheet - providing guidance');
+        return res.status(400).json({
+          success: false,
+          message: 'IMPORTANT: You are using "Sheet1" with a spreadsheet that has a sheet named "funnel-list". The sheet is actually named "funnel-list" (with hyphen), not "Sheet1". Please use "funnel-list" as the sheet name instead.',
+          details: {
+            suggestedSheetName: 'funnel-list',
+            knownSpreadsheet: true,
+            specificError: 'sheet_name_is_hyphenated'
+          }
+        });
+      }
+      
       console.log(`[HTTP] Performing connectivity test for sheet ID: ${sheetId}`);
       
       // First try to get sheet names
