@@ -199,8 +199,18 @@ export async function fetchSheetCell(
             
             // Wrap in quotes and construct the range
             fullRange = `'${escapedSheetName}'!${trimmedCellRange}`;
+          } else if (trimmedSheetName.includes('-')) {
+            // Case 4: Sheet names with hyphens (like "funnel-list")
+            // These need to be quoted properly
+            console.log(`[Google Sheets] Sheet name with hyphens: "${trimmedSheetName}"`);
+            
+            // Double any single quotes in the sheet name
+            const escapedSheetName = trimmedSheetName.replace(/'/g, "''");
+            
+            // Wrap in quotes and construct the range
+            fullRange = `'${escapedSheetName}'!${trimmedCellRange}`;
           } else {
-            // Case 4: Normal sheet names
+            // Case 5: Normal sheet names
             // Double any single quotes in the sheet name
             const escapedSheetName = trimmedSheetName.replace(/'/g, "''");
             
@@ -320,6 +330,7 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
       throw new Error("Google API key not configured");
     }
     console.log(`[Google Sheets] API Key exists and is set`);
+    console.log(`[Google Sheets] API Key prefix/suffix: ${process.env.GOOGLE_API_KEY.substring(0, 5)}...${process.env.GOOGLE_API_KEY.substring(process.env.GOOGLE_API_KEY.length - 5)}`);
     
     // Configure the Google Sheets API client
     const sheets = google.sheets({ version: 'v4', auth: process.env.GOOGLE_API_KEY });
@@ -327,20 +338,65 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
     console.log(`[Google Sheets] Attempting to fetch sheet names for sheetId: ${sheetId}`);
     
     try {
-      // Make the API request to get spreadsheet metadata
-      const response = await sheets.spreadsheets.get({
-        spreadsheetId: sheetId,
-      });
+      // Detailed logging about the request
+      console.log(`[Google Sheets] Making API call to sheets.spreadsheets.get with spreadsheetId: ${sheetId}`);
+      
+      // Make the API request to get spreadsheet metadata with detailed error handling
+      let response;
+      try {
+        response = await sheets.spreadsheets.get({
+          spreadsheetId: sheetId,
+        });
+        console.log(`[Google Sheets] Successful response status: ${response.status}`);
+      } catch (directApiError: any) {
+        // Extract the most helpful error information
+        let errorMessage = "Unknown API error";
+        let errorDetails = null;
+        
+        if (directApiError.response && directApiError.response.data && directApiError.response.data.error) {
+          const googleError = directApiError.response.data.error;
+          errorMessage = googleError.message || "Google Sheets API error";
+          errorDetails = {
+            status: googleError.status,
+            code: googleError.code,
+            message: googleError.message
+          };
+          
+          // Special handling for common errors
+          if (googleError.status === 'NOT_FOUND') {
+            throw new Error(`Spreadsheet not found. Check that the Sheet ID "${sheetId}" is correct and the sheet is accessible. Make sure it's shared with "Anyone with the link can view" permissions.`);
+          }
+          if (googleError.status === 'PERMISSION_DENIED') {
+            throw new Error(`Permission denied for spreadsheet. Please ensure the sheet is publicly accessible by setting sharing to "Anyone with the link can view".`);
+          }
+        }
+        
+        console.error(`[Google Sheets] API call failed with error: ${errorMessage}`);
+        if (errorDetails) {
+          console.error(`[Google Sheets] Error details:`, errorDetails);
+        }
+        
+        throw new Error(`Failed to access spreadsheet: ${errorMessage}`);
+      }
       
       // Extract sheet names from the response
       const sheetNames: string[] = [];
       
       if (response.data.sheets) {
+        console.log(`[Google Sheets] Found ${response.data.sheets.length} sheets in the spreadsheet`);
+        
+        // Also extract spreadsheet title for better diagnostics
+        const spreadsheetTitle = response.data.properties?.title || "(untitled)";
+        console.log(`[Google Sheets] Spreadsheet title: "${spreadsheetTitle}"`);
+        
         for (const sheet of response.data.sheets) {
           if (sheet.properties && sheet.properties.title) {
             // Include the original sheet name as users see it in Google Sheets
             const sheetTitle = sheet.properties.title;
             sheetNames.push(sheetTitle);
+            
+            // Log sheet properties for better diagnostics
+            console.log(`[Google Sheets] Sheet found: "${sheetTitle}" (sheetId: ${sheet.properties.sheetId})`);
             
             // Log special formats so we can help users troubleshoot
             if (/^\d+$/.test(sheetTitle)) {
@@ -350,9 +406,11 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
             }
           }
         }
+      } else {
+        console.warn('[Google Sheets] No sheets found in the spreadsheet data');
       }
       
-      console.log(`[Google Sheets] Found ${sheetNames.length} sheets: ${sheetNames.join(', ')}`);
+      console.log(`[Google Sheets] Returning ${sheetNames.length} sheets: ${sheetNames.join(', ')}`);
       
       // Include helpful mapping in the logs
       if (sheetNames.some(name => /^\d+$/.test(name) || /Sheet\s+\d+/.test(name))) {
