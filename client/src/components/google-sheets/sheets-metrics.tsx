@@ -130,13 +130,56 @@ export function SheetsMetrics({
   // Handle form submission
   const onSubmit = async (values: ConnectionFormValues) => {
     try {
-      // First validate the Google Sheet URL
-      const validationResult = await validateSheetUrl(values.sheetUrl);
+      // First validate the Google Sheet URL with retry logic
+      let validationResult;
+      let attempts = 0;
+      const maxAttempts = 3;
       
-      if (!validationResult.valid || !validationResult.sheetId) {
+      // Start processing indicator
+      toast({
+        title: "Processing",
+        description: "Validating Google Sheet connection...",
+      });
+      
+      while (attempts < maxAttempts) {
+        try {
+          validationResult = await validateSheetUrl(values.sheetUrl);
+          break; // Success - exit the loop
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+          
+          // Check if this is a rate limit error
+          if (errorMsg.toLowerCase().includes('rate limit') || 
+              errorMsg.toLowerCase().includes('quota') ||
+              errorMsg.toLowerCase().includes('too many requests')) {
+            
+            attempts++;
+            
+            // If we've tried the maximum number of times, throw the error
+            if (attempts >= maxAttempts) {
+              throw error;
+            }
+            
+            // Otherwise wait and try again
+            toast({
+              title: "Rate limit encountered",
+              description: `Waiting before retrying (attempt ${attempts}/${maxAttempts})...`,
+            });
+            
+            // Wait longer between each retry (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts)));
+            continue;
+          }
+          
+          // For non-rate-limit errors, just throw it right away
+          throw error;
+        }
+      }
+      
+      if (!validationResult?.valid || !validationResult?.sheetId) {
         toast({
           title: "Invalid Google Sheet URL",
-          description: validationResult.message || "Please check the URL and try again.",
+          description: validationResult?.message || "Please check the URL and try again.",
           variant: "destructive",
         });
         return;
@@ -169,11 +212,24 @@ export function SheetsMetrics({
       });
     } catch (error) {
       console.error('Error connecting to Google Sheet:', error);
-      toast({
-        title: "Connection failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred.",
-        variant: "destructive",
-      });
+      const errorMsg = error instanceof Error ? error.message : "An unknown error occurred.";
+      
+      // Check if it's a rate limiting error
+      if (errorMsg.toLowerCase().includes('rate limit') || 
+          errorMsg.toLowerCase().includes('quota') ||
+          errorMsg.toLowerCase().includes('too many requests')) {
+        toast({
+          title: "API Rate Limit Reached",
+          description: "Google Sheets API rate limit has been reached. Please wait a few minutes before trying again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Connection failed",
+          description: errorMsg,
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -329,6 +385,13 @@ export function SheetsMetrics({
   
   // Error state
   if (isError || !cellData) {
+    // Check if the error is related to rate limiting
+    const errorMessage = error instanceof Error ? error.message : 'Failed to load data from Google Sheets.';
+    const isRateLimitError = 
+      errorMessage.toLowerCase().includes('rate limit') || 
+      errorMessage.toLowerCase().includes('quota') ||
+      errorMessage.toLowerCase().includes('too many requests');
+      
     return (
       <Card className={`w-full ${className}`}>
         <CardHeader className="pb-2">
@@ -336,14 +399,22 @@ export function SheetsMetrics({
             <TableIcon className="h-3 w-3 mr-1" />
             Google Sheets Metric
           </CardTitle>
-          <CardDescription className="text-xs">Error loading data</CardDescription>
+          <CardDescription className="text-xs">
+            {isRateLimitError ? 'API Rate Limit Reached' : 'Error loading data'}
+          </CardDescription>
         </CardHeader>
         <CardContent className="pb-3">
-          <div className="flex items-center mb-2 text-destructive">
-            <AlertCircleIcon className="h-4 w-4 mr-1" />
-            <p className="text-sm">
-              {error instanceof Error ? error.message : 'Failed to load data from Google Sheets.'}
-            </p>
+          <div className="flex items-start mb-2 text-destructive">
+            <AlertCircleIcon className="h-4 w-4 mr-1 flex-shrink-0 mt-0.5" />
+            <div>
+              {isRateLimitError ? (
+                <p className="text-sm">
+                  Google Sheets API rate limit reached. Please wait a few minutes before trying again.
+                </p>
+              ) : (
+                <p className="text-sm">{errorMessage}</p>
+              )}
+            </div>
           </div>
           <div className="flex space-x-2">
             <Button 
@@ -351,9 +422,10 @@ export function SheetsMetrics({
               variant="outline" 
               className="flex-1"
               onClick={() => refetch()}
+              disabled={isRateLimitError}
             >
               <RefreshCwIcon className="h-3 w-3 mr-1" />
-              Retry
+              {isRateLimitError ? 'Please wait...' : 'Retry'}
             </Button>
             <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
               <DialogTrigger asChild>
