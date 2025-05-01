@@ -307,38 +307,84 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
         label: values.label
       });
       
-      // Create the connection object
-      const connection = {
-        sheetId: validationResult.sheetId,
-        cellRange: normalizedCellRange,
-        sheetName: normalizedSheetName,
-        label: values.label || undefined,
-        lastUpdated: new Date().toISOString(),
-      };
-      
-      // Call the onUpdate callback to save the connection
-      console.log('Updating connection with:', connection);
-      onUpdate(connection);
-      
-      // Close the dialog
-      setIsConnectDialogOpen(false);
-      
-      // Show success toast
+      // Show processing toast
       toast({
-        title: "Connection saved",
-        description: "The metric has been connected to Google Sheets. Loading data...",
+        title: "Processing",
+        description: "Connecting to Google Sheets and fetching data...",
       });
       
-      // Invalidate the query to fetch the new data
-      console.log('Invalidating query with key:', ['/api/google-sheets/cell', connection.sheetId, connection.cellRange, connection.sheetName]);
-      queryClient.invalidateQueries({
-        queryKey: ['/api/google-sheets/cell', connection.sheetId, connection.cellRange, connection.sheetName],
-      });
-      
-      // Initiate an immediate refetch 
-      setTimeout(() => {
-        refetch();
-      }, 500);
+      try {
+        // Fetch the cell data immediately to update the block
+        const cellData = await fetchSheetCell(
+          validationResult.sheetId,
+          normalizedCellRange,
+          normalizedSheetName
+        );
+        
+        // Create the connection object with the fetched value
+        const connection = {
+          sheetId: validationResult.sheetId,
+          cellRange: normalizedCellRange,
+          sheetName: normalizedSheetName,
+          label: values.label || undefined,
+          lastUpdated: new Date().toISOString(),
+          formattedValue: cellData.formattedValue || cellData.value || ''
+        };
+        
+        // Call the onUpdate callback to save the connection
+        console.log('Updating connection with:', connection);
+        onUpdate(connection);
+        
+        // Close the dialog
+        setIsConnectDialogOpen(false);
+        
+        // Show success message
+        toast({
+          title: "Connection successful",
+          description: `Connected to Google Sheets. Retrieved value: ${cellData.formattedValue || cellData.value || 'empty cell'}`,
+          variant: "default",
+        });
+        
+        // Invalidate the query to ensure future updates are captured
+        console.log('Invalidating query with key:', ['/api/google-sheets/cell', connection.sheetId, connection.cellRange, connection.sheetName]);
+        queryClient.invalidateQueries({
+          queryKey: ['/api/google-sheets/cell', connection.sheetId, connection.cellRange, connection.sheetName],
+        });
+      } catch (fetchError) {
+        console.error('Error fetching initial cell data:', fetchError);
+        
+        // Create a basic connection without the fetched value
+        const connection = {
+          sheetId: validationResult.sheetId,
+          cellRange: normalizedCellRange,
+          sheetName: normalizedSheetName,
+          label: values.label || undefined,
+          lastUpdated: new Date().toISOString(),
+        };
+        
+        // Call the onUpdate callback to save the connection
+        onUpdate(connection);
+        
+        // Close the dialog
+        setIsConnectDialogOpen(false);
+        
+        // Show warning toast
+        toast({
+          title: "Connection saved with warning",
+          description: "Connection saved but couldn't fetch initial data. It will be fetched in the background.",
+          variant: "default",
+        });
+        
+        // Invalidate the query to trigger a background fetch
+        queryClient.invalidateQueries({
+          queryKey: ['/api/google-sheets/cell', connection.sheetId, connection.cellRange, connection.sheetName],
+        });
+        
+        // Initiate a background refetch
+        setTimeout(() => {
+          refetch();
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error connecting to Google Sheet:', error);
       const errorMsg = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -609,9 +655,17 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                             
                             if (result.success) {
                               if (result.details?.cellTest?.success) {
+                                const cellValue = result.details.cellTest.value || 'empty cell';
+                                
+                                // Create a preview of what the block content would look like
+                                const label = form.getValues('label');
+                                const previewContent = label 
+                                  ? `${label}: ${cellValue}`
+                                  : cellValue;
+                                  
                                 toast({
                                   title: "Connection successful",
-                                  description: `Successfully retrieved value: "${result.details.cellTest.value || 'empty cell'}"`,
+                                  description: `Successfully retrieved value: "${cellValue}". Block will show "${previewContent}"`,
                                 });
                               } else if (result.details?.sheetExists) {
                                 toast({
