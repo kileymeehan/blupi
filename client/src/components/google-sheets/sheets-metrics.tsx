@@ -396,7 +396,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
   }
   
   // Error state
-  if (isError || !cellData) {
+  if (isError) {
     // Check if the error is related to rate limiting
     const errorMessage = error instanceof Error ? error.message : 'Failed to load data from Google Sheets.';
     const isRateLimitError = 
@@ -455,6 +455,70 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
   }
 
   // Success state with data
+  // Handle case where cellData might be null but not an error
+  if (!cellData) {
+    return (
+      <Card className={`w-full ${className}`}>
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <TableIcon className="h-3 w-3 mr-1" />
+              {initialConnection.label || 'Google Sheets Metric'}
+            </CardTitle>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-5 w-5 text-muted-foreground"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsConnectDialogOpen(true);
+                    }}
+                  >
+                    <LinkIcon className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">Change connection settings</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </CardHeader>
+        <CardContent className="pb-2">
+          <div className="text-center py-1">
+            <div className="text-2xl font-bold">
+              Loading...
+            </div>
+            {initialConnection.label && (
+              <div className="text-xs text-muted-foreground mt-1">
+                {initialConnection.label}
+              </div>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter className="pt-0">
+          <div className="w-full flex justify-between items-center">
+            <Badge variant="outline" className="text-xs font-normal">
+              Connecting...
+            </Badge>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 p-0"
+              onClick={() => refetch()}
+            >
+              <RefreshCwIcon className="h-3 w-3 mr-1" />
+              <span className="text-xs">Refresh</span>
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+    );
+  }
+
   return (
     <Card className={`w-full ${className}`}>
       <CardHeader className="pb-2">
@@ -489,7 +553,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
       <CardContent className="pb-2">
         <div className="text-center py-1">
           <div className="text-2xl font-bold">
-            {cellData.formattedValue || 'N/A'}
+            {cellData.formattedValue || cellData.value || 'N/A'}
           </div>
           {initialConnection.label && (
             <div className="text-xs text-muted-foreground mt-1">
