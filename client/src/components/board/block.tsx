@@ -354,6 +354,7 @@ export default function Block({
                   e.stopPropagation();
                   // Use the ref to directly open the dialog
                   if (sheetsMetricsRef.current[block.id]) {
+                    console.log(`Opening connection dialog for block ${block.id}`);
                     sheetsMetricsRef.current[block.id].openConnectDialog();
                   } else {
                     console.error(`Could not find SheetsMetrics ref for block ${block.id}`);
