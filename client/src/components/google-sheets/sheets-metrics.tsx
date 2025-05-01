@@ -291,6 +291,8 @@ export function SheetsMetrics({
                 size="sm" 
                 variant="outline" 
                 className="w-full"
+                id={`sheets-connect-button-${blockId}`}
+                data-testid="sheets-connect-trigger"
               >
                 <LinkIcon className="h-3 w-3 mr-2" />
                 Connect to Google Sheets

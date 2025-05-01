@@ -617,10 +617,12 @@ export default function Block({
                 {/* This is where we would normally render a form, but for now we'll just add a button */}
                 <Button 
                   onClick={() => {
-                    // Trigger the underlying SheetsMetrics button
-                    const connectButton = document.querySelector(`#metrics-${activeSheetsBlockId} button`) as HTMLButtonElement;
+                    // Trigger the underlying SheetsMetrics button using our specific ID
+                    const connectButton = document.querySelector(`#sheets-connect-button-${activeSheetsBlockId}`) as HTMLButtonElement;
                     if (connectButton) {
                       connectButton.click();
+                    } else {
+                      console.error(`Could not find connection button for block ${activeSheetsBlockId}`);
                     }
                     setGoogleSheetsDialogOpen(false);
                   }} 
