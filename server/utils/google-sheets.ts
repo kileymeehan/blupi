@@ -59,9 +59,17 @@ export async function fetchSheetData(sheetId: string, sheetName?: string): Promi
     const sheets = google.sheets({ version: 'v4', auth: process.env.GOOGLE_API_KEY });
     
     // Construct the range (if sheet name provided, use it; otherwise fetch all)
-    // Handle sheet names with spaces or special characters by enclosing in single quotes
-    const formattedSheetName = sheetName ? (sheetName.includes(' ') ? `'${sheetName}'` : sheetName) : '';
-    const range = sheetName ? `${formattedSheetName}!A1:Z1000` : 'A1:Z1000';
+    let range = 'A1:Z1000'; // Default range for whole sheet
+    
+    if (sheetName) {
+      // Handle sheet names with spaces by enclosing in single quotes if needed
+      if (sheetName.includes(' ') || sheetName.includes('-') || /^\d+$/.test(sheetName)) {
+        // Numeric sheet names or sheet names with spaces need special handling
+        range = `'${sheetName}'!A1:Z1000`;
+      } else {
+        range = `${sheetName}!A1:Z1000`;
+      }
+    }
     console.log(`[Google Sheets] Attempting to fetch data from sheetId: ${sheetId}, range: ${range}`);
     
     try {
@@ -110,9 +118,18 @@ export async function fetchSheetCell(
     const sheets = google.sheets({ version: 'v4', auth: process.env.GOOGLE_API_KEY });
     
     // Construct the full range with sheet name if provided
-    // Handle sheet names with spaces or special characters by enclosing in single quotes
-    const formattedSheetName = sheetName ? (sheetName.includes(' ') ? `'${sheetName}'` : sheetName) : '';
-    const fullRange = sheetName ? `${formattedSheetName}!${cellRange}` : cellRange;
+    let fullRange = cellRange;
+    
+    if (sheetName) {
+      // Handle sheet names with spaces by enclosing in single quotes if needed
+      if (sheetName.includes(' ') || sheetName.includes('-') || /^\d+$/.test(sheetName)) {
+        // Numeric sheet names or sheet names with spaces need special handling
+        fullRange = `'${sheetName}'!${cellRange}`;
+      } else {
+        fullRange = `${sheetName}!${cellRange}`;
+      }
+    }
+    
     console.log(`[Google Sheets] Fetching cell: ${fullRange} from sheet: ${sheetId}`);
     
     // Make the API request

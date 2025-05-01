@@ -470,7 +470,11 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                   variant="ghost" 
                   size="icon" 
                   className="h-5 w-5 text-muted-foreground"
-                  onClick={() => setIsConnectDialogOpen(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('Manually opening connection dialog');
+                    setIsConnectDialogOpen(true);
+                  }}
                 >
                   <LinkIcon className="h-3 w-3" />
                 </Button>
