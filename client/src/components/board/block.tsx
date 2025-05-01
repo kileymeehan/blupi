@@ -38,6 +38,16 @@ interface BlockProps {
     department: Department | undefined,
     customDepartment?: string,
   ) => void;
+  onSheetsConnectionChange?: (
+    blockId: string, 
+    connection: {
+      sheetId: string;
+      sheetName?: string;
+      cellRange: string;
+      label?: string;
+      lastUpdated: string;
+    }
+  ) => void;
   isTemplate?: boolean;
   onCommentClick?: () => void;
   projectId?: number;

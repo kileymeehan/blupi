@@ -432,6 +432,27 @@ export default function BoardGrid({
     );
     onBlocksChange(blocks);
   };
+  
+  /**
+   * Handle Google Sheets connection updates for a block
+   */
+  const handleSheetsConnectionChange = (blockId: string, connection: {
+    sheetId: string;
+    sheetName?: string;
+    cellRange: string;
+    label?: string;
+    lastUpdated: string;
+  }) => {
+    const blocks = board.blocks.map((block) =>
+      block.id === blockId 
+        ? { 
+            ...block, 
+            sheetsConnection: connection
+          } 
+        : block,
+    );
+    onBlocksChange(blocks);
+  };
 
   const handleAttachmentChange = (
     blockId: string,
