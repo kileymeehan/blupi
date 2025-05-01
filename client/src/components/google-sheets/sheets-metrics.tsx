@@ -259,6 +259,18 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
             description: `Sheet name "${values.sheetName}" was automatically formatted as "${formattedSheetName}" for Google Sheets API compatibility.`,
           });
         }
+        // Case 3: Sheet name contains hyphens (e.g., "funnel-list")
+        else if (normalizedSheetName.includes('-')) {
+          console.log(`Sheet name "${normalizedSheetName}" contains hyphens - ensuring proper quoting`);
+          
+          // No format change necessary, just a notification for the user
+          toast({
+            title: "Special Sheet Name Format Detected",
+            description: `Sheet name "${normalizedSheetName}" contains hyphens. Using special handling for this sheet name format.`,
+          });
+          
+          // The actual proper quoting happens server-side in the API
+        }
       }
       
       console.log('Normalized inputs:', {
@@ -314,11 +326,20 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
           variant: "destructive",
         });
       } else if (errorMsg.toLowerCase().includes('parse range')) {
-        toast({
-          title: "Invalid Sheet Range",
-          description: "The sheet name or cell reference format is invalid. Make sure to use the correct format (e.g., 'Sheet1' and 'A1').",
-          variant: "destructive",
-        });
+        // Enhance error reporting specifically for different sheet name formats
+        if (form.getValues("sheetName")?.includes('-')) {
+          toast({
+            title: "Sheet Name Contains Hyphens",
+            description: "You're using a sheet name with hyphens (like 'funnel-list'). Make sure the sheet named exactly this way exists in your Google Sheet.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Invalid Sheet Range",
+            description: "The sheet name or cell reference format is invalid. Make sure to use the correct format (e.g., 'Sheet1' and 'A1').",
+            variant: "destructive",
+          });
+        }
       } else {
         toast({
           title: "Connection failed",
@@ -428,7 +449,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                           <Input placeholder="Sheet1" {...field} />
                         </FormControl>
                         <FormDescription>
-                          Leave blank to use the first sheet
+                          Enter the exact sheet name (e.g., "Sheet1", "funnel-list"). Hyphenated names like "funnel-list" need to match exactly.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
