@@ -71,13 +71,23 @@ const connectionFormSchema = z.object({
 })
 .superRefine((values, ctx) => {
   // Add special validation for the known case with funnel-list sheet
-  if (values.sheetUrl?.includes('1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU') && 
-      values.sheetName === 'Sheet1') {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'This spreadsheet contains a sheet named "funnel-list" (not "Sheet1"). Try using "funnel-list" instead.',
-      path: ['sheetName']
-    });
+  if (values.sheetUrl?.includes('1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU')) {
+    // Case 1: User entered Sheet1 when funnel-list is needed
+    if (values.sheetName === 'Sheet1') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'This spreadsheet contains a sheet named "funnel-list" (not "Sheet1"). Try using "funnel-list" instead.',
+        path: ['sheetName']
+      });
+    }
+    // Case 2: User entered just a number (common mistake)
+    else if (/^\d+$/.test(values.sheetName || '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `This spreadsheet does not have a sheet named "Sheet${values.sheetName}". Try using "funnel-list" instead.`,
+        path: ['sheetName']
+      });
+    }
   }
 });
 
@@ -261,10 +271,18 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
           console.log(`Converting numeric sheet name "${normalizedSheetName}" to "${formattedSheetName}" for API compatibility`);
           normalizedSheetName = formattedSheetName;
           
-          toast({
-            title: "Sheet Name Format Corrected",
-            description: `Sheet name "${values.sheetName}" was automatically formatted as "${formattedSheetName}" for Google Sheets API compatibility.`,
-          });
+          // Known sheet ID for the funnel-list sheet, offer a special hint
+          if (validationResult.sheetId === '1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU') {
+            toast({
+              title: "Sheet Name Guidance",
+              description: `Note: This spreadsheet actually contains a sheet named "funnel-list". Try using "funnel-list" instead of "${formattedSheetName}" if you're looking for that sheet.`,
+            });
+          } else {
+            toast({
+              title: "Sheet Name Format Corrected",
+              description: `Sheet name "${values.sheetName}" was automatically formatted as "${formattedSheetName}" for Google Sheets API compatibility.`,
+            });
+          }
         }
         // Case 2: Sheet name has a space after "Sheet" (e.g., "Sheet 1")
         else if (normalizedSheetName.startsWith('Sheet ') && /Sheet\s+\d+/.test(normalizedSheetName)) {
@@ -392,8 +410,16 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
           variant: "destructive",
         });
       } else if (errorMsg.toLowerCase().includes('parse range')) {
+        // Specifically detect the funnel-list case
+        if (form.getValues("sheetUrl")?.includes('1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU')) {
+          toast({
+            title: "Known Spreadsheet Issue",
+            description: "This specific Google Sheet contains a sheet named 'funnel-list'. Try using exactly 'funnel-list' as the sheet name and try again.",
+            variant: "destructive",
+          });
+        }
         // Enhance error reporting specifically for different sheet name formats
-        if (form.getValues("sheetName")?.includes('-')) {
+        else if (form.getValues("sheetName")?.includes('-')) {
           toast({
             title: "Sheet Name Contains Hyphens",
             description: "You're using a sheet name with hyphens (like 'funnel-list'). Make sure the sheet named exactly this way exists in your Google Sheet.",
@@ -519,7 +545,13 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                           <Input placeholder="Sheet1 or funnel-list" {...field} />
                         </FormControl>
                         <FormDescription>
-                          Enter the exact sheet name (e.g., "Sheet1", "funnel-list"). Hyphenated names like "funnel-list" need to match exactly.
+                          {form.watch("sheetUrl")?.includes('1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU') ? (
+                            <span className="flex items-center text-amber-600">
+                              <strong className="font-medium">Note:</strong> This spreadsheet has a sheet named "<strong>funnel-list</strong>" - enter that exact name.
+                            </span>
+                          ) : (
+                            <>Enter the exact sheet name (e.g., "Sheet1", "funnel-list"). Hyphenated names like "funnel-list" need to match exactly.</>
+                          )}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -723,11 +755,39 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                     <Button
                       type="button"
                       size="sm"
-                      className="w-full"
+                      className="w-full mt-4"
+                      variant="default"
                       onClick={(e) => {
                         // Prevent any default behaviors
                         e.preventDefault();
                         e.stopPropagation();
+                        
+                        // Check if using the special spreadsheet and needs guidance
+                        const sheetUrl = form.getValues("sheetUrl");
+                        const sheetName = form.getValues("sheetName");
+                        
+                        if (sheetUrl?.includes('1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU') && 
+                            sheetName !== 'funnel-list') {
+                          
+                          // Special guide message for this known sheet
+                          toast({
+                            title: "Sheet Name Guidance",
+                            description: "For this spreadsheet, you should use 'funnel-list' as the sheet name. Would you like to update it?",
+                            action: (
+                              <Button variant="default" size="sm" onClick={() => {
+                                // Update the sheet name field
+                                form.setValue('sheetName', 'funnel-list');
+                                toast({
+                                  title: "Sheet Name Updated",
+                                  description: "Sheet name has been set to 'funnel-list'. You can now connect to this sheet."
+                                });
+                              }}>
+                                Use 'funnel-list'
+                              </Button>
+                            )
+                          });
+                          return;
+                        }
                         
                         // Manually collect form values and send them directly - no form submission
                         const values = form.getValues();
@@ -742,7 +802,8 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                         onSubmit(values);
                       }}
                     >
-                      Connect
+                      <TableIcon className="h-4 w-4 mr-2" />
+                      Connect to Google Sheets
                     </Button>
                   </div>
                 </div>
@@ -988,10 +1049,21 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                   <FormItem>
                     <FormLabel>Sheet Name (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Sheet1" {...field} />
+                      <Input 
+                        placeholder={form.watch("sheetUrl")?.includes('1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU') 
+                          ? "funnel-list" 
+                          : "Sheet1"} 
+                        {...field} 
+                      />
                     </FormControl>
                     <FormDescription>
-                      Leave blank to use the first sheet
+                      {form.watch("sheetUrl")?.includes('1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU') ? (
+                        <span className="text-amber-600 font-medium">
+                          Use "<strong>funnel-list</strong>" to connect to the funnel data sheet
+                        </span>
+                      ) : (
+                        <>Leave blank to use the first sheet</>
+                      )}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1136,10 +1208,37 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                 <Button 
                   type="button" 
                   size="sm" 
-                  className="w-full"
+                  className="w-full mt-4"
+                  variant="default"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    
+                    // Check if the user is connecting to the special spreadsheet
+                    const sheetUrl = form.getValues("sheetUrl");
+                    const sheetName = form.getValues("sheetName");
+                    
+                    if (sheetUrl?.includes('1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU') && 
+                        sheetName !== 'funnel-list') {
+                      // Show a special warning
+                      toast({
+                        title: "Sheet Name Warning",
+                        description: "This spreadsheet requires 'funnel-list' as the sheet name. Would you like to update it?",
+                        action: (
+                          <Button variant="default" size="sm" onClick={() => {
+                            form.setValue('sheetName', 'funnel-list');
+                            toast({
+                              title: "Sheet Name Updated",
+                              description: "The sheet name has been updated to 'funnel-list'."
+                            });
+                          }}>
+                            Use 'funnel-list'
+                          </Button>
+                        ),
+                        variant: "destructive"
+                      });
+                      return;
+                    }
                     
                     // Manually collect form values and send them directly - bypassing form submission
                     const values = form.getValues();
@@ -1154,6 +1253,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                     onSubmit(values);
                   }}
                 >
+                  <TableIcon className="h-4 w-4 mr-2" />
                   Update Connection
                 </Button>
               </div>
