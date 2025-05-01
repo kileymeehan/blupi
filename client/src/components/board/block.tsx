@@ -5,6 +5,7 @@ import type {
   Block as BlockType,
   Attachment,
   Department,
+  SheetsConnection,
 } from "@shared/schema";
 import { AttachmentDialog } from "./attachment-dialog";
 import { getIconForBlockType } from "./type-utils";
@@ -24,6 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { PendoMetrics } from "../pendo/pendo-metrics";
+import { SheetsMetrics } from "../google-sheets/sheets-metrics";
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
@@ -280,6 +282,24 @@ export default function Block({
               <PendoMetrics 
                 frictionId={block.id} 
                 className="max-w-full bg-gray-50 border-none shadow-none"
+              />
+            </div>
+          )}
+          
+          {/* Add Google Sheets metrics for metrics blocks */}
+          {!isTemplate && block.type === 'metrics' && (
+            <div className="mt-3 border-t border-gray-200 pt-2">
+              <SheetsMetrics 
+                blockId={block.id}
+                boardId={Number(block.boardId) || 0}
+                initialConnection={block.sheetsConnection}
+                className="max-w-full bg-gray-50 border-none shadow-none"
+                onUpdate={(connection) => {
+                  // This function needs to be passed from the board grid
+                  console.log('Update sheets connection', connection);
+                  // We would update the block here, but we'll need to add this
+                  // functionality to the BlockGrid component first
+                }}
               />
             </div>
           )}
