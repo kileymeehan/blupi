@@ -719,21 +719,14 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                       size="sm"
                       className="w-full"
                       onClick={(e) => {
-                        // Prevent any default behaviors
                         e.preventDefault();
                         e.stopPropagation();
                         
-                        // Manually collect form values and send them directly - no form submission
-                        const values = form.getValues();
-                        
-                        // Show processing state
-                        toast({
-                          title: "Processing",
-                          description: "Connecting to Google Sheets...",
-                        });
-                        
-                        // Submit without using form.handleSubmit to avoid any navigation
-                        onSubmit(values);
+                        // Manual form submission with prevention of navigation
+                        form.handleSubmit((values) => {
+                          // Call onSubmit directly with values
+                          onSubmit(values);
+                        })();
                       }}
                     >
                       Connect
@@ -958,7 +951,12 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <div className="space-y-4 mt-2">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault(); // Prevent default form submission behavior
+                form.handleSubmit(onSubmit)(e);
+              }} 
+              className="space-y-4 mt-2">
               <FormField
                 control={form.control}
                 name="sheetUrl"
@@ -1134,24 +1132,13 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    
-                    // Manually collect form values and send them directly - bypassing form submission
-                    const values = form.getValues();
-                    
-                    // Show processing state
-                    toast({
-                      title: "Processing",
-                      description: "Updating Google Sheets connection...",
-                    });
-                    
-                    // Directly call onSubmit with the values
-                    onSubmit(values);
+                    form.handleSubmit(onSubmit)(e);
                   }}
                 >
                   Update Connection
                 </Button>
               </div>
-            </div>
+            </form>
           </Form>
         </DialogContent>
       </Dialog>
