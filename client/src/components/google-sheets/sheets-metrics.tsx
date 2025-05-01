@@ -73,6 +73,7 @@ const connectionFormSchema = z.object({
 type ConnectionFormValues = z.infer<typeof connectionFormSchema>;
 
 // Create a handle type for the component
+// Define the interface for the ref handle that will be exposed to parent components
 export interface SheetsMetricsHandle {
   openConnectDialog: () => void;
 }
