@@ -495,7 +495,12 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-2">
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault(); // Prevent default form submission behavior
+                    form.handleSubmit(onSubmit)(e);
+                  }} 
+                  className="space-y-4 mt-2">
                   <FormField
                     control={form.control}
                     name="sheetUrl"
@@ -946,7 +951,12 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-2">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault(); // Prevent default form submission behavior
+                form.handleSubmit(onSubmit)(e);
+              }} 
+              className="space-y-4 mt-2">
               <FormField
                 control={form.control}
                 name="sheetUrl"
