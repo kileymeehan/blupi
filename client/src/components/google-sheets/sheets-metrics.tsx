@@ -499,12 +499,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form 
-                  onSubmit={(e) => {
-                    e.preventDefault(); // Prevent default form submission behavior
-                    form.handleSubmit(onSubmit)(e);
-                  }} 
-                  className="space-y-4 mt-2">
+                <div className="space-y-4 mt-2">
                   <FormField
                     control={form.control}
                     name="sheetUrl"
@@ -732,11 +727,25 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                       </Button>
                     </div>
                     
-                    <Button type="submit" size="sm" className="w-full">
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="w-full"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Manual form submission with prevention of navigation
+                        form.handleSubmit((values) => {
+                          // Call onSubmit directly with values
+                          onSubmit(values);
+                        })();
+                      }}
+                    >
                       Connect
                     </Button>
                   </div>
-                </form>
+                </div>
               </Form>
             </DialogContent>
           </Dialog>
