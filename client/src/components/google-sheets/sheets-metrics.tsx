@@ -130,10 +130,16 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
   // Set form values when initialConnection changes
   useEffect(() => {
     if (initialConnection) {
+      // When editing an existing connection, we need to set all form values
       form.setValue('cellRange', initialConnection.cellRange);
       form.setValue('sheetName', initialConnection.sheetName || '');
       form.setValue('label', initialConnection.label || '');
-      // Note: We don't have the URL in the connection, only the ID
+      
+      // For the URL, we need to reconstruct it from the sheet ID
+      if (initialConnection.sheetId) {
+        const reconstructedUrl = `https://docs.google.com/spreadsheets/d/${initialConnection.sheetId}/edit`;
+        form.setValue('sheetUrl', reconstructedUrl);
+      }
     }
   }, [initialConnection, form]);
 

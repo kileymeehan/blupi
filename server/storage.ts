@@ -1,10 +1,11 @@
 import { 
   projects, boards as boardsTable, 
-  users, projectMembers, 
+  users, projectMembers, sheetDocuments,
   type Board, type InsertBoard, 
   type User, type InsertUser, 
   type Project, type InsertProject,
-  type ProjectMember, type InsertProjectMember
+  type ProjectMember, type InsertProjectMember,
+  type SheetDocument, type InsertSheetDocument
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -324,6 +325,96 @@ export class DatabaseStorage {
       return member;
     } catch (error) {
       console.error('[Storage] Error updating project member:', error);
+      throw error;
+    }
+  }
+
+  // Sheet Document methods
+  async getSheetDocuments(boardId: number): Promise<SheetDocument[]> {
+    try {
+      console.log('[Storage] Getting sheet documents for board:', boardId);
+      return await db
+        .select()
+        .from(sheetDocuments)
+        .where(eq(sheetDocuments.boardId, boardId))
+        .orderBy(desc(sheetDocuments.createdAt));
+    } catch (error) {
+      console.error('[Storage] Error getting sheet documents:', error);
+      throw error;
+    }
+  }
+
+  async getSheetDocument(id: string): Promise<SheetDocument | undefined> {
+    try {
+      console.log('[Storage] Getting sheet document:', id);
+      const [doc] = await db
+        .select()
+        .from(sheetDocuments)
+        .where(eq(sheetDocuments.id, id));
+      return doc;
+    } catch (error) {
+      console.error('[Storage] Error getting sheet document:', error);
+      throw error;
+    }
+  }
+
+  async createSheetDocument(boardId: number, document: { name: string, sheetId: string }): Promise<SheetDocument> {
+    try {
+      console.log('[Storage] Creating sheet document:', document);
+      
+      // Create a unique ID for the document
+      const id = `sheet_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      
+      const [sheetDoc] = await db.insert(sheetDocuments).values({
+        id,
+        boardId,
+        name: document.name,
+        sheetId: document.sheetId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+
+      if (!sheetDoc) {
+        throw new Error('Failed to create sheet document');
+      }
+
+      console.log('[Storage] Created sheet document:', sheetDoc);
+      return sheetDoc;
+    } catch (error) {
+      console.error('[Storage] Error creating sheet document:', error);
+      throw error;
+    }
+  }
+
+  async updateSheetDocument(id: string, updates: Partial<SheetDocument>): Promise<SheetDocument> {
+    try {
+      console.log('[Storage] Updating sheet document:', id, updates);
+      const [sheetDoc] = await db
+        .update(sheetDocuments)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(sheetDocuments.id, id))
+        .returning();
+
+      if (!sheetDoc) {
+        throw new Error('Sheet document not found');
+      }
+
+      return sheetDoc;
+    } catch (error) {
+      console.error('[Storage] Error updating sheet document:', error);
+      throw error;
+    }
+  }
+
+  async deleteSheetDocument(id: string): Promise<void> {
+    try {
+      console.log('[Storage] Deleting sheet document:', id);
+      await db.delete(sheetDocuments).where(eq(sheetDocuments.id, id));
+    } catch (error) {
+      console.error('[Storage] Error deleting sheet document:', error);
       throw error;
     }
   }

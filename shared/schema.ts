@@ -162,6 +162,29 @@ export const sheetsConnectionSchema = z.object({
 
 export type SheetsConnection = z.infer<typeof sheetsConnectionSchema>;
 
+// Board-level Google Sheets documents
+export const sheetDocuments = pgTable("sheet_documents", {
+  id: text("id").primaryKey(),
+  boardId: integer("board_id").references(() => boards.id).notNull(),
+  name: text("name").notNull(),
+  sheetId: text("sheet_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+export const sheetDocumentsRelations = relations(sheetDocuments, ({ one }) => ({
+  board: one(boards, {
+    fields: [sheetDocuments.boardId],
+    references: [boards.id],
+  })
+}));
+
+export const insertSheetDocumentSchema = createInsertSchema(sheetDocuments)
+  .omit({ id: true, createdAt: true, updatedAt: true });
+
+export type InsertSheetDocument = z.infer<typeof insertSheetDocumentSchema>;
+export type SheetDocument = typeof sheetDocuments.$inferSelect;
+
 // Now we can define blockSchema since its dependencies are defined
 export const blockSchema = z.object({
   id: z.string(),
