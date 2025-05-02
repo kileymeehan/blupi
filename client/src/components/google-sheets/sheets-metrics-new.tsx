@@ -32,6 +32,7 @@ interface SheetsMetricsProps {
     cellRange: string;
     label?: string;
     lastUpdated?: string;
+    formattedValue?: string;
   };
   onUpdate: (connection: {
     sheetId: string;
@@ -39,6 +40,7 @@ interface SheetsMetricsProps {
     cellRange: string;
     label?: string;
     lastUpdated: string;
+    formattedValue?: string;
   }) => void;
 }
 
@@ -115,7 +117,10 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
   
   // Update the block content when cell data changes
   useEffect(() => {
-    if (cellData && initialConnection && onUpdate) {
+    if (cellData && initialConnection && onUpdate && 
+        (!initialConnection.formattedValue || initialConnection.formattedValue !== (cellData.formattedValue || cellData.value))) {
+      console.log('Cell data changed, updating block:', blockId);
+      
       // Update the connection with the latest data (including the content value)
       const updatedConnection = {
         ...initialConnection,
@@ -127,7 +132,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
       // Update the connection (this will trigger the parent to update the block)
       onUpdate(updatedConnection);
     }
-  }, [cellData, initialConnection, onUpdate]);
+  }, [cellData, initialConnection, onUpdate, blockId]);
 
   // Handle errors
   if (isError && error) {
