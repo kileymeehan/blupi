@@ -37,11 +37,23 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { fetchSheetCell, validateSheetUrl } from '../../services/google-sheets-api';
+import { 
+  fetchSheetCell, 
+  validateSheetUrl, 
+  getBoardSheetDocuments 
+} from '../../services/google-sheets-api';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface SheetsMetricsProps {
   blockId: string;
