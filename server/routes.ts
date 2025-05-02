@@ -1270,6 +1270,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Sheet Documents API routes for board-level Google Sheets management
+  app.get('/api/boards/:boardId/sheet-documents', async (req, res) => {
+    try {
+      console.log('[HTTP] Fetching Google Sheets documents for board:', req.params.boardId);
+      const boardId = parseInt(req.params.boardId);
+      if (isNaN(boardId)) {
+        return res.status(400).json({ error: true, message: 'Invalid board ID' });
+      }
+      
+      const sheetDocs = await storage.getSheetDocuments(boardId);
+      res.json(sheetDocs);
+    } catch (error) {
+      console.error('[HTTP] Error fetching sheet documents:', error);
+      res.status(500).json({ 
+        error: true, 
+        message: 'Failed to fetch sheet documents', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
+  app.post('/api/boards/:boardId/sheet-documents', async (req, res) => {
+    try {
+      console.log('[HTTP] Creating new Google Sheet document connection for board:', req.params.boardId);
+      const boardId = parseInt(req.params.boardId);
+      if (isNaN(boardId)) {
+        return res.status(400).json({ error: true, message: 'Invalid board ID' });
+      }
+      
+      const { name, sheetUrl } = req.body;
+      
+      if (!name || !sheetUrl) {
+        return res.status(400).json({ error: true, message: 'Name and sheet URL are required' });
+      }
+      
+      // Extract the sheet ID from the URL
+      const urlRegex = /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/;
+      const match = sheetUrl.match(urlRegex);
+      
+      if (!match || !match[1]) {
+        return res.status(400).json({ 
+          error: true,
+          message: 'Invalid Google Sheets URL format. Expected format: https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/...' 
+        });
+      }
+      
+      const sheetId = match[1];
+      
+      // Create the document
+      const sheetDoc = await storage.createSheetDocument(boardId, {
+        name,
+        sheetId,
+      });
+      
+      res.status(201).json(sheetDoc);
+    } catch (error) {
+      console.error('[HTTP] Error creating sheet document:', error);
+      res.status(500).json({ 
+        error: true,
+        message: 'Failed to create sheet document', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
+  app.put('/api/boards/:boardId/sheet-documents/:id', async (req, res) => {
+    try {
+      console.log('[HTTP] Updating Google Sheet document:', req.params.id, 'for board:', req.params.boardId);
+      const boardId = parseInt(req.params.boardId);
+      const docId = req.params.id;
+      
+      if (isNaN(boardId)) {
+        return res.status(400).json({ error: true, message: 'Invalid board ID' });
+      }
+      
+      const { name } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ error: true, message: 'Name is required' });
+      }
+      
+      // Update the document
+      const sheetDoc = await storage.updateSheetDocument(docId, { name });
+      res.json(sheetDoc);
+    } catch (error) {
+      console.error('[HTTP] Error updating sheet document:', error);
+      res.status(500).json({ 
+        error: true,
+        message: 'Failed to update sheet document', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
+  app.delete('/api/boards/:boardId/sheet-documents/:id', async (req, res) => {
+    try {
+      console.log('[HTTP] Deleting Google Sheet document:', req.params.id, 'from board:', req.params.boardId);
+      const boardId = parseInt(req.params.boardId);
+      const docId = req.params.id;
+      
+      if (isNaN(boardId)) {
+        return res.status(400).json({ error: true, message: 'Invalid board ID' });
+      }
+      
+      // Delete the document
+      await storage.deleteSheetDocument(docId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('[HTTP] Error deleting sheet document:', error);
+      res.status(500).json({ 
+        error: true,
+        message: 'Failed to delete sheet document', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
 
   return httpServer;
 }

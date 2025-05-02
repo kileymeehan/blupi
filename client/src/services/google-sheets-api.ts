@@ -160,6 +160,190 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
  * @param sheetName Optional sheet name
  * @returns Cell data including value, formatted value, and timestamp
  */
+
+/**
+ * Gets all sheet documents associated with a board
+ * @param boardId Board ID
+ * @returns List of sheet documents
+ */
+export async function getBoardSheetDocuments(boardId: number): Promise<Array<{
+  id: string;
+  boardId: number;
+  name: string;
+  sheetId: string;
+  createdAt: string;
+  updatedAt: string;
+}>> {
+  return await withRetry(
+    async () => {
+      try {
+        const response = await fetch(`/api/boards/${boardId}/sheet-documents`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch sheet documents');
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching sheet documents:', error);
+        
+        // For rate limit errors, pass them up to the retry mechanism
+        if (isRateLimitError(error)) {
+          throw error;
+        }
+        
+        // For all other errors, just pass them through
+        throw error;
+      }
+    },
+    3, // Maximum 3 retries
+    isRateLimitError // Only retry for rate limit errors
+  );
+}
+
+/**
+ * Creates a new sheet document for a board
+ * @param boardId Board ID
+ * @param name Name for the sheet document
+ * @param sheetUrl Google Sheets URL
+ * @returns Created sheet document
+ */
+export async function createSheetDocument(
+  boardId: number, 
+  name: string, 
+  sheetUrl: string
+): Promise<{
+  id: string;
+  boardId: number;
+  name: string;
+  sheetId: string;
+  createdAt: string;
+  updatedAt: string;
+}> {
+  return await withRetry(
+    async () => {
+      try {
+        const response = await fetch(`/api/boards/${boardId}/sheet-documents`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, sheetUrl })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to create sheet document');
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('Error creating sheet document:', error);
+        
+        // For rate limit errors, pass them up to the retry mechanism
+        if (isRateLimitError(error)) {
+          throw error;
+        }
+        
+        // For all other errors, just pass them through
+        throw error;
+      }
+    },
+    3, // Maximum 3 retries
+    isRateLimitError // Only retry for rate limit errors
+  );
+}
+
+/**
+ * Updates a sheet document
+ * @param boardId Board ID
+ * @param documentId Document ID
+ * @param name New name for the document
+ * @returns Updated sheet document
+ */
+export async function updateSheetDocument(
+  boardId: number,
+  documentId: string,
+  name: string
+): Promise<{
+  id: string;
+  boardId: number;
+  name: string;
+  sheetId: string;
+  createdAt: string;
+  updatedAt: string;
+}> {
+  return await withRetry(
+    async () => {
+      try {
+        const response = await fetch(`/api/boards/${boardId}/sheet-documents/${documentId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to update sheet document');
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('Error updating sheet document:', error);
+        
+        // For rate limit errors, pass them up to the retry mechanism
+        if (isRateLimitError(error)) {
+          throw error;
+        }
+        
+        // For all other errors, just pass them through
+        throw error;
+      }
+    },
+    3, // Maximum 3 retries
+    isRateLimitError // Only retry for rate limit errors
+  );
+}
+
+/**
+ * Deletes a sheet document
+ * @param boardId Board ID
+ * @param documentId Document ID
+ * @returns True if deletion was successful
+ */
+export async function deleteSheetDocument(
+  boardId: number,
+  documentId: string
+): Promise<boolean> {
+  return await withRetry(
+    async () => {
+      try {
+        const response = await fetch(`/api/boards/${boardId}/sheet-documents/${documentId}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok && response.status !== 204) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to delete sheet document');
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Error deleting sheet document:', error);
+        
+        // For rate limit errors, pass them up to the retry mechanism
+        if (isRateLimitError(error)) {
+          throw error;
+        }
+        
+        // For all other errors, just pass them through
+        throw error;
+      }
+    },
+    3, // Maximum 3 retries
+    isRateLimitError // Only retry for rate limit errors
+  );
+}
+
 export async function fetchSheetCell(
   sheetId: string,
   cellRange: string,
