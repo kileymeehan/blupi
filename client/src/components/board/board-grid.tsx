@@ -645,6 +645,22 @@ export default function BoardGrid({
       setShowContext(false);
       setShowBlocks(false);
       setShowComments(false);
+      setShowGoogleSheets(false);
+      if (!isDrawerOpen) {
+        setIsDrawerOpen(true);
+      }
+    }
+  };
+  
+  const toggleGoogleSheets = () => {
+    if (showGoogleSheets) {
+      setShowGoogleSheets(false);
+    } else {
+      setShowGoogleSheets(true);
+      setShowContext(false);
+      setShowBlocks(false);
+      setShowComments(false);
+      setShowDepartments(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -657,6 +673,7 @@ export default function BoardGrid({
       setShowComments(false);
       setShowBlocks(false);
       setShowDepartments(false);
+      setShowGoogleSheets(false);
     }
   };
 
@@ -994,6 +1011,24 @@ export default function BoardGrid({
                     <span className="text-sm">Filters</span>
                   )}
                 </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleGoogleSheets}
+                  className={`
+                    w-full h-12 px-4
+                    flex items-center gap-2
+                    group
+                    ${!isDrawerOpen ? "justify-center" : "justify-start"}
+                    ${showGoogleSheets ? "bg-blue-50 font-semibold" : "hover:bg-blue-50"}
+                  `}
+                >
+                  <FileSpreadsheet className="w-5 h-5" />
+                  {isDrawerOpen && (
+                    <span className="text-sm">Sheets</span>
+                  )}
+                </Button>
               </div>
 
               {isDrawerOpen && (
@@ -1100,6 +1135,14 @@ export default function BoardGrid({
                       onFilterByType={setTypeFilter}
                       departmentFilter={departmentFilter}
                       typeFilter={typeFilter}
+                    />
+                  </div>
+                  <div
+                    className={`flex-1 overflow-y-auto ${showGoogleSheets ? "block" : "hidden"}`}
+                  >
+                    <SheetDocumentsManager
+                      boardId={Number(id)}
+                      className="p-4"
                     />
                   </div>
                 </div>
