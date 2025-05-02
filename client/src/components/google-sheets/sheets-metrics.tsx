@@ -1,5 +1,5 @@
-import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
-import { TableIcon, ExternalLinkIcon, LinkIcon, RefreshCwIcon, AlertCircleIcon } from 'lucide-react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { TableIcon, ExternalLinkIcon, LinkIcon } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Card, 
@@ -18,42 +18,10 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { 
-  fetchSheetCell, 
-  validateSheetUrl, 
-  getBoardSheetDocuments 
-} from '../../services/google-sheets-api';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { Dialog } from "@/components/ui/dialog";
+import { fetchSheetCell } from '../../services/google-sheets-api';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SheetsConnectionDialog } from './sheets-connection-dialog';
 
 interface SheetsMetricsProps {
   blockId: string;
@@ -120,13 +88,49 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
     onUpdate
   } = props;
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
+  const [connectionType, setConnectionType] = useState<'new' | 'existing'>('new');
+  const [boardSheets, setBoardSheets] = useState<Array<{
+    id: string;
+    name: string;
+    sheetId: string;
+  }>>([]);
+  const [loadingSheets, setLoadingSheets] = useState(false);
+  const [selectedSheetId, setSelectedSheetId] = useState<string>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
   // Expose methods to parent component via ref
   useImperativeHandle(ref, () => ({
-    openConnectDialog: () => setIsConnectDialogOpen(true)
+    openConnectDialog: () => {
+      setIsConnectDialogOpen(true);
+      loadBoardSheets();
+    }
   }));
+  
+  // Load board-level sheet documents
+  const loadBoardSheets = async () => {
+    if (!boardId) return;
+    
+    setLoadingSheets(true);
+    try {
+      const sheets = await getBoardSheetDocuments(boardId);
+      setBoardSheets(sheets);
+      
+      // If this is the first time opening and we have sheets, default to existing
+      if (sheets.length > 0 && connectionType === 'new') {
+        setConnectionType('existing');
+      }
+    } catch (error) {
+      console.error('Error loading board sheet documents:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load board sheet documents',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingSheets(false);
+    }
+  };
   
   // Create form with default values
   const form = useForm<ConnectionFormValues>({
@@ -194,6 +198,89 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
     }
   }, [cellData]);
 
+  // Handle connecting with an existing sheet
+  const handleExistingSheetConnection = async (cellRange: string, sheetName?: string, label?: string) => {
+    if (!selectedSheetId) {
+      toast({
+        title: "Error",
+        description: "Please select a Google Sheet",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!cellRange) {
+      toast({
+        title: "Error",
+        description: "Cell reference is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Find the selected sheet
+    const selectedSheet = boardSheets.find(sheet => sheet.id === selectedSheetId);
+    if (!selectedSheet) {
+      toast({
+        title: "Error",
+        description: "Selected sheet not found",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Show processing toast
+    toast({
+      title: "Processing",
+      description: "Connecting to Google Sheets and fetching data...",
+    });
+    
+    try {
+      // Fetch the cell data immediately to update the block
+      const cellData = await fetchSheetCell(
+        selectedSheet.sheetId,
+        cellRange,
+        sheetName
+      );
+      
+      // Create the connection object with the fetched value
+      const connection = {
+        sheetId: selectedSheet.sheetId,
+        cellRange: cellRange,
+        sheetName: sheetName,
+        label: label || undefined,
+        lastUpdated: new Date().toISOString(),
+        formattedValue: cellData.formattedValue || cellData.value || ''
+      };
+      
+      // Call the onUpdate callback to save the connection
+      console.log('Updating connection with existing sheet:', connection);
+      onUpdate(connection);
+      
+      // Close the dialog
+      setIsConnectDialogOpen(false);
+      
+      // Show success message
+      toast({
+        title: "Connection successful",
+        description: `Connected to ${selectedSheet.name}. Retrieved value: ${cellData.formattedValue || cellData.value || 'empty cell'}`,
+        variant: "default",
+      });
+      
+      // Invalidate the query to ensure future updates
+      queryClient.invalidateQueries({
+        queryKey: ['/api/google-sheets/cell', connection.sheetId, connection.cellRange, connection.sheetName],
+      });
+    } catch (error) {
+      console.error('Error connecting to existing sheet:', error);
+      toast({
+        title: "Connection Error",
+        description: error instanceof Error ? error.message : "Failed to connect to Google Sheet",
+        variant: "destructive",
+      });
+    }
+  };
+  
   // Handle form submission
   // Function to test the Google Sheets API connection
   const testGoogleSheetsApi = async () => {
@@ -528,14 +615,135 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                 <LinkIcon className="h-3 w-3 mr-2" />
                 Connect to Google Sheets
               </Button>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Connect to Google Sheets</DialogTitle>
-                <DialogDescription>
-                  Enter the details to connect this metric to a Google Sheets cell.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
+            <SheetsConnectionDialog
+              boardId={boardId}
+              initialConnection={initialConnection}
+              onClose={() => setIsConnectDialogOpen(false)}
+              onUpdate={onUpdate}
+              testGoogleSheetsApi={testGoogleSheetsApi}
+            />
+                    Use Existing Sheet
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="new"
+                    onClick={() => setConnectionType('new')}
+                  >
+                    Add New Sheet
+                  </TabsTrigger>
+                </TabsList>
+                
+                {/* Tab for using existing board-level sheets */}
+                <TabsContent value="existing" className="space-y-4 mt-4">
+                  {loadingSheets ? (
+                    <div className="flex items-center justify-center py-8">
+                      <RefreshCwIcon className="h-6 w-6 animate-spin text-primary" />
+                      <span className="ml-2">Loading sheets...</span>
+                    </div>
+                  ) : boardSheets.length === 0 ? (
+                    <div className="text-center py-8 space-y-3">
+                      <p className="text-muted-foreground">No board-level sheets available</p>
+                      <p className="text-sm text-muted-foreground">
+                        Connect a Google Sheet at the board level in the sidebar first,
+                        then you can use it with individual metrics blocks.
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setConnectionType('new')}
+                      >
+                        Add a new connection instead
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="sheet-select">Select Sheet</Label>
+                        <Select
+                          value={selectedSheetId}
+                          onValueChange={setSelectedSheetId}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a sheet" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {boardSheets.map((sheet) => (
+                              <SelectItem key={sheet.id} value={sheet.id}>
+                                {sheet.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Select a sheet that's already connected to this board
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="cell-range">Cell Reference</Label>
+                        <Input 
+                          id="cell-range" 
+                          placeholder="A1" 
+                          value={form.watch('cellRange')}
+                          onChange={(e) => form.setValue('cellRange', e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          The cell to display (e.g., A1, B2, or C3:E3 for a range)
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="sheet-name">Sheet Name (Optional)</Label>
+                        <Input 
+                          id="sheet-name" 
+                          placeholder="Sheet1 or funnel-list" 
+                          value={form.watch('sheetName')}
+                          onChange={(e) => form.setValue('sheetName', e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          The name of the sheet tab (e.g., 'Sheet1' or 'funnel-list')
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="label">Label (Optional)</Label>
+                        <Input 
+                          id="label" 
+                          placeholder="Conversion Rate" 
+                          value={form.watch('label')}
+                          onChange={(e) => form.setValue('label', e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          A label for this metric (e.g., "Conversion Rate")
+                        </p>
+                      </div>
+                      
+                      <div className="flex justify-end space-x-2 pt-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsConnectDialogOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            const cellRange = form.getValues('cellRange');
+                            const sheetName = form.getValues('sheetName');
+                            const label = form.getValues('label');
+                            
+                            handleExistingSheetConnection(cellRange, sheetName, label);
+                          }}
+                        >
+                          <TableIcon className="h-4 w-4 mr-2" />
+                          Connect
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                {/* Tab for adding a new sheet connection */}
+                <TabsContent value="new" className="space-y-4 mt-4">
+                  <Form {...form}
                 <div className="space-y-4 mt-2">
                   <FormField
                     control={form.control}

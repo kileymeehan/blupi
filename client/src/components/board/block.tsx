@@ -26,7 +26,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { PendoMetrics } from "../pendo/pendo-metrics";
-import { SheetsMetrics } from "../google-sheets/sheets-metrics";
+import { SheetsMetrics } from "../google-sheets/sheets-metrics-new";
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
