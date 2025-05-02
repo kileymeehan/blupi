@@ -78,6 +78,8 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { LAYER_TYPES } from "./constants";
 import { DepartmentFilter } from "./department-filter";
+import { SheetDocumentsManager } from "@/components/google-sheets/sheet-documents-manager";
+import { FileSpreadsheet } from "lucide-react";
 
 interface Attachment {
   type: "link" | "image" | "video";
@@ -122,6 +124,7 @@ export default function BoardGrid({
   const boardRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [showDepartments, setShowDepartments] = useState(false);
+  const [showGoogleSheets, setShowGoogleSheets] = useState(false);
   const [isModifierKeyPressed, setIsModifierKeyPressed] = useState(false);
   const [departmentFilter, setDepartmentFilter] = useState<
     Department | undefined
