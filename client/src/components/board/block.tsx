@@ -110,7 +110,7 @@ export default function Block({
   const [isEditing, setIsEditing] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   // Use the SheetsMetricsHandle type from the imported component
-  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/sheets-metrics").SheetsMetricsHandle>>({});
+  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/sheets-metrics-new").SheetsMetricsHandle>>({});
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
