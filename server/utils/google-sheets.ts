@@ -415,6 +415,17 @@ export async function fetchSheetCell(
  * @param sheetId Google Sheet ID
  * @returns Array of sheet names
  */
+// This function is implemented below with more comprehensive error handling
+
+/**
+ * Process a cell request for a CSV-based sheet
+ * This function mimics Google Sheets API responses for CSV data
+ * @param sheetId CSV-based sheet ID
+ * @param cellRange Cell range in A1 notation
+ * @param sheetName Optional sheet name (ignored for CSV)
+ * @returns Cell data in the same format as Google Sheets API
+ */
+function processCsvCellData(
   sheetId: string,
   cellRange: string,
   sheetName?: string

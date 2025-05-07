@@ -293,76 +293,80 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
       verticalPosition++; // Move down for the next block
       
       // Create individual metrics blocks for each metric
+      // If connectToSheet is true, create Google Sheets metrics blocks
+      
+      // Helper function to create a Google Sheets connected metrics block
+      const createSheetsMetricBlock = (dataType: string, value: number | string, rowIndex: number, columnName: string, formatLabel?: string) => {
+        if (connectToSheet) {
+          // For CSV metrics boxes, we'll specify the exact cell reference
+          // Using the special csv:filename.csv format for sheetId
+          return {
+            id: `block-${blockIndex++}`,
+            type: 'sheetsMetrics',
+            phaseIndex: 0,
+            columnIndex: index,
+            comments: [],
+            attachments: [],
+            notes: '',
+            emoji: '',
+            department: '',
+            customDepartment: '',
+            // Sheet connection details (these will be picked up by SheetsMetrics component)
+            googleSheetsConnection: {
+              sheetId: `csv-${Date.now()}-${file?.name.replace(/[^a-zA-Z0-9]/g, '_')}`,
+              cellRange: `${columnName}${rowIndex + 2}`, // +2 because CSV is 0-indexed but A1 notation starts at 1, and we skip headers
+              label: dataType, // Use the metric type as the label
+              lastUpdated: new Date().toISOString(),
+              formattedValue: typeof value === 'number' ? formatLabel || value.toLocaleString() : value.toString()
+            }
+          };
+        } else {
+          // Regular metrics block if not connected to sheet
+          return {
+            id: `block-${blockIndex++}`,
+            type: 'metrics',
+            content: `${dataType}: ${typeof value === 'number' ? (formatLabel || value.toLocaleString()) : value}`,
+            phaseIndex: 0,
+            columnIndex: index,
+            comments: [],
+            attachments: [],
+            notes: '',
+            emoji: '',
+            department: '',
+            customDepartment: ''
+          };
+        }
+      };
       
       // Visitors Started
       if (row.visitorsStarted > 0) {
-        blocks.push({
-          id: `block-${blockIndex++}`,
-          type: 'metrics',
-          content: `Visitors: ${row.visitorsStarted.toLocaleString()}`,
-          phaseIndex: 0,
-          columnIndex: index,
-          comments: [],
-          attachments: [],
-          notes: '',
-          emoji: '',
-          department: '', // No default department
-          customDepartment: ''
-        });
+        blocks.push(
+          createSheetsMetricBlock('Visitors', row.visitorsStarted, index, 'C')
+        );
         verticalPosition++;
       }
       
       // Dropped
       if (row.dropped > 0) {
-        blocks.push({
-          id: `block-${blockIndex++}`,
-          type: 'metrics',
-          content: `Drop-off: ${row.dropped.toLocaleString()}`,
-          phaseIndex: 0,
-          columnIndex: index,
-          comments: [],
-          attachments: [],
-          notes: '',
-          emoji: '',
-          department: '', // No default department
-          customDepartment: ''
-        });
+        blocks.push(
+          createSheetsMetricBlock('Drop-off', row.dropped, index, 'D')
+        );
         verticalPosition++;
       }
       
       // Conversion Rate
       if (row.conversionRate) {
-        blocks.push({
-          id: `block-${blockIndex++}`,
-          type: 'metrics',
-          content: `Conversion: ${row.conversionRate}`,
-          phaseIndex: 0,
-          columnIndex: index,
-          comments: [],
-          attachments: [],
-          notes: '',
-          emoji: '',
-          department: '', // No default department
-          customDepartment: ''
-        });
+        blocks.push(
+          createSheetsMetricBlock('Conversion', row.conversionRate, index, 'E')
+        );
         verticalPosition++;
       }
       
       // Only include Median Time, not Average Time
       if (row.medianTimeFromPrevious > 0) {
-        blocks.push({
-          id: `block-${blockIndex++}`,
-          type: 'metrics',
-          content: `Time: ${formatTime(row.medianTimeFromPrevious)}`,
-          phaseIndex: 0,
-          columnIndex: index,
-          comments: [],
-          attachments: [],
-          notes: '',
-          emoji: '',
-          department: '', // No default department
-          customDepartment: ''
-        });
+        blocks.push(
+          createSheetsMetricBlock('Time', row.medianTimeFromPrevious, index, 'G', formatTime(row.medianTimeFromPrevious))
+        );
         verticalPosition++;
       }
       
