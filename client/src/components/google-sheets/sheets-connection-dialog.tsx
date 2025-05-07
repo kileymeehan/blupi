@@ -155,6 +155,10 @@ export function SheetsConnectionDialog({
       // If we have sheets, default to using existing sheets
       if (sheets.length > 0) {
         setConnectionType('existing');
+        // Default to selecting the first sheet if we have sheets and none is selected
+        if (!selectedSheetId && sheets.length > 0) {
+          setSelectedSheetId(sheets[0].id);
+        }
       }
     } catch (error) {
       console.error('Error loading board sheet documents:', error);
@@ -535,7 +539,7 @@ export function SheetsConnectionDialog({
   };
   
   return (
-    <DialogContent className="sm:max-w-[500px]">
+    <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>Connect to Google Sheets</DialogTitle>
         <DialogDescription>
@@ -543,18 +547,17 @@ export function SheetsConnectionDialog({
         </DialogDescription>
       </DialogHeader>
       
-      <Tabs defaultValue={boardSheets.length > 0 ? "existing" : "new"} className="mt-2">
+      <Tabs value={connectionType === 'existing' ? "existing" : "new"} className="mt-2"
+            onValueChange={(value) => setConnectionType(value as 'existing' | 'new')}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger 
             value="existing"
             disabled={boardSheets.length === 0}
-            onClick={() => setConnectionType('existing')}
           >
             Use Existing Sheet
           </TabsTrigger>
           <TabsTrigger 
             value="new"
-            onClick={() => setConnectionType('new')}
           >
             Add New Sheet
           </TabsTrigger>
