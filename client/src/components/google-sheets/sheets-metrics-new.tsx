@@ -1,5 +1,5 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { TableIcon, ExternalLinkIcon, LinkIcon } from 'lucide-react';
+import { TableIcon, ExternalLinkIcon, LinkIcon, FileTextIcon } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Card, 
@@ -211,21 +211,35 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
   const formattedValue = cellData?.formattedValue || cellData?.value || 'Loading...';
   const displayValue = formattedValue;
   const displayLabel = initialConnection.label;
+  const isCsvSheet = initialConnection.sheetId.startsWith('csv-');
   
   return (
     <Card className={`w-full ${className}`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium flex items-center justify-between">
           <span className="flex items-center">
-            <TableIcon className="h-3 w-3 mr-1" />
-            Google Sheets Metric
+            {isCsvSheet ? (
+              <>
+                <FileTextIcon className="h-3 w-3 mr-1" />
+                CSV Data Metric
+              </>
+            ) : (
+              <>
+                <TableIcon className="h-3 w-3 mr-1" />
+                Google Sheets Metric
+              </>
+            )}
           </span>
           <Badge 
             variant="outline" 
             className="text-xs font-normal px-1 ml-1 hover:bg-muted cursor-pointer"
             onClick={() => setIsConnectDialogOpen(true)}
           >
-            <TableIcon className="h-2.5 w-2.5 mr-1" />
+            {isCsvSheet ? (
+              <FileTextIcon className="h-2.5 w-2.5 mr-1" />
+            ) : (
+              <TableIcon className="h-2.5 w-2.5 mr-1" />
+            )}
             Change
           </Badge>
         </CardTitle>
@@ -240,35 +254,37 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
               <p className="text-2xl font-semibold">{displayValue}</p>
             </div>
           </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Create a URL to the exact cell in Google Sheets
-                    const cellRef = initialConnection.cellRange;
-                    const cellName = cellRef.includes(':') ? cellRef.split(':')[0] : cellRef;
-                    const sheet = initialConnection.sheetName ? `gid=0&range=${initialConnection.sheetName}!${cellName}` : `gid=0&range=${cellName}`;
-                    const url = `https://docs.google.com/spreadsheets/d/${initialConnection.sheetId}/edit#${sheet}`;
-                    
-                    // Open in new tab
-                    window.open(url, '_blank', 'noopener,noreferrer');
-                  }}
-                >
-                  <ExternalLinkIcon className="h-3.5 w-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p className="text-xs">View in Google Sheets</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {!isCsvSheet && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      // Create a URL to the exact cell in Google Sheets
+                      const cellRef = initialConnection.cellRange;
+                      const cellName = cellRef.includes(':') ? cellRef.split(':')[0] : cellRef;
+                      const sheet = initialConnection.sheetName ? `gid=0&range=${initialConnection.sheetName}!${cellName}` : `gid=0&range=${cellName}`;
+                      const url = `https://docs.google.com/spreadsheets/d/${initialConnection.sheetId}/edit#${sheet}`;
+                      
+                      // Open in new tab
+                      window.open(url, '_blank', 'noopener,noreferrer');
+                    }}
+                  >
+                    <ExternalLinkIcon className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p className="text-xs">View in Google Sheets</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
         <p className="text-xs text-muted-foreground mt-1">
           Last updated: {new Date(initialConnection.lastUpdated || '').toLocaleString()}
