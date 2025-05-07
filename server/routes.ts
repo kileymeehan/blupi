@@ -1306,18 +1306,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: true, message: 'Name and sheet URL are required' });
       }
       
-      // Extract the sheet ID from the URL
-      const urlRegex = /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/;
-      const match = sheetUrl.match(urlRegex);
+      let sheetId: string;
       
-      if (!match || !match[1]) {
-        return res.status(400).json({ 
-          error: true,
-          message: 'Invalid Google Sheets URL format. Expected format: https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/...' 
-        });
+      // Check if this is a CSV file (csv: prefix)
+      if (sheetUrl.startsWith('csv:')) {
+        // For CSV files, we use a special format for the ID
+        // Format: csv:filename.csv
+        const fileName = sheetUrl.substring(4); // Remove the 'csv:' prefix
+        
+        // Create a special ID for local CSV files
+        // We use the csv-[timestamp]-[name] format to identify these as local files
+        sheetId = `csv-${Date.now()}-${fileName.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        
+        console.log('[HTTP] Creating sheet document from local CSV:', { name, sheetId });
+      } else {
+        // For Google Sheets, extract the ID from the URL
+        const urlRegex = /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/;
+        const match = sheetUrl.match(urlRegex);
+        
+        if (!match || !match[1]) {
+          return res.status(400).json({ 
+            error: true,
+            message: 'Invalid Google Sheets URL format. Expected format: https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/...' 
+          });
+        }
+        
+        sheetId = match[1];
       }
-      
-      const sheetId = match[1];
       
       // Create the document
       const sheetDoc = await storage.createSheetDocument(boardId, {
