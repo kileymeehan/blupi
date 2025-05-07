@@ -122,11 +122,14 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
       console.log('Cell data changed, updating block:', blockId);
       
       // Update the connection with the latest data (including the content value)
+      // Make sure we handle null values correctly
+      const formattedValue = cellData.formattedValue || cellData.value || '';
+      
       const updatedConnection = {
         ...initialConnection,
         lastUpdated: new Date().toISOString(),
         // Add the value as a hidden field to be used by the block
-        formattedValue: cellData.formattedValue || cellData.value
+        formattedValue // This is guaranteed to be a string now
       };
       
       // Update the connection (this will trigger the parent to update the block)
