@@ -5,12 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from '@/components/ui/tabs';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -429,36 +423,6 @@ export function SheetsConnectionDialog({
         description: "Testing connection to Google Sheets...",
       });
       
-      let originalSheetName = sheetName;
-      
-      // Handle common issues with sheet names
-      let testSheetName = sheetName;
-      if (sheetName && sheetName.trim() !== '') {
-        // Case 1: Just a digit (e.g., "1")
-        if (/^\d+$/.test(sheetName)) {
-          const fixedName = `Sheet${sheetName}`;
-          console.log(`[Format Fix] Converting numeric sheet name "${sheetName}" to "${fixedName}"`);
-          testSheetName = fixedName;
-          
-          // Keep the original for diagnostics
-          originalSheetName = sheetName;
-        }
-        // Case 2: Sheet with space (e.g., "Sheet 1") 
-        else if (sheetName.startsWith('Sheet ') && /Sheet\s+\d+/.test(sheetName)) {
-          const fixedName = sheetName.replace(/\s+/, '');
-          console.log(`[Format Fix] Converting sheet name with space "${sheetName}" to "${fixedName}"`);
-          testSheetName = fixedName;
-          
-          // Keep the original for diagnostics
-          originalSheetName = sheetName;
-            
-          toast({
-            title: "Testing multiple formats",
-            description: `Since your sheet name has a space, we'll also test with the format "${fixedName}" which is required by the Google Sheets API.`
-          });
-        }
-      }
-      
       // Create advanced test request
       const response = await fetch('/api/google-sheets/connectivity-test', {
         method: 'POST',
@@ -467,7 +431,7 @@ export function SheetsConnectionDialog({
         },
         body: JSON.stringify({
           sheetId: validationResult.sheetId,
-          sheetName: originalSheetName,  // Send original for better diagnostics
+          sheetName: sheetName,  
           cellReference
         })
       });
@@ -475,64 +439,23 @@ export function SheetsConnectionDialog({
       const result = await response.json();
       
       if (result.success) {
-        if (result.details?.cellTest?.success) {
-          const cellValue = result.details.cellTest.value || 'empty cell';
-          
-          // Create a preview of what the block content would look like
-          const label = form.getValues('label');
-          const previewContent = label 
-            ? `${label}: ${cellValue}`
-            : cellValue;
-            
-          toast({
-            title: "Connection successful",
-            description: `Successfully retrieved value: "${cellValue}". Block will show "${previewContent}"`,
-          });
-        } else if (result.details?.sheetExists) {
-          toast({
-            title: "Partial success",
-            description: `Sheet exists but couldn't access the specific cell. Available sheets: ${result.details.sheetNames?.join(", ")}`,
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Connection Success",
+          description: `Successfully connected to Google Sheets and found cell data.`,
+          variant: "default",
+        });
       } else {
-        // Special case handler for funnel-list sheet
-        if (result.details?.suggestedSheetName === 'funnel-list') {
-          toast({
-            title: "Wrong Sheet Name",
-            description: "This spreadsheet uses 'funnel-list' instead of 'Sheet1'. Updating your sheet name...",
-          });
-          
-          // Auto-correct the sheet name
-          form.setValue('sheetName', 'funnel-list');
-          
-          // Show follow-up toast with action guidance
-          setTimeout(() => {
-            toast({
-              title: "Sheet Name Updated",
-              description: "Try testing the connection again with the correct sheet name 'funnel-list'",
-              action: (
-                <Button variant="default" size="sm" onClick={() => testConnection()}>
-                  Test Now
-                </Button>
-              )
-            });
-          }, 1000);
-        } else {
-          toast({
-            title: "Connection failed",
-            description: result.message || "Failed to connect to Google Sheets",
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Connection Error",
+          description: result.message || "Failed to connect to Google Sheets.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error('Error testing connectivity:', error);
-      const errorMsg = error instanceof Error ? error.message : "An unknown error occurred";
-      
+      console.error('Error testing connection:', error);
       toast({
-        title: "Connection error",
-        description: errorMsg,
+        title: "Test Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred while testing the connection.",
         variant: "destructive",
       });
     }
