@@ -19,9 +19,10 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [_, setLocation] = useLocation();
-  const { signInWithEmail, user, enableDevBypass, devBypassEnabled } = useFirebaseAuth();
+  const { signInWithEmail, signInWithGoogle, user, enableDevBypass, devBypassEnabled } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<LoginForm>({
@@ -154,6 +155,37 @@ export default function LoginPage() {
               <span className="px-3 text-sm text-[#6B6B97]">or</span>
               <span className="border-t flex-grow"></span>
             </div>
+            
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center justify-center gap-2 border-[#4285F4] hover:bg-[#4285F4]/5 text-[#4285F4]"
+              onClick={async () => {
+                setError(null);
+                setIsGoogleSubmitting(true);
+                try {
+                  await signInWithGoogle();
+                  // Redirect happens automatically in useEffect when user is set
+                } catch (err) {
+                  // Error is handled in the signInWithGoogle function
+                  console.log("Google sign-in error handled in component:", err);
+                } finally {
+                  setIsGoogleSubmitting(false);
+                }
+              }}
+              disabled={isGoogleSubmitting}
+            >
+              {isGoogleSubmitting ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-[#4285F4] border-t-transparent rounded-full animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <SiGoogle className="h-4 w-4" />
+                  Sign in with Google
+                </>
+              )}
+            </Button>
             
             <Button 
               variant="outline" 
