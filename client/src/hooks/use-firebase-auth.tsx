@@ -439,30 +439,104 @@ export function useFirebaseAuth() {
     return isSignInWithEmailLink(auth, url);
   };
 
-  // Google sign-in using Email
+  // Google sign-in using Google provider
   const signInWithGoogle = async () => {
     try {
-      console.log('Using email sign-in as fallback for Google sign-in...');
+      console.log('Attempting to sign in with Google...');
       
-      // First, we'll show a message to the user explaining why we're using this approach
-      toast({
-        title: "Google Sign-in Unavailable",
-        description: "We're currently experiencing issues with Google authentication. Please use Magic Link or Email/Password sign-in instead.",
-        duration: 8000,
+      // Check if Firebase API key is available
+      if (!import.meta.env.VITE_FIREBASE_API_KEY) {
+        console.error('Firebase API key is missing. Cannot proceed with Google sign-in.');
+        toast({
+          title: "Configuration Error",
+          description: "Firebase authentication is not properly configured. Please contact support.",
+          variant: "destructive",
+          duration: 8000,
+        });
+        return null;
+      }
+      
+      // Create Google auth provider
+      const provider = new GoogleAuthProvider();
+      
+      // Add scopes for additional permissions if needed
+      provider.addScope('profile');
+      provider.addScope('email');
+      
+      // Optional: Request account selection even if one account is available
+      provider.setCustomParameters({
+        prompt: 'select_account'
       });
       
-      // Note: In a production app, you would implement this with proper Google auth,
-      // but for demonstration purposes we're showing a notification only.
+      // Use popup for better UX (alternative is redirect)
+      const result = await signInWithPopup(auth, provider);
       
-      return null;
+      // This gives you a Google Access Token, which you can use to access Google APIs
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const token = credential?.accessToken;
+      const user = result.user;
+      
+      console.log('Google sign-in successful');
+      toast({
+        title: `Welcome${user.displayName ? ', ' + user.displayName : ''}!`,
+        description: "You've successfully signed in with Google",
+      });
+      
+      // Try to sync with backend
+      try {
+        await fetch('/api/auth/check', {
+          credentials: 'include',
+          headers: {
+            'X-Firebase-Auth': 'true'
+          }
+        });
+      } catch (syncError) {
+        console.error('Error syncing with backend after Google sign-in:', syncError);
+      }
+      
+      return user;
     } catch (error: any) {
       console.error('Google sign-in error:', error);
+      console.error('Error code:', error.code);
       
-      toast({
-        title: "Authentication Error",
-        description: error.message || "An error occurred during authentication",
-        variant: "destructive",
-      });
+      // Provide user-friendly error messages
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast({
+          title: "Sign-in Cancelled",
+          description: "You closed the Google sign-in popup.",
+        });
+      } else if (error.code === 'auth/popup-blocked') {
+        toast({
+          title: "Popup Blocked",
+          description: "The sign-in popup was blocked by your browser. Please allow popups for this site.",
+          variant: "destructive",
+          duration: 6000,
+        });
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // This is usually not an error, just multiple popup requests
+        console.log('Multiple popup requests canceled');
+      } else if (error.code === 'auth/operation-not-allowed') {
+        toast({
+          title: "Google Sign-In Not Enabled",
+          description: "Google authentication needs to be enabled in the Firebase Console. Please contact the administrator.",
+          variant: "destructive",
+          duration: 8000,
+        });
+        console.error('IMPORTANT: Enable Google authentication in Firebase Console → Authentication → Sign-in methods');
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        toast({
+          title: "Account Already Exists",
+          description: "An account already exists with the same email address but different sign-in credentials. Try signing in using the original account.",
+          variant: "destructive",
+          duration: 8000,
+        });
+      } else {
+        toast({
+          title: "Authentication Error",
+          description: error.message || "An error occurred during Google authentication",
+          variant: "destructive",
+        });
+      }
       
       throw error;
     }
