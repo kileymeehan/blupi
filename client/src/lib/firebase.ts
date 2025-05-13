@@ -7,15 +7,15 @@ console.log('VITE_FIREBASE_API_KEY present:', !!import.meta.env.VITE_FIREBASE_AP
 console.log('VITE_FIREBASE_PROJECT_ID present:', !!import.meta.env.VITE_FIREBASE_PROJECT_ID);
 console.log('VITE_FIREBASE_APP_ID present:', !!import.meta.env.VITE_FIREBASE_APP_ID);
 
-// Firebase configuration directly from Firebase console
+// Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyDALLWQjfh2pqyPPhj8qaJK-C9yISk6X2c",
-  authDomain: "blueprints-48648.firebaseapp.com",
-  projectId: "blueprints-48648",
-  storageBucket: "blueprints-48648.firebasestorage.app",
-  messagingSenderId: "345099176849",
-  appId: "1:345099176849:web:d22dc10d20986e3a2aa830",
-  measurementId: "G-5ZGZX4SLYS"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "345099176849",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-5ZGZX4SLYS"
 };
 
 console.log('Firebase Config (partial):', {
