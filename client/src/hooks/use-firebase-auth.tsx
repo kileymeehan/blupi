@@ -515,6 +515,15 @@ export function useFirebaseAuth() {
       } else if (error.code === 'auth/cancelled-popup-request') {
         // This is usually not an error, just multiple popup requests
         console.log('Multiple popup requests canceled');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        const currentDomain = window.location.hostname;
+        toast({
+          title: "Domain Not Authorized",
+          description: `Your current domain (${currentDomain}) is not authorized for Firebase authentication. Please add it to the authorized domains list in Firebase Console.`,
+          variant: "destructive",
+          duration: 10000,
+        });
+        console.error(`IMPORTANT: Add "${currentDomain}" to Firebase Console → Authentication → Settings → Authorized domains`);
       } else if (error.code === 'auth/operation-not-allowed') {
         toast({
           title: "Google Sign-In Not Enabled",
