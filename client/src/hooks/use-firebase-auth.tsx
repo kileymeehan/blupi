@@ -443,35 +443,25 @@ export function useFirebaseAuth() {
   const signInWithGoogle = async () => {
     try {
       console.log('Attempting to sign in with Google...');
-      
-      // Check if Firebase API key is available
-      if (!import.meta.env.VITE_FIREBASE_API_KEY) {
-        console.error('Firebase API key is missing. Cannot proceed with Google sign-in.');
-        toast({
-          title: "Configuration Error",
-          description: "Firebase authentication is not properly configured. Please contact support.",
-          variant: "destructive",
-          duration: 8000,
-        });
-        return null;
-      }
+      console.log('Current Firebase project:', import.meta.env.VITE_FIREBASE_PROJECT_ID);
+      console.log('Current auth domain:', `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`);
       
       // Create Google auth provider
       const provider = new GoogleAuthProvider();
       
-      // Add scopes for additional permissions if needed
+      // Add scopes for additional permissions
       provider.addScope('profile');
       provider.addScope('email');
       
-      // Optional: Request account selection even if one account is available
+      // Request account selection even if one account is available
       provider.setCustomParameters({
         prompt: 'select_account'
       });
       
-      // Use popup for better UX (alternative is redirect)
+      // Use popup for sign-in
       const result = await signInWithPopup(auth, provider);
       
-      // This gives you a Google Access Token, which you can use to access Google APIs
+      // Extract token and user info
       const credential = GoogleAuthProvider.credentialFromResult(result);
       const token = credential?.accessToken;
       const user = result.user;
@@ -501,9 +491,13 @@ export function useFirebaseAuth() {
       
       // Provide user-friendly error messages
       if (error.code === 'auth/popup-closed-by-user') {
+        console.log('Full popup closed error:', error);
+        console.log('Error message:', error.message);
+        
         toast({
           title: "Sign-in Cancelled",
-          description: "You closed the Google sign-in popup.",
+          description: "You closed the Google sign-in popup. Please try again and complete the sign-in process.",
+          duration: 5000,
         });
       } else if (error.code === 'auth/popup-blocked') {
         toast({
