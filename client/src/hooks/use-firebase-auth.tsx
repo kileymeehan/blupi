@@ -439,10 +439,10 @@ export function useFirebaseAuth() {
     return isSignInWithEmailLink(auth, url);
   };
 
-  // Google sign-in using Google provider
+  // Google sign-in using Google provider with redirect method
   const signInWithGoogle = async () => {
     try {
-      console.log('Attempting to sign in with Google...');
+      console.log('Attempting to sign in with Google (redirect method)...');
       console.log('Current Firebase project:', import.meta.env.VITE_FIREBASE_PROJECT_ID);
       console.log('Current auth domain:', `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`);
       
@@ -458,33 +458,21 @@ export function useFirebaseAuth() {
         prompt: 'select_account'
       });
       
-      // Use popup for sign-in
-      const result = await signInWithPopup(auth, provider);
-      
-      // Extract token and user info
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      const token = credential?.accessToken;
-      const user = result.user;
-      
-      console.log('Google sign-in successful');
+      // Inform user about redirect
       toast({
-        title: `Welcome${user.displayName ? ', ' + user.displayName : ''}!`,
-        description: "You've successfully signed in with Google",
+        title: "Redirecting to Google",
+        description: "You'll be redirected to complete sign-in",
+        duration: 3000,
       });
       
-      // Try to sync with backend
-      try {
-        await fetch('/api/auth/check', {
-          credentials: 'include',
-          headers: {
-            'X-Firebase-Auth': 'true'
-          }
-        });
-      } catch (syncError) {
-        console.error('Error syncing with backend after Google sign-in:', syncError);
-      }
+      // Short delay to allow toast to show
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      return user;
+      // Use redirect method (user will leave page temporarily)
+      await signInWithRedirect(auth, provider);
+      
+      // Code after this point won't execute due to redirect
+      return null;
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       console.error('Error code:', error.code);
