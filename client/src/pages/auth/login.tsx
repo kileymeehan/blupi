@@ -163,13 +163,12 @@ export default function LoginPage() {
                 setError(null);
                 setIsGoogleSubmitting(true);
                 try {
-                  // Using redirect method - user will leave this page temporarily
-                  // and return to /auth/handler after authentication
+                  // Our signInWithGoogle function now has comprehensive error handling
                   await signInWithGoogle();
-                  // No need to redirect here as Firebase will do it for us
+                  // Redirect happens automatically in useEffect when user is set
                 } catch (err) {
-                  // Error is handled in the signInWithGoogle function
-                  console.log("Google sign-in error handled in component:", err);
+                  // All errors are handled directly in the signInWithGoogle function
+                  console.log("Google sign-in error handled in hook:", err);
                 } finally {
                   setIsGoogleSubmitting(false);
                 }
