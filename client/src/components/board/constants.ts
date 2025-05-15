@@ -22,7 +22,7 @@ export const LAYER_TYPES: LayerType[] = [
   { type: "note", label: "Note", color: "bg-cyan-200", icon: "StickyNote" },
   { type: "opportunities", label: "Opportunities", color: "bg-yellow-300", icon: "Lightbulb" },
   { type: "metrics", label: "Metrics", color: "bg-teal-300", icon: "BarChart3" },
-  { type: "experiment", label: "Experiment", color: "bg-amber-300", icon: "Flask" },
+  { type: "experiment", label: "Experiment", color: "bg-amber-300", icon: "Beaker" },
   { type: "hidden", label: "Hidden Step", color: "bg-gray-400", icon: "EyeOff" },
   
   // Divider blocks

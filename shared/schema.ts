@@ -157,7 +157,8 @@ export const sheetsConnectionSchema = z.object({
   sheetName: z.string().optional(),
   cellRange: z.string(), // e.g., "A1", "B3:C4"
   label: z.string().optional(), // Optional label for the data
-  lastUpdated: z.string().optional() // ISO date string of last fetch
+  lastUpdated: z.string().optional(), // ISO date string of last fetch
+  formattedValue: z.string().optional() // Formatted value retrieved from the sheet
 });
 
 export type SheetsConnection = z.infer<typeof sheetsConnectionSchema>;

@@ -87,6 +87,19 @@ const DEPARTMENTS = [
   "Custom",
 ] as const;
 
+// Helper function to extract experiment target value from content
+const getExperimentTarget = (block: BlockType): string => {
+  if (!block.content) return '';
+  
+  // Look for a target value embedded in the content as [target:X.XX]
+  const targetMatch = block.content.match(/\[target:([^\]]+)\]/);
+  if (targetMatch && targetMatch[1]) {
+    return targetMatch[1];
+  }
+  
+  return '';
+};
+
 export default function Block({
   block,
   onChange,
@@ -347,7 +360,7 @@ export default function Block({
                         }
                       }}
                     >
-                      <Flask className="mr-1 h-3 w-3" />
+                      <Beaker className="mr-1 h-3 w-3" />
                       Connect Data Source
                     </Button>
                   </div>
@@ -380,8 +393,8 @@ export default function Block({
                         type="number"
                         placeholder="Target value"
                         className="h-6 text-xs py-1 border-amber-200 w-20"
-                        defaultValue={block.experimentTarget || ''}
-                        onBlur={(e) => {
+                        defaultValue={getExperimentTarget(block)}
+                        onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
                           const targetValue = parseFloat(e.target.value);
                           if (!isNaN(targetValue) && onChange) {
                             // Store the target in the content field with a special prefix
@@ -395,16 +408,16 @@ export default function Block({
                       />
                       
                       {/* Show success/failure indicator if we have both a target and a value */}
-                      {block.sheetsConnection?.formattedValue && block.experimentTarget && (
+                      {block.sheetsConnection?.formattedValue && getExperimentTarget(block) && (
                         <div className="ml-2">
-                          {parseFloat(block.sheetsConnection.formattedValue) >= parseFloat(block.experimentTarget) ? (
+                          {parseFloat(block.sheetsConnection.formattedValue) >= parseFloat(getExperimentTarget(block)) ? (
                             <div className="flex items-center text-green-600">
-                              <Icons.CheckCircle className="h-4 w-4 mr-1" />
+                              <CheckCircle className="h-4 w-4 mr-1" />
                               <span className="text-xs">Successful</span>
                             </div>
                           ) : (
                             <div className="flex items-center text-red-600">
-                              <Icons.XCircle className="h-4 w-4 mr-1" />
+                              <XCircle className="h-4 w-4 mr-1" />
                               <span className="text-xs">Needs improvement</span>
                             </div>
                           )}
