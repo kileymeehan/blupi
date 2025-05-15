@@ -295,23 +295,44 @@ export default function LoginPage() {
               Sign in with Magic Link
             </Button>
             
-            <Button 
-              variant="outline" 
-              className={`w-full border-amber-400 ${devBypassEnabled ? 'bg-amber-100' : ''} text-amber-700 mt-2`}
-              onClick={() => {
-                enableDevBypass();
-                toast({
-                  title: "Development Bypass Enabled",
-                  description: "You can now access the app without Firebase authentication.",
-                });
-                // Redirect to home page after a short delay
-                setTimeout(() => {
-                  setLocation("/");
-                }, 500);
-              }}
-            >
-              Development Bypass Mode
-            </Button>
+            <div className="space-y-2">
+              {process.env.NODE_ENV === 'production' && (
+                <div className="space-y-1">
+                  <Input
+                    type="password"
+                    placeholder="Dev Bypass Password"
+                    className="bg-white border-amber-300 focus-visible:ring-amber-500"
+                    id="dev-bypass-password"
+                  />
+                  <p className="text-xs text-amber-600">This is protected in production</p>
+                </div>
+              )}
+              <Button 
+                variant="outline" 
+                className={`w-full border-amber-400 ${devBypassEnabled ? 'bg-amber-100' : ''} text-amber-700`}
+                onClick={() => {
+                  // Get password if we're in production
+                  const passwordInput = document.getElementById('dev-bypass-password') as HTMLInputElement;
+                  const password = passwordInput?.value;
+                  
+                  enableDevBypass(password).then(success => {
+                    if (success) {
+                      toast({
+                        title: "Development Bypass Enabled",
+                        description: "You can now access the app without Firebase authentication.",
+                      });
+                      
+                      // Redirect to home page after a short delay
+                      setTimeout(() => {
+                        setLocation("/");
+                      }, 500);
+                    }
+                  });
+                }}
+              >
+                Development Bypass Mode
+              </Button>
+            </div>
             
             <p className="text-sm text-[#6B6B97] pt-2">
               Don't have an account?{" "}

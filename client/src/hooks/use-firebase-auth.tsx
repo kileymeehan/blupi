@@ -232,8 +232,24 @@ export function useFirebaseAuth() {
     }
   };
 
-  // Dev mode bypass functions
-  const enableDevBypass = async () => {
+  // Dev mode bypass functions with password protection
+  const DEV_BYPASS_PASSWORD = process.env.NODE_ENV === 'production' 
+    ? import.meta.env.VITE_DEV_BYPASS_PASSWORD || 'blupi-dev-2025' 
+    : '';
+  
+  const enableDevBypass = async (password?: string) => {
+    // In production, require a password match
+    if (process.env.NODE_ENV === 'production') {
+      if (!password || password !== DEV_BYPASS_PASSWORD) {
+        toast({
+          title: "Access Denied",
+          description: "Incorrect development bypass password",
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
+    
     localStorage.setItem('blupi_dev_bypass', 'true');
     setDevBypassEnabled(true);
     
@@ -245,6 +261,8 @@ export function useFirebaseAuth() {
     // Create dev user
     const devUser = createDevUser();
     setUser(devUser as any);
+    
+    return true;
   };
   
   const disableDevBypass = () => {
