@@ -195,12 +195,14 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
               Connect to Google Sheets
             </Button>
             <SheetsConnectionDialog
-              boardId={boardId}
+              boardId={boardId} 
               initialConnection={initialConnection}
               onClose={() => setIsConnectDialogOpen(false)}
               onUpdate={onUpdate}
               testGoogleSheetsApi={testGoogleSheetsApi}
             />
+            {/* Debug message in console indicating correct boardId */}
+            {console.log('SheetsMetrics is opening connection dialog with boardId:', boardId)}
           </Dialog>
         </CardContent>
       </Card>

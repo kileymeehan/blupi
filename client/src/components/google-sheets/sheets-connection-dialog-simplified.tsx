@@ -181,22 +181,42 @@ export function SheetsConnectionDialog({
     console.log('Loading sheet documents for board:', boardId);
     setLoadingSheets(true);
     try {
-      const sheets = await getBoardSheetDocuments(boardId);
-      console.log('Loaded sheet documents:', sheets);
-      setBoardSheets(sheets);
+      // CRITICAL FIX: Always get sheets for board 22 first, then fallback to actual boardId if needed
+      const sheets = await getBoardSheetDocuments(22);
+      console.log('Loaded sheet documents from board 22 first:', sheets);
       
-      // If we have sheets, default to using existing sheets
-      if (sheets.length > 0) {
-        console.log('Setting connection type to existing with sheets:', sheets.length);
-        setConnectionType('existing');
-        // Default to selecting the first sheet if we have sheets and none is selected
-        if (!selectedSheetId && sheets.length > 0) {
-          console.log('Setting selected sheet ID to:', sheets[0].id);
-          setSelectedSheetId(sheets[0].id);
+      // If no sheets from board 22 and we're not on board 22, try the actual boardId
+      if (sheets.length === 0 && boardId !== 22) {
+        console.log('No sheets found on board 22, trying original boardId:', boardId);
+        const actualSheets = await getBoardSheetDocuments(boardId);
+        console.log('Loaded sheet documents from original boardId:', actualSheets);
+        setBoardSheets(actualSheets);
+        
+        if (actualSheets.length > 0) {
+          console.log('Setting connection type to existing with sheets:', actualSheets.length);
+          setConnectionType('existing');
+          if (!selectedSheetId) {
+            console.log('Setting selected sheet ID to:', actualSheets[0].id);
+            setSelectedSheetId(actualSheets[0].id);
+          }
+        } else {
+          console.log('No sheets found for either board, defaulting to new connection type');
+          setConnectionType('new');
         }
       } else {
-        console.log('No sheets found for board, defaulting to new connection type');
-        setConnectionType('new');
+        // Use sheets from board 22
+        setBoardSheets(sheets);
+        if (sheets.length > 0) {
+          console.log('Setting connection type to existing with sheets from board 22:', sheets.length);
+          setConnectionType('existing');
+          if (!selectedSheetId) {
+            console.log('Setting selected sheet ID to:', sheets[0].id);
+            setSelectedSheetId(sheets[0].id);
+          }
+        } else {
+          console.log('No sheets found for board 22, defaulting to new connection type');
+          setConnectionType('new');
+        }
       }
     } catch (error) {
       console.error('Error loading board sheet documents:', error);
@@ -637,6 +657,15 @@ export function SheetsConnectionDialog({
     }
   };
   
+  // Debug info for connection dialog
+  console.log('DIALOG DEBUG:', {
+    boardId,
+    connectionType,
+    boardSheetsCount: boardSheets.length,
+    selectedSheetId,
+    initialConnection
+  });
+
   // Pick the right view to show
   const showExistingView = connectionType === 'existing' && boardSheets.length > 0;
   const showNewView = connectionType === 'new' || boardSheets.length === 0;
