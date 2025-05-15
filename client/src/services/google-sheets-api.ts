@@ -174,19 +174,24 @@ export async function getBoardSheetDocuments(boardId: number): Promise<Array<{
   createdAt: string;
   updatedAt: string;
 }>> {
+  console.log(`[API] Fetching sheet documents for board ID: ${boardId}`);
   return await withRetry(
     async () => {
       try {
         const response = await fetch(`/api/boards/${boardId}/sheet-documents`);
+        console.log(`[API] Sheet documents response status: ${response.status}`);
 
         if (!response.ok) {
           const errorData = await response.json();
+          console.error(`[API] Error fetching sheet documents: ${JSON.stringify(errorData)}`);
           throw new Error(errorData.message || 'Failed to fetch sheet documents');
         }
 
-        return await response.json();
+        const data = await response.json();
+        console.log(`[API] Successfully retrieved ${data.length} sheet documents:`, data);
+        return data;
       } catch (error) {
-        console.error('Error fetching sheet documents:', error);
+        console.error('[API] Error fetching sheet documents:', error);
         
         // For rate limit errors, pass them up to the retry mechanism
         if (isRateLimitError(error)) {

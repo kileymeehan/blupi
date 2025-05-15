@@ -4,6 +4,7 @@ import { TableIcon, RefreshCwIcon, Upload, Database, FileSpreadsheet, Plus } fro
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
@@ -132,9 +133,20 @@ export function SheetsConnectionDialog({
     },
   });
   
-  // Load board sheets when component mounts
-  useEffect(() => {
+  // Function to manually refresh board sheet documents
+  const refreshBoardSheets = () => {
+    console.log('Manually refreshing board sheets for board:', boardId);
     loadBoardSheets();
+  };
+
+  // Load board sheets when component mounts or when boardId changes
+  useEffect(() => {
+    console.log('Component mounted or boardId changed. Current boardId:', boardId);
+    if (boardId) {
+      loadBoardSheets();
+    } else {
+      console.warn('No boardId provided to SheetsConnectionDialog');
+    }
   }, [boardId]);
   
   // Set initial form values for existing connection
@@ -657,27 +669,52 @@ export function SheetsConnectionDialog({
           ) : (
             <div className="space-y-4">
               <div className="space-y-2 bg-blue-50 p-3 rounded-md border border-blue-100">
-                <Label htmlFor="sheet-select" className="text-blue-800 font-medium">Available Sheets</Label>
-                <Select
-                  value={selectedSheetId}
-                  onValueChange={setSelectedSheetId}
-                >
-                  <SelectTrigger className="border-blue-200 bg-white">
-                    <SelectValue placeholder="Select a connected sheet" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {boardSheets.map((sheet) => (
-                      <SelectItem key={sheet.id} value={sheet.id} className="flex items-center">
-                        <div className="flex items-center gap-2">
-                          <TableIcon className="h-4 w-4 text-blue-600" />
-                          <span>{sheet.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="sheet-select" className="text-blue-800 font-medium">Available Sheets</Label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={refreshBoardSheets}
+                    disabled={loadingSheets}
+                    title="Refresh sheet list"
+                    className="h-7 px-2 text-blue-700 hover:text-blue-900 hover:bg-blue-100"
+                  >
+                    <RefreshCwIcon className={`h-4 w-4 ${loadingSheets ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
+                
+                {loadingSheets ? (
+                  <div className="py-2">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-5 rounded-full" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </div>
+                ) : (
+                  <Select
+                    value={selectedSheetId}
+                    onValueChange={setSelectedSheetId}
+                  >
+                    <SelectTrigger className="border-blue-200 bg-white">
+                      <SelectValue placeholder={boardSheets.length === 0 ? "No sheets found" : "Select a connected sheet"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {boardSheets.map((sheet) => (
+                        <SelectItem key={sheet.id} value={sheet.id} className="flex items-center">
+                          <div className="flex items-center gap-2">
+                            <TableIcon className="h-4 w-4 text-blue-600" />
+                            <span>{sheet.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                
                 <p className="text-xs text-blue-700">
-                  Use a sheet that's already connected to this board
+                  {boardSheets.length === 0 
+                    ? "No sheets connected to this board yet" 
+                    : `${boardSheets.length} sheet${boardSheets.length !== 1 ? 's' : ''} connected to this board`}
                 </p>
               </div>
               
