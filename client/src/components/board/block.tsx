@@ -1,5 +1,5 @@
 import { useRef, useEffect, KeyboardEvent, useState } from "react";
-import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, X, Table as TableIcon } from "lucide-react";
+import { MessageSquare, Paperclip, StickyNote, Smile, Tag, ChevronDown, X, Table as TableIcon, Beaker, CheckCircle, XCircle } from "lucide-react";
 import * as Icons from "lucide-react";
 import type {
   Block as BlockType,
@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
@@ -68,6 +69,7 @@ const TYPE_LABELS = {
   note: "Note",
   opportunities: "Opportunities",
   metrics: "Metrics",
+  experiment: "Experiment",
   hidden: "Hidden Step",
   "front-stage": "Front-Stage",
   "back-stage": "Back-Stage",
@@ -319,6 +321,99 @@ export default function Block({
                   }
                 }}
               />
+            </div>
+          )}
+          
+          {/* Add Experiment component with Google Sheets integration */}
+          {!isTemplate && block.type === 'experiment' && (
+            <div className="mt-3 border-t border-gray-200 pt-2" id={`experiment-${block.id}`}>
+              <div className="space-y-2">
+                {/* Experiment configuration section */}
+                {!block.sheetsConnection && (
+                  <div className="flex flex-col gap-2 p-2 text-center bg-amber-50 rounded-md">
+                    <div className="text-sm font-medium text-amber-800">Experiment Setup</div>
+                    <p className="text-xs text-amber-700">
+                      Connect to a Google Sheet to track experiment results
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-xs border-amber-300 text-amber-700 hover:bg-amber-100 hover:text-amber-800"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Use the ref to directly open the dialog
+                        if (sheetsMetricsRef.current[block.id]) {
+                          sheetsMetricsRef.current[block.id].openConnectDialog();
+                        }
+                      }}
+                    >
+                      <Flask className="mr-1 h-3 w-3" />
+                      Connect Data Source
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Experiment data display */}
+                {block.sheetsConnection && (
+                  <div className="flex flex-col gap-2">
+                    <SheetsMetrics 
+                      ref={(ref) => {
+                        if (ref) {
+                          sheetsMetricsRef.current[block.id] = ref;
+                        }
+                      }}
+                      blockId={block.id}
+                      boardId={Number(block.phaseIndex) > -1 ? Number(block.phaseIndex) : 0}
+                      initialConnection={block.sheetsConnection}
+                      className="bg-amber-50 border-amber-200"
+                      onUpdate={(connection) => {
+                        if (onSheetsConnectionChange) {
+                          onSheetsConnectionChange(block.id, connection);
+                        }
+                      }}
+                    />
+                    
+                    {/* Experiment outcome section */}
+                    <div className="flex items-center gap-2 p-2 rounded-md bg-white border border-amber-200">
+                      <div className="text-xs font-medium text-amber-800">Target:</div>
+                      <Input 
+                        type="number"
+                        placeholder="Target value"
+                        className="h-6 text-xs py-1 border-amber-200 w-20"
+                        defaultValue={block.experimentTarget || ''}
+                        onBlur={(e) => {
+                          const targetValue = parseFloat(e.target.value);
+                          if (!isNaN(targetValue) && onChange) {
+                            // Store the target in the content field with a special prefix
+                            const existingContent = block.content || '';
+                            const newContent = existingContent.includes('[target:') 
+                              ? existingContent.replace(/\[target:[^\]]+\]/, `[target:${targetValue}]`)
+                              : `${existingContent} [target:${targetValue}]`;
+                            onChange(newContent);
+                          }
+                        }}
+                      />
+                      
+                      {/* Show success/failure indicator if we have both a target and a value */}
+                      {block.sheetsConnection?.formattedValue && block.experimentTarget && (
+                        <div className="ml-2">
+                          {parseFloat(block.sheetsConnection.formattedValue) >= parseFloat(block.experimentTarget) ? (
+                            <div className="flex items-center text-green-600">
+                              <Icons.CheckCircle className="h-4 w-4 mr-1" />
+                              <span className="text-xs">Successful</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center text-red-600">
+                              <Icons.XCircle className="h-4 w-4 mr-1" />
+                              <span className="text-xs">Needs improvement</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

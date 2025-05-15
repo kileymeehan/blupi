@@ -188,7 +188,7 @@ export type SheetDocument = typeof sheetDocuments.$inferSelect;
 // Now we can define blockSchema since its dependencies are defined
 export const blockSchema = z.object({
   id: z.string(),
-  type: z.enum(['touchpoint', 'email', 'pendo', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden', 'metrics', 'front-stage', 'back-stage', 'custom-divider']),
+  type: z.enum(['touchpoint', 'email', 'pendo', 'role', 'process', 'friction', 'policy', 'technology', 'rationale', 'question', 'note', 'hidden', 'metrics', 'experiment', 'front-stage', 'back-stage', 'custom-divider']),
   content: z.string(),
   phaseIndex: z.number(),
   columnIndex: z.number(),
@@ -199,7 +199,8 @@ export const blockSchema = z.object({
   department: departmentSchema.optional(),
   customDepartment: z.string().optional(), // For when department is 'Custom'
   isDivider: z.boolean().optional().default(false), // To mark divider-style blocks
-  sheetsConnection: sheetsConnectionSchema.optional() // Google Sheets connection for metrics blocks
+  sheetsConnection: sheetsConnectionSchema.optional(), // Google Sheets connection for metrics blocks
+  experimentTarget: z.string().optional(), // Target value for experiment blocks
 });
 
 export type Block = z.infer<typeof blockSchema>;
