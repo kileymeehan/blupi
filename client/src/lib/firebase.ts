@@ -7,6 +7,13 @@ console.log('VITE_FIREBASE_API_KEY present:', !!import.meta.env.VITE_FIREBASE_AP
 console.log('VITE_FIREBASE_PROJECT_ID present:', !!import.meta.env.VITE_FIREBASE_PROJECT_ID);
 console.log('VITE_FIREBASE_APP_ID present:', !!import.meta.env.VITE_FIREBASE_APP_ID);
 
+// Log domain information (important for Firebase Authentication domain verification)
+const currentDomain = window.location.hostname;
+console.log('Current host is:', currentDomain);
+// Check if this is a main domain or a subdomain
+const isMainDomain = currentDomain.split('.').length <= 2;
+console.log('Is main domain?', isMainDomain);
+
 // Firebase configuration from environment variables
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,

@@ -9,6 +9,8 @@ import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { useToast } from "@/hooks/use-toast";
 import { SiGoogle } from "react-icons/si";
+import { GoogleAuthProvider, signInWithPopup } from "@firebase/auth";
+import { auth } from "@/lib/firebase";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -157,21 +159,78 @@ export default function LoginPage() {
             </div>
             
             <Button 
+              type="button"
               variant="outline" 
               className="w-full flex items-center justify-center gap-2 border-[#4285F4] hover:bg-[#4285F4]/5 text-[#4285F4]"
-              onClick={async () => {
+              onClick={(e) => {
+                e.preventDefault(); // Ensure no form submission happens
+                
+                // Clear previous errors
                 setError(null);
                 setIsGoogleSubmitting(true);
-                try {
-                  // Our signInWithGoogle function now has comprehensive error handling
-                  await signInWithGoogle();
-                  // Redirect happens automatically in useEffect when user is set
-                } catch (err) {
-                  // All errors are handled directly in the signInWithGoogle function
-                  console.log("Google sign-in error handled in hook:", err);
-                } finally {
-                  setIsGoogleSubmitting(false);
-                }
+                
+                // Create provider directly in the click handler
+                const provider = new GoogleAuthProvider();
+                provider.addScope('profile');
+                provider.addScope('email');
+                
+                // Set custom parameters - important!
+                provider.setCustomParameters({ 
+                  prompt: 'select_account'
+                });
+                
+                // Show loading toast
+                toast({
+                  title: "Opening Google Sign-in",
+                  description: "Please watch for the popup window...",
+                  duration: 3000,
+                });
+                
+                // Call signInWithPopup directly in the event handler
+                signInWithPopup(auth, provider)
+                  .then((result) => {
+                    // Success notification
+                    toast({
+                      title: "Sign-in Successful",
+                      description: "You've successfully signed in with Google"
+                    });
+                    
+                    // The user state change will be handled by onAuthStateChanged
+                  })
+                  .catch((error) => {
+                    console.error("Google sign-in error:", error);
+                    
+                    // Handle specific error cases with user-friendly messages
+                    if (error.code === 'auth/popup-closed-by-user') {
+                      toast({
+                        title: "Sign-in Cancelled",
+                        description: "The popup was closed. Please try again.",
+                        duration: 5000,
+                      });
+                    } else if (error.code === 'auth/popup-blocked') {
+                      toast({
+                        title: "Popup Blocked",
+                        description: "Please allow popups for this site and try again.",
+                        variant: "destructive",
+                      });
+                    } else if (error.code === 'auth/unauthorized-domain') {
+                      const currentDomain = window.location.hostname;
+                      toast({
+                        title: "Domain Not Authorized",
+                        description: `Your current domain (${currentDomain}) isn't authorized in Firebase.`,
+                        variant: "destructive",
+                      });
+                    } else {
+                      toast({
+                        title: "Sign-in Error",
+                        description: error.message || "An error occurred during sign-in",
+                        variant: "destructive",
+                      });
+                    }
+                  })
+                  .finally(() => {
+                    setIsGoogleSubmitting(false);
+                  });
               }}
               disabled={isGoogleSubmitting}
             >
