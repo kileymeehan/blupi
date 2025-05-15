@@ -466,30 +466,34 @@ export function SheetsConnectionDialog({
   const showNewView = connectionType === 'new' || boardSheets.length === 0;
   
   return (
-    <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+    <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>Connect to Google Sheets</DialogTitle>
         <DialogDescription>
-          Connect this metric to a Google Sheets cell.
+          Connect this block to a Google Sheets cell.
         </DialogDescription>
       </DialogHeader>
       
       {boardSheets.length > 0 && (
-        <div className="flex space-x-2 mt-4 mb-4">
-          <Button 
-            variant={showExistingView ? "default" : "outline"} 
-            className="flex-1"
-            onClick={() => setConnectionType('existing')}
-          >
-            Use Existing Sheet
-          </Button>
-          <Button 
-            variant={showNewView ? "default" : "outline"} 
-            className="flex-1"
-            onClick={() => setConnectionType('new')}
-          >
-            Add New Sheet
-          </Button>
+        <div className="bg-muted rounded-lg p-2 mt-4 mb-4">
+          <div className="flex w-full gap-2">
+            <Button 
+              variant={showExistingView ? "default" : "outline"}
+              size="default" 
+              className="flex-1 font-medium"
+              onClick={() => setConnectionType('existing')}
+            >
+              Use Existing Sheet
+            </Button>
+            <Button 
+              variant={showNewView ? "default" : "outline"}
+              size="default" 
+              className="flex-1 font-medium"
+              onClick={() => setConnectionType('new')}
+            >
+              Add New Sheet
+            </Button>
+          </div>
         </div>
       )}
       
@@ -503,25 +507,28 @@ export function SheetsConnectionDialog({
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="sheet-select">Select Sheet</Label>
+              <div className="space-y-2 bg-blue-50 p-3 rounded-md border border-blue-100">
+                <Label htmlFor="sheet-select" className="text-blue-800 font-medium">Available Sheets</Label>
                 <Select
                   value={selectedSheetId}
                   onValueChange={setSelectedSheetId}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a sheet" />
+                  <SelectTrigger className="border-blue-200 bg-white">
+                    <SelectValue placeholder="Select a connected sheet" />
                   </SelectTrigger>
                   <SelectContent>
                     {boardSheets.map((sheet) => (
-                      <SelectItem key={sheet.id} value={sheet.id}>
-                        {sheet.name}
+                      <SelectItem key={sheet.id} value={sheet.id} className="flex items-center">
+                        <div className="flex items-center gap-2">
+                          <TableIcon className="h-4 w-4 text-blue-600" />
+                          <span>{sheet.name}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">
-                  Select a sheet that's already connected to this board
+                <p className="text-xs text-blue-700">
+                  Use a sheet that's already connected to this board
                 </p>
               </div>
               

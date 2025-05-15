@@ -455,8 +455,8 @@ export default function Block({
               )}
             </button>
 
-            {/* Google Sheets icon for metrics blocks */}
-            {block.type === 'metrics' ? (
+            {/* Google Sheets icon for metrics or experiment blocks */}
+            {block.type === 'metrics' || block.type === 'experiment' ? (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -470,15 +470,15 @@ export default function Block({
                 }}
                 className={`
                   flex items-center justify-center w-6 h-6 p-0
-                  rounded bg-white border border-gray-200
-                  text-xs text-teal-600 hover:text-teal-900
-                  shadow-sm hover:shadow hover:border-teal-300
-                  ${block.sheetsConnection ? 'after:content-["•"] after:text-teal-500 after:absolute after:top-[-2px] after:right-[-2px]' : ""}
+                  rounded bg-white border ${block.type === 'experiment' ? 'border-amber-200' : 'border-gray-200'}
+                  text-xs ${block.type === 'experiment' ? 'text-amber-600 hover:text-amber-900' : 'text-teal-600 hover:text-teal-900'}
+                  shadow-sm hover:shadow ${block.type === 'experiment' ? 'hover:border-amber-300' : 'hover:border-teal-300'}
+                  ${block.sheetsConnection ? `after:content-["•"] after:${block.type === 'experiment' ? 'text-amber-500' : 'text-teal-500'} after:absolute after:top-[-2px] after:right-[-2px]` : ""}
                   transition-all duration-150
                 `}
                 title={block.sheetsConnection ? "Connected to Google Sheets" : "Connect to Google Sheets"}
               >
-                <TableIcon className="w-4 h-4" />
+                {block.type === 'experiment' ? <Beaker className="w-4 h-4" /> : <TableIcon className="w-4 h-4" />}
               </button>
             ) : (
               <button
