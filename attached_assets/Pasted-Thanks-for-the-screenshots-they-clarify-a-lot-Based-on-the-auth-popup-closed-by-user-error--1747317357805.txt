@@ -1,0 +1,102 @@
+Thanks for the screenshots — they clarify a lot. Based on the `"auth/popup-closed-by-user"` error **even though you're clearly selecting your account**, the issue is almost certainly due to one of the following:
+
+---
+
+### 🔍 1. **Your App’s Domain (Replit) is NOT Whitelisted in Firebase**
+
+Even though the popup appears, **Firebase won't complete the auth if the domain the popup returns to isn’t trusted**.
+
+#### ✅ Fix:
+
+Go to **Firebase Console → Authentication → Settings → Authorized Domains** and make sure you’ve added:
+
+```
+your-replit-name.username.repl.co
+```
+
+Or use your full `.dev` domain, if it’s different:
+
+```
+<your-replit-username>.<workspace>.replit.dev
+```
+
+Replit often serves on these `.dev` domains which **must** be manually added in Firebase.
+
+---
+
+### 🔍 2. **`signInWithPopup()` Not Triggered Directly by a User Event**
+
+If the call to `signInWithPopup()` isn’t *directly* inside an event like a button click, browsers may treat it as background script execution and auto-close the window.
+
+#### ✅ Fix:
+
+Ensure this pattern:
+
+```js
+document.getElementById("googleSignIn").addEventListener("click", async () => {
+  const provider = new GoogleAuthProvider();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    console.log("User signed in:", user);
+  } catch (error) {
+    console.error("Google sign-in error:", error);
+  }
+});
+```
+
+---
+
+### 🔍 3. **Your `authDomain` in Firebase Config Is Wrong or Missing**
+
+Double-check that `authDomain` is exactly like this (replace with your real Firebase project ID):
+
+```js
+const firebaseConfig = {
+  apiKey: "...",
+  authDomain: "blueprints-48648.firebaseapp.com",
+  projectId: "blueprints-48648",
+  // ...
+};
+```
+
+Even a small mismatch in `authDomain` can break popup return flow.
+
+---
+
+### ✅ Diagnostic Step
+
+To verify this quickly:
+
+* Open **Developer Tools → Network tab** before clicking Sign In.
+* Watch for any failed requests to `https://www.googleapis.com/identitytoolkit/...` or blocked redirects.
+
+---
+
+### 💡 Bonus: Debug Output
+
+Also add this before the popup call:
+
+```js
+console.log("About to call signInWithPopup...");
+```
+
+And after:
+
+```js
+console.log("Popup returned");
+```
+
+This helps confirm whether Firebase ever receives a result or if the error comes before.
+
+---
+
+### Let Me Know
+
+If the above steps don’t fix it, paste your:
+
+* `firebaseConfig` object
+* `signInWithPopup()` function
+* Full Replit app domain URL
+
+And I’ll debug it more precisely for your case.

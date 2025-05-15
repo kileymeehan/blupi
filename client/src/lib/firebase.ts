@@ -25,10 +25,15 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-5ZGZX4SLYS"
 };
 
+// Enhanced logging for Firebase config
 console.log('Firebase Config (partial):', {
   authDomain: firebaseConfig.authDomain,
   projectId: firebaseConfig.projectId
 });
+
+// Reminder about domain authorization
+console.log('⚠️ REMINDER: For Firebase Authentication to work properly, this domain must be added to Firebase Console > Authentication > Settings > Authorized Domains:');
+console.log(`✅ Add this domain: ${window.location.hostname}`);
 
 let app;
 let auth: Auth;

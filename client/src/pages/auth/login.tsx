@@ -169,68 +169,108 @@ export default function LoginPage() {
                 setError(null);
                 setIsGoogleSubmitting(true);
                 
-                // Create provider directly in the click handler
-                const provider = new GoogleAuthProvider();
-                provider.addScope('profile');
-                provider.addScope('email');
-                
-                // Set custom parameters - important!
-                provider.setCustomParameters({ 
-                  prompt: 'select_account'
+                // Extended diagnostic logging
+                console.log("0. Checking Firebase config...");
+                console.log("Firebase config:", {
+                  authDomain: import.meta.env.VITE_FIREBASE_PROJECT_ID + ".firebaseapp.com",
+                  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+                  currentDomain: window.location.hostname,
                 });
                 
-                // Show loading toast
-                toast({
-                  title: "Opening Google Sign-in",
-                  description: "Please watch for the popup window...",
-                  duration: 3000,
-                });
-                
-                // Call signInWithPopup directly in the event handler
-                signInWithPopup(auth, provider)
-                  .then((result) => {
-                    // Success notification
-                    toast({
-                      title: "Sign-in Successful",
-                      description: "You've successfully signed in with Google"
-                    });
-                    
-                    // The user state change will be handled by onAuthStateChanged
-                  })
-                  .catch((error) => {
-                    console.error("Google sign-in error:", error);
-                    
-                    // Handle specific error cases with user-friendly messages
-                    if (error.code === 'auth/popup-closed-by-user') {
-                      toast({
-                        title: "Sign-in Cancelled",
-                        description: "The popup was closed. Please try again.",
-                        duration: 5000,
-                      });
-                    } else if (error.code === 'auth/popup-blocked') {
-                      toast({
-                        title: "Popup Blocked",
-                        description: "Please allow popups for this site and try again.",
-                        variant: "destructive",
-                      });
-                    } else if (error.code === 'auth/unauthorized-domain') {
-                      const currentDomain = window.location.hostname;
-                      toast({
-                        title: "Domain Not Authorized",
-                        description: `Your current domain (${currentDomain}) isn't authorized in Firebase.`,
-                        variant: "destructive",
-                      });
-                    } else {
-                      toast({
-                        title: "Sign-in Error",
-                        description: error.message || "An error occurred during sign-in",
-                        variant: "destructive",
-                      });
-                    }
-                  })
-                  .finally(() => {
-                    setIsGoogleSubmitting(false);
+                try {
+                  // Create provider directly in the click handler - important for browser security
+                  console.log("1. Creating Google provider...");
+                  const provider = new GoogleAuthProvider();
+                  provider.addScope('profile');
+                  provider.addScope('email');
+                  
+                  // Ensure we request account selection
+                  provider.setCustomParameters({ 
+                    prompt: 'select_account'
                   });
+                  
+                  // Show loading toast
+                  toast({
+                    title: "Opening Google Sign-in",
+                    description: "Please watch for the popup window...",
+                    duration: 3000,
+                  });
+                  
+                  console.log("2. About to call signInWithPopup...");
+                  
+                  // Call signInWithPopup directly in the button click event handler
+                  signInWithPopup(auth, provider)
+                    .then((result) => {
+                      console.log("3. Popup returned successfully!");
+                      
+                      // Success notification
+                      toast({
+                        title: "Sign-in Successful",
+                        description: "You've successfully signed in with Google"
+                      });
+                      
+                      // Log the user info (without sensitive data)
+                      console.log("Sign-in completed with user:", result.user.uid);
+                      
+                      // The user state change will be handled by onAuthStateChanged
+                    })
+                    .catch((error) => {
+                      console.error("3. Popup error:", error);
+                      console.error("Full error details:", JSON.stringify({
+                        code: error.code,
+                        message: error.message,
+                        customData: error.customData
+                      }));
+                      
+                      // Handle specific error cases with user-friendly messages
+                      if (error.code === 'auth/popup-closed-by-user') {
+                        toast({
+                          title: "Sign-in Cancelled",
+                          description: "The popup was closed. Please try again.",
+                          duration: 5000,
+                        });
+                        
+                        console.log("IMPORTANT: Add domain to Firebase authorized domains!");
+                        console.log("Go to Firebase Console → Authentication → Settings → Authorized Domains");
+                        console.log("Add:", window.location.hostname);
+                      } else if (error.code === 'auth/popup-blocked') {
+                        toast({
+                          title: "Popup Blocked",
+                          description: "Please allow popups for this site and try again.",
+                          variant: "destructive",
+                        });
+                      } else if (error.code === 'auth/unauthorized-domain') {
+                        const currentDomain = window.location.hostname;
+                        toast({
+                          title: "Domain Not Authorized",
+                          description: `Domain ${currentDomain} not authorized in Firebase.`,
+                          variant: "destructive",
+                        });
+                        console.log("IMPORTANT: Add domain to Firebase authorized domains!");
+                        console.log("Go to Firebase Console → Authentication → Settings → Authorized Domains");
+                        console.log("Add:", currentDomain);
+                      } else {
+                        toast({
+                          title: "Sign-in Error",
+                          description: error.message || "An error occurred during sign-in",
+                          variant: "destructive",
+                        });
+                      }
+                    })
+                    .finally(() => {
+                      console.log("4. Sign-in process completed");
+                      setIsGoogleSubmitting(false);
+                    });
+                } catch (unexpectedError) {
+                  // Catch any synchronous errors that might happen before the popup
+                  console.error("Unexpected error during sign-in setup:", unexpectedError);
+                  toast({
+                    title: "Sign-in Setup Error",
+                    description: "An unexpected error occurred while setting up the sign-in process.",
+                    variant: "destructive",
+                  });
+                  setIsGoogleSubmitting(false);
+                }
               }}
               disabled={isGoogleSubmitting}
             >
