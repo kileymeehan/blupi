@@ -149,6 +149,22 @@ export function SheetsConnectionDialog({
     }
   }, [boardId]);
   
+  // Auto-select first sheet and switch to existing mode when sheets are loaded
+  useEffect(() => {
+    console.log('SheetsConnectionDialog board sheets updated:', boardSheets);
+    
+    // Force connection type to existing if we have sheets for this board
+    if (boardSheets.length > 0) {
+      setConnectionType('existing');
+      
+      // Also select the first sheet if none is selected
+      if (!selectedSheetId) {
+        console.log('Auto-selecting first sheet:', boardSheets[0].id);
+        setSelectedSheetId(boardSheets[0].id);
+      }
+    }
+  }, [boardSheets, selectedSheetId]);
+  
   // Set initial form values for existing connection
   useEffect(() => {
     if (initialConnection) {
