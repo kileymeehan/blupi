@@ -188,6 +188,11 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                console.log('Opening connection dialog for metrics box. BoardId:', boardId);
+                // Force a check of the correct board ID if we're working with board 22
+                if (boardId === 22 || boardId === '22') {
+                  console.log('This is board 22, the known sheets should appear.');
+                }
                 setIsConnectDialogOpen(true);
               }}
             >
@@ -197,12 +202,15 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
             <SheetsConnectionDialog
               boardId={boardId} 
               initialConnection={initialConnection}
-              onClose={() => setIsConnectDialogOpen(false)}
+              onClose={() => {
+                console.log('Closing connection dialog');
+                setIsConnectDialogOpen(false);
+              }}
               onUpdate={onUpdate}
               testGoogleSheetsApi={testGoogleSheetsApi}
             />
-            {/* Debug message in console indicating correct boardId */}
-            {console.log('SheetsMetrics is opening connection dialog with boardId:', boardId)}
+            {/* Adding this line for debugging but don't display in the DOM */}
+            <span className="hidden">{`${boardId}`}</span>
           </Dialog>
         </CardContent>
       </Card>
