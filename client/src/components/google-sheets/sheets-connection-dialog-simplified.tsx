@@ -150,18 +150,25 @@ export function SheetsConnectionDialog({
   const loadBoardSheets = async () => {
     if (!boardId) return;
     
+    console.log('Loading sheet documents for board:', boardId);
     setLoadingSheets(true);
     try {
       const sheets = await getBoardSheetDocuments(boardId);
+      console.log('Loaded sheet documents:', sheets);
       setBoardSheets(sheets);
       
       // If we have sheets, default to using existing sheets
       if (sheets.length > 0) {
+        console.log('Setting connection type to existing with sheets:', sheets.length);
         setConnectionType('existing');
         // Default to selecting the first sheet if we have sheets and none is selected
         if (!selectedSheetId && sheets.length > 0) {
+          console.log('Setting selected sheet ID to:', sheets[0].id);
           setSelectedSheetId(sheets[0].id);
         }
+      } else {
+        console.log('No sheets found for board, defaulting to new connection type');
+        setConnectionType('new');
       }
     } catch (error) {
       console.error('Error loading board sheet documents:', error);
@@ -615,28 +622,29 @@ export function SheetsConnectionDialog({
         </DialogDescription>
       </DialogHeader>
       
-      {boardSheets.length > 0 && (
-        <div className="bg-muted rounded-lg p-2 mt-4 mb-4">
-          <div className="flex w-full gap-2">
-            <Button 
-              variant={showExistingView ? "default" : "outline"}
-              size="default" 
-              className="flex-1 font-medium"
-              onClick={() => setConnectionType('existing')}
-            >
-              Use Existing Sheet
-            </Button>
-            <Button 
-              variant={showNewView ? "default" : "outline"}
-              size="default" 
-              className="flex-1 font-medium"
-              onClick={() => setConnectionType('new')}
-            >
-              Add New Sheet
-            </Button>
-          </div>
+      {/* Connection Type Tabs - Always show, but conditionally enable "Use Existing Sheet" */}
+      <div className="bg-muted rounded-lg p-2 mt-4 mb-4">
+        <div className="flex w-full gap-2">
+          <Button 
+            variant={showExistingView ? "default" : "outline"}
+            size="default" 
+            className="flex-1 font-medium"
+            onClick={() => setConnectionType('existing')}
+            disabled={boardSheets.length === 0}
+            title={boardSheets.length === 0 ? "No connected sheets available" : "Use an existing sheet connection"}
+          >
+            Use Existing Sheet {boardSheets.length > 0 && `(${boardSheets.length})`}
+          </Button>
+          <Button 
+            variant={showNewView ? "default" : "outline"}
+            size="default" 
+            className="flex-1 font-medium"
+            onClick={() => setConnectionType('new')}
+          >
+            Add New Sheet
+          </Button>
         </div>
-      )}
+      </div>
       
       {/* Content for using existing board-level sheets */}
       {showExistingView && (

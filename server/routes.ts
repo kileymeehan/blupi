@@ -1277,10 +1277,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[HTTP] Fetching Google Sheets documents for board:', req.params.boardId);
       const boardId = parseInt(req.params.boardId);
       if (isNaN(boardId)) {
+        console.error('[HTTP] Invalid board ID:', req.params.boardId);
         return res.status(400).json({ error: true, message: 'Invalid board ID' });
       }
       
       const sheetDocs = await storage.getSheetDocuments(boardId);
+      console.log(`[HTTP] Found ${sheetDocs.length} sheet documents for board ${boardId}:`, sheetDocs);
       res.json(sheetDocs);
     } catch (error) {
       console.error('[HTTP] Error fetching sheet documents:', error);
