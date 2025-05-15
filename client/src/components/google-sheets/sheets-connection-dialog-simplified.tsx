@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { TableIcon, RefreshCwIcon } from 'lucide-react';
+import { TableIcon, RefreshCwIcon, Upload, Database, FileSpreadsheet, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -109,6 +109,15 @@ export function SheetsConnectionDialog({
   const [existingCellRange, setExistingCellRange] = useState('');
   const [existingSheetName, setExistingSheetName] = useState('');
   const [existingLabel, setExistingLabel] = useState('');
+  
+  // State for the new UI components
+  const [showExistingSheetSelector, setShowExistingSheetSelector] = useState(false);
+  const [showNewUrlInput, setShowNewUrlInput] = useState(false);
+  const [showCsvUpload, setShowCsvUpload] = useState(false);
+  const [newSheetUrl, setNewSheetUrl] = useState('');
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -466,7 +475,7 @@ export function SheetsConnectionDialog({
   const showNewView = connectionType === 'new' || boardSheets.length === 0;
   
   return (
-    <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
+    <DialogContent className="sm:max-w-[750px] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>Connect to Google Sheets</DialogTitle>
         <DialogDescription>
@@ -599,14 +608,131 @@ export function SheetsConnectionDialog({
                 control={form.control}
                 name="sheetUrl"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Google Sheet URL</FormLabel>
+                  <FormItem className="space-y-3">
+                    <FormLabel>Data Source</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://docs.google.com/spreadsheets/d/..." {...field} />
+                      <div className="grid gap-3">
+                        {/* Option to select existing sheet connections */}
+                        {boardSheets.length > 0 && (
+                          <div 
+                            className={`relative rounded-md border p-3 cursor-pointer flex items-center gap-3 ${
+                              field.value && !field.value.startsWith('__new__') && !field.value.startsWith('__csv__') 
+                                ? 'border-primary bg-primary/5' 
+                                : 'border-input hover:bg-accent hover:text-accent-foreground'
+                            }`}
+                            onClick={() => {
+                              // Show UI for selecting an existing sheet
+                              setShowExistingSheetSelector(prev => !prev);
+                              if (field.value?.startsWith('__new__') || field.value?.startsWith('__csv__')) {
+                                field.onChange(''); // Clear custom value
+                              }
+                            }}
+                          >
+                            <Database className="h-5 w-5 text-blue-600" />
+                            <div className="flex-1">
+                              <h3 className="font-medium">Use Existing Connection</h3>
+                              <p className="text-sm text-muted-foreground">Select from sheets already connected to this board</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show dropdown for existing sheets if selected */}
+                        {showExistingSheetSelector && (
+                          <div className="ml-6 p-2 border rounded-md bg-primary/5">
+                            <Select
+                              value={field.value || ''}
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a connected sheet" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {boardSheets.map((sheet) => (
+                                  <SelectItem key={sheet.id} value={sheet.sheetId}>
+                                    <div className="flex items-center gap-2">
+                                      <FileSpreadsheet className="h-4 w-4 text-blue-600" />
+                                      <span>{sheet.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+
+                        {/* Option to add a new Google Sheet */}
+                        <div 
+                          className={`relative rounded-md border p-3 cursor-pointer flex items-center gap-3 ${
+                            field.value?.startsWith('__new__') 
+                              ? 'border-primary bg-primary/5' 
+                              : 'border-input hover:bg-accent hover:text-accent-foreground'
+                          }`}
+                          onClick={() => {
+                            field.onChange('__new__');
+                            setShowNewUrlInput(true);
+                            setShowCsvUpload(false);
+                          }}
+                        >
+                          <Plus className="h-5 w-5 text-green-600" />
+                          <div className="flex-1">
+                            <h3 className="font-medium">Add New Google Sheet</h3>
+                            <p className="text-sm text-muted-foreground">Enter a new Google Sheets URL</p>
+                          </div>
+                        </div>
+
+                        {/* Show URL input if "Add new Google Sheet" is selected */}
+                        {showNewUrlInput && field.value?.startsWith('__new__') && (
+                          <div className="ml-6 p-2 border rounded-md bg-primary/5">
+                            <Input 
+                              placeholder="https://docs.google.com/spreadsheets/d/..." 
+                              value={newSheetUrl}
+                              onChange={(e) => {
+                                setNewSheetUrl(e.target.value);
+                                // Store the actual URL in a separate state, while keeping the field marker
+                                field.onChange('__new__');
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        {/* Option to upload a CSV file */}
+                        <div 
+                          className={`relative rounded-md border p-3 cursor-pointer flex items-center gap-3 ${
+                            field.value?.startsWith('__csv__') 
+                              ? 'border-primary bg-primary/5' 
+                              : 'border-input hover:bg-accent hover:text-accent-foreground'
+                          }`}
+                          onClick={() => {
+                            field.onChange('__csv__');
+                            setShowCsvUpload(true);
+                            setShowNewUrlInput(false);
+                          }}
+                        >
+                          <Upload className="h-5 w-5 text-amber-600" />
+                          <div className="flex-1">
+                            <h3 className="font-medium">Upload CSV File</h3>
+                            <p className="text-sm text-muted-foreground">Import data from a local CSV file</p>
+                          </div>
+                        </div>
+
+                        {/* Show CSV upload if selected */}
+                        {showCsvUpload && field.value?.startsWith('__csv__') && (
+                          <div className="ml-6 p-2 border rounded-md bg-primary/5">
+                            <Input 
+                              type="file" 
+                              accept=".csv"
+                              onChange={(e) => {
+                                setCsvFile(e.target.files?.[0]);
+                                field.onChange('__csv__');
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
-                    <FormDescription>
-                      Paste the URL of your Google Sheet
-                    </FormDescription>
+                    
                     <FormMessage />
                   </FormItem>
                 )}
