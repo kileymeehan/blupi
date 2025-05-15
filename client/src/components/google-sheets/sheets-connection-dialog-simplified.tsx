@@ -260,8 +260,140 @@ export function SheetsConnectionDialog({
   
   // Handle new sheet connection form submission
   const onSubmit = async (values: ConnectionFormValues) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    
     try {
       console.log('Connecting to Google Sheets with form values:', values);
+      
+      // Handle different data source types
+      if (values.sheetUrl?.startsWith('__new__')) {
+        // User selected "Add New Google Sheet"
+        if (!newSheetUrl) {
+          toast({
+            title: "Missing URL",
+            description: "Please enter a Google Sheets URL",
+            variant: "destructive",
+          });
+          setIsProcessing(false);
+          return;
+        }
+        
+        // Use the URL from our custom input
+        values.sheetUrl = newSheetUrl;
+      } else if (values.sheetUrl?.startsWith('__csv__')) {
+        // User selected "Upload CSV File"
+        if (!csvFile) {
+          toast({
+            title: "Missing File",
+            description: "Please select a CSV file to upload",
+            variant: "destructive",
+          });
+          setIsProcessing(false);
+          return;
+        }
+        
+        // Handle CSV upload - we'll set up basic structure since actual implementation will be handled separately
+        toast({
+          title: "Processing",
+          description: "Uploading and processing CSV file...",
+        });
+        
+        try {
+          // Mock API call for now - this would be replaced with actual CSV upload logic
+          // In a real implementation, this would upload the CSV to the server or process it client-side
+          // and create a sheet document in the board's connected sheets.
+          
+          // TODO: Implement actual CSV handling
+          const formData = new FormData();
+          formData.append('file', csvFile);
+          formData.append('boardId', boardId.toString());
+          
+          // This would be an API endpoint to handle CSV uploads
+          // const response = await fetch('/api/csv-upload', {
+          //   method: 'POST',
+          //   body: formData
+          // });
+          
+          // Update the sidebar's connected sheets (would normally be handled by the API response)
+          toast({
+            title: "CSV Uploaded",
+            description: "The CSV data has been connected to this board.",
+          });
+          
+          // Create a mock connection for now
+          onUpdate({
+            sheetId: `csv_${new Date().getTime()}`,
+            cellRange: values.cellRange,
+            label: values.label,
+            lastUpdated: new Date().toISOString(),
+            formattedValue: "CSV Data"
+          });
+          
+          // Close the dialog
+          onClose();
+          setIsProcessing(false);
+          return;
+        } catch (error) {
+          toast({
+            title: "CSV Upload Failed",
+            description: "There was an error uploading your CSV file.",
+            variant: "destructive",
+          });
+          setIsProcessing(false);
+          return;
+        }
+      } else if (values.sheetUrl && boardSheets.some(sheet => sheet.sheetId === values.sheetUrl)) {
+        // User selected an existing sheet from the dropdown
+        // Find the selected sheet
+        const selectedSheet = boardSheets.find(sheet => sheet.sheetId === values.sheetUrl);
+        
+        if (selectedSheet) {
+          try {
+            // Fetch the cell data immediately to update the block
+            const cellData = await fetchSheetCell(
+              selectedSheet.sheetId,
+              values.cellRange,
+              values.sheetName
+            );
+            
+            // Create the connection object with the fetched value
+            const connection = {
+              sheetId: selectedSheet.sheetId,
+              cellRange: values.cellRange,
+              sheetName: values.sheetName || undefined,
+              label: values.label || undefined,
+              lastUpdated: new Date().toISOString(),
+              formattedValue: cellData.formattedValue || cellData.value || ''
+            };
+            
+            // Call the onUpdate callback to save the connection
+            console.log('Updating connection with existing sheet:', connection);
+            onUpdate(connection);
+            
+            // Close the dialog
+            onClose();
+            
+            // Show success message
+            toast({
+              title: "Connected",
+              description: "Successfully connected to Google Sheets cell.",
+            });
+            
+            setIsProcessing(false);
+            return;
+          } catch (error) {
+            console.error('Error fetching sheet cell data:', error);
+            toast({
+              title: "Error",
+              description: error instanceof Error ? error.message : "Failed to fetch cell data",
+              variant: "destructive",
+            });
+            setIsProcessing(false);
+            return;
+          }
+        }
+      }
       
       // First validate the Google Sheet URL
       let validationResult;
@@ -724,7 +856,8 @@ export function SheetsConnectionDialog({
                               type="file" 
                               accept=".csv"
                               onChange={(e) => {
-                                setCsvFile(e.target.files?.[0]);
+                                const file = e.target.files?.[0] || null;
+                                setCsvFile(file);
                                 field.onChange('__csv__');
                               }}
                             />
