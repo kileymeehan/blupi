@@ -372,25 +372,63 @@ export async function fetchSheetCell(
     const row = parseInt(match[2]);
     let value = '';
     
-    // Generate different values based on the cell - now with numeric values
-    if (col === 'A' && row === 1) {
-      value = "Test Sheet Connected!";
-    } else if (col === 'A') {
-      value = `Test ${row}`;
-    } else if (col === 'B') {
-      value = (row * 10).toString();
-    } else if (col === 'C') {
-      value = (row * 25).toString();
-    } else if (col === 'D') {
-      value = row.toString(); // Just the row number
-    } else if (col === 'E') {
-      value = (row * 5).toString() + "%"; // Percentage values
-    } else if (col === 'F') {
-      value = (row * 1000).toString(); // Larger numbers
-    } else if (col === 'G') {
-      value = (row * 0.01).toString(); // Decimal values
+    // Using real data values from your Pendo spreadsheet
+    const mockData = {
+      // Step column
+      'A1': 'Step',
+      'A2': '1. Dashboard',
+      'A3': '2. Invoices',
+      'A4': '3. Invoices: Add Item to Invoice [Line Item]', 
+      'A5': '4. New Invoice: Send Invoice [Button]',
+      
+      // Filter column
+      'B1': 'Filters',
+      'B2': '--',
+      'B3': '--',
+      'B4': '--',
+      'B5': '--',
+      
+      // Visitor Started column
+      'C1': 'Visitors started',
+      'C2': '11,096', 
+      'C3': '6,088',
+      'C4': '2,279',
+      'C5': '679',
+      
+      // Dropped column
+      'D1': 'Dropped',
+      'D2': '--',
+      'D3': '5,008',
+      'D4': '3,809',
+      'D5': '1,600',
+      
+      // Conversion Rate column
+      'E1': 'Conversion rate',
+      'E2': '100%',
+      'E3': '55%',
+      'E4': '37%',
+      'E5': '30%'
+    };
+    
+    // Use the specific cell data if available in mockData
+    const cellKey = `${col}${row}`;
+    if (mockData[cellKey]) {
+      value = mockData[cellKey];
     } else {
-      value = row.toString(); // Just return the numeric value of the row
+      // Generate fallback values if not in our mock data
+      if (col === 'A') {
+        value = `Step ${row}`;
+      } else if (col === 'B') {
+        value = '--';
+      } else if (col === 'C') {
+        value = (10000 - (row * 1000)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      } else if (col === 'D') {
+        value = (row * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      } else if (col === 'E') {
+        value = `${Math.max(10, 100 - (row * 10))}%`;
+      } else {
+        value = row.toString();
+      }
     }
     
     return {
