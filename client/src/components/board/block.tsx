@@ -124,8 +124,8 @@ export default function Block({
   const [localContent, setLocalContent] = useState(block.content || "");
   const [isEditing, setIsEditing] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
-  // Use the SheetsMetricsHandle type from the imported component
-  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/sheets-metrics-new").SheetsMetricsHandle>>({});
+  // Use the LightMetricsHandle type from the imported component
+  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/light-metrics").LightMetricsHandle>>({});
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
