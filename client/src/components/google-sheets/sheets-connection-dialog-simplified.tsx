@@ -687,7 +687,7 @@ export function SheetsConnectionDialog({
             size="default" 
             className="flex-1 font-medium"
             onClick={() => setConnectionType('existing')}
-            disabled={boardSheets.length === 0}
+            disabled={false} // Always enable this button
             title={boardSheets.length === 0 ? "No connected sheets available" : "Use an existing sheet connection"}
           >
             Use Existing Sheet {boardSheets.length > 0 && `(${boardSheets.length})`}
