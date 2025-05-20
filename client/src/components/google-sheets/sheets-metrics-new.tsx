@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog } from "@/components/ui/dialog";
 import { fetchSheetCell } from '../../services/google-sheets-api';
 import { useToast } from '@/hooks/use-toast';
-import { SheetsConnectionDialog } from './sheets-connection-simple';
+import { SheetsConnectionDialog } from './test-sheets-dialog';
 
 interface SheetsMetricsProps {
   blockId: string;
@@ -192,6 +192,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                 // Force a check of the correct board ID if we're working with board 22
                 if (Number(boardId) === 22) {
                   console.log('This is board 22, the known sheets should appear.');
+                  // Use board ID 22 in the props directly for next component
                 }
                 setIsConnectDialogOpen(true);
               }}
