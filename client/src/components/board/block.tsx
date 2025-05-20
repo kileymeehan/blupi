@@ -369,7 +369,7 @@ export default function Block({
                 {/* Experiment data display */}
                 {block.sheetsConnection && (
                   <div className="flex flex-col gap-2">
-                    <SheetsMetrics 
+                    <LightMetrics 
                       ref={(ref) => {
                         if (ref) {
                           sheetsMetricsRef.current[block.id] = ref;

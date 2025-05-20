@@ -1,5 +1,5 @@
 import { useState, forwardRef, useImperativeHandle } from "react";
-import { TableIcon, FileTextIcon } from 'lucide-react';
+import { TableIcon, FileTextIcon, CheckCircle, XCircle } from 'lucide-react';
 import { 
   Card, 
   CardContent, 
@@ -24,7 +24,7 @@ const BOARD_SHEETS = [
 ];
 
 // Predefined cell data values for demonstration
-const CELL_VALUES = {
+const CELL_VALUES: Record<string, string> = {
   "D4": "3,809",
   "E3": "55%",
   "C2": "11,096",
@@ -37,13 +37,20 @@ const CELL_VALUES = {
   "F9": "No"
 };
 
+interface MetricsDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (data: any) => void;
+  boardId: number;
+}
+
 // Dialog content separated from main component to avoid refresh issues
 function MetricsDialog({
   isOpen,
   onClose,
   onSelect,
-  boardId,
-}) {
+  boardId
+}: MetricsDialogProps) {
   const [selectedSheet, setSelectedSheet] = useState(BOARD_SHEETS[0].sheetId);
   const [cellRange, setCellRange] = useState("");
   const [label, setLabel] = useState("");
@@ -98,6 +105,7 @@ function MetricsDialog({
         sheetId: selectedSheet,
         cellRange: upperCellRange,
         value: cellValue,
+        formattedValue: cellValue,
         label: label || undefined
       });
     }, 100);
@@ -208,7 +216,7 @@ export const LightMetrics = forwardRef<LightMetricsHandle, LightMetricsProps>(({
   }));
   
   // Handle sheet selection
-  const handleSheetSelection = (data) => {
+  const handleSheetSelection = (data: any) => {
     setConnectionData(data);
     
     // Also trigger the parent update
@@ -301,4 +309,4 @@ export const LightMetrics = forwardRef<LightMetricsHandle, LightMetricsProps>(({
       )}
     </Card>
   );
-}
+});
