@@ -153,19 +153,23 @@ export function SheetsConnectionDialog({
         formattedValue: cellValue
       };
       
-      // Show success message
-      toast({
-        title: "Connection successful",
-        description: `Retrieved value: ${cellValue}`,
-      });
-      
-      // Close the dialog first to prevent potential issues
+      // First close the dialog
       onClose();
       
-      // Then update the connection data after a short delay
+      // Show success message after a short delay
       setTimeout(() => {
-        onUpdate(connectionData);
-      }, 100);
+        toast({
+          title: "Connection successful",
+          description: `Retrieved value: ${cellValue}`,
+        });
+        
+        // Update the connection data after showing the toast
+        try {
+          onUpdate(connectionData);
+        } catch (error) {
+          console.error("Error updating connection:", error);
+        }
+      }, 300);
       
     } catch (error) {
       console.error("Error connecting to sheet:", error);
