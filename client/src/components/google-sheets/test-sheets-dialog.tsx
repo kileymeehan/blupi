@@ -12,10 +12,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { TableIcon } from "lucide-react";
 
-// Fixed sheets for testing
-const TEST_SHEETS = [
-  { id: "sheet_1", name: "Test Sheet", sheetId: "1zW6Tru8P0dBGTzI0UvQnOgJR5BQ-nldCQsvdmD-lLPU" },
-  { id: "sheet_2", name: "Pendo Sheet", sheetId: "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU" }
+// We'll replace these with actual sheets from API
+const DEFAULT_SHEETS = [
+  { id: "sheet_1747768048338_0p5p7hz", name: "Google Sheet", sheetId: "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU" },
+  { id: "sheet_1747337585298_9i1l3np", name: "Test sheet", sheetId: "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU" }
 ];
 
 // Mock cell data
