@@ -460,12 +460,14 @@ export default function Block({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
                   // Use the ref to directly open the dialog
-                  if (sheetsMetricsRef.current[block.id]) {
-                    console.log(`Opening connection dialog for block ${block.id}`);
+                  console.log(`Attempting to open dialog for block ${block.id}`);
+                  if (sheetsMetricsRef.current && sheetsMetricsRef.current[block.id]) {
+                    console.log(`Found reference, opening connection dialog for block ${block.id}`);
                     sheetsMetricsRef.current[block.id].openConnectDialog();
                   } else {
-                    console.error(`Could not find SheetsMetrics ref for block ${block.id}`);
+                    console.error(`Could not find metrics ref for block ${block.id}`);
                   }
                 }}
                 className={`
