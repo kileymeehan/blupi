@@ -372,7 +372,7 @@ export async function fetchSheetCell(
     const row = parseInt(match[2]);
     let value = '';
     
-    // Generate different values based on the cell
+    // Generate different values based on the cell - now with numeric values
     if (col === 'A' && row === 1) {
       value = "Test Sheet Connected!";
     } else if (col === 'A') {
@@ -381,8 +381,16 @@ export async function fetchSheetCell(
       value = (row * 10).toString();
     } else if (col === 'C') {
       value = (row * 25).toString();
+    } else if (col === 'D') {
+      value = row.toString(); // Just the row number
+    } else if (col === 'E') {
+      value = (row * 5).toString() + "%"; // Percentage values
+    } else if (col === 'F') {
+      value = (row * 1000).toString(); // Larger numbers
+    } else if (col === 'G') {
+      value = (row * 0.01).toString(); // Decimal values
     } else {
-      value = `${col}${row} Value`;
+      value = row.toString(); // Just return the numeric value of the row
     }
     
     return {
