@@ -666,9 +666,9 @@ export function SheetsConnectionDialog({
     initialConnection
   });
 
-  // Pick the right view to show
-  const showExistingView = connectionType === 'existing' && boardSheets.length > 0;
-  const showNewView = connectionType === 'new' || boardSheets.length === 0;
+  // Pick the right view to show - FIXED to respect user's tab selection regardless of sheet count
+  const showExistingView = connectionType === 'existing';
+  const showNewView = connectionType === 'new';
   
   return (
     <DialogContent className="sm:max-w-[750px] max-h-[90vh] overflow-y-auto">
