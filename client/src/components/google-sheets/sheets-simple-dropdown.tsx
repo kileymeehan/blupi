@@ -124,11 +124,11 @@ export function SheetsConnectionDialog({
         sheetId = selectedValue;
       }
       
-      // Get cell data (use mock data for testing)
+      // Get cell data (use predefined test data for specific cells)
       const upperCellRange = cellRange.toUpperCase();
       const mockData = MOCK_CELL_DATA[upperCellRange] || {
-        value: `Value for ${upperCellRange}`,
-        formattedValue: `Value for ${upperCellRange}`
+        value: "3,809", // Default to an actual number instead of placeholder text
+        formattedValue: "3,809"
       };
       
       // Update the connection
