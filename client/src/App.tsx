@@ -74,6 +74,7 @@ function Router() {
         <ProtectedRoute path="/project/:id" component={Project} />
         <ProtectedRoute path="/project/:id/new" component={Board} />
         <ProtectedRoute path="/boards" component={Home} />
+        <ProtectedRoute path="/boards/:id" component={Board} /> {/* Added support for plural boards URL */}
         <ProtectedRoute path="/board/new" component={Board} />
         <ProtectedRoute path="/board/:id" component={Board} />
         <Route component={NotFound} />
