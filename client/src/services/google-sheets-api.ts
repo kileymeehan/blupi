@@ -373,7 +373,7 @@ export async function fetchSheetCell(
     let value = '';
     
     // Using real data values from your Pendo spreadsheet
-    const mockData = {
+    const mockData: Record<string, string> = {
       // Step column
       'A1': 'Step',
       'A2': '1. Dashboard',

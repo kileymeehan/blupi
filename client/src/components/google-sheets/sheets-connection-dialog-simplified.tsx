@@ -103,13 +103,22 @@ export function SheetsConnectionDialog({
   onUpdate,
   testGoogleSheetsApi
 }: SheetsConnectionDialogProps) {
-  const [connectionType, setConnectionType] = useState<'new' | 'existing'>('new');
-  const [boardSheets, setBoardSheets] = useState<BoardSheet[]>([]);
+  console.log("DIALOG DEBUG:", {boardId, connectionType: "new", boardSheetsCount: 0, selectedSheetId: "", initialConnection});
   const [loadingSheets, setLoadingSheets] = useState(false);
+  const [boardSheets, setBoardSheets] = useState<BoardSheet[]>([]);
+  
+  // State for existing sheet connection
+  const [existingCellRange, setExistingCellRange] = useState(initialConnection?.cellRange || '');
+  const [existingSheetName, setExistingSheetName] = useState(initialConnection?.sheetName || '');
+  const [existingLabel, setExistingLabel] = useState(initialConnection?.label || '');
+  
+  // Default to 'existing' when there are sheets available or when initialConnection is provided
+  const [connectionType, setConnectionType] = useState<'new' | 'existing'>(() => {
+    return (boardSheets.length > 0 || initialConnection) ? 'existing' : 'new';
+  });
+  
+  // Select the first sheet by default, or if initialConnection exists, find that sheet
   const [selectedSheetId, setSelectedSheetId] = useState<string>('');
-  const [existingCellRange, setExistingCellRange] = useState('');
-  const [existingSheetName, setExistingSheetName] = useState('');
-  const [existingLabel, setExistingLabel] = useState('');
   
   // State for the new UI components
   const [showExistingSheetSelector, setShowExistingSheetSelector] = useState(false);
@@ -118,6 +127,9 @@ export function SheetsConnectionDialog({
   const [newSheetUrl, setNewSheetUrl] = useState('');
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Available sheet names for dropdown (for selecting sheet names instead of typing)
+  const [sheetNames, setSheetNames] = useState<string[]>([]);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
