@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef, useImperativeHandle } from "react";
 import { TableIcon, FileTextIcon } from 'lucide-react';
 import { 
   Card, 
@@ -11,6 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
+
+// Define the handle for external components to interact with this one
+export interface LightMetricsHandle {
+  openConnectDialog: () => void;
+}
 
 // Our manually maintained list of mock sheets
 const BOARD_SHEETS = [
@@ -176,24 +181,31 @@ interface LightMetricsProps {
   blockId: string;
   boardId: number;
   className?: string;
-  initialData?: {
-    sheetId?: string;
-    cellRange?: string;
-    value?: string;
+  initialConnection?: {
+    sheetId: string;
+    cellRange: string;
+    sheetName?: string;
     label?: string;
+    formattedValue?: string;
+    lastUpdated?: string;
   };
   onUpdate: (data: any) => void;
 }
 
-export function LightMetrics({
+export const LightMetrics = forwardRef<LightMetricsHandle, LightMetricsProps>(({
   blockId,
   boardId,
   className = '',
-  initialData,
+  initialConnection,
   onUpdate
-}: LightMetricsProps) {
+}, ref) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [connectionData, setConnectionData] = useState(initialData || {});
+  const [connectionData, setConnectionData] = useState(initialConnection || {});
+  
+  // Expose methods to parent component via ref
+  useImperativeHandle(ref, () => ({
+    openConnectDialog: () => setIsDialogOpen(true)
+  }));
   
   // Handle sheet selection
   const handleSheetSelection = (data) => {

@@ -318,7 +318,7 @@ export default function Block({
           {/* Add Google Sheets metrics for metrics blocks */}
           {!isTemplate && block.type === 'metrics' && (
             <div className="mt-3 border-t border-gray-200 pt-2" id={`metrics-${block.id}`}>
-              <SheetsMetrics 
+              <LightMetrics 
                 ref={(ref) => {
                   if (ref) {
                     sheetsMetricsRef.current[block.id] = ref;
