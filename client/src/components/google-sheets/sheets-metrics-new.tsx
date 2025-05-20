@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog } from "@/components/ui/dialog";
 import { fetchSheetCell } from '../../services/google-sheets-api';
 import { useToast } from '@/hooks/use-toast';
-import { SheetsConnectionDialog } from './sheets-connection-dialog-enhanced';
+import { SheetsConnectionDialog } from './sheets-connection-basic';
 
 interface SheetsMetricsProps {
   blockId: string;

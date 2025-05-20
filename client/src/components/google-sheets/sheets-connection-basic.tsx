@@ -5,7 +5,6 @@ import * as z from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -30,11 +29,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { TableIcon, DatabaseIcon, FilesIcon, RefreshCwIcon } from "lucide-react";
+import { TableIcon, RefreshCwIcon } from "lucide-react";
 
-import { validateSheetUrl, getSheetNames, getBoardSheetDocuments, fetchSheetCell } from "@/services/google-sheets-api";
+import { validateSheetUrl, getBoardSheetDocuments, fetchSheetCell } from "@/services/google-sheets-api";
 
 const connectionFormSchema = z.object({
   sheetUrl: z.string().url('Please enter a valid Google Sheets URL'),
@@ -85,7 +83,6 @@ export function SheetsConnectionDialog({
 }: SheetsConnectionDialogProps) {
   const [loadingSheets, setLoadingSheets] = useState(false);
   const [boardSheets, setBoardSheets] = useState<BoardSheet[]>([]);
-  const [sheetNames, setSheetNames] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Default to 'existing' if there are sheets available or initialConnection exists
@@ -159,89 +156,7 @@ export function SheetsConnectionDialog({
     };
     
     fetchBoardSheets();
-  }, [boardId, initialConnection, toast]);
-  
-  // Fetch sheet names when a sheet is selected - with rate limiting
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const fetchSheetInfo = async () => {
-      if (!selectedSheetId) return;
-      
-      const selectedSheet = boardSheets.find(s => s.id === selectedSheetId);
-      if (!selectedSheet) return;
-      
-      try {
-        // For Test sheet, use mockup data to avoid API calls
-        if (selectedSheet.sheetId === "1zW6Tru8P0dBGTzI0UvQnOgJR5BQ-nldCQsvdmD-lLPU") {
-          console.log("Using mock sheet names for Test sheet");
-          setSheetNames(["Sheet1", "funnel-list", "Dashboard"]);
-          return;
-        }
-        
-        // Get sheet names for the selected sheet
-        const names = await getSheetNames(selectedSheet.sheetId);
-        setSheetNames(names);
-      } catch (error) {
-        console.error('Error fetching sheet names:', error);
-        // If rate limited, show a user-friendly message
-        if (error.toString().includes('Too Many Requests')) {
-          toast({
-            title: "API Rate Limit",
-            description: "Too many requests to Google Sheets API. Please try again in a minute.",
-            variant: "destructive",
-          });
-        }
-      }
-    };
-    
-    // Add a small delay to prevent rapid successive calls
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(fetchSheetInfo, 300);
-    
-    return () => clearTimeout(timeoutId);
-  }, [selectedSheetId, boardSheets, toast]);
-  
-  // Fetch sheet names for new connection - with debounce and rate limit handling
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const fetchSheetInfo = async () => {
-      const sheetUrl = form.watch('sheetUrl');
-      if (!sheetUrl || sheetUrl === '__csv__') return;
-      
-      // Special handling for Test sheet
-      if (sheetUrl.includes("1zW6Tru8P0dBGTzI0UvQnOgJR5BQ-nldCQsvdmD-lLPU")) {
-        console.log("Using mock sheet names for Test sheet URL");
-        setSheetNames(["Sheet1", "funnel-list", "Dashboard"]);
-        return;
-      }
-      
-      try {
-        const validationResult = await validateSheetUrl(sheetUrl);
-        if (validationResult.valid && validationResult.sheetId) {
-          const names = await getSheetNames(validationResult.sheetId);
-          setSheetNames(names);
-        }
-      } catch (error) {
-        console.error('Error fetching sheet names:', error);
-        // If rate limited, show a user-friendly message
-        if (error.toString().includes('Too Many Requests')) {
-          toast({
-            title: "API Rate Limit",
-            description: "Too many requests to Google Sheets API. Please try again in a minute.",
-            variant: "destructive",
-          });
-        }
-      }
-    };
-    
-    // Debounce API calls with 500ms delay
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(fetchSheetInfo, 500);
-    
-    return () => clearTimeout(timeoutId);
-  }, [form.watch('sheetUrl'), toast]);
+  }, [boardId, initialConnection, toast, selectedSheetId]);
   
   // Handle connecting with an existing sheet
   const handleExistingSheetConnection = async () => {
@@ -291,14 +206,14 @@ export function SheetsConnectionDialog({
         cellData = await fetchSheetCell(
           selectedSheet.sheetId,
           existingCellRange,
-          existingSheetName
+          existingSheetName || undefined
         );
       } else {
         // For other sheets, use normal API call
         cellData = await fetchSheetCell(
           selectedSheet.sheetId,
           existingCellRange,
-          existingSheetName
+          existingSheetName || undefined
         );
       }
       
@@ -322,7 +237,9 @@ export function SheetsConnectionDialog({
       console.error('Error connecting to sheet:', error);
       toast({
         title: "Connection failed",
-        description: error instanceof Error ? error.message : "Failed to connect to sheet",
+        description: String(error).includes("Too Many Requests") 
+          ? "Google Sheets API rate limit reached. Please try again in a minute."
+          : String(error),
         variant: "destructive",
       });
     } finally {
@@ -356,15 +273,15 @@ export function SheetsConnectionDialog({
       const cellData = await fetchSheetCell(
         validationResult.sheetId!,
         data.cellRange,
-        data.sheetName
+        data.sheetName || undefined
       );
       
       // Update the connection
       onUpdate({
         sheetId: validationResult.sheetId!,
-        sheetName: data.sheetName,
+        sheetName: data.sheetName || undefined,
         cellRange: data.cellRange,
-        label: data.label,
+        label: data.label || undefined,
         lastUpdated: new Date().toISOString(),
         formattedValue: cellData?.formattedValue || cellData?.value || ''
       });
@@ -382,7 +299,9 @@ export function SheetsConnectionDialog({
       console.error('Error submitting form:', error);
       toast({
         title: "Connection failed",
-        description: error instanceof Error ? error.message : "Failed to connect to sheet",
+        description: String(error).includes("Too Many Requests") 
+          ? "Google Sheets API rate limit reached. Please try again in a minute."
+          : String(error),
         variant: "destructive",
       });
     } finally {
@@ -412,116 +331,12 @@ export function SheetsConnectionDialog({
     }
   };
   
-  // Test connection with selected sheet
-  const testConnection = async () => {
-    if (activeTab === 'existing') {
-      if (!selectedSheetId) {
-        toast({
-          title: "Error",
-          description: "Please select a sheet",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!existingCellRange) {
-        toast({
-          title: "Error",
-          description: "Cell reference is required",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      try {
-        const selectedSheet = boardSheets.find(s => s.id === selectedSheetId);
-        if (!selectedSheet) {
-          toast({
-            title: "Error",
-            description: "Selected sheet not found",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        const cellData = await fetchSheetCell(
-          selectedSheet.sheetId,
-          existingCellRange,
-          existingSheetName
-        );
-        
-        toast({
-          title: "Connection test successful",
-          description: `Retrieved value: ${cellData?.formattedValue || cellData?.value}`,
-        });
-      } catch (error) {
-        console.error('Error testing connection:', error);
-        toast({
-          title: "Connection test failed",
-          description: error instanceof Error ? error.message : "Failed to test connection",
-          variant: "destructive",
-        });
-      }
-    } else {
-      // Test new connection
-      const { sheetUrl, cellRange, sheetName } = form.getValues();
-      
-      if (!sheetUrl) {
-        toast({
-          title: "Error",
-          description: "Sheet URL is required",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!cellRange) {
-        toast({
-          title: "Error",
-          description: "Cell reference is required",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      try {
-        const validationResult = await validateSheetUrl(sheetUrl);
-        if (!validationResult.valid) {
-          toast({
-            title: "Invalid URL",
-            description: validationResult.message || "Please enter a valid Google Sheets URL",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        const cellData = await fetchSheetCell(
-          validationResult.sheetId!,
-          cellRange,
-          sheetName
-        );
-        
-        toast({
-          title: "Connection test successful",
-          description: `Retrieved value: ${cellData?.formattedValue || cellData?.value}`,
-        });
-      } catch (error) {
-        console.error('Error testing connection:', error);
-        toast({
-          title: "Connection test failed",
-          description: error instanceof Error ? error.message : "Failed to test connection",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-  
   return (
     <DialogContent className="sm:max-w-[750px] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>Connect to Google Sheets</DialogTitle>
         <DialogDescription>
-          Connect this block to a Google Sheets cell.
+          Connect this block to a Google Sheets cell
         </DialogDescription>
       </DialogHeader>
       
@@ -581,24 +396,13 @@ export function SheetsConnectionDialog({
               
               <div className="space-y-2">
                 <FormLabel>Sheet Name (Tab)</FormLabel>
-                <Select 
-                  value={existingSheetName || ''} 
-                  onValueChange={setExistingSheetName}
-                  disabled={loadingSheets || !selectedSheetId || sheetNames.length === 0}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select sheet tab or leave empty for default" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sheetNames.map((name) => (
-                      <SelectItem key={name} value={name}>
-                        {name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input 
+                  placeholder="e.g., Sheet1 or funnel-list (optional)" 
+                  value={existingSheetName || ''}
+                  onChange={(e) => setExistingSheetName(e.target.value)}
+                />
                 <FormDescription>
-                  Select the tab in the spreadsheet (optional)
+                  Enter the sheet tab name (optional)
                 </FormDescription>
               </div>
               
@@ -634,14 +438,6 @@ export function SheetsConnectionDialog({
                 onClick={testGoogleSheetsApi}
               >
                 Test API Key
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={testConnection}
-                disabled={isProcessing}
-              >
-                Test Connection
               </Button>
               <Button
                 type="button"
@@ -688,30 +484,10 @@ export function SheetsConnectionDialog({
                   <FormItem>
                     <FormLabel>Sheet Name (Tab)</FormLabel>
                     <FormControl>
-                      {sheetNames.length > 0 ? (
-                        <Select 
-                          value={field.value || ''} 
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select sheet tab or leave empty for default" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {sheetNames.map((name) => (
-                              <SelectItem key={name} value={name}>
-                                {name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Input placeholder="Sheet1" {...field} />
-                      )}
+                      <Input placeholder="Sheet1" {...field} />
                     </FormControl>
                     <FormDescription>
-                      {sheetNames.length > 0 
-                        ? "Select the tab in the spreadsheet (optional)" 
-                        : "Enter the sheet name/tab (optional)"}
+                      Enter the sheet name/tab (optional)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -759,14 +535,6 @@ export function SheetsConnectionDialog({
                   onClick={testGoogleSheetsApi}
                 >
                   Test API Key
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={testConnection}
-                  disabled={isProcessing}
-                >
-                  Test Connection
                 </Button>
                 <Button
                   type="button"
