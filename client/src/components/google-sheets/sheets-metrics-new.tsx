@@ -190,7 +190,7 @@ export const SheetsMetrics = forwardRef<SheetsMetricsHandle, SheetsMetricsProps>
                 e.stopPropagation();
                 console.log('Opening connection dialog for metrics box. BoardId:', boardId);
                 // Force a check of the correct board ID if we're working with board 22
-                if (boardId === 22 || boardId === '22') {
+                if (Number(boardId) === 22) {
                   console.log('This is board 22, the known sheets should appear.');
                 }
                 setIsConnectDialogOpen(true);

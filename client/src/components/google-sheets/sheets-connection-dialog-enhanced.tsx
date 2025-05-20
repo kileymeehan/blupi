@@ -263,16 +263,16 @@ export function SheetsConnectionDialog({
       // Update the connection
       onUpdate({
         sheetId: selectedSheet.sheetId,
-        sheetName: existingSheetName,
+        sheetName: existingSheetName || undefined,
         cellRange: existingCellRange,
-        label: existingLabel,
+        label: existingLabel || undefined,
         lastUpdated: new Date().toISOString(),
-        formattedValue: cellData?.formattedValue || cellData?.value
+        formattedValue: cellData?.formattedValue || cellData?.value || ''
       });
       
       toast({
         title: "Connection successful",
-        description: `Connected to ${selectedSheet.name}. Retrieved value: ${cellData?.formattedValue || cellData?.value}`,
+        description: `Connected to ${selectedSheet.name}. Retrieved value: ${cellData?.formattedValue || cellData?.value || 'N/A'}`,
       });
       
       onClose();
@@ -324,16 +324,16 @@ export function SheetsConnectionDialog({
         cellRange: data.cellRange,
         label: data.label,
         lastUpdated: new Date().toISOString(),
-        formattedValue: cellData?.formattedValue || cellData?.value
+        formattedValue: cellData?.formattedValue || cellData?.value || ''
       });
       
       toast({
         title: "Connection successful",
-        description: `Connected to sheet. Retrieved value: ${cellData?.formattedValue || cellData?.value}`,
+        description: `Connected to sheet. Retrieved value: ${cellData?.formattedValue || cellData?.value || 'N/A'}`,
       });
       
       // Invalidate board sheets query to refresh the list
-      queryClient.invalidateQueries([`/api/boards/${boardId}/sheet-documents`]);
+      queryClient.invalidateQueries({ queryKey: [`/api/boards/${boardId}/sheet-documents`] });
       
       onClose();
     } catch (error) {
