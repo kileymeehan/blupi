@@ -100,6 +100,14 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
     setError(null);
     
     try {
+      console.log('Connecting new Google Sheet with name:', newDocName, 'and URL:', newDocUrl);
+      
+      // Attempt to extract the Sheet ID to validate the URL format
+      if (newDocUrl.indexOf('docs.google.com/spreadsheets/d/') === -1 && !newDocUrl.startsWith('csv:')) {
+        throw new Error('Invalid Google Sheets URL format. Please provide a valid URL in the format: https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/...');
+      }
+      
+      // Call the API to create the document
       await createSheetDocument(boardId, newDocName, newDocUrl);
       
       // Success - close dialog and refresh list
@@ -115,7 +123,14 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
       loadDocuments();
     } catch (err) {
       console.error('Error adding sheet document:', err);
-      setError(err instanceof Error ? err.message : 'Failed to connect Google Sheet');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to connect Google Sheet';
+      setError(errorMessage);
+      
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive'
+      });
     } finally {
       setIsSubmitting(false);
     }

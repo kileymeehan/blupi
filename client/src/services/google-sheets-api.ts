@@ -18,13 +18,8 @@ export async function getBoardSheetDocuments(boardId: number) {
  * Create a new sheet document connection for a board
  */
 export async function createSheetDocument(boardId: number, name: string, url: string) {
-  // Extract sheet ID from URL
-  const sheetId = extractSheetId(url);
-  
-  if (!sheetId) {
-    throw new Error('Invalid Google Sheets URL. Please provide a valid URL.');
-  }
-  
+  // Send the URL directly - the server will extract the ID
+  // This is important because the server handles both regular Google Sheets and CSV files
   const response = await fetch(`/api/boards/${boardId}/sheet-documents`, {
     method: 'POST',
     headers: {
@@ -32,7 +27,7 @@ export async function createSheetDocument(boardId: number, name: string, url: st
     },
     body: JSON.stringify({
       name,
-      sheetId,
+      sheetUrl: url, // Changed from sheetId to sheetUrl to match the server expectation
     }),
   });
   
