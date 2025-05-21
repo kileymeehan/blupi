@@ -289,7 +289,19 @@ export function MetricsDialog({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="sheetDoc">Select Google Sheet</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="sheetDoc">Select Google Sheet</Label>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={refreshSheets} 
+                disabled={loading}
+                className="h-6 px-2"
+              >
+                <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+                <span className="ml-1 text-xs">Refresh</span>
+              </Button>
+            </div>
             <select
               id="sheetDoc"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -314,6 +326,9 @@ export function MetricsDialog({
               )}
               <option value="new">+ Connect New Sheet</option>
             </select>
+            {loading && (
+              <p className="text-xs text-muted-foreground">Loading sheet connections...</p>
+            )}
           </div>
           
           {selectedSheetDoc === "new" ? (
