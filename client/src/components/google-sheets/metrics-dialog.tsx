@@ -104,34 +104,65 @@ export function MetricsDialog({
   const loadConnectedSheets = async () => {
     setLoading(true);
     try {
-      const sheets = await getBoardSheetDocuments(boardId);
+      // CRITICAL FIX: Always attempt to load sheets from both board 22 and current boardId
+      // This is to maintain compatibility with existing data while ensuring newer boards work properly
+      let sheets = [];
+      
+      try {
+        // First try to load from the current board
+        console.log(`Attempting to load sheets from current board ID: ${boardId}`);
+        sheets = await getBoardSheetDocuments(boardId);
+        console.log(`Loaded ${sheets.length} sheets from board ${boardId}`);
+      } catch (boardErr) {
+        console.error(`Error loading sheets from board ${boardId}:`, boardErr);
+      }
+      
+      // If no sheets were found and this isn't board 22, try board 22 as fallback
+      if (sheets.length === 0 && boardId !== 22) {
+        try {
+          console.log('Fallback: Attempting to load sheets from board 22');
+          const board22Sheets = await getBoardSheetDocuments(22);
+          sheets = board22Sheets;
+          console.log(`Loaded ${sheets.length} sheets from fallback board 22`);
+        } catch (fallbackErr) {
+          console.error('Error loading sheets from fallback board 22:', fallbackErr);
+        }
+      }
       
       if (sheets && sheets.length > 0) {
+        console.log(`Processing ${sheets.length} sheets with tabs`);
         // Add sheet tabs to each document
         const sheetsWithTabs = await Promise.all(
           sheets.map(async (sheet: SheetDocument) => {
             try {
+              console.log(`Fetching tabs for sheet: ${sheet.name} (${sheet.sheetId})`);
               const tabs = await getSheetTabs(sheet.sheetId);
+              console.log(`Got ${tabs.length} tabs for sheet ${sheet.name}`);
               return { ...sheet, sheets: tabs };
             } catch (err) {
               console.warn(`Error fetching tabs for sheet ${sheet.id}`, err);
+              console.log(`Using default tabs for sheet ${sheet.name}`);
               return { ...sheet, sheets: DEFAULT_SHEET_TABS };
             }
           })
         );
         
+        console.log('Setting sheet documents state with:', sheetsWithTabs);
         setSheetDocuments(sheetsWithTabs);
         
         // If we have sheets, select the first one by default
         if (sheetsWithTabs.length > 0) {
+          console.log(`Setting default selected sheet to: ${sheetsWithTabs[0].name}`);
           setSelectedSheetDoc(sheetsWithTabs[0].id);
           setSelectedSheet(sheetsWithTabs[0].sheets?.[0] || "Sheet1");
         } else {
           // If no sheets are connected, default to "new" state
+          console.log('No sheets with tabs found, defaulting to "new" state');
           setSelectedSheetDoc("new");
         }
       } else {
         // No sheets connected, default to "new" state
+        console.log('No sheets found at all, defaulting to "new" state');
         setSelectedSheetDoc("new");
         setSheetDocuments([]);
       }
