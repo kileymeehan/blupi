@@ -14,7 +14,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { 
   getBoardSheetDocuments, 
-  getSheetTabs 
+  getSheetTabs,
+  createSheetDocument
 } from '@/services/google-sheets-api';
 
 // Sheet document type
@@ -74,6 +75,7 @@ export function MetricsDialog({
   const [cell, setCell] = useState("");
   const [label, setLabel] = useState("");
   const [loading, setLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // Used to force refresh
   const { toast } = useToast();
 
   // Get the current sheet document 
@@ -85,12 +87,17 @@ export function MetricsDialog({
   const [newSheetName, setNewSheetName] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
   
-  // Fetch connected sheets when dialog opens
+  // Function to refresh the sheet list
+  const refreshSheets = () => {
+    setRefreshKey(prevKey => prevKey + 1);
+  };
+  
+  // Fetch connected sheets when dialog opens or refresh is triggered
   useEffect(() => {
     if (isOpen && boardId) {
       loadConnectedSheets();
     }
-  }, [isOpen, boardId]);
+  }, [isOpen, boardId, refreshKey]);
   
   // Load connected sheets for this board
   const loadConnectedSheets = async () => {
@@ -98,25 +105,34 @@ export function MetricsDialog({
     try {
       const sheets = await getBoardSheetDocuments(boardId);
       
-      // Add sheet tabs to each document
-      const sheetsWithTabs = await Promise.all(
-        sheets.map(async (sheet) => {
-          try {
-            const tabs = await getSheetTabs(sheet.sheetId);
-            return { ...sheet, sheets: tabs };
-          } catch (err) {
-            console.warn(`Error fetching tabs for sheet ${sheet.id}`, err);
-            return { ...sheet, sheets: DEFAULT_SHEET_TABS };
-          }
-        })
-      );
-      
-      setSheetDocuments(sheetsWithTabs);
-      
-      // If we have sheets, select the first one by default
-      if (sheetsWithTabs.length > 0) {
-        setSelectedSheetDoc(sheetsWithTabs[0].id);
-        setSelectedSheet(sheetsWithTabs[0].sheets?.[0] || "Sheet1");
+      if (sheets && sheets.length > 0) {
+        // Add sheet tabs to each document
+        const sheetsWithTabs = await Promise.all(
+          sheets.map(async (sheet: SheetDocument) => {
+            try {
+              const tabs = await getSheetTabs(sheet.sheetId);
+              return { ...sheet, sheets: tabs };
+            } catch (err) {
+              console.warn(`Error fetching tabs for sheet ${sheet.id}`, err);
+              return { ...sheet, sheets: DEFAULT_SHEET_TABS };
+            }
+          })
+        );
+        
+        setSheetDocuments(sheetsWithTabs);
+        
+        // If we have sheets, select the first one by default
+        if (sheetsWithTabs.length > 0) {
+          setSelectedSheetDoc(sheetsWithTabs[0].id);
+          setSelectedSheet(sheetsWithTabs[0].sheets?.[0] || "Sheet1");
+        } else {
+          // If no sheets are connected, default to "new" state
+          setSelectedSheetDoc("new");
+        }
+      } else {
+        // No sheets connected, default to "new" state
+        setSelectedSheetDoc("new");
+        setSheetDocuments([]);
       }
     } catch (err) {
       console.error("Error loading connected sheets:", err);
@@ -126,23 +142,9 @@ export function MetricsDialog({
         variant: "destructive"
       });
       
-      // If we can't load any sheets, default to mock data for development
-      if (process.env.NODE_ENV === 'development') {
-        const mockSheets = [
-          { 
-            id: "dev_sheet_1", 
-            name: "Development Sheet", 
-            sheetId: "dev123",
-            boardId: boardId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            sheets: DEFAULT_SHEET_TABS
-          }
-        ];
-        setSheetDocuments(mockSheets);
-        setSelectedSheetDoc(mockSheets[0].id);
-        setSelectedSheet(mockSheets[0].sheets[0]);
-      }
+      // Default to "new" state if there's an error
+      setSelectedSheetDoc("new");
+      setSheetDocuments([]);
     } finally {
       setLoading(false);
     }
