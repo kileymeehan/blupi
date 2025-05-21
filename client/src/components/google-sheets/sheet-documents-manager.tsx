@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ChevronDown, Plus, Edit, Trash2, FileSpreadsheet, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  FileSpreadsheet, 
+  RefreshCw, 
+} from 'lucide-react';
 import { 
   getBoardSheetDocuments, 
   createSheetDocument, 
@@ -219,73 +224,72 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
               Add Sheet
             </Button>
           </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Connect Google Sheet</DialogTitle>
-                <DialogDescription>
-                  Add a Google Sheet to use with metrics blocks
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4 py-2">
-                <div className="space-y-2">
-                  <Label htmlFor="sheet-name">Name</Label>
-                  <Input
-                    id="sheet-name"
-                    placeholder="My Metrics Sheet"
-                    value={newDocName}
-                    onChange={(e) => setNewDocName(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    A friendly name to identify this sheet
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="sheet-url">Google Sheets URL</Label>
-                  <Input
-                    id="sheet-url"
-                    placeholder="https://docs.google.com/spreadsheets/d/..."
-                    value={newDocUrl}
-                    onChange={(e) => setNewDocUrl(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    The URL of your Google Sheet. Make sure it's publicly accessible or shared with the right permissions.
-                  </p>
-                </div>
-                
-                {error && (
-                  <div className="bg-destructive/20 p-3 rounded-md text-sm text-destructive">
-                    {error}
-                  </div>
-                )}
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Connect Google Sheet</DialogTitle>
+              <DialogDescription>
+                Add a Google Sheet to use with metrics blocks
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="sheet-name">Name</Label>
+                <Input
+                  id="sheet-name"
+                  placeholder="My Metrics Sheet"
+                  value={newDocName}
+                  onChange={(e) => setNewDocName(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  A friendly name to identify this sheet
+                </p>
               </div>
               
-              <DialogFooter>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowAddDialog(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleAddDocument}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Connecting...
-                    </>
-                  ) : (
-                    <>Connect Sheet</>
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <div className="space-y-2">
+                <Label htmlFor="sheet-url">Google Sheets URL</Label>
+                <Input
+                  id="sheet-url"
+                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                  value={newDocUrl}
+                  onChange={(e) => setNewDocUrl(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  The URL of your Google Sheet. Make sure it's publicly accessible or shared with the right permissions.
+                </p>
+              </div>
+              
+              {error && (
+                <div className="bg-destructive/20 p-3 rounded-md text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowAddDialog(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleAddDocument}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>Connect Sheet</>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
       
       <div className="border rounded-md">
@@ -361,7 +365,7 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
           </ScrollArea>
         )}
       </div>
-      
+
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
