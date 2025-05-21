@@ -282,20 +282,34 @@ export function MetricsDialog({
           sheets: ["Sheet1", "Data"]
         };
         
-        setSheetDocuments(prev => [...prev, newDocWithTabs]);
+        // Prepare connection data
+        const connectionData = {
+          sheetId: newDoc.sheetId,
+          cellRange: cell.toUpperCase(),
+          value: "Loading...",
+          formattedValue: "Loading...",
+          label: label || undefined,
+          sheetName: "Sheet1",
+          lastUpdated: new Date().toISOString()
+        };
         
-        // Select the newly created sheet
-        setSelectedSheetDoc(newDoc.id);
-        setSelectedSheet("Sheet1");
-        
-        // Clear the form
-        setNewSheetUrl("");
-        setNewSheetName("");
-        
+        // Success message
         toast({
           title: "Sheet Connected",
           description: `Successfully connected to "${newSheetName}"`,
         });
+        
+        // Complete the connection first before state updates
+        onComplete(connectionData);
+        
+        // Update state and close dialog
+        setSheetDocuments(prev => [...prev, newDocWithTabs]);
+        setSelectedSheetDoc(newDoc.id);
+        setSelectedSheet("Sheet1");
+        setNewSheetUrl("");
+        setNewSheetName("");
+        onClose();
+        
       } catch (err) {
         console.error("Error connecting sheet:", err);
         setError(err instanceof Error ? err.message : "Failed to connect sheet");
@@ -341,26 +355,28 @@ export function MetricsDialog({
       }
     }
     
-    // First close dialog
-    onClose();
+    // Prepare connection data first before closing dialog
+    const connectionData = {
+      sheetId: currentSheetDoc.sheetId,
+      cellRange: upperCell,
+      value: cellData.value,
+      formattedValue: cellData.formatted,
+      label: label || undefined,
+      sheetName: selectedSheet,
+      lastUpdated: new Date().toISOString()
+    };
     
-    // Then update with success message
-    setTimeout(() => {
-      toast({
-        title: "Connection successful",
-        description: `Retrieved value: ${cellData.formatted}`,
-      });
-      
-      onComplete({
-        sheetId: currentSheetDoc.sheetId,
-        cellRange: upperCell,
-        value: cellData.value,
-        formattedValue: cellData.formatted,
-        label: label || undefined,
-        sheetName: selectedSheet,
-        lastUpdated: new Date().toISOString()
-      });
-    }, 100);
+    // Show success message
+    toast({
+      title: "Connection successful",
+      description: `Retrieved value: ${cellData.formatted}`,
+    });
+    
+    // Complete with data before closing dialog to avoid DOM errors
+    onComplete(connectionData);
+    
+    // Finally close dialog
+    onClose();
   };
   
   return (
