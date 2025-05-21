@@ -95,79 +95,135 @@ export function MetricsDialog({
   
   // Fetch connected sheets when dialog opens or refresh is triggered
   useEffect(() => {
-    if (isOpen && boardId) {
-      loadConnectedSheets();
+    if (isOpen) {
+      // Force immediate refresh when dialog opens
+      setTimeout(() => {
+        loadConnectedSheets();
+      }, 100); // Small delay to ensure component is fully mounted
     }
   }, [isOpen, boardId, refreshKey]);
   
-  // Load connected sheets for this board
+  // Load connected sheets for this board - CRITICAL FIX for sheet loading issues
   const loadConnectedSheets = async () => {
     setLoading(true);
+    setSheetDocuments([]); // Clear existing sheets to avoid stale data
+    
     try {
-      // CRITICAL FIX: Always attempt to load sheets from both board 22 and current boardId
-      // This is to maintain compatibility with existing data while ensuring newer boards work properly
-      let sheets = [];
+      console.log(`📊 [Metrics Dialog] Loading sheets for board ${boardId}...`);
       
-      try {
-        // First try to load from the current board
-        console.log(`Attempting to load sheets from current board ID: ${boardId}`);
-        sheets = await getBoardSheetDocuments(boardId);
-        console.log(`Loaded ${sheets.length} sheets from board ${boardId}`);
-      } catch (boardErr) {
-        console.error(`Error loading sheets from board ${boardId}:`, boardErr);
-      }
-      
-      // If no sheets were found and this isn't board 22, try board 22 as fallback
-      if (sheets.length === 0 && boardId !== 22) {
-        try {
-          console.log('Fallback: Attempting to load sheets from board 22');
-          const board22Sheets = await getBoardSheetDocuments(22);
-          sheets = board22Sheets;
-          console.log(`Loaded ${sheets.length} sheets from fallback board 22`);
-        } catch (fallbackErr) {
-          console.error('Error loading sheets from fallback board 22:', fallbackErr);
+      // Do a hard refresh first to make sure we're getting the latest data
+      // This is a temporary but quick approach that works well
+      if (typeof window !== 'undefined') {
+        // Use sessionStorage to prevent infinite refresh loops
+        const refreshCount = parseInt(sessionStorage.getItem('metricsDialogRefreshCount') || '0');
+        if (refreshCount < 1) {
+          sessionStorage.setItem('metricsDialogRefreshCount', (refreshCount + 1).toString());
+          await fetch(`/api/boards/${boardId}/sheet-documents?refresh=true`);
+        } else {
+          // Reset the counter after 10 seconds
+          setTimeout(() => {
+            sessionStorage.setItem('metricsDialogRefreshCount', '0');
+          }, 10000);
         }
       }
       
-      if (sheets && sheets.length > 0) {
-        console.log(`Processing ${sheets.length} sheets with tabs`);
+      // CRITICAL FIX: Always attempt to load sheets from the API with explicit GET requests
+      // to ensure we're getting the latest data, bypassing any caching issues
+      let allSheets: SheetDocument[] = [];
+      
+      // First try to load from the current board with an explicit refresh
+      try {
+        // Bypass caching and potential issues with the cached data
+        const response = await fetch(`/api/boards/${boardId}/sheet-documents?t=${Date.now()}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch sheets: ${response.status} ${response.statusText}`);
+        }
+        
+        const currentBoardSheets = await response.json();
+        
+        console.log(`📊 [Metrics Dialog] Found ${currentBoardSheets.length} sheets in current board ${boardId}:`, 
+          currentBoardSheets.map((s: any) => s.name).join(', '));
+        
+        // Add to our collection
+        allSheets = [...allSheets, ...currentBoardSheets];
+      } catch (boardErr) {
+        console.error(`📊 [Metrics Dialog] Error loading sheets from current board ${boardId}:`, boardErr);
+      }
+      
+      // If this isn't board 22, also try board 22 as it might have shared sheets
+      if (boardId !== 22) {
+        try {
+          console.log('📊 [Metrics Dialog] Also checking board 22 for shared sheets');
+          const response = await fetch(`/api/boards/22/sheet-documents?t=${Date.now()}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch sheets from board 22: ${response.status} ${response.statusText}`);
+          }
+          
+          const board22Sheets = await response.json();
+          
+          console.log(`📊 [Metrics Dialog] Found ${board22Sheets.length} sheets in board 22:`, 
+            board22Sheets.map((s: any) => s.name).join(', '));
+          
+          // Add to our collection, avoiding duplicates
+          const existingIds = new Set(allSheets.map(s => s.id));
+          for (const sheet of board22Sheets) {
+            if (!existingIds.has(sheet.id)) {
+              allSheets.push(sheet);
+            }
+          }
+        } catch (fallbackErr) {
+          console.error('📊 [Metrics Dialog] Error loading sheets from board 22:', fallbackErr);
+        }
+      }
+      
+      // Log our combined sheet collection
+      console.log(`📊 [Metrics Dialog] Combined total: ${allSheets.length} sheets available for connection`);
+      
+      if (allSheets.length > 0) {
         // Add sheet tabs to each document
         const sheetsWithTabs = await Promise.all(
-          sheets.map(async (sheet: SheetDocument) => {
+          allSheets.map(async (sheet: SheetDocument) => {
             try {
-              console.log(`Fetching tabs for sheet: ${sheet.name} (${sheet.sheetId})`);
+              console.log(`📊 [Metrics Dialog] Fetching tabs for sheet: ${sheet.name} (${sheet.sheetId})`);
               const tabs = await getSheetTabs(sheet.sheetId);
-              console.log(`Got ${tabs.length} tabs for sheet ${sheet.name}`);
+              console.log(`📊 [Metrics Dialog] Got ${tabs.length} tabs for sheet ${sheet.name}`);
               return { ...sheet, sheets: tabs };
             } catch (err) {
-              console.warn(`Error fetching tabs for sheet ${sheet.id}`, err);
-              console.log(`Using default tabs for sheet ${sheet.name}`);
+              console.warn(`📊 [Metrics Dialog] Error fetching tabs for sheet ${sheet.id}`, err);
+              console.log(`📊 [Metrics Dialog] Using default tabs for sheet ${sheet.name}`);
               return { ...sheet, sheets: DEFAULT_SHEET_TABS };
             }
           })
         );
         
-        console.log('Setting sheet documents state with:', sheetsWithTabs);
+        // Sort sheets alphabetically by name for easier selection
+        sheetsWithTabs.sort((a, b) => a.name.localeCompare(b.name));
+        
+        console.log('📊 [Metrics Dialog] Final sheet collection:', sheetsWithTabs.map(s => s.name));
+        
+        // CRITICAL: Make sure we actually set the state with the loaded sheets - this is key!
         setSheetDocuments(sheetsWithTabs);
         
-        // If we have sheets, select the first one by default
-        if (sheetsWithTabs.length > 0) {
-          console.log(`Setting default selected sheet to: ${sheetsWithTabs[0].name}`);
+        // Trigger a UI refresh to ensure dropdown updates
+        setTimeout(() => {
+          console.log('📊 [Metrics Dialog] Triggering UI refresh after sheet loading');
+          setRefreshKey(prev => prev + 1);
+        }, 300);
+        
+        // If we have sheets, select the first one by default unless we're already in new mode
+        if (sheetsWithTabs.length > 0 && (selectedSheetDoc === "new" || selectedSheetDoc === "")) {
+          console.log(`📊 [Metrics Dialog] Setting default selected sheet to: ${sheetsWithTabs[0].name}`);
           setSelectedSheetDoc(sheetsWithTabs[0].id);
           setSelectedSheet(sheetsWithTabs[0].sheets?.[0] || "Sheet1");
-        } else {
-          // If no sheets are connected, default to "new" state
-          console.log('No sheets with tabs found, defaulting to "new" state');
-          setSelectedSheetDoc("new");
         }
       } else {
         // No sheets connected, default to "new" state
-        console.log('No sheets found at all, defaulting to "new" state');
+        console.log('📊 [Metrics Dialog] No sheets found at all, defaulting to "new" state');
         setSelectedSheetDoc("new");
         setSheetDocuments([]);
       }
     } catch (err) {
-      console.error("Error loading connected sheets:", err);
+      console.error("📊 [Metrics Dialog] Error loading connected sheets:", err);
       toast({
         title: "Error",
         description: "Failed to load connected sheets",
