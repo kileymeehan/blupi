@@ -76,6 +76,7 @@ export function MetricsDialog({
   const [label, setLabel] = useState("");
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0); // Used to force refresh
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Get the current sheet document 
@@ -151,7 +152,7 @@ export function MetricsDialog({
   };
 
   // Handle form submission
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!cell) {
       toast({
         title: "Error",
@@ -182,35 +183,48 @@ export function MetricsDialog({
       }
 
       setIsConnecting(true);
+      setError(null);
       
-      // Simulate connecting to the new sheet
-      setTimeout(() => {
-        setIsConnecting(false);
-        toast({
-          title: "Sheet Connected",
-          description: `Successfully connected to "${newSheetName}"`,
-        });
+      try {
+        // Extract the sheet ID from the URL
+        const matches = newSheetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        const sheetId = matches && matches[1] ? matches[1] : newSheetUrl;
         
-        // Create a new sheet document with a random ID
-        const newId = `sheet_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        const sheetId = newSheetUrl.match(/[-\w]{25,}/)?.[0] || "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU";
+        // Create the new sheet document via API
+        const newDoc = await createSheetDocument(boardId, newSheetName, newSheetUrl);
         
-        // Add the new sheet to our list (in a real app, this would save to the database)
-        BOARD_SHEETS.push({
-          id: newId,
-          name: newSheetName,
-          sheetId: sheetId,
-          sheets: ["Sheet1", "Data", "Summary"]
-        });
+        // Add the new sheet to our state (with default tabs for now)
+        const newDocWithTabs = {
+          ...newDoc,
+          sheets: ["Sheet1", "Data"]
+        };
+        
+        setSheetDocuments(prev => [...prev, newDocWithTabs]);
         
         // Select the newly created sheet
-        setSelectedSheetDoc(newId);
+        setSelectedSheetDoc(newDoc.id);
         setSelectedSheet("Sheet1");
         
         // Clear the form
         setNewSheetUrl("");
         setNewSheetName("");
-      }, 1500);
+        
+        toast({
+          title: "Sheet Connected",
+          description: `Successfully connected to "${newSheetName}"`,
+        });
+      } catch (err) {
+        console.error("Error connecting sheet:", err);
+        setError(err instanceof Error ? err.message : "Failed to connect sheet");
+        
+        toast({
+          title: "Error",
+          description: "Failed to connect the sheet",
+          variant: "destructive"
+        });
+      } finally {
+        setIsConnecting(false);
+      }
       
       return;
     }
@@ -289,10 +303,15 @@ export function MetricsDialog({
                   }
                 }
               }}
+              disabled={loading}
             >
-              {sheetDocuments.map(sheet => (
-                <option key={sheet.id} value={sheet.id}>{sheet.name}</option>
-              ))}
+              {sheetDocuments.length > 0 ? (
+                sheetDocuments.map(sheet => (
+                  <option key={sheet.id} value={sheet.id}>{sheet.name}</option>
+                ))
+              ) : (
+                <option value="" disabled>No sheets available</option>
+              )}
               <option value="new">+ Connect New Sheet</option>
             </select>
           </div>
@@ -334,9 +353,13 @@ export function MetricsDialog({
                 value={selectedSheet}
                 onChange={(e) => setSelectedSheet(e.target.value)}
               >
-                {currentSheetDoc.sheets.map(sheet => (
-                  <option key={sheet} value={sheet}>{sheet}</option>
-                ))}
+                {currentSheetDoc.sheets && currentSheetDoc.sheets.length > 0 ? (
+                  currentSheetDoc.sheets.map(sheet => (
+                    <option key={sheet} value={sheet}>{sheet}</option>
+                  ))
+                ) : (
+                  <option value="Sheet1">Sheet1</option>
+                )}
               </select>
             </div>
           )}
