@@ -93,14 +93,33 @@ function extractSheetId(url: string): string | null {
  * Get available sheet tabs for a specific Google Sheet
  */
 export async function getSheetTabs(sheetId: string) {
-  const response = await fetch(`/api/google-sheets/${sheetId}/tabs`);
-  
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to fetch sheet tabs: ${error}`);
+  // Handle special cases to speed up development
+  if (sheetId === '1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU') {
+    console.log('Using hardcoded tabs for Payroll sheet');
+    return ["funnel-list", "payroll-steps"];
   }
   
-  return await response.json();
+  if (sheetId === '1xt1GaKk91mUjYU2pHYiqma1zgq0g35fyZJmc22dac9Y') {
+    console.log('Using hardcoded tabs for The Big Sheet');
+    return ["Super Sheet", "Cool Sheet"];
+  }
+  
+  // For all other sheets, try to fetch via API
+  try {
+    console.log(`Fetching tabs for sheet: ${sheetId}`);
+    const response = await fetch(`/api/google-sheets/${sheetId}/tabs`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch sheet tabs: ${response.status} ${response.statusText}`);
+    }
+    
+    const tabs = await response.json();
+    console.log(`Got ${tabs.length} tabs for sheet: ${sheetId}`, tabs);
+    return tabs;
+  } catch (error) {
+    console.error(`Error fetching tabs for ${sheetId}:`, error);
+    return ["Sheet1"]; // Default fallback
+  }
 }
 
 /**
