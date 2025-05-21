@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TableIcon, RefreshCw } from 'lucide-react';
+import { TableIcon, RefreshCw, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   Dialog,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { 
   getBoardSheetDocuments, 
@@ -69,17 +70,75 @@ export function MetricsDialog({
   isOpen,
   onClose,
   onComplete,
-  boardId
-}: MetricsDialogProps) {
+  boardId,
+  initialData
+}: MetricsDialogProps & { initialData?: SheetsConnectionData }) {
   const [sheetDocuments, setSheetDocuments] = useState<SheetDocument[]>([]);
   const [selectedSheetDoc, setSelectedSheetDoc] = useState<string | "new">("new");
   const [selectedSheet, setSelectedSheet] = useState<string>("");
-  const [cell, setCell] = useState("");
-  const [label, setLabel] = useState("");
+  const [cell, setCell] = useState(initialData?.cellRange || "");
+  const [label, setLabel] = useState(initialData?.label || "");
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0); // Used to force refresh
   const [error, setError] = useState<string | null>(null);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
   const { toast } = useToast();
+  
+  // Auto-refresh timer - will refresh connected data every 5 minutes
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    if (autoRefreshEnabled && initialData?.sheetId && initialData?.cellRange && initialData?.sheetName) {
+      console.log('Setting up auto-refresh for sheet connection');
+      intervalId = setInterval(() => {
+        refreshSheetData(initialData.sheetId, initialData.sheetName, initialData.cellRange);
+      }, 5 * 60 * 1000); // 5 minutes
+    }
+    
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [autoRefreshEnabled, initialData]);
+  
+  // Function to refresh sheet data
+  const refreshSheetData = async (sheetId: string, sheetName: string, cellRange: string) => {
+    try {
+      console.log(`Auto-refreshing data for ${sheetName} - ${cellRange}`);
+      const result = await getCellValue(sheetId, sheetName, cellRange);
+      
+      if (result && result.value) {
+        console.log(`Refreshed value: ${result.value}`);
+        
+        // Prepare refreshed connection data
+        const refreshedData = {
+          sheetId,
+          cellRange,
+          value: result.value,
+          formattedValue: result.formattedValue || result.value,
+          label: initialData?.label,
+          sheetName,
+          lastUpdated: new Date().toISOString()
+        };
+        
+        // Update the connected block with refreshed data
+        onComplete(refreshedData);
+        
+        toast({
+          title: "Sheet data refreshed",
+          description: `Updated value: ${result.formattedValue || result.value}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error refreshing sheet data:", error);
+      toast({
+        title: "Refresh failed",
+        description: "Could not refresh sheet data",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Get the current sheet document 
   const currentSheetDoc = selectedSheetDoc === "new" ? null : 
