@@ -199,27 +199,27 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
 
   return (
     <div className={`google-sheets-manager ${className}`}>
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium">Connected Google Sheets</h3>
+      <h3 className="text-lg font-medium mb-2 w-full text-left">Connected Google Sheets</h3>
+      
+      <div className="flex gap-2 mb-4">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={loadDocuments}
+          disabled={loading}
+          className="flex-1"
+        >
+          <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
         
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={loadDocuments}
-            disabled={loading}
-          >
-            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-1" />
-                Add Sheet
-              </Button>
-            </DialogTrigger>
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="flex-1">
+              <Plus className="h-4 w-4 mr-1" />
+              Add Sheet
+            </Button>
+          </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Connect Google Sheet</DialogTitle>
