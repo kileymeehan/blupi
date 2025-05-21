@@ -199,15 +199,14 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
 
   return (
     <div className={`google-sheets-manager ${className}`}>
-      <h3 className="text-lg font-medium mb-2 w-full text-left">Connected Google Sheets</h3>
+      <h3 className="text-lg font-medium mb-3 w-full text-left">Connected Google Sheets</h3>
       
-      <div className="flex gap-2 mb-4">
+      <div className="grid grid-cols-2 gap-2 mb-4">
         <Button
           size="sm"
           variant="outline"
           onClick={loadDocuments}
           disabled={loading}
-          className="flex-1"
         >
           <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -215,7 +214,7 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
         
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button size="sm" className="flex-1">
+            <Button size="sm">
               <Plus className="h-4 w-4 mr-1" />
               Add Sheet
             </Button>
@@ -289,7 +288,6 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
         </div>
       </div>
       
-      {/* Documents List */}
       <div className="border rounded-md">
         {documents.length === 0 ? (
           <div className="p-6 text-center text-muted-foreground">

@@ -595,14 +595,21 @@ export default function BoardGrid({
     setTimeout(() => setHighlightedBlockId(null), 2000);
   };
 
+  // Helper to close all sidebar sections
+  const closeAllSections = () => {
+    setShowContext(false);
+    setShowBlocks(false);
+    setShowComments(false);
+    setShowDepartments(false);
+    setShowGoogleSheets(false);
+  };
+
   const toggleContext = () => {
     if (showContext) {
       setShowContext(false);
     } else {
+      closeAllSections();
       setShowContext(true);
-      setShowBlocks(false);
-      setShowComments(false);
-      setShowDepartments(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -613,10 +620,8 @@ export default function BoardGrid({
     if (showBlocks) {
       setShowBlocks(false);
     } else {
+      closeAllSections();
       setShowBlocks(true);
-      setShowContext(false);
-      setShowComments(false);
-      setShowDepartments(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -627,10 +632,8 @@ export default function BoardGrid({
     if (showComments) {
       setShowComments(false);
     } else {
+      closeAllSections();
       setShowComments(true);
-      setShowContext(false);
-      setShowBlocks(false);
-      setShowDepartments(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -641,11 +644,8 @@ export default function BoardGrid({
     if (showDepartments) {
       setShowDepartments(false);
     } else {
+      closeAllSections();
       setShowDepartments(true);
-      setShowContext(false);
-      setShowBlocks(false);
-      setShowComments(false);
-      setShowGoogleSheets(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
@@ -656,11 +656,8 @@ export default function BoardGrid({
     if (showGoogleSheets) {
       setShowGoogleSheets(false);
     } else {
+      closeAllSections();
       setShowGoogleSheets(true);
-      setShowContext(false);
-      setShowBlocks(false);
-      setShowComments(false);
-      setShowDepartments(false);
       if (!isDrawerOpen) {
         setIsDrawerOpen(true);
       }
