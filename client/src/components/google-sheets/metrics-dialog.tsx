@@ -75,6 +75,11 @@ export function MetricsDialog({
   // Get the current sheet document 
   const currentSheetDoc = selectedSheetDoc === "new" ? null : BOARD_SHEETS.find(s => s.id === selectedSheetDoc);
   
+  // State for new sheet connection
+  const [newSheetUrl, setNewSheetUrl] = useState("");
+  const [newSheetName, setNewSheetName] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
+
   // Handle form submission
   const handleSubmit = () => {
     if (!cell) {
@@ -88,11 +93,55 @@ export function MetricsDialog({
     
     // Handle "New Connection" option
     if (selectedSheetDoc === "new") {
-      toast({
-        title: "Connect New Sheet",
-        description: "This would normally open Google OAuth to connect a new sheet. For this demo, we'll use a test sheet.",
-      });
-      setSelectedSheetDoc(BOARD_SHEETS[0].id);
+      if (!newSheetUrl) {
+        toast({
+          title: "Error",
+          description: "Please enter a Google Sheets URL",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!newSheetName) {
+        toast({
+          title: "Error",
+          description: "Please enter a name for this sheet",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setIsConnecting(true);
+      
+      // Simulate connecting to the new sheet
+      setTimeout(() => {
+        setIsConnecting(false);
+        toast({
+          title: "Sheet Connected",
+          description: `Successfully connected to "${newSheetName}"`,
+        });
+        
+        // Create a new sheet document with a random ID
+        const newId = `sheet_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        const sheetId = newSheetUrl.match(/[-\w]{25,}/)?.[0] || "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU";
+        
+        // Add the new sheet to our list (in a real app, this would save to the database)
+        BOARD_SHEETS.push({
+          id: newId,
+          name: newSheetName,
+          sheetId: sheetId,
+          sheets: ["Sheet1", "Data", "Summary"]
+        });
+        
+        // Select the newly created sheet
+        setSelectedSheetDoc(newId);
+        setSelectedSheet("Sheet1");
+        
+        // Clear the form
+        setNewSheetUrl("");
+        setNewSheetName("");
+      }, 1500);
+      
       return;
     }
     
@@ -178,7 +227,35 @@ export function MetricsDialog({
             </select>
           </div>
           
-          {selectedSheetDoc !== "new" && currentSheetDoc && (
+          {selectedSheetDoc === "new" ? (
+            <>
+              <div className="grid gap-2">
+                <Label htmlFor="newSheetUrl">Google Sheets URL</Label>
+                <Input
+                  id="newSheetUrl"
+                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                  value={newSheetUrl}
+                  onChange={(e) => setNewSheetUrl(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Paste the full URL to your Google Sheet
+                </p>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="newSheetName">Sheet Name</Label>
+                <Input
+                  id="newSheetName"
+                  placeholder="e.g., Q2 Marketing Metrics"
+                  value={newSheetName}
+                  onChange={(e) => setNewSheetName(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Give this sheet a descriptive name
+                </p>
+              </div>
+            </>
+          ) : currentSheetDoc && (
             <div className="grid gap-2">
               <Label htmlFor="sheetTab">Select Sheet Tab</Label>
               <select
