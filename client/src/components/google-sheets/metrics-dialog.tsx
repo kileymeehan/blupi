@@ -571,11 +571,55 @@ export function MetricsDialog({
           </div>
         </div>
         
+        <div className="mt-4 px-1">
+          {initialData?.sheetId && (
+            <div className="flex items-center justify-between mb-4 p-2 border rounded-md bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <Clock className="h-4 w-4 text-gray-600" />
+                <Label htmlFor="auto-refresh" className="text-sm font-medium">
+                  Auto-refresh values every 5 minutes
+                </Label>
+              </div>
+              <Switch
+                id="auto-refresh"
+                checked={autoRefreshEnabled}
+                onCheckedChange={setAutoRefreshEnabled}
+              />
+            </div>
+          )}
+          
+          {initialData?.sheetId && initialData?.cellRange && (
+            <div className="mb-4 p-2 border rounded-md bg-blue-50">
+              <div className="text-sm text-blue-700 flex items-center justify-between">
+                <span>Currently connected to: <strong>{initialData.sheetName || 'Sheet1'} - {initialData.cellRange}</strong></span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    if (initialData?.sheetId && initialData?.sheetName && initialData?.cellRange) {
+                      refreshSheetData(initialData.sheetId, initialData.sheetName, initialData.cellRange);
+                    }
+                  }}
+                  className="px-2 h-7"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Refresh
+                </Button>
+              </div>
+              {initialData.lastUpdated && (
+                <div className="text-xs text-gray-500 mt-1">
+                  Last updated: {new Date(initialData.lastUpdated).toLocaleString()}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>
+          <Button onClick={handleSubmit} disabled={loading || isConnecting}>
             <TableIcon className="h-4 w-4 mr-2" />
-            Connect
+            {loading || isConnecting ? 'Connecting...' : 'Connect'}
           </Button>
         </DialogFooter>
       </DialogContent>
