@@ -204,7 +204,7 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
 
   return (
     <div className={`google-sheets-manager ${className}`}>
-      <h3 className="text-lg font-medium mb-3 w-full text-left">Connected Google Sheets</h3>
+      <h3 className="text-base font-medium mb-3 w-full text-left">Connected Google Sheets</h3>
       
       <div className="grid grid-cols-2 gap-2 mb-4">
         <Button
