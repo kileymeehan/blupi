@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { TableIcon } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { TableIcon, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   Dialog,
@@ -12,22 +12,24 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  getBoardSheetDocuments, 
+  getSheetTabs 
+} from '@/services/google-sheets-api';
 
-// Our sheet options with sheet names for each Google Sheet
-const BOARD_SHEETS = [
-  { 
-    id: "sheet_1747768048338_0p5p7hz", 
-    name: "Payroll Metrics", 
-    sheetId: "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU",
-    sheets: ["Overview", "User Stats", "Financial Data", "Annual Report"]
-  },
-  { 
-    id: "sheet_1747337585298_9i1l3np", 
-    name: "Test Data", 
-    sheetId: "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU",
-    sheets: ["Sheet1", "Monthly Stats", "Quarterly Review"]
-  }
-];
+// Sheet document type
+interface SheetDocument {
+  id: string;
+  name: string;
+  sheetId: string;
+  boardId: number;
+  createdAt: string;
+  updatedAt: string;
+  sheets?: string[]; // Available sheet/tab names
+}
+
+// Predefined sheet tabs for testing when API is unavailable
+const DEFAULT_SHEET_TABS = ["Sheet1", "Overview", "Data", "Monthly Stats"];
 
 // Predefined cell data values for demonstration
 const CELL_VALUES: Record<string, Record<string, string>> = {
@@ -66,19 +68,85 @@ export function MetricsDialog({
   onComplete,
   boardId
 }: MetricsDialogProps) {
-  const [selectedSheetDoc, setSelectedSheetDoc] = useState<string | "new">(BOARD_SHEETS[0].id);
-  const [selectedSheet, setSelectedSheet] = useState<string>(BOARD_SHEETS[0].sheets[0]);
+  const [sheetDocuments, setSheetDocuments] = useState<SheetDocument[]>([]);
+  const [selectedSheetDoc, setSelectedSheetDoc] = useState<string | "new">("new");
+  const [selectedSheet, setSelectedSheet] = useState<string>("");
   const [cell, setCell] = useState("");
   const [label, setLabel] = useState("");
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   // Get the current sheet document 
-  const currentSheetDoc = selectedSheetDoc === "new" ? null : BOARD_SHEETS.find(s => s.id === selectedSheetDoc);
+  const currentSheetDoc = selectedSheetDoc === "new" ? null : 
+    sheetDocuments.find(s => s.id === selectedSheetDoc);
   
   // State for new sheet connection
   const [newSheetUrl, setNewSheetUrl] = useState("");
   const [newSheetName, setNewSheetName] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
+  
+  // Fetch connected sheets when dialog opens
+  useEffect(() => {
+    if (isOpen && boardId) {
+      loadConnectedSheets();
+    }
+  }, [isOpen, boardId]);
+  
+  // Load connected sheets for this board
+  const loadConnectedSheets = async () => {
+    setLoading(true);
+    try {
+      const sheets = await getBoardSheetDocuments(boardId);
+      
+      // Add sheet tabs to each document
+      const sheetsWithTabs = await Promise.all(
+        sheets.map(async (sheet) => {
+          try {
+            const tabs = await getSheetTabs(sheet.sheetId);
+            return { ...sheet, sheets: tabs };
+          } catch (err) {
+            console.warn(`Error fetching tabs for sheet ${sheet.id}`, err);
+            return { ...sheet, sheets: DEFAULT_SHEET_TABS };
+          }
+        })
+      );
+      
+      setSheetDocuments(sheetsWithTabs);
+      
+      // If we have sheets, select the first one by default
+      if (sheetsWithTabs.length > 0) {
+        setSelectedSheetDoc(sheetsWithTabs[0].id);
+        setSelectedSheet(sheetsWithTabs[0].sheets?.[0] || "Sheet1");
+      }
+    } catch (err) {
+      console.error("Error loading connected sheets:", err);
+      toast({
+        title: "Error",
+        description: "Failed to load connected sheets",
+        variant: "destructive"
+      });
+      
+      // If we can't load any sheets, default to mock data for development
+      if (process.env.NODE_ENV === 'development') {
+        const mockSheets = [
+          { 
+            id: "dev_sheet_1", 
+            name: "Development Sheet", 
+            sheetId: "dev123",
+            boardId: boardId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sheets: DEFAULT_SHEET_TABS
+          }
+        ];
+        setSheetDocuments(mockSheets);
+        setSelectedSheetDoc(mockSheets[0].id);
+        setSelectedSheet(mockSheets[0].sheets[0]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle form submission
   const handleSubmit = () => {
@@ -213,14 +281,14 @@ export function MetricsDialog({
               onChange={(e) => {
                 setSelectedSheetDoc(e.target.value);
                 if (e.target.value !== "new") {
-                  const doc = BOARD_SHEETS.find(s => s.id === e.target.value);
-                  if (doc && doc.sheets.length > 0) {
+                  const doc = sheetDocuments.find(s => s.id === e.target.value);
+                  if (doc && doc.sheets && doc.sheets.length > 0) {
                     setSelectedSheet(doc.sheets[0]);
                   }
                 }
               }}
             >
-              {BOARD_SHEETS.map(sheet => (
+              {sheetDocuments.map(sheet => (
                 <option key={sheet.id} value={sheet.id}>{sheet.name}</option>
               ))}
               <option value="new">+ Connect New Sheet</option>
