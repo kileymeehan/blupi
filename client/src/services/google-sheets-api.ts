@@ -126,14 +126,18 @@ export async function getSheetTabs(sheetId: string) {
  * Get cell value from a specific Google Sheet
  */
 export async function getCellValue(sheetId: string, sheetName: string, cellRef: string) {
-  const response = await fetch(`/api/google-sheets/${sheetId}/values`, {
+  console.log(`Fetching cell value: Sheet ID: ${sheetId}, Sheet Name: ${sheetName}, Cell: ${cellRef}`);
+  
+  // The correct endpoint is /api/google-sheets/cell
+  const response = await fetch(`/api/google-sheets/cell`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      sheetId,
       sheetName,
-      cellRef,
+      cellRange: cellRef, // Server expects cellRange, not cellRef
     }),
   });
   
@@ -142,5 +146,7 @@ export async function getCellValue(sheetId: string, sheetName: string, cellRef: 
     throw new Error(`Failed to get cell value: ${error}`);
   }
   
-  return await response.json();
+  const result = await response.json();
+  console.log(`Received cell value from API:`, result);
+  return result;
 }

@@ -340,20 +340,20 @@ export function MetricsDialog({
     
     // Set loading state
     setLoading(true);
-    
-    setLoading(true);
       
     try {
       // Actually fetch the real data from the Google Sheet
-      console.log(`Fetching value for cell ${upperCell} from sheet ${selectedSheet} (ID: ${currentSheetDoc.sheetId})`);
+      console.log(`📊 [Metrics Dialog] Fetching value for cell ${upperCell} from sheet ${selectedSheet} (ID: ${currentSheetDoc.sheetId})`);
       
       // Try to get the actual value from the API
       const result = await getCellValue(currentSheetDoc.sheetId, selectedSheet, upperCell);
+      console.log(`📊 [Metrics Dialog] Raw API result:`, result);
+      
       const cellData = { 
         value: result.value || "0", 
         formatted: result.formattedValue || result.value || "0" 
       };
-      console.log(`Successfully retrieved cell value:`, cellData);
+      console.log(`📊 [Metrics Dialog] Successfully retrieved cell value:`, cellData);
       
       // Prepare connection data 
       const connectionData = {
