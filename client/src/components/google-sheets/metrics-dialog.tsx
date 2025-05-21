@@ -30,7 +30,8 @@ interface SheetDocument {
 }
 
 // Predefined sheet tabs for testing when API is unavailable
-const DEFAULT_SHEET_TABS = ["Sheet1", "Overview", "Data", "Monthly Stats"];
+// Use minimal defaults to avoid misleading users
+const DEFAULT_SHEET_TABS = ["Sheet1"];
 
 // Predefined cell data values for demonstration
 const CELL_VALUES: Record<string, Record<string, string>> = {
