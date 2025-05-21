@@ -15,7 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   getBoardSheetDocuments, 
   getSheetTabs,
-  createSheetDocument
+  createSheetDocument,
+  getCellValue
 } from '@/services/google-sheets-api';
 
 // Sheet document type
@@ -336,47 +337,56 @@ export function MetricsDialog({
     }
     
     const upperCell = cell.toUpperCase();
-    let cellData = CELL_VALUES[upperCell] || { value: "1,234", formatted: "1,234" };
     
-    // Get a variety of sample values based on cell and sheet name for a more realistic demo
-    if (upperCell.startsWith('A')) {
-      cellData = { value: "42%", formatted: "42%" };
-    } else if (upperCell.startsWith('B')) {
-      cellData = { value: "1,205", formatted: "1,205 users" };
-    } else if (upperCell.startsWith('C')) {
-      cellData = { value: "67.3%", formatted: "67.3%" };
-    } else if (upperCell.startsWith('D')) {
-      if (selectedSheet.includes("Monthly")) {
-        cellData = { value: "2,451", formatted: "2,451" };
-      } else if (selectedSheet.includes("Financial")) {
-        cellData = { value: "$5,280", formatted: "$5,280" };
-      } else {
-        cellData = { value: "3,809", formatted: "3,809" };
-      }
+    // Set loading state
+    setLoading(true);
+    
+    setLoading(true);
+      
+    try {
+      // Actually fetch the real data from the Google Sheet
+      console.log(`Fetching value for cell ${upperCell} from sheet ${selectedSheet} (ID: ${currentSheetDoc.sheetId})`);
+      
+      // Try to get the actual value from the API
+      const result = await getCellValue(currentSheetDoc.sheetId, selectedSheet, upperCell);
+      const cellData = { 
+        value: result.value || "0", 
+        formatted: result.formattedValue || result.value || "0" 
+      };
+      console.log(`Successfully retrieved cell value:`, cellData);
+      
+      // Prepare connection data 
+      const connectionData = {
+        sheetId: currentSheetDoc.sheetId,
+        cellRange: upperCell,
+        value: cellData.value,
+        formattedValue: cellData.formatted,
+        label: label || undefined,
+        sheetName: selectedSheet,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      // Show success message
+      toast({
+        title: "Connection successful",
+        description: `Retrieved value: ${cellData.formatted}`,
+      });
+      
+      // Complete with data before closing dialog to avoid DOM errors
+      onComplete(connectionData);
+      
+      // Finally close dialog
+      onClose();
+    } catch (err) {
+      console.error("Error connecting to Google Sheet:", err);
+      setLoading(false);
+      
+      toast({
+        title: "Connection error",
+        description: "There was a problem connecting to the sheet. Please try again.",
+        variant: "destructive"
+      });
     }
-    
-    // Prepare connection data first before closing dialog
-    const connectionData = {
-      sheetId: currentSheetDoc.sheetId,
-      cellRange: upperCell,
-      value: cellData.value,
-      formattedValue: cellData.formatted,
-      label: label || undefined,
-      sheetName: selectedSheet,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    // Show success message
-    toast({
-      title: "Connection successful",
-      description: `Retrieved value: ${cellData.formatted}`,
-    });
-    
-    // Complete with data before closing dialog to avoid DOM errors
-    onComplete(connectionData);
-    
-    // Finally close dialog
-    onClose();
   };
   
   return (
