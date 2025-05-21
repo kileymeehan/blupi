@@ -95,37 +95,29 @@ export function MetricsDialog({
   
   // Fetch connected sheets when dialog opens or refresh is triggered
   useEffect(() => {
-    if (isOpen) {
-      // Force immediate refresh when dialog opens
-      setTimeout(() => {
-        loadConnectedSheets();
-      }, 100); // Small delay to ensure component is fully mounted
+    // Only load sheets when dialog opens or when refresh is explicitly triggered by user
+    if (isOpen && !sheetDocuments.length) {
+      // One-time load when dialog opens
+      loadConnectedSheets();
     }
-  }, [isOpen, boardId, refreshKey]);
+  }, [isOpen, boardId]); // Removed refreshKey to prevent infinite loops
+  
+  // Added separate effect for manual refresh only
+  useEffect(() => {
+    if (refreshKey > 0 && isOpen) {
+      loadConnectedSheets();
+    }
+  }, [refreshKey]);
   
   // Load connected sheets for this board - CRITICAL FIX for sheet loading issues
   const loadConnectedSheets = async () => {
+    // Prevent running multiple times
+    if (loading) return;
+    
     setLoading(true);
-    setSheetDocuments([]); // Clear existing sheets to avoid stale data
     
     try {
       console.log(`📊 [Metrics Dialog] Loading sheets for board ${boardId}...`);
-      
-      // Do a hard refresh first to make sure we're getting the latest data
-      // This is a temporary but quick approach that works well
-      if (typeof window !== 'undefined') {
-        // Use sessionStorage to prevent infinite refresh loops
-        const refreshCount = parseInt(sessionStorage.getItem('metricsDialogRefreshCount') || '0');
-        if (refreshCount < 1) {
-          sessionStorage.setItem('metricsDialogRefreshCount', (refreshCount + 1).toString());
-          await fetch(`/api/boards/${boardId}/sheet-documents?refresh=true`);
-        } else {
-          // Reset the counter after 10 seconds
-          setTimeout(() => {
-            sessionStorage.setItem('metricsDialogRefreshCount', '0');
-          }, 10000);
-        }
-      }
       
       // CRITICAL FIX: Always attempt to load sheets from the API with explicit GET requests
       // to ensure we're getting the latest data, bypassing any caching issues
@@ -203,12 +195,6 @@ export function MetricsDialog({
         
         // CRITICAL: Make sure we actually set the state with the loaded sheets - this is key!
         setSheetDocuments(sheetsWithTabs);
-        
-        // Trigger a UI refresh to ensure dropdown updates
-        setTimeout(() => {
-          console.log('📊 [Metrics Dialog] Triggering UI refresh after sheet loading');
-          setRefreshKey(prev => prev + 1);
-        }, 300);
         
         // If we have sheets, select the first one by default unless we're already in new mode
         if (sheetsWithTabs.length > 0 && (selectedSheetDoc === "new" || selectedSheetDoc === "")) {
