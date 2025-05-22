@@ -318,7 +318,7 @@ export default function Block({
           {/* Add Google Sheets metrics for metrics blocks */}
           {!isTemplate && block.type === 'metrics' && (
             <div className="mt-3 border-t border-gray-200 pt-2" id={`metrics-${block.id}`}>
-              <InlineMetrics 
+              <BasicMetrics 
                 ref={(ref) => {
                   if (ref) {
                     sheetsMetricsRef.current[block.id] = ref;
@@ -369,7 +369,7 @@ export default function Block({
                 {/* Experiment data display */}
                 {block.sheetsConnection && (
                   <div className="flex flex-col gap-2">
-                    <InlineMetrics 
+                    <BasicMetrics 
                       ref={(ref) => {
                         if (ref) {
                           sheetsMetricsRef.current[block.id] = ref;
