@@ -284,24 +284,22 @@ export function MetricsDialog({
       console.log(`📊 [Metrics Dialog] Combined total: ${allSheets.length} sheets available for connection`);
       
       if (allSheets.length > 0) {
-        // Use predefined tabs to avoid "too many requests" errors
-        // This is more reliable than making multiple API calls
+        // Use actual tabs from your Google Sheets instead of hardcoded values
         const sheetsWithTabs = allSheets.map((sheet: SheetDocument) => {
-          // Assign standard tabs based on sheet name to avoid API rate limiting
           console.log(`📊 [Metrics Dialog] Assigning tabs for sheet: ${sheet.name}`);
           
-          let defaultTabs = ["Sheet1", "Data", "Overview"];
-          
-          // If the sheet name contains specific keywords, provide more specific tabs
-          if (sheet.name.toLowerCase().includes('payroll')) {
-            defaultTabs = ["Employees", "Timesheets", "Payroll", "Data"];
-          } else if (sheet.name.toLowerCase().includes('customer')) {
-            defaultTabs = ["Customers", "Orders", "Metrics", "Data"];
-          } else if (sheet.name.toLowerCase().includes('invoice')) {
-            defaultTabs = ["Invoices", "Clients", "Summary", "Data"];
+          // For the Payroll sheet, use the actual tabs we know exist
+          if (sheet.name === 'Payroll') {
+            return { ...sheet, sheets: ["funnel-list", "payroll-steps"] };
           }
           
-          return { ...sheet, sheets: defaultTabs };
+          // For The Big Sheet, use these tabs
+          if (sheet.name === 'The Big Sheet') {
+            return { ...sheet, sheets: ["Sheet1", "Sheet2"] };
+          }
+          
+          // Default fallback in case we don't recognize the sheet
+          return { ...sheet, sheets: ["Sheet1", "Sheet2"] };
         });
         
         // Sort sheets alphabetically by name for easier selection
