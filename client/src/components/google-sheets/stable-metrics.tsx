@@ -20,13 +20,13 @@ export interface StableMetricsHandle {
 
 // Data structure for sheet connection
 export interface StableConnectionData {
-  sheetId?: string;
-  cellRange?: string;
+  sheetId: string;
+  cellRange: string;
   value?: string;
   formattedValue?: string;
   label?: string;
   sheetName?: string;
-  lastUpdated?: string;
+  lastUpdated: string;
 }
 
 interface StableMetricsProps {
@@ -63,7 +63,7 @@ export const StableMetrics = forwardRef<StableMetricsHandle, StableMetricsProps>
   const [isEditing, setIsEditing] = useState(false);
   const [cellRef, setCellRef] = useState(initialConnection?.cellRange || "");
   const [label, setLabel] = useState(initialConnection?.label || "");
-  const [connection, setConnection] = useState<StableConnectionData>(initialConnection || {});
+  const [connection, setConnection] = useState<StableConnectionData | undefined>(initialConnection);
   
   const { toast } = useToast();
   
@@ -91,7 +91,7 @@ export const StableMetrics = forwardRef<StableMetricsHandle, StableMetricsProps>
     
     // Create the new connection data
     const newConnection: StableConnectionData = {
-      sheetId: "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU",
+      sheetId: "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU", // Fixed sheet ID
       sheetName: "funnel-list",
       cellRange: upperCell,
       value: value,
