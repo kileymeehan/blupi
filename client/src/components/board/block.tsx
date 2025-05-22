@@ -27,7 +27,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { PendoMetrics } from "../pendo/pendo-metrics";
-import { SimpleFixMetrics } from "../google-sheets/simple-fix-metrics";
+import { InlineMetrics } from "../google-sheets/inline-metrics";
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
@@ -318,7 +318,7 @@ export default function Block({
           {/* Add Google Sheets metrics for metrics blocks */}
           {!isTemplate && block.type === 'metrics' && (
             <div className="mt-3 border-t border-gray-200 pt-2" id={`metrics-${block.id}`}>
-              <SimpleFixMetrics 
+              <InlineMetrics 
                 ref={(ref) => {
                   if (ref) {
                     sheetsMetricsRef.current[block.id] = ref;
@@ -369,7 +369,7 @@ export default function Block({
                 {/* Experiment data display */}
                 {block.sheetsConnection && (
                   <div className="flex flex-col gap-2">
-                    <SimpleFixMetrics 
+                    <InlineMetrics 
                       ref={(ref) => {
                         if (ref) {
                           sheetsMetricsRef.current[block.id] = ref;
