@@ -1,4 +1,4 @@
-import { useState, forwardRef, useImperativeHandle } from "react";
+import { useState, forwardRef, useImperativeHandle, useEffect } from "react";
 import { TableIcon } from 'lucide-react';
 import { 
   Card, 
@@ -34,6 +34,13 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [connectionData, setConnectionData] = useState<SheetsConnectionData>(initialConnection || {});
   
+  // Update connectionData when initialConnection changes
+  useEffect(() => {
+    if (initialConnection) {
+      setConnectionData(initialConnection);
+    }
+  }, [initialConnection]);
+  
   // Expose methods to parent component via ref
   useImperativeHandle(ref, () => ({
     openConnectDialog: () => {
@@ -45,10 +52,15 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
   // Handle sheet selection
   const handleSheetSelection = (data: SheetsConnectionData) => {
     console.log("Sheet data selected:", data);
+    
+    // Update local state first
     setConnectionData(data);
     
-    // Also trigger the parent update
-    onUpdate(data);
+    // Use setTimeout to prevent DOM manipulation issues that could cause white screen
+    setTimeout(() => {
+      // Then trigger the parent update in the next event loop cycle
+      onUpdate(data);
+    }, 0);
   };
   
   // If we don't have connection data, show the "not connected" state

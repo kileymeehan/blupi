@@ -91,7 +91,9 @@ export function MetricsDialog({
     if (autoRefreshEnabled && initialData?.sheetId && initialData?.cellRange && initialData?.sheetName) {
       console.log('Setting up auto-refresh for sheet connection');
       intervalId = setInterval(() => {
-        refreshSheetData(initialData.sheetId, initialData.sheetName, initialData.cellRange);
+        if (initialData.sheetId && initialData.sheetName && initialData.cellRange) {
+          refreshSheetData(initialData.sheetId, initialData.sheetName, initialData.cellRange);
+        }
       }, 5 * 60 * 1000); // 5 minutes
     }
     
