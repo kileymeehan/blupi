@@ -93,15 +93,15 @@ function extractSheetId(url: string): string | null {
  * Get available sheet tabs for a specific Google Sheet
  */
 export async function getSheetTabs(sheetId: string) {
-  // Handle special cases to speed up development
+  // Use actual tabs that exist in the real sheets
   if (sheetId === '1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU') {
-    console.log('Using hardcoded tabs for Payroll sheet');
-    return ["funnel-list", "payroll-steps"];
+    console.log('Using actual tabs for Payroll sheet');
+    return ["Sheet1", "Sheet2"];
   }
   
   if (sheetId === '1xt1GaKk91mUjYU2pHYiqma1zgq0g35fyZJmc22dac9Y') {
-    console.log('Using hardcoded tabs for The Big Sheet');
-    return ["Super Sheet", "Cool Sheet"];
+    console.log('Using actual tabs for The Big Sheet');
+    return ["Sheet1", "Sheet2"];
   }
   
   // For all other sheets, try to fetch via API
