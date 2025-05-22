@@ -53,14 +53,26 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
   const handleSheetSelection = (data: SheetsConnectionData) => {
     console.log("Sheet data selected:", data);
     
-    // Update local state first
-    setConnectionData(data);
+    // Deep clone the connection data to avoid reference issues
+    const connectionDataCopy = JSON.parse(JSON.stringify(data));
     
-    // Use setTimeout to prevent DOM manipulation issues that could cause white screen
+    // Update local state first
+    setConnectionData(connectionDataCopy);
+    
+    // Use setTimeout with a longer delay to prevent white screen issues
+    // This gives React a chance to properly update the UI before saving changes
     setTimeout(() => {
-      // Then trigger the parent update in the next event loop cycle
-      onUpdate(data);
-    }, 0);
+      // Use a try-catch to prevent any potential errors from crashing the app
+      try {
+        // Use another copy to ensure we're not passing references that could cause issues
+        onUpdate(JSON.parse(JSON.stringify(connectionDataCopy)));
+      } catch (err) {
+        console.error("Error updating connection:", err);
+      }
+    }, 100);
+    
+    // Close the dialog first before saving to prevent UI issues
+    setIsDialogOpen(false);
   };
   
   // If we don't have connection data, show the "not connected" state

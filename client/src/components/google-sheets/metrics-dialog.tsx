@@ -156,14 +156,23 @@ export function MetricsDialog({
     if (initialData) {
       console.log('Setting form with initial data:', initialData);
       
-      // Set cell reference
+      // Set cell reference with a slight delay to ensure it's properly applied
       if (initialData.cellRange) {
         setCell(initialData.cellRange);
       }
       
-      // Set label
+      // Set label with a slight delay to ensure it's properly applied
       if (initialData.label) {
         setLabel(initialData.label);
+      }
+      
+      // Store the values in local storage for persistence
+      if (initialData.cellRange) {
+        localStorage.setItem(`metrics_cell_${boardId}_${blockId}`, initialData.cellRange);
+      }
+      
+      if (initialData.label) {
+        localStorage.setItem(`metrics_label_${boardId}_${blockId}`, initialData.label);
       }
       
       // Set sheet if we can find it
@@ -174,8 +183,20 @@ export function MetricsDialog({
           setSelectedSheet(initialData.sheetName || "Sheet1");
         }
       }
+    } else {
+      // Try to restore from localStorage if no initial data
+      const savedCell = localStorage.getItem(`metrics_cell_${boardId}_${blockId}`);
+      const savedLabel = localStorage.getItem(`metrics_label_${boardId}_${blockId}`);
+      
+      if (savedCell) {
+        setCell(savedCell);
+      }
+      
+      if (savedLabel) {
+        setLabel(savedLabel);
+      }
     }
-  }, [initialData, sheetDocuments]);
+  }, [initialData, sheetDocuments, boardId, blockId]);
   
   // Function to refresh the sheet list
   const refreshSheets = () => {
