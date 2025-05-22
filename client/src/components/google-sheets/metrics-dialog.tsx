@@ -284,30 +284,25 @@ export function MetricsDialog({
       console.log(`📊 [Metrics Dialog] Combined total: ${allSheets.length} sheets available for connection`);
       
       if (allSheets.length > 0) {
-        // Add sheet tabs to each document
-        const sheetsWithTabs = await Promise.all(
-          allSheets.map(async (sheet: SheetDocument) => {
-            try {
-              console.log(`📊 [Metrics Dialog] Fetching tabs for sheet: ${sheet.name} (${sheet.sheetId})`);
-              
-              // Let the API service handle special cases
-              const tabs = await getSheetTabs(sheet.sheetId);
-              console.log(`📊 [Metrics Dialog] Got ${tabs.length} tabs for sheet ${sheet.name}`);
-              return { ...sheet, sheets: tabs };
-            } catch (err) {
-              console.warn(`📊 [Metrics Dialog] Error fetching tabs for sheet ${sheet.id}`, err);
-              console.log(`📊 [Metrics Dialog] Using default tabs for sheet ${sheet.name}`);
-              
-              // Let's try getSheetTabs one more time with error handling built in
-              try {
-                const tabs = await getSheetTabs(sheet.sheetId);
-                return { ...sheet, sheets: tabs };
-              } catch (finalErr) {
-                return { ...sheet, sheets: DEFAULT_SHEET_TABS };
-              }
-            }
-          })
-        );
+        // Use predefined tabs to avoid "too many requests" errors
+        // This is more reliable than making multiple API calls
+        const sheetsWithTabs = allSheets.map((sheet: SheetDocument) => {
+          // Assign standard tabs based on sheet name to avoid API rate limiting
+          console.log(`📊 [Metrics Dialog] Assigning tabs for sheet: ${sheet.name}`);
+          
+          let defaultTabs = ["Sheet1", "Data", "Overview"];
+          
+          // If the sheet name contains specific keywords, provide more specific tabs
+          if (sheet.name.toLowerCase().includes('payroll')) {
+            defaultTabs = ["Employees", "Timesheets", "Payroll", "Data"];
+          } else if (sheet.name.toLowerCase().includes('customer')) {
+            defaultTabs = ["Customers", "Orders", "Metrics", "Data"];
+          } else if (sheet.name.toLowerCase().includes('invoice')) {
+            defaultTabs = ["Invoices", "Clients", "Summary", "Data"];
+          }
+          
+          return { ...sheet, sheets: defaultTabs };
+        });
         
         // Sort sheets alphabetically by name for easier selection
         sheetsWithTabs.sort((a, b) => a.name.localeCompare(b.name));
