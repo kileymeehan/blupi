@@ -107,6 +107,7 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
             onClose={() => setIsDialogOpen(false)}
             onComplete={handleSheetSelection}
             boardId={boardId}
+            blockId={blockId}
             initialData={connectionData}
           />
         )}
@@ -157,6 +158,7 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
           onClose={() => setIsDialogOpen(false)}
           onComplete={handleSheetSelection}
           boardId={boardId}
+          blockId={blockId}
           initialData={connectionData}
         />
       )}

@@ -64,6 +64,7 @@ interface MetricsDialogProps {
   onClose: () => void;
   onComplete: (data: SheetsConnectionData) => void;
   boardId: number;
+  blockId?: string; // Make blockId optional to prevent errors
 }
 
 export function MetricsDialog({
@@ -71,6 +72,7 @@ export function MetricsDialog({
   onClose,
   onComplete,
   boardId,
+  blockId,
   initialData
 }: MetricsDialogProps & { initialData?: SheetsConnectionData }) {
   const [sheetDocuments, setSheetDocuments] = useState<SheetDocument[]>([]);
@@ -167,11 +169,11 @@ export function MetricsDialog({
       }
       
       // Store the values in local storage for persistence
-      if (initialData.cellRange) {
+      if (initialData.cellRange && blockId) {
         localStorage.setItem(`metrics_cell_${boardId}_${blockId}`, initialData.cellRange);
       }
       
-      if (initialData.label) {
+      if (initialData.label && blockId) {
         localStorage.setItem(`metrics_label_${boardId}_${blockId}`, initialData.label);
       }
       
@@ -183,8 +185,8 @@ export function MetricsDialog({
           setSelectedSheet(initialData.sheetName || "Sheet1");
         }
       }
-    } else {
-      // Try to restore from localStorage if no initial data
+    } else if (blockId) {
+      // Try to restore from localStorage if no initial data (only if blockId is available)
       const savedCell = localStorage.getItem(`metrics_cell_${boardId}_${blockId}`);
       const savedLabel = localStorage.getItem(`metrics_label_${boardId}_${blockId}`);
       
