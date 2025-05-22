@@ -149,6 +149,32 @@ export function MetricsDialog({
   const [newSheetName, setNewSheetName] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
   
+  // Initialize form with existing connection data when it's available
+  useEffect(() => {
+    if (initialData) {
+      console.log('Setting form with initial data:', initialData);
+      
+      // Set cell reference
+      if (initialData.cellRange) {
+        setCell(initialData.cellRange);
+      }
+      
+      // Set label
+      if (initialData.label) {
+        setLabel(initialData.label);
+      }
+      
+      // Set sheet if we can find it
+      if (initialData.sheetId && sheetDocuments.length > 0) {
+        const matchingDoc = sheetDocuments.find(doc => doc.sheetId === initialData.sheetId);
+        if (matchingDoc) {
+          setSelectedSheetDoc(matchingDoc.id);
+          setSelectedSheet(initialData.sheetName || "Sheet1");
+        }
+      }
+    }
+  }, [initialData, sheetDocuments]);
+  
   // Function to refresh the sheet list
   const refreshSheets = () => {
     setRefreshKey(prevKey => prevKey + 1);
@@ -619,7 +645,7 @@ export function MetricsDialog({
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={handleSubmit} disabled={loading || isConnecting}>
             <TableIcon className="h-4 w-4 mr-2" />
-            {loading || isConnecting ? 'Connecting...' : 'Connect'}
+            {loading || isConnecting ? 'Saving...' : 'Save'}
           </Button>
         </DialogFooter>
       </DialogContent>
