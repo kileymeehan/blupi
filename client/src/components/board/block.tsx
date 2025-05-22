@@ -27,7 +27,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { PendoMetrics } from "../pendo/pendo-metrics";
-import { BasicMetrics } from "../google-sheets/basic-metrics";
+import { SimpleMetrics } from "../google-sheets/simple-metrics";
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
@@ -124,8 +124,8 @@ export default function Block({
   const [localContent, setLocalContent] = useState(block.content || "");
   const [isEditing, setIsEditing] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
-  // Use the BasicMetricsHandle type from the imported component
-  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/basic-metrics").BasicMetricsHandle>>({});
+  // Use the SimpleMetricsHandle type from the imported component
+  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/simple-metrics").SimpleMetricsHandle>>({});
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
@@ -318,7 +318,7 @@ export default function Block({
           {/* Add Google Sheets metrics for metrics blocks */}
           {!isTemplate && block.type === 'metrics' && (
             <div className="mt-3 border-t border-gray-200 pt-2" id={`metrics-${block.id}`}>
-              <BasicMetrics 
+              <SimpleMetrics 
                 ref={(ref) => {
                   if (ref) {
                     sheetsMetricsRef.current[block.id] = ref;
@@ -369,7 +369,7 @@ export default function Block({
                 {/* Experiment data display */}
                 {block.sheetsConnection && (
                   <div className="flex flex-col gap-2">
-                    <BasicMetrics 
+                    <SimpleMetrics 
                       ref={(ref) => {
                         if (ref) {
                           sheetsMetricsRef.current[block.id] = ref;
