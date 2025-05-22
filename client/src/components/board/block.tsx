@@ -27,7 +27,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { PendoMetrics } from "../pendo/pendo-metrics";
-import { InlineMetrics } from "../google-sheets/inline-metrics";
+import { BasicMetrics } from "../google-sheets/basic-metrics";
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
@@ -124,8 +124,8 @@ export default function Block({
   const [localContent, setLocalContent] = useState(block.content || "");
   const [isEditing, setIsEditing] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
-  // Use the LightMetricsHandle type from the imported component
-  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/light-metrics").LightMetricsHandle>>({});
+  // Use the BasicMetricsHandle type from the imported component
+  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/basic-metrics").BasicMetricsHandle>>({});
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
