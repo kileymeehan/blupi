@@ -465,6 +465,7 @@ export default function Block({
                   console.log(`Attempting to open dialog for block ${block.id}`);
                   if (sheetsMetricsRef.current && sheetsMetricsRef.current[block.id]) {
                     console.log(`Found reference, opening connection dialog for block ${block.id}`);
+                    // This method is now defined in our BasicMetrics component
                     sheetsMetricsRef.current[block.id].openConnectDialog();
                   } else {
                     console.error(`Could not find metrics ref for block ${block.id}`);
