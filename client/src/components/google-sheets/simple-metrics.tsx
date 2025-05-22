@@ -53,26 +53,24 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
   const handleSheetSelection = (data: SheetsConnectionData) => {
     console.log("Sheet data selected:", data);
     
-    // Deep clone the connection data to avoid reference issues
-    const connectionDataCopy = JSON.parse(JSON.stringify(data));
+    // Close the dialog first
+    setIsDialogOpen(false);
     
-    // Update local state first
-    setConnectionData(connectionDataCopy);
-    
-    // Use setTimeout with a longer delay to prevent white screen issues
-    // This gives React a chance to properly update the UI before saving changes
+    // Add a small delay to make sure the dialog is completely closed
     setTimeout(() => {
-      // Use a try-catch to prevent any potential errors from crashing the app
       try {
-        // Use another copy to ensure we're not passing references that could cause issues
-        onUpdate(JSON.parse(JSON.stringify(connectionDataCopy)));
+        // First update our local state
+        setConnectionData(prev => {
+          // Create a clean copy that preserves any existing data
+          return { ...prev, ...data };
+        });
+        
+        // Then notify the parent
+        onUpdate(data);
       } catch (err) {
         console.error("Error updating connection:", err);
       }
-    }, 100);
-    
-    // Close the dialog first before saving to prevent UI issues
-    setIsDialogOpen(false);
+    }, 150);
   };
   
   // If we don't have connection data, show the "not connected" state
@@ -109,6 +107,7 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
             onClose={() => setIsDialogOpen(false)}
             onComplete={handleSheetSelection}
             boardId={boardId}
+            initialData={connectionData}
           />
         )}
       </>
@@ -158,6 +157,7 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
           onClose={() => setIsDialogOpen(false)}
           onComplete={handleSheetSelection}
           boardId={boardId}
+          initialData={connectionData}
         />
       )}
     </>
