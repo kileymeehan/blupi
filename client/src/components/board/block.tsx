@@ -637,42 +637,7 @@ export default function Block({
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
-                  console.log(`Clicked table icon for block ${block.id}`);
-                  
-                  // Simple approach that won't cause white screen
-                  const sampleData = {
-                    "A1": "Step 1",
-                    "B2": "75%",
-                    "C2": "11,096",
-                    "C4": "2,279", 
-                    "D4": "3,809",
-                    "E3": "55%",
-                    "G7": "84.3%"
-                  };
-                  
-                  // Let the user choose a cell
-                  const cell = prompt("Enter a cell reference (e.g., D4, E3, C2):", 
-                    block.sheetsConnection?.cellRange || "D4");
-                  
-                  if (cell) {
-                    const label = prompt("Enter a label (optional):", 
-                      block.sheetsConnection?.label || "");
-                    
-                    // Create a simple connection object
-                    const connection = {
-                      sheetId: "sample-sheet-id",
-                      cellRange: cell,
-                      formattedValue: sampleData[cell] || "3,809",
-                      label: label || undefined,
-                      sheetName: "sample-sheet",
-                      lastUpdated: new Date().toISOString()
-                    };
-                    
-                    // Update the connection
-                    if (onSheetsConnectionChange) {
-                      onSheetsConnectionChange(block.id, connection);
-                    }
-                  }
+                  alert("This feature is currently under maintenance. We'll have it back soon!");
                 }}
                 className={`
                   flex items-center justify-center w-6 h-6 p-0
