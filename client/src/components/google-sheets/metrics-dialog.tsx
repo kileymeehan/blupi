@@ -387,16 +387,24 @@ export function MetricsDialog({
           description: `Successfully connected to "${newSheetName}"`,
         });
         
-        // Complete the connection first before state updates
-        onComplete(connectionData);
+        // Log final data for debugging
+        console.log("📊 [Metrics Dialog] New sheet connection data with cell:", connectionData.cellRange, "and label:", connectionData.label);
         
-        // Update state and close dialog
+        // Update state
         setSheetDocuments(prev => [...prev, newDocWithTabs]);
         setSelectedSheetDoc(newDoc.id);
         setSelectedSheet("Sheet1");
         setNewSheetUrl("");
         setNewSheetName("");
+        
+        // First close the dialog to avoid React Beautiful DnD conflicts
         onClose();
+        
+        // Wait briefly to ensure dialog transitions complete before updating parent state
+        setTimeout(() => {
+          // Then complete with data
+          onComplete(connectionData);
+        }, 100);
         
       } catch (err) {
         console.error("Error connecting sheet:", err);
@@ -459,11 +467,17 @@ export function MetricsDialog({
         description: `Retrieved value: ${cellData.formatted}`,
       });
       
-      // Complete with data before closing dialog to avoid DOM errors
-      onComplete(connectionData);
+      // Log final data for debugging
+      console.log("📊 [Metrics Dialog] Final connection data with cell:", connectionData.cellRange, "and label:", connectionData.label);
       
-      // Finally close dialog
+      // First close the dialog to avoid React Beautiful DnD conflicts
       onClose();
+      
+      // Wait briefly to ensure dialog transitions complete before updating parent state
+      setTimeout(() => {
+        // Then complete with data
+        onComplete(connectionData);
+      }, 100);
     } catch (err) {
       console.error("Error connecting to Google Sheet:", err);
       setLoading(false);
