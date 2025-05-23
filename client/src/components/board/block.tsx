@@ -636,18 +636,26 @@ export default function Block({
 
             {/* Google Sheets icon for metrics or experiment blocks */}
             {block.type === 'metrics' || block.type === 'experiment' ? (
-              <Dialog>
-                <MetricsConnectionDialog 
-                  blockId={block.id}
-                  initialConnection={block.sheetsConnection}
-                  onSave={(blockId, connection) => {
-                    if (onSheetsConnectionChange) {
-                      onSheetsConnectionChange(blockId, connection);
-                    }
-                  }}
-                  blockType={block.type as 'metrics' | 'experiment'}
-                />
-              </Dialog>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  console.log(`Clicked table icon for block ${block.id}`);
+                  // Alert for testing
+                  alert("Clicked table icon! This will be improved in the next update.");
+                }}
+                className={`
+                  flex items-center justify-center w-6 h-6 p-0
+                  rounded bg-white border ${block.type === 'experiment' ? 'border-amber-200' : 'border-gray-200'}
+                  text-xs ${block.type === 'experiment' ? 'text-amber-600 hover:text-amber-900' : 'text-teal-600 hover:text-teal-900'}
+                  shadow-sm hover:shadow ${block.type === 'experiment' ? 'hover:border-amber-300' : 'hover:border-teal-300'}
+                  ${block.sheetsConnection ? `after:content-["•"] after:${block.type === 'experiment' ? 'text-amber-500' : 'text-teal-500'} after:absolute after:top-[-2px] after:right-[-2px]` : ""}
+                  transition-all duration-150
+                `}
+                title={block.sheetsConnection ? "Connected to Google Sheets" : "Connect to Google Sheets"}
+              >
+                {block.type === 'experiment' ? <Beaker className="w-4 h-4" /> : <TableIcon className="w-4 h-4" />}
+              </button>
             ) : (
               <button
                 onClick={(e) => {
