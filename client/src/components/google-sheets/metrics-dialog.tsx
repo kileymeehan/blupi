@@ -502,7 +502,7 @@ export function MetricsDialog({
       onClose();
       
       // Use a promise to chain operations correctly and prevent race conditions
-      await new Promise(resolve => {
+      await new Promise<void>(resolve => {
         // Multiple requestAnimationFrame calls ensure we're outside React's render cycle
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {

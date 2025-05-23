@@ -159,7 +159,7 @@ export default function BoardGrid({
   }, []);
 
   const {
-    data: board,
+    data: boardFromQuery,
     isLoading: boardLoading,
     error,
   } = useQuery({
