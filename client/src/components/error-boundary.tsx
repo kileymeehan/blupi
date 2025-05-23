@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ErrorInfo } from 'react';
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
@@ -20,7 +20,7 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
 
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  errorHandler?: (error: Error, info: { componentStack: string }) => void
+  errorHandler?: (error: Error, info: ErrorInfo) => void
 ) {
   const displayName = Component.displayName || Component.name || 'Component';
   

@@ -88,6 +88,8 @@ interface Attachment {
 
 interface BoardGridProps {
   id: string;
+  board: Board;
+  project?: any;
   onBlocksChange: (blocks: BlockType[]) => void;
   onPhasesChange: (phases: Phase[]) => void;
   onBoardChange: (board: Board) => void;

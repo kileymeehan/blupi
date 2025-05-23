@@ -7,6 +7,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { Loader2 } from "lucide-react";
+import { withErrorBoundary } from "@/components/error-boundary";
+import { useRef } from "react";
 
 export default function BoardPage() {
   const { id } = useParams();
