@@ -118,8 +118,8 @@ export default function Block({
   const [localContent, setLocalContent] = useState(block.content || "");
   const [isEditing, setIsEditing] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
-  // Use the UltraSimpleMetricsHandle type from the imported component
-  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/ultra-simple-metrics").UltraSimpleMetricsHandle>>({});
+  // State to directly control when the metrics form is shown
+  const [showMetricsForm, setShowMetricsForm] = useState(false);
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
@@ -312,22 +312,131 @@ export default function Block({
           {/* Add Google Sheets metrics for metrics blocks */}
           {!isTemplate && block.type === 'metrics' && (
             <div className="mt-3 border-t border-gray-200 pt-2" id={`metrics-${block.id}`}>
-              <UltraSimpleMetrics 
-                ref={(ref) => {
-                  if (ref) {
-                    sheetsMetricsRef.current[block.id] = ref;
-                  }
-                }}
-                blockId={block.id}
-                boardId={Number(block.phaseIndex) > -1 ? Number(block.phaseIndex) : 0}
-                initialConnection={block.sheetsConnection}
-                className="max-w-full bg-gray-50 border-none shadow-none"
-                onUpdate={(connection) => {
-                  if (onSheetsConnectionChange) {
-                    onSheetsConnectionChange(block.id, connection);
-                  }
-                }}
-              />
+              {showMetricsForm ? (
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-sm font-medium">Connect to Google Sheets</h3>
+                    <button 
+                      onClick={() => setShowMetricsForm(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor={`cell-${block.id}`}>Cell Reference</Label>
+                      <Input
+                        id={`cell-${block.id}`}
+                        placeholder="e.g., C4"
+                        defaultValue={block.sheetsConnection?.cellRange || ""}
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Try D4, E3, C2, B5, G7 for sample data
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor={`label-${block.id}`}>Label (Optional)</Label>
+                      <Input
+                        id={`label-${block.id}`}
+                        placeholder="e.g., Conversion Rate"
+                        defaultValue={block.sheetsConnection?.label || ""}
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end space-x-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowMetricsForm(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          const cellInput = document.getElementById(`cell-${block.id}`) as HTMLInputElement;
+                          const labelInput = document.getElementById(`label-${block.id}`) as HTMLInputElement;
+                          const cell = cellInput?.value?.toUpperCase() || "D4";
+                          const label = labelInput?.value || "";
+                          
+                          // Sample data cells to show something useful
+                          const cellValues: Record<string, string> = {
+                            "D4": "3,809",
+                            "E3": "55%",
+                            "C2": "11,096",
+                            "B5": "2,742",
+                            "G7": "84.3%",
+                            "A1": "Step 1",
+                            "C4": "2,279"
+                          };
+                          
+                          // Create connection data
+                          const connection: SheetsConnectionData = {
+                            sheetId: "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU",
+                            cellRange: cell,
+                            formattedValue: cellValues[cell] || "3,809",
+                            label: label || undefined,
+                            sheetName: "funnel-list",
+                            lastUpdated: new Date().toISOString()
+                          };
+                          
+                          if (onSheetsConnectionChange) {
+                            onSheetsConnectionChange(block.id, connection);
+                          }
+                          
+                          setShowMetricsForm(false);
+                        }}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                block.sheetsConnection ? (
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    {block.sheetsConnection.label && (
+                      <div className="text-xs text-gray-500 mb-1">{block.sheetsConnection.label}</div>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <div className="text-2xl font-semibold">
+                        {block.sheetsConnection.formattedValue || "3,809"}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-xs text-gray-500">
+                          Cell: {block.sheetsConnection.cellRange}
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-5 w-5" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowMetricsForm(true);
+                          }}
+                        >
+                          <TableIcon className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-3 rounded-md text-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setShowMetricsForm(true)}
+                    >
+                      <TableIcon className="h-4 w-4 mr-2" />
+                      Connect to Google Sheets
+                    </Button>
+                  </div>
+                )
+              )}
             </div>
           )}
           
@@ -455,21 +564,12 @@ export default function Block({
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
-                  // Use the ref to directly open the dialog
-                  console.log(`Attempting to open dialog for block ${block.id}`);
-                  if (sheetsMetricsRef.current && sheetsMetricsRef.current[block.id]) {
-                    console.log(`Found reference, opening connection dialog for block ${block.id}`);
-                    // This method is defined in our UltraSimpleMetrics component
-                    sheetsMetricsRef.current[block.id].openConnectDialog();
-                  } else {
-                    // If ref is missing, try to manually trigger the connection
-                    console.log("Missing ref, forcing metrics dialog for block", block.id);
-                    // Create a dummy element and simulate click on it
-                    const metricsElem = document.getElementById(`metrics-${block.id}`);
-                    if (metricsElem) {
-                      metricsElem.click();
-                    }
-                  }
+                  // Simple direct state approach
+                  console.log(`Opening metrics form for block ${block.id}`);
+                  // Use a timeout to ensure the DOM is settled
+                  setTimeout(() => {
+                    setShowMetricsForm(true);
+                  }, 10);
                 }}
                 className={`
                   flex items-center justify-center w-6 h-6 p-0

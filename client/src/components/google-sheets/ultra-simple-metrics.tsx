@@ -106,7 +106,7 @@ export const UltraSimpleMetrics = forwardRef<UltraSimpleMetricsHandle, UltraSimp
   // If editing, show the form
   if (isEditing) {
     return (
-      <Card className={`w-full ${className}`}>
+      <Card className={`w-full ${className}`} onClick={e => e.stopPropagation()}>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">
             Connect to Google Sheets
