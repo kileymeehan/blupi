@@ -400,14 +400,22 @@ export function MetricsDialog({
         setNewSheetUrl("");
         setNewSheetName("");
         
-        // First close the dialog to avoid React Beautiful DnD conflicts
+        // First store the connection data we want to pass back
+        const finalConnectionData = {...connectionData};
+        
+        // Close the dialog first
         onClose();
         
-        // Wait briefly to ensure dialog transitions complete before updating parent state
-        setTimeout(() => {
-          // Then complete with data
-          onComplete(connectionData);
-        }, 100);
+        // Then dispatch completion event via requestAnimationFrame to ensure
+        // it happens after the current render cycle is complete
+        // This avoids the white screen by preventing DOM manipulation during render
+        window.requestAnimationFrame(() => {
+          // Small additional delay to ensure DOM is stable
+          setTimeout(() => {
+            // Finally complete with the saved data
+            onComplete(finalConnectionData);
+          }, 50);
+        });
         
       } catch (err) {
         console.error("Error connecting sheet:", err);
@@ -473,14 +481,25 @@ export function MetricsDialog({
       // Log final data for debugging
       console.log("📊 [Metrics Dialog] Final connection data with cell:", connectionData.cellRange, "and label:", connectionData.label);
       
-      // First close the dialog to avoid React Beautiful DnD conflicts
+      // First store the connection data we want to pass back
+      const finalConnectionData = {...connectionData};
+      
+      // Log exactly what we're returning to help with debugging
+      console.log("📊 [Metrics Dialog] Final connection data:", finalConnectionData);
+      
+      // Close the dialog first
       onClose();
       
-      // Wait briefly to ensure dialog transitions complete before updating parent state
-      setTimeout(() => {
-        // Then complete with data
-        onComplete(connectionData);
-      }, 100);
+      // Then dispatch completion event via requestAnimationFrame to ensure
+      // it happens after the current render cycle is complete
+      // This avoids the white screen by preventing DOM manipulation during render
+      window.requestAnimationFrame(() => {
+        // Small additional delay to ensure DOM is stable
+        setTimeout(() => {
+          // Finally complete with the saved data
+          onComplete(finalConnectionData);
+        }, 50);
+      });
     } catch (err) {
       console.error("Error connecting to Google Sheet:", err);
       setLoading(false);
