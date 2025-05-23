@@ -400,22 +400,23 @@ export function MetricsDialog({
         setNewSheetUrl("");
         setNewSheetName("");
         
-        // First store the connection data we want to pass back
-        const finalConnectionData = {...connectionData};
+        // Create a deep copy of the connection data
+        const safeConnectionData = JSON.parse(JSON.stringify(connectionData));
         
-        // Close the dialog first
-        onClose();
+        console.log("📊 [Metrics Dialog] New sheet connection data prepared:", safeConnectionData);
         
-        // Then dispatch completion event via requestAnimationFrame to ensure
-        // it happens after the current render cycle is complete
-        // This avoids the white screen by preventing DOM manipulation during render
-        window.requestAnimationFrame(() => {
-          // Small additional delay to ensure DOM is stable
-          setTimeout(() => {
-            // Finally complete with the saved data
-            onComplete(finalConnectionData);
-          }, 50);
-        });
+        // Import our safer utility function
+        const { safelyCompleteConnection } = await import('@/utils/safe-sheets-connection');
+        
+        // Use our safer approach to complete the connection
+        safelyCompleteConnection(
+          safeConnectionData,
+          onClose,
+          (data) => {
+            console.log("📊 [Metrics Dialog] New sheet connection completed safely");
+            onComplete(data);
+          }
+        );
         
       } catch (err) {
         console.error("Error connecting sheet:", err);
@@ -487,50 +488,25 @@ export function MetricsDialog({
       // Log exactly what we're returning to help with debugging
       console.log("📊 [Metrics Dialog] Final connection data:", finalConnectionData);
       
+      // Import our new safer connection utility
+      // Don't worry about importing at the top - destructuring here works inline
+      const { safelyCompleteConnection } = await import('@/utils/safe-sheets-connection');
+      
       // Create a deep copy of the data to ensure it persists
       const safeConnectionData = JSON.parse(JSON.stringify(finalConnectionData));
       
-      // Store the data in sessionStorage as a backup in case of state loss during render
-      sessionStorage.setItem('lastMetricsConnection', JSON.stringify({
-        data: safeConnectionData,
-        timestamp: Date.now()
-      }));
+      console.log("📊 [Metrics Dialog] Using safer connection method", safeConnectionData);
       
-      console.log("📊 [Metrics Dialog] Safely stored connection data", safeConnectionData);
-      
-      // First close the dialog to ensure it's removed from DOM
-      onClose();
-      
-      // Use a promise to chain operations correctly and prevent race conditions
-      await new Promise<void>(resolve => {
-        // Multiple requestAnimationFrame calls ensure we're outside React's render cycle
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            // By this point, dialog should be fully unmounted from DOM
-            setTimeout(() => {
-              try {
-                // Now it's safe to update parent state
-                onComplete(safeConnectionData);
-                console.log("📊 [Metrics Dialog] Successfully completed connection");
-              } catch (e) {
-                console.error("Error during metrics completion:", e);
-                // If there was an error, we can retrieve our backup data
-                const backup = sessionStorage.getItem('lastMetricsConnection');
-                if (backup) {
-                  try {
-                    const { data } = JSON.parse(backup);
-                    onComplete(data);
-                    console.log("📊 [Metrics Dialog] Recovered using backup data");
-                  } catch (backupError) {
-                    console.error("Failed to recover with backup:", backupError);
-                  }
-                }
-              }
-              resolve();
-            }, 150); // Longer timeout to ensure stability
-          });
-        });
-      });
+      // Use our utility function to safely handle the connection
+      // This prevents white screen by properly handling the timing of operations
+      safelyCompleteConnection(
+        safeConnectionData,
+        onClose,
+        (data) => {
+          console.log("📊 [Metrics Dialog] Safely completed connection");
+          onComplete(data);
+        }
+      );
     } catch (err) {
       console.error("Error connecting to Google Sheet:", err);
       setLoading(false);
