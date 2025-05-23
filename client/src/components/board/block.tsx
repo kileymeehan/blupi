@@ -459,10 +459,16 @@ export default function Block({
                   console.log(`Attempting to open dialog for block ${block.id}`);
                   if (sheetsMetricsRef.current && sheetsMetricsRef.current[block.id]) {
                     console.log(`Found reference, opening connection dialog for block ${block.id}`);
-                    // This method is now defined in our BasicMetrics component
+                    // This method is defined in our UltraSimpleMetrics component
                     sheetsMetricsRef.current[block.id].openConnectDialog();
                   } else {
-                    console.error(`Could not find metrics ref for block ${block.id}`);
+                    // If ref is missing, try to manually trigger the connection
+                    console.log("Missing ref, forcing metrics dialog for block", block.id);
+                    // Create a dummy element and simulate click on it
+                    const metricsElem = document.getElementById(`metrics-${block.id}`);
+                    if (metricsElem) {
+                      metricsElem.click();
+                    }
                   }
                 }}
                 className={`
