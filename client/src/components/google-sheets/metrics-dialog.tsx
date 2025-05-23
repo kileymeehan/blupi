@@ -64,7 +64,6 @@ interface MetricsDialogProps {
   onClose: () => void;
   onComplete: (data: SheetsConnectionData) => void;
   boardId: number;
-  blockId?: string; // Make blockId optional to prevent errors
 }
 
 export function MetricsDialog({
@@ -72,7 +71,6 @@ export function MetricsDialog({
   onClose,
   onComplete,
   boardId,
-  blockId,
   initialData
 }: MetricsDialogProps & { initialData?: SheetsConnectionData }) {
   const [sheetDocuments, setSheetDocuments] = useState<SheetDocument[]>([]);
@@ -158,23 +156,14 @@ export function MetricsDialog({
     if (initialData) {
       console.log('Setting form with initial data:', initialData);
       
-      // Set cell reference with a slight delay to ensure it's properly applied
+      // Set cell reference
       if (initialData.cellRange) {
         setCell(initialData.cellRange);
       }
       
-      // Set label with a slight delay to ensure it's properly applied
+      // Set label
       if (initialData.label) {
         setLabel(initialData.label);
-      }
-      
-      // Store the values in local storage for persistence
-      if (initialData.cellRange && blockId) {
-        localStorage.setItem(`metrics_cell_${boardId}_${blockId}`, initialData.cellRange);
-      }
-      
-      if (initialData.label && blockId) {
-        localStorage.setItem(`metrics_label_${boardId}_${blockId}`, initialData.label);
       }
       
       // Set sheet if we can find it
@@ -185,20 +174,8 @@ export function MetricsDialog({
           setSelectedSheet(initialData.sheetName || "Sheet1");
         }
       }
-    } else if (blockId) {
-      // Try to restore from localStorage if no initial data (only if blockId is available)
-      const savedCell = localStorage.getItem(`metrics_cell_${boardId}_${blockId}`);
-      const savedLabel = localStorage.getItem(`metrics_label_${boardId}_${blockId}`);
-      
-      if (savedCell) {
-        setCell(savedCell);
-      }
-      
-      if (savedLabel) {
-        setLabel(savedLabel);
-      }
     }
-  }, [initialData, sheetDocuments, boardId, blockId]);
+  }, [initialData, sheetDocuments]);
   
   // Function to refresh the sheet list
   const refreshSheets = () => {
@@ -284,23 +261,30 @@ export function MetricsDialog({
       console.log(`📊 [Metrics Dialog] Combined total: ${allSheets.length} sheets available for connection`);
       
       if (allSheets.length > 0) {
-        // Use actual tabs from your Google Sheets instead of hardcoded values
-        const sheetsWithTabs = allSheets.map((sheet: SheetDocument) => {
-          console.log(`📊 [Metrics Dialog] Assigning tabs for sheet: ${sheet.name}`);
-          
-          // For the Payroll sheet, use the actual tabs we know exist
-          if (sheet.name === 'Payroll') {
-            return { ...sheet, sheets: ["funnel-list", "payroll-steps"] };
-          }
-          
-          // For The Big Sheet, use these tabs
-          if (sheet.name === 'The Big Sheet') {
-            return { ...sheet, sheets: ["Sheet1", "Sheet2"] };
-          }
-          
-          // Default fallback in case we don't recognize the sheet
-          return { ...sheet, sheets: ["Sheet1", "Sheet2"] };
-        });
+        // Add sheet tabs to each document
+        const sheetsWithTabs = await Promise.all(
+          allSheets.map(async (sheet: SheetDocument) => {
+            try {
+              console.log(`📊 [Metrics Dialog] Fetching tabs for sheet: ${sheet.name} (${sheet.sheetId})`);
+              
+              // Let the API service handle special cases
+              const tabs = await getSheetTabs(sheet.sheetId);
+              console.log(`📊 [Metrics Dialog] Got ${tabs.length} tabs for sheet ${sheet.name}`);
+              return { ...sheet, sheets: tabs };
+            } catch (err) {
+              console.warn(`📊 [Metrics Dialog] Error fetching tabs for sheet ${sheet.id}`, err);
+              console.log(`📊 [Metrics Dialog] Using default tabs for sheet ${sheet.name}`);
+              
+              // Let's try getSheetTabs one more time with error handling built in
+              try {
+                const tabs = await getSheetTabs(sheet.sheetId);
+                return { ...sheet, sheets: tabs };
+              } catch (finalErr) {
+                return { ...sheet, sheets: DEFAULT_SHEET_TABS };
+              }
+            }
+          })
+        );
         
         // Sort sheets alphabetically by name for easier selection
         sheetsWithTabs.sort((a, b) => a.name.localeCompare(b.name));

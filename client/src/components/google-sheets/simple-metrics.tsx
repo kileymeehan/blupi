@@ -52,27 +52,15 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
   // Handle sheet selection
   const handleSheetSelection = (data: SheetsConnectionData) => {
     console.log("Sheet data selected:", data);
-
-    try {
-      // First update our local state before closing dialog
-      setConnectionData(prev => {
-        // Create a clean copy that preserves any existing data
-        return { ...prev, ...data };
-      });
-      
-      // Then notify the parent component with the new data
+    
+    // Update local state first
+    setConnectionData(data);
+    
+    // Use setTimeout to prevent DOM manipulation issues that could cause white screen
+    setTimeout(() => {
+      // Then trigger the parent update in the next event loop cycle
       onUpdate(data);
-      
-      // Finally close the dialog after updating data
-      // This prevents the white screen issue by ensuring data is updated before UI changes
-      setTimeout(() => {
-        setIsDialogOpen(false);
-      }, 100);
-      
-    } catch (err) {
-      console.error("Error updating connection:", err);
-      setIsDialogOpen(false);
-    }
+    }, 0);
   };
   
   // If we don't have connection data, show the "not connected" state
@@ -109,8 +97,6 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
             onClose={() => setIsDialogOpen(false)}
             onComplete={handleSheetSelection}
             boardId={boardId}
-            blockId={blockId}
-            initialData={connectionData}
           />
         )}
       </>
@@ -160,8 +146,6 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
           onClose={() => setIsDialogOpen(false)}
           onComplete={handleSheetSelection}
           boardId={boardId}
-          blockId={blockId}
-          initialData={connectionData}
         />
       )}
     </>
