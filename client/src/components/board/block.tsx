@@ -15,11 +15,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
@@ -29,7 +27,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { PendoMetrics } from "../pendo/pendo-metrics";
-import { MetricsConnectionDialog } from "../metrics-connection-dialog";
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
@@ -44,7 +41,7 @@ interface BlockProps {
   ) => void;
   onSheetsConnectionChange?: (
     blockId: string, 
-    connection: SheetsConnectionData
+    connection: SheetsConnection
   ) => void;
   isTemplate?: boolean;
   onCommentClick?: () => void;
@@ -641,8 +638,41 @@ export default function Block({
                   e.stopPropagation();
                   e.preventDefault();
                   console.log(`Clicked table icon for block ${block.id}`);
-                  // Alert for testing
-                  alert("Clicked table icon! This will be improved in the next update.");
+                  
+                  // Simple approach that won't cause white screen
+                  const sampleData = {
+                    "A1": "Step 1",
+                    "B2": "75%",
+                    "C2": "11,096",
+                    "C4": "2,279", 
+                    "D4": "3,809",
+                    "E3": "55%",
+                    "G7": "84.3%"
+                  };
+                  
+                  // Let the user choose a cell
+                  const cell = prompt("Enter a cell reference (e.g., D4, E3, C2):", 
+                    block.sheetsConnection?.cellRange || "D4");
+                  
+                  if (cell) {
+                    const label = prompt("Enter a label (optional):", 
+                      block.sheetsConnection?.label || "");
+                    
+                    // Create a simple connection object
+                    const connection = {
+                      sheetId: "sample-sheet-id",
+                      cellRange: cell,
+                      formattedValue: sampleData[cell] || "3,809",
+                      label: label || undefined,
+                      sheetName: "sample-sheet",
+                      lastUpdated: new Date().toISOString()
+                    };
+                    
+                    // Update the connection
+                    if (onSheetsConnectionChange) {
+                      onSheetsConnectionChange(block.id, connection);
+                    }
+                  }
                 }}
                 className={`
                   flex items-center justify-center w-6 h-6 p-0
