@@ -329,8 +329,30 @@ export default function Block({
                 initialConnection={block.sheetsConnection}
                 className="max-w-full bg-gray-50 border-none shadow-none"
                 onUpdate={(connection) => {
-                  if (onSheetsConnectionChange) {
-                    onSheetsConnectionChange(block.id, connection);
+                  // Using a more careful update approach to prevent white screen
+                  try {
+                    console.log("📊 Updating sheets connection for block:", block.id, "connection:", connection);
+                    
+                    if (onSheetsConnectionChange) {
+                      // Ensure the connection has all required fields to match SheetsConnection type
+                      const safeConnection = {
+                        sheetId: connection.sheetId || "",
+                        cellRange: connection.cellRange || "",
+                        sheetName: connection.sheetName,
+                        label: connection.label,
+                        value: connection.value,
+                        formattedValue: connection.formattedValue,
+                        lastUpdated: connection.lastUpdated || new Date().toISOString()
+                      };
+                      
+                      // We're avoiding requestAnimationFrame here as it may be part of the issue
+                      // Just defer the update slightly to let current render cycle complete
+                      setTimeout(() => {
+                        onSheetsConnectionChange(block.id, safeConnection);
+                      }, 10);
+                    }
+                  } catch (error) {
+                    console.error("Error updating sheets connection:", error);
                   }
                 }}
               />

@@ -76,8 +76,20 @@ export function MetricsDialog({
   const [sheetDocuments, setSheetDocuments] = useState<SheetDocument[]>([]);
   const [selectedSheetDoc, setSelectedSheetDoc] = useState<string | "new">("new");
   const [selectedSheet, setSelectedSheet] = useState<string>("");
-  const [cell, setCell] = useState(initialData?.cellRange || "");
-  const [label, setLabel] = useState(initialData?.label || "");
+  // Ensure cell reference and label persist properly
+  const [cell, setCell] = useState("");
+  const [label, setLabel] = useState("");
+  
+  // Force setting cell and label whenever dialog opens or initial data changes
+  useEffect(() => {
+    console.log("📊 [Metrics Dialog] Setting initial cell and label:", initialData?.cellRange, initialData?.label);
+    if (initialData?.cellRange) {
+      setCell(initialData.cellRange);
+    }
+    if (initialData?.label) {
+      setLabel(initialData.label);
+    }
+  }, [initialData, isOpen]);
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0); // Used to force refresh
   const [error, setError] = useState<string | null>(null);
@@ -153,23 +165,14 @@ export function MetricsDialog({
   
   // Initialize form with existing connection data when it's available
   useEffect(() => {
-    if (initialData) {
-      console.log('Setting form with initial data:', initialData);
-      
-      // Set cell reference
-      if (initialData.cellRange) {
-        setCell(initialData.cellRange);
-      }
-      
-      // Set label
-      if (initialData.label) {
-        setLabel(initialData.label);
-      }
+    if (initialData && sheetDocuments.length > 0) {
+      console.log('Setting selected sheet from initialData:', initialData);
       
       // Set sheet if we can find it
-      if (initialData.sheetId && sheetDocuments.length > 0) {
+      if (initialData.sheetId) {
         const matchingDoc = sheetDocuments.find(doc => doc.sheetId === initialData.sheetId);
         if (matchingDoc) {
+          console.log('Found matching sheet doc:', matchingDoc.name);
           setSelectedSheetDoc(matchingDoc.id);
           setSelectedSheet(initialData.sheetName || "Sheet1");
         }
