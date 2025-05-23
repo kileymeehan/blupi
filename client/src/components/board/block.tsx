@@ -15,9 +15,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
@@ -27,7 +29,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { PendoMetrics } from "../pendo/pendo-metrics";
-import { UltraSimpleMetrics, SheetsConnectionData } from "../google-sheets/ultra-simple-metrics";
+import { MetricsConnectionDialog } from "../metrics-connection-dialog";
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
@@ -118,8 +120,6 @@ export default function Block({
   const [localContent, setLocalContent] = useState(block.content || "");
   const [isEditing, setIsEditing] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
-  // State to directly control when the metrics form is shown
-  const [showMetricsForm, setShowMetricsForm] = useState(false);
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
@@ -214,6 +214,82 @@ export default function Block({
 
   return (
     <div className="w-full h-full relative group">
+      {/* Google Sheets Metrics Dialog */}
+      <Dialog open={metricsDialogOpen} onOpenChange={setMetricsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Connect to Google Sheets</DialogTitle>
+            <DialogDescription>
+              Enter a cell reference to display data from Google Sheets.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor={`cellRef-${block.id}`}>Cell Reference</Label>
+              <Input 
+                id={`cellRef-${block.id}`} 
+                placeholder="e.g., C4"
+                defaultValue={block.sheetsConnection?.cellRange || ""} 
+              />
+              <p className="text-xs text-muted-foreground">
+                Try D4, E3, C2, B5, G7 for sample data
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`label-${block.id}`}>Label (Optional)</Label>
+              <Input 
+                id={`label-${block.id}`} 
+                placeholder="e.g., Conversion Rate" 
+                defaultValue={block.sheetsConnection?.label || ""} 
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setMetricsDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              const cellInput = document.getElementById(`cellRef-${block.id}`) as HTMLInputElement;
+              const labelInput = document.getElementById(`label-${block.id}`) as HTMLInputElement;
+              const cell = cellInput?.value?.toUpperCase() || "D4";
+              const label = labelInput?.value || "";
+              
+              // Sample data cells to show something useful
+              const cellValues: Record<string, string> = {
+                "D4": "3,809",
+                "E3": "55%",
+                "C2": "11,096",
+                "B5": "2,742",
+                "G7": "84.3%",
+                "A1": "Step 1",
+                "C4": "2,279"
+              };
+              
+              // Create connection data
+              const connection: SheetsConnectionData = {
+                sheetId: "1zW6Tru8P0sKfsMDNDlP5Eyl6BAps4lyOJ-hnZo5JEkU",
+                cellRange: cell,
+                formattedValue: cellValues[cell] || "3,809",
+                label: label || undefined,
+                sheetName: "funnel-list",
+                lastUpdated: new Date().toISOString()
+              };
+              
+              if (onSheetsConnectionChange) {
+                onSheetsConnectionChange(block.id, connection);
+              }
+              
+              setMetricsDialogOpen(false);
+            }}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {block.emoji && (
         <div className="absolute top-[-12px] right-[-20px] z-10 text-lg select-none">
           {block.emoji}
@@ -560,29 +636,18 @@ export default function Block({
 
             {/* Google Sheets icon for metrics or experiment blocks */}
             {block.type === 'metrics' || block.type === 'experiment' ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  // Simple direct state approach
-                  console.log(`Opening metrics form for block ${block.id}`);
-                  // Use a timeout to ensure the DOM is settled
-                  setTimeout(() => {
-                    setShowMetricsForm(true);
-                  }, 10);
-                }}
-                className={`
-                  flex items-center justify-center w-6 h-6 p-0
-                  rounded bg-white border ${block.type === 'experiment' ? 'border-amber-200' : 'border-gray-200'}
-                  text-xs ${block.type === 'experiment' ? 'text-amber-600 hover:text-amber-900' : 'text-teal-600 hover:text-teal-900'}
-                  shadow-sm hover:shadow ${block.type === 'experiment' ? 'hover:border-amber-300' : 'hover:border-teal-300'}
-                  ${block.sheetsConnection ? `after:content-["•"] after:${block.type === 'experiment' ? 'text-amber-500' : 'text-teal-500'} after:absolute after:top-[-2px] after:right-[-2px]` : ""}
-                  transition-all duration-150
-                `}
-                title={block.sheetsConnection ? "Connected to Google Sheets" : "Connect to Google Sheets"}
-              >
-                {block.type === 'experiment' ? <Beaker className="w-4 h-4" /> : <TableIcon className="w-4 h-4" />}
-              </button>
+              <Dialog>
+                <MetricsConnectionDialog 
+                  blockId={block.id}
+                  initialConnection={block.sheetsConnection}
+                  onSave={(blockId, connection) => {
+                    if (onSheetsConnectionChange) {
+                      onSheetsConnectionChange(blockId, connection);
+                    }
+                  }}
+                  blockType={block.type as 'metrics' | 'experiment'}
+                />
+              </Dialog>
             ) : (
               <button
                 onClick={(e) => {
