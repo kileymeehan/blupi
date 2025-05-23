@@ -27,7 +27,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { PendoMetrics } from "../pendo/pendo-metrics";
-import { StableMetrics, StableConnectionData } from "../google-sheets/stable-metrics";
+import { UltraSimpleMetrics, SheetsConnectionData } from "../google-sheets/ultra-simple-metrics";
 
 interface BlockProps {
   block: BlockType & { readOnly?: boolean };
@@ -42,7 +42,7 @@ interface BlockProps {
   ) => void;
   onSheetsConnectionChange?: (
     blockId: string, 
-    connection: StableConnectionData
+    connection: SheetsConnectionData
   ) => void;
   isTemplate?: boolean;
   onCommentClick?: () => void;
@@ -118,8 +118,8 @@ export default function Block({
   const [localContent, setLocalContent] = useState(block.content || "");
   const [isEditing, setIsEditing] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
-  // Use the StableMetricsHandle type from the imported component
-  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/stable-metrics").StableMetricsHandle>>({});
+  // Use the UltraSimpleMetricsHandle type from the imported component
+  const sheetsMetricsRef = useRef<Record<string, import("../google-sheets/ultra-simple-metrics").UltraSimpleMetricsHandle>>({});
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
@@ -312,7 +312,7 @@ export default function Block({
           {/* Add Google Sheets metrics for metrics blocks */}
           {!isTemplate && block.type === 'metrics' && (
             <div className="mt-3 border-t border-gray-200 pt-2" id={`metrics-${block.id}`}>
-              <StableMetrics 
+              <UltraSimpleMetrics 
                 ref={(ref) => {
                   if (ref) {
                     sheetsMetricsRef.current[block.id] = ref;
@@ -363,7 +363,7 @@ export default function Block({
                 {/* Experiment data display */}
                 {block.sheetsConnection && (
                   <div className="flex flex-col gap-2">
-                    <StableMetrics 
+                    <UltraSimpleMetrics 
                       ref={(ref) => {
                         if (ref) {
                           sheetsMetricsRef.current[block.id] = ref;
