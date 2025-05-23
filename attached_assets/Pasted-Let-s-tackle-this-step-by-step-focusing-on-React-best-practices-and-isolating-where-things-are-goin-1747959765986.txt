@@ -1,0 +1,156 @@
+Let’s tackle this step by step, focusing on React best-practices and isolating where things are going off the rails:
+
+⸻
+
+1. Eliminate direct DOM mutations
+
+Problem: You’re seeing “Failed to execute ‘insertBefore’…” because React’s virtual DOM and manual DOM changes are colliding.
+Fix:
+	•	Never call node.insertBefore (or other direct DOM APIs) inside render or event handlers.
+	•	If you need to reposition or inject elements, drive it entirely via React state/props and let React re-render.
+
+// ❌ Don’t do this:
+element.parentNode.insertBefore(newNode, referenceNode);
+
+// ✅ Instead:
+const [items, setItems] = useState([...]);
+setItems(prev => {
+  const copy = [...prev];
+  copy.splice(index, 0, newItem);
+  return copy;
+});
+
+
+⸻
+
+2. Handle async sheet-updates with effects, not inline
+
+Problem: You kick off a Google-Sheets write, then immediately update the UI without waiting; race condition ensues.
+Fix:
+	•	Wrap your sheet-write in an async function that returns when done.
+	•	Only after it resolves, update component state.
+
+async function onSaveMetrics(data) {
+  try {
+    await sheetsApi.updateCell(row, col, data);       // wait for the network round-trip
+    setBlockData(d => ({ ...d, metric: data }));      // now it’s safe to re-render
+  } catch (err) {
+    // handle error (show toast, rollback, etc)
+  }
+}
+
+And in your modal’s “Save” handler:
+
+<button onClick={() => onSaveMetrics(inputValue)}>Save</button>
+
+
+⸻
+
+3. Integrate with React-Beautiful-DnD correctly
+
+Problem: DnD library is removing/re-inserting nodes in ways React doesn’t expect.
+Fixes:
+	•	Don’t perform list reordering in the middle of the drag; wait for onDragEnd.
+	•	Keep your draggable lists under a single state array.
+
+const onDragEnd = result => {
+  if (!result.destination) return;
+  const reordered = Array.from(items);
+  const [moved] = reordered.splice(result.source.index, 1);
+  reordered.splice(result.destination.index, 0, moved);
+  setItems(reordered);
+};
+
+// …
+
+<DragDropContext onDragEnd={onDragEnd}>
+  <Droppable droppableId="droppable">
+    {provided => (
+      <div ref={provided.innerRef} {...provided.droppableProps}>
+        {items.map((item, idx) => (
+          <Draggable key={item.id} draggableId={item.id} index={idx}>
+            {p => (
+              <div ref={p.innerRef} {...p.draggableProps} {...p.dragHandleProps}>
+                {item.content}
+              </div>
+            )}
+          </Draggable>
+        ))}
+        {provided.placeholder}
+      </div>
+    )}
+  </Droppable>
+</DragDropContext>
+
+
+⸻
+
+4. Add an Error Boundary to catch render-time exceptions
+
+Wrap your top-level (or modal-wrapper) in an error boundary so that if something does throw, you show a friendly fallback rather than a white screen.
+
+class UIErrorBoundary extends React.Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error, info) { console.error(error, info); }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>Something went wrong—please try again.</div>;
+    }
+    return this.props.children;
+  }
+}
+
+// Usage:
+<UIErrorBoundary>
+  <App />
+</UIErrorBoundary>
+
+
+⸻
+
+5. Debounce UI-updates or disable controls while saving
+
+Prevent user actions (or DnD events) from racing with your sheet updates:
+	•	Show a spinner or disable “Save” button until the async call resolves.
+	•	Optionally debounce rapid state changes.
+
+<button disabled={isSaving} onClick={onSaveMetrics}>
+  {isSaving ? 'Saving…' : 'Save'}
+</button>
+
+
+⸻
+
+6. Remove setTimeout hacks and embrace React’s render cycle
+
+If you’re relying on setTimeout(() => setState(...), 0) you’re papering over a synchronization bug. Instead:
+	•	Trust React’s state batching.
+	•	Use useEffect to react to state changes:
+
+// WRONG: dropping into the next tick
+setTimeout(() => setValue(newVal), 0);
+
+// RIGHT: derive UI changes from state
+useEffect(() => {
+  if (value !== null) {
+    doSomethingWith(value);
+  }
+}, [value]);
+
+
+⸻
+
+7. Putting it all together
+	1.	Abstract your sheet-update into a hook or helper that returns a promise.
+	2.	Drive all UI from React state only—no direct DOM calls.
+	3.	Reorder only in onDragEnd.
+	4.	Guard with an error boundary.
+	5.	Disable interactions during saves.
+	6.	Use effects for any side-effects or further DOM-sensitive work.
+
+⸻
+
+By reshaping your code around these principles, you should eliminate the white-screen race condition. Let me know if you’d like code reviews on specific components, or if there’s another slice of your implementation you’d like to drill into!

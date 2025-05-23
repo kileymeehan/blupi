@@ -49,18 +49,28 @@ export const SimpleMetrics = forwardRef<SimpleMetricsHandle, SimpleMetricsProps>
     }
   }));
   
-  // Handle sheet selection
-  const handleSheetSelection = (data: SheetsConnectionData) => {
+  // Handle sheet selection - using async pattern to properly handle state
+  const handleSheetSelection = async (data: SheetsConnectionData) => {
     console.log("Sheet data selected:", data);
     
-    // Update local state first
-    setConnectionData(data);
-    
-    // Use setTimeout to prevent DOM manipulation issues that could cause white screen
-    setTimeout(() => {
-      // Then trigger the parent update in the next event loop cycle
+    try {
+      // First update the local state so UI updates immediately
+      setConnectionData(data);
+      
+      // Close the dialog before updating parent state to avoid any conflicting DOM updates
+      setIsDialogOpen(false);
+      
+      // Wait briefly to ensure dialog transition is complete before updating parent
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Now it's safe to update the parent component with our data
       onUpdate(data);
-    }, 0);
+      
+    } catch (error) {
+      console.error("Error handling sheet selection:", error);
+      // Still update local state even if there's an error
+      setConnectionData(data);
+    }
   };
   
   // If we don't have connection data, show the "not connected" state
