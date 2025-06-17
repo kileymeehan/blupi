@@ -1343,6 +1343,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[STORYBOARD] Using Replicate SDXL for image generation...`);
         imageUrl = await replicateService.generateStoryboardImage(prompt);
         console.log(`[STORYBOARD] SDXL image generation completed, URL: ${imageUrl}`);
+        console.log(`[STORYBOARD] URL type: ${typeof imageUrl}`);
+        console.log(`[STORYBOARD] URL value: ${JSON.stringify(imageUrl)}`);
       }
 
       // Update the board with the new storyboard prompt and image URL
