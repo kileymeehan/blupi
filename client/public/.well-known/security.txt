@@ -1,0 +1,5 @@
+Contact: mailto:security@blup.io
+Expires: 2026-04-23T13:00:00.000Z
+Preferred-Languages: en
+Canonical: https://blup.io/.well-known/security.txt
+Policy: https://blup.io/security-policy

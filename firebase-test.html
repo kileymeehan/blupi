@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Config Test</title>
+</head>
+<body>
+    <h1>Firebase Configuration Test</h1>
+    <div id="results"></div>
+    
+    <script type="module">
+        // Test if Firebase environment variables are available
+        const results = document.getElementById('results');
+        
+        results.innerHTML = `
+            <h2>Environment Variables:</h2>
+            <p><strong>VITE_FIREBASE_API_KEY:</strong> ${import.meta.env.VITE_FIREBASE_API_KEY ? 'Present (' + import.meta.env.VITE_FIREBASE_API_KEY.substring(0, 10) + '...)' : 'Missing'}</p>
+            <p><strong>VITE_FIREBASE_PROJECT_ID:</strong> ${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'Missing'}</p>
+            <p><strong>VITE_FIREBASE_APP_ID:</strong> ${import.meta.env.VITE_FIREBASE_APP_ID ? 'Present (' + import.meta.env.VITE_FIREBASE_APP_ID.substring(0, 15) + '...)' : 'Missing'}</p>
+            <p><strong>VITE_FIREBASE_AUTH_DOMAIN:</strong> ${import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'Missing'}</p>
+            
+            <h2>Server Fallback Test:</h2>
+            <p id="server-test">Testing...</p>
+        `;
+        
+        // Test server fallback
+        try {
+            const response = await fetch('/api/firebase-config');
+            const config = await response.json();
+            document.getElementById('server-test').innerHTML = `
+                <strong>Server Response:</strong> Success<br>
+                <strong>API Key:</strong> ${config.apiKey ? 'Present (' + config.apiKey.substring(0, 10) + '...)' : 'Missing'}<br>
+                <strong>Project ID:</strong> ${config.projectId}<br>
+                <strong>App ID:</strong> ${config.appId ? 'Present (' + config.appId.substring(0, 15) + '...)' : 'Missing'}
+            `;
+        } catch (error) {
+            document.getElementById('server-test').innerHTML = `<strong>Server Error:</strong> ${error.message}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+
+{
+  "variant": "professional",
+  "primary": "#302E87",
+  "appearance": "light",
+  "radius": 0.5,
+  "accent": "#F2918C",
+  "border": "#A1D9F5",
+  "mutedForeground": "#6B6B97",
+  "background": "#FFFFFF",
+  "muted": "#FFE8D6"
+}

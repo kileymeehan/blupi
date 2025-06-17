@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /ws/
+
+# Sitemap
+Sitemap: https://blup.io/sitemap.xml

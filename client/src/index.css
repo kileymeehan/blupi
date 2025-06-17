@@ -1,0 +1,395 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Young+Serif:wght@400&display=swap');
+@import 'intro.js/introjs.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply antialiased bg-background text-foreground;
+    font-family: 'Montserrat', sans-serif;
+    /* Hide default scrollbars */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  body::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide default scrollbars on all elements except those with custom scrollbar classes */
+  *:not(.board-scrollbar):not(.block-content) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  *:not(.board-scrollbar):not(.block-content)::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.welcome-header {
+  font-family: 'Young Serif', Georgia, 'Times New Roman', serif !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+}
+
+/* Custom scrollbar styling for blocks */
+.block-content {
+  /* Hide scrollbar by default */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.block-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.block-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.block-content::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+
+/* Show purple scrollbar on hover */
+.block-content:hover {
+  scrollbar-width: thin;
+}
+
+.block-content:hover::-webkit-scrollbar-thumb {
+  background: #8b5cf6;
+}
+
+/* Custom horizontal scrollbar for board container */
+.board-scrollbar {
+  scrollbar-width: thick !important;
+  scrollbar-color: #8b5cf6 #e2e8f0 !important;
+  overflow-x: scroll !important;
+  position: relative;
+}
+
+.board-scrollbar::-webkit-scrollbar {
+  height: 20px !important;
+  background: #e2e8f0 !important;
+}
+
+.board-scrollbar::-webkit-scrollbar-track {
+  background: #e2e8f0 !important;
+  border-radius: 0;
+  border-top: 2px solid #cbd5e1;
+}
+
+.board-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #8b5cf6, #7c3aed) !important;
+  border-radius: 6px;
+  border: 2px solid #e2e8f0 !important;
+  min-width: 80px;
+  box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
+}
+
+.board-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #7c3aed, #6d28d9) !important;
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.15);
+}
+
+.board-scrollbar::-webkit-scrollbar-thumb:active {
+  background: #6d28d9 !important;
+}
+
+/* Board container */
+.board-container {
+  position: relative;
+}
+
+/* Fallback for Firefox */
+@-moz-document url-prefix() {
+  .board-scrollbar {
+    scrollbar-width: thick;
+    scrollbar-color: #8b5cf6 #e2e8f0;
+  }
+}
+
+/* Presentation Mode Scrollbars */
+.presentation-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #9ca3af transparent !important;
+}
+
+.presentation-scrollbar::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+  background: transparent !important;
+}
+
+.presentation-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+  border-radius: 4px;
+}
+
+.presentation-scrollbar::-webkit-scrollbar-thumb {
+  background: #9ca3af !important;
+  border-radius: 4px;
+  border: 2px solid transparent !important;
+  background-clip: content-box !important;
+}
+
+.presentation-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280 !important;
+  background-clip: content-box !important;
+}
+
+/* Dark mode scrollbars for presentation */
+.presentation-scrollbar.dark {
+  scrollbar-color: #6b7280 transparent !important;
+}
+
+.presentation-scrollbar.dark::-webkit-scrollbar-thumb {
+  background: #6b7280 !important;
+  background-clip: content-box !important;
+}
+
+.presentation-scrollbar.dark::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af !important;
+  background-clip: content-box !important;
+}
+
+/* Hide horizontal scrollbar in presentation mode */
+.presentation-mode .board-scrollbar {
+  display: none !important;
+}
+
+.presentation-mode .board-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+
+.presentation-mode {
+  overflow-x: hidden !important;
+}
+
+/* Hide all horizontal scrollbars in presentation mode */
+.presentation-mode * {
+  overflow-x: hidden !important;
+}
+
+.presentation-mode *::-webkit-scrollbar {
+  height: 0px !important;
+  display: none !important;
+}
+
+.presentation-mode * {
+  scrollbar-width: none !important;
+}
+
+/* Force hide any purple scrollbars specifically */
+.presentation-mode ::-webkit-scrollbar-thumb {
+  background: transparent !important;
+}
+
+.presentation-mode ::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.presentation-mode ::-webkit-scrollbar {
+  height: 0px !important;
+  width: 0px !important;
+  background: transparent !important;
+}
+
+.block-content:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(48, 46, 135, 0.8);
+}
+
+/* Intro.js custom styling - Clean, modern design with branding */
+.introjs-tooltip {
+  background: white !important;
+  color: #1f2937 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #e5e7eb !important;
+  max-width: 340px !important;
+  min-width: 280px !important;
+  padding: 0 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* Add blowfish decoration */
+.introjs-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: url('/blupi-pufferfish-new.png') no-repeat center;
+  background-size: contain;
+  z-index: 10;
+}
+
+.introjs-tooltiptext {
+  font-family: inherit !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  color: #4b5563 !important;
+  padding: 20px 20px 12px 20px !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+}
+
+/* Style headings with Youth Serif font - same as "Blueprinting reimagined" */
+.introjs-tooltiptext strong,
+.introjs-tooltiptext b {
+  font-family: "Youth Serif", serif !important;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: #302E87 !important;
+  display: block !important;
+  margin-bottom: 10px !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+  letter-spacing: -0.02em !important;
+}
+
+.introjs-tooltipbuttons {
+  padding: 0 20px 16px 20px !important;
+  text-align: center !important;
+  border-top: 1px solid #f3f4f6 !important;
+  margin-top: 8px !important;
+  padding-top: 12px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  position: relative !important;
+}
+
+/* Custom arrow styling - sharper triangle */
+.introjs-arrow {
+  width: 0 !important;
+  height: 0 !important;
+  border: 8px solid transparent !important;
+}
+
+.introjs-arrow.top {
+  border-bottom-color: white !important;
+  border-top: none !important;
+  border-left-color: transparent !important;
+  border-right-color: transparent !important;
+}
+
+.introjs-arrow.bottom {
+  border-top-color: white !important;
+  border-bottom: none !important;
+  border-left-color: transparent !important;
+  border-right-color: transparent !important;
+}
+
+.introjs-arrow.left {
+  border-right-color: white !important;
+  border-left: none !important;
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
+
+.introjs-arrow.right {
+  border-left-color: white !important;
+  border-right: none !important;
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
+
+/* Button container layout */
+.introjs-tooltipbuttons .introjs-skipbutton {
+  order: 1 !important;
+  margin-right: 8px !important;
+  position: static !important;
+  transform: none !important;
+}
+
+.introjs-tooltipbuttons .introjs-prevbutton {
+  order: 2 !important;
+  margin-right: auto !important;
+}
+
+.introjs-tooltipbuttons .introjs-nextbutton {
+  order: 3 !important;
+  margin-left: auto !important;
+}
+
+/* Button styling - outlined white boxes with dark text */
+.introjs-button {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #1f2937 !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  font-size: 12px !important;
+  padding: 8px 16px !important;
+  transition: all 0.15s ease !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  flex-shrink: 0 !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+.introjs-button:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(255, 255, 255, 1) !important;
+}
+
+.introjs-skipbutton {
+  background: rgba(255, 255, 255, 0.7) !important;
+  color: #6b7280 !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  font-size: 11px !important;
+  padding: 6px 12px !important;
+  white-space: nowrap !important;
+  border-radius: 6px !important;
+  flex-shrink: 0 !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+.introjs-skipbutton:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  color: #374151 !important;
+}
+
+.introjs-overlay {
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
+.introjs-helperLayer {
+  border-radius: 8px !important;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4), 0 0 20px rgba(79, 70, 229, 0.3) !important;
+}
+
+.introjs-progressbar {
+  background: #e5e7eb !important;
+  height: 3px !important;
+  border-radius: 3px !important;
+  margin: 0 20px 16px 20px !important;
+}
+
+.introjs-progressbar .introjs-progress {
+  background: #4f46e5 !important;
+  height: 100% !important;
+  border-radius: 3px !important;
+}

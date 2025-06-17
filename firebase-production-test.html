@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Config Test for my.blupi.io</title>
+</head>
+<body>
+    <h1>Firebase Configuration Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testFirebaseConfig() {
+            const results = document.getElementById('results');
+            
+            try {
+                // Simulate production domain behavior
+                Object.defineProperty(window, 'location', {
+                    value: {
+                        hostname: 'my.blupi.io',
+                        origin: 'https://my.blupi.io'
+                    },
+                    writable: true
+                });
+                
+                console.log('Testing Firebase config fetch for my.blupi.io...');
+                
+                const response = await fetch('/api/firebase-config');
+                const config = await response.json();
+                
+                results.innerHTML = `
+                    <h2>Firebase Configuration Retrieved:</h2>
+                    <pre>${JSON.stringify(config, null, 2)}</pre>
+                    <h3>Validation:</h3>
+                    <p>API Key: ${config.apiKey ? config.apiKey.substring(0, 10) + '...' : 'MISSING'}</p>
+                    <p>Project ID: ${config.projectId}</p>
+                    <p>App ID: ${config.appId ? config.appId.substring(0, 20) + '...' : 'MISSING'}</p>
+                    <p>Auth Domain: ${config.authDomain}</p>
+                    <p style="color: ${config.projectId === 'blupi-458414' ? 'green' : 'red'}">
+                        Project ID Correct: ${config.projectId === 'blupi-458414' ? 'YES' : 'NO'}
+                    </p>
+                    <p style="color: ${config.apiKey && config.apiKey.startsWith('AIzaSyBuQr') ? 'green' : 'red'}">
+                        API Key Present: ${config.apiKey && config.apiKey.startsWith('AIzaSyBuQr') ? 'YES' : 'NO'}
+                    </p>
+                `;
+                
+            } catch (error) {
+                results.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('Test failed:', error);
+            }
+        }
+        
+        // Run test when page loads
+        window.onload = testFirebaseConfig;
+    </script>
+</body>
+</html>

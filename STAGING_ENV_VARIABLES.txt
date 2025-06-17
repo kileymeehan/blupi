@@ -1,0 +1,28 @@
+# Blupi Staging Environment Variables
+# Add these to your staging Replit project's Secrets
+
+# Environment Configuration
+NODE_ENV=staging
+ENVIRONMENT=staging
+
+# Database Configuration (Create new staging database)
+DATABASE_URL=postgresql://username:password@host:port/blupi_staging?sslmode=require
+
+# Firebase Configuration (Create new staging project)
+VITE_FIREBASE_API_KEY=your_staging_api_key
+VITE_FIREBASE_AUTH_DOMAIN=blupi-staging.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=blupi-staging
+VITE_FIREBASE_APP_ID=your_staging_app_id
+
+# Firebase Admin SDK (Download from staging project)
+FIREBASE_PROJECT_ID=blupi-staging
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@blupi-staging.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour_staging_private_key\n-----END PRIVATE KEY-----\n"
+
+# Optional API Keys (can reuse from production)
+VITE_GOOGLE_AI_API_KEY=your_google_ai_api_key
+
+# Staging-specific features
+STAGING_BANNER_ENABLED=true
+DEBUG_MODE=true
+RATE_LIMIT_ENABLED=false

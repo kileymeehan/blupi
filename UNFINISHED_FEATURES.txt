@@ -1,0 +1,115 @@
+BLUPI - UNFINISHED FEATURES TRACKER
+===================================
+
+This document tracks features that have been started but are not yet fully implemented or working in the application.
+
+PARTIALLY IMPLEMENTED FEATURES:
+-------------------------------
+
+1. PDF WORKFLOW IMPORT
+   Status: Removed from UI (incomplete backend implementation)
+   Description: Feature to upload PDF files and automatically extract workflow steps as individual image blocks
+   What's Done:
+   - Backend PDF processing logic with pdf2pic library
+   - Individual page extraction to PNG images
+   - Basic workflow step creation structure
+   - Server endpoints for PDF upload and processing
+   What's Missing:
+   - Working PDF to image conversion (pdf2pic integration issues)
+   - Error handling for malformed PDFs
+   - Image optimization and sizing
+   - UI integration (currently removed)
+   Next Steps: Fix pdf2pic library integration, test with various PDF formats
+
+2. FIREBASE AUTHENTICATION ERRORS
+   Status: Console errors present but basic functionality works
+   Description: JavaScript module loading errors in browser console related to Firebase imports
+   What's Done:
+   - Firebase configuration and secrets setup
+   - Basic authentication flow structure
+   What's Missing:
+   - Resolve module import errors in browser console
+   - Clean up Firebase initialization warnings
+   Next Steps: Debug import issues, verify Firebase configuration
+
+3. BULK EDIT FUNCTIONALITY
+   Status: Partially working with minor issues
+   Description: Select multiple blocks and perform bulk operations
+   What's Done:
+   - Bulk edit mode toggle
+   - Block selection with checkboxes
+   - Bulk delete functionality
+   - Undo system for bulk operations
+   What's Missing:
+   - Bulk type changes
+   - Bulk department/category changes
+   - Improved visual feedback during bulk operations
+   Next Steps: Complete remaining bulk operations
+
+4. AI-POWERED CONTENT CLASSIFICATION
+   Status: Basic implementation with emoji removal needed
+   Description: Automatically classify imported content and assign appropriate block types
+   What's Done:
+   - OpenAI integration for content analysis
+   - Basic classification logic
+   - CSV import with AI classification
+   What's Missing:
+   - Remove automatic emoji assignment (user request)
+   - Improve classification accuracy
+   - Handle edge cases and errors gracefully
+   Next Steps: Update AI classifier to remove emoji assignment
+
+FEATURES MENTIONED BUT NOT STARTED:
+-----------------------------------
+
+1. Advanced PDF Processing
+   - OCR for text extraction from scanned PDFs
+   - Smart content recognition (forms, diagrams, screenshots)
+   - Automatic workflow step numbering detection
+
+2. Enhanced Google Sheets Integration
+   - Real-time data synchronization
+   - Bi-directional data flow
+   - Advanced metrics and calculations
+
+3. Collaboration Features
+   - Real-time cursor tracking
+   - Voice/video chat integration
+   - Advanced permission management
+
+4. Export/Import Enhancements
+   - Multiple export formats (Word, PowerPoint, etc.)
+   - Template system for common workflows
+   - Bulk import from various sources
+
+5. Advanced Analytics
+   - Workflow performance metrics
+   - User engagement tracking
+   - Process optimization suggestions
+
+TECHNICAL DEBT TO ADDRESS:
+--------------------------
+
+1. TypeScript Errors
+   - Multiple type mismatches in board-grid.tsx
+   - Department enum constraints
+   - Attachment interface inconsistencies
+
+2. Error Handling
+   - Inconsistent error handling patterns
+   - Missing try-catch blocks in some async operations
+   - User-facing error messages need improvement
+
+3. Performance Optimizations
+   - Large board rendering optimization
+   - Image loading and caching improvements
+   - WebSocket connection management
+
+NOTES:
+------
+- PDF workflow import was removed from UI due to implementation issues
+- Focus on completing existing features before adding new ones
+- Prioritize user-requested changes and bug fixes
+- Maintain documentation as features are completed or modified
+
+Last Updated: May 29, 2025
