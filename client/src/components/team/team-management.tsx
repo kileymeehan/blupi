@@ -244,7 +244,6 @@ export default function TeamManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "pending-invitations"] });
       toast({
         title: "Team member removed",
         description: "The team member has been removed from the organization.",
@@ -253,6 +252,35 @@ export default function TeamManagement() {
     onError: (error: Error) => {
       toast({
         title: "Failed to remove team member",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cancelInvitationMutation = useMutation({
+    mutationFn: async (invitationId: number) => {
+      const response = await fetch(`/api/teams/pending-invitations/${invitationId}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to cancel invitation");
+      }
+      
+      // 204 No Content response doesn't have a body to parse
+      return;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "pending-invitations"] });
+      toast({
+        title: "Invitation cancelled",
+        description: "The invitation has been cancelled successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to cancel invitation",
         description: error.message,
         variant: "destructive",
       });
@@ -598,7 +626,7 @@ export default function TeamManagement() {
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                               className="bg-red-600 hover:bg-red-700"
-                              onClick={() => deleteMemberMutation.mutate(invitation.id)}
+                              onClick={() => cancelInvitationMutation.mutate(invitation.id)}
                             >
                               Cancel Invitation
                             </AlertDialogAction>

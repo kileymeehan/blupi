@@ -608,27 +608,26 @@ export class DatabaseStorage {
     try {
       console.log('[Storage] Removing team member:', id);
       
-      // First check if this is a team member or pending invitation
-      const [member] = await db
-        .select()
-        .from(teamMembers)
+      await db
+        .delete(teamMembers)
         .where(eq(teamMembers.id, id));
-      
-      if (member) {
-        // Remove from team members
-        await db
-          .delete(teamMembers)
-          .where(eq(teamMembers.id, id));
-        console.log('[Storage] Team member removed successfully');
-      } else {
-        // Check if it's a pending invitation
-        await db
-          .delete(pendingInvitations)
-          .where(eq(pendingInvitations.id, id));
-        console.log('[Storage] Pending invitation cancelled successfully');
-      }
+      console.log('[Storage] Team member removed successfully');
     } catch (error) {
       console.error('[Storage] Error removing team member:', error);
+      throw error;
+    }
+  }
+
+  async cancelPendingInvitation(id: number): Promise<void> {
+    try {
+      console.log('[Storage] Cancelling pending invitation:', id);
+      
+      await db
+        .delete(pendingInvitations)
+        .where(eq(pendingInvitations.id, id));
+      console.log('[Storage] Pending invitation cancelled successfully');
+    } catch (error) {
+      console.error('[Storage] Error cancelling pending invitation:', error);
       throw error;
     }
   }

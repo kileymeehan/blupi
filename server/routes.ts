@@ -1990,6 +1990,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete pending invitation
+  app.delete("/api/teams/pending-invitations/:invitationId", async (req, res) => {
+    try {
+      const invitationId = parseInt(req.params.invitationId);
+      console.log('[HTTP] Cancelling pending invitation:', invitationId);
+      await storage.cancelPendingInvitation(invitationId);
+      res.status(204).send();
+    } catch (err) {
+      console.error('[HTTP] Error cancelling pending invitation:', err);
+      res.status(500).json({ error: true, message: "Failed to cancel invitation" });
+    }
+  });
+
   // Get pending invitations for an organization
   app.get("/api/teams/:organizationId/pending-invitations", async (req, res) => {
     try {
