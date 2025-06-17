@@ -101,7 +101,7 @@ export default function LandingPage() {
             <div className="lg:w-1/2 flex justify-center">
               <div className="relative">
                 <img 
-                  src="/blupi-pufferfish-new.png" 
+                  src="/images/Blowfish-bubbles-transparent.png" 
                   alt="Blupi Mascot" 
                   className="max-w-full h-auto"
                   style={{ maxWidth: '400px' }}

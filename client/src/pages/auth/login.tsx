@@ -72,7 +72,7 @@ export default function LoginPage() {
         </div>
         <div className="relative z-10">
           <h1 className="mb-6">
-            <img src="/blupi-logomark-white.png" alt="Blupi" className="h-10" />
+            <img src="/images/Blupi-logomark-white-300.png" alt="Blupi" className="h-10" />
           </h1>
           <p className="text-xl font-light leading-relaxed text-[#A1D9F5] max-w-md">
             A simple way to create and collaborate on your customer journeys.
@@ -81,7 +81,7 @@ export default function LoginPage() {
         <div className="space-y-8 relative z-10">
           <div className="flex justify-center mb-8">
             <img 
-              src="/blupi-pufferfish-new.png" 
+              src="/images/Blowfish-bubbles-transparent.png" 
               alt="Blupi Mascot" 
               className="w-32 h-32 object-contain opacity-80"
             />
