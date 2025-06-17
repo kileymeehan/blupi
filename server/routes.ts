@@ -3855,9 +3855,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Flagged blocks API endpoints
-  app.post('/api/blocks/flag', async (req, res) => {
+  app.post('/api/boards/:boardId/blocks/:blockId/flag', async (req, res) => {
     try {
-      const { boardId, blockId, reason } = req.body;
+      const { boardId, blockId } = req.params;
+      const { reason } = req.body;
       const userId = await getSessionUserId(req);
       
       if (!userId) {
@@ -3881,7 +3882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/blocks/flag/:boardId/:blockId', async (req, res) => {
+  app.delete('/api/boards/:boardId/blocks/:blockId/unflag', async (req, res) => {
     try {
       const { boardId, blockId } = req.params;
       const userId = await getSessionUserId(req);

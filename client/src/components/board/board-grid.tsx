@@ -198,17 +198,40 @@ export default function BoardGrid({
   // Flagging mutations
   const flagBlockMutation = useMutation({
     mutationFn: async ({ blockId, reason }: { blockId: string; reason?: string }) => {
-      const response = await fetch(`/api/boards/${id}/blocks/${blockId}/flag`, {
+      console.log('🏁 Flagging block:', { blockId, reason, boardId: id });
+      const url = `/api/boards/${id}/blocks/${blockId}/flag`;
+      console.log('🏁 Request URL:', url);
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ reason }),
       });
+      
+      console.log('🏁 Response status:', response.status);
+      console.log('🏁 Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const responseText = await response.text();
+      console.log('🏁 Raw response:', responseText);
+      
       if (!response.ok) {
-        throw new Error('Failed to flag block');
+        console.error('🏁 Request failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+        throw new Error(`Failed to flag block: ${response.status} ${response.statusText}`);
       }
-      return response.json();
+      
+      try {
+        return JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('🏁 JSON parse error:', parseError);
+        console.error('🏁 Response was not JSON:', responseText);
+        throw new Error('Server returned invalid JSON response');
+      }
     },
     onSuccess: (_, { blockId }) => {
       setFlaggedBlocks(prev => new Set(Array.from(prev).concat(blockId)));
