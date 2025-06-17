@@ -45,7 +45,14 @@ export class ReplicateService {
 
       console.log('[REPLICATE] API call completed, processing response...');
       console.log('[REPLICATE] Raw output type:', typeof output);
+      console.log('[REPLICATE] Raw output constructor:', output?.constructor?.name);
+      console.log('[REPLICATE] Raw output length:', Array.isArray(output) ? output.length : 'not array');
       console.log('[REPLICATE] Raw output:', output);
+      
+      if (Array.isArray(output) && output.length > 0) {
+        console.log('[REPLICATE] First item constructor:', output[0]?.constructor?.name);
+        console.log('[REPLICATE] First item properties:', Object.getOwnPropertyNames(output[0] || {}));
+      }
 
       // Handle different response types from Replicate
       let imageUrl: string;
@@ -67,8 +74,9 @@ export class ReplicateService {
           console.log('[REPLICATE] Attempting to read stream...');
           
           try {
-            // Convert ReadableStream to string
+            // Handle ReadableStream - check if it contains URL or image data
             if (firstItem instanceof ReadableStream) {
+              console.log('[REPLICATE] Reading stream content...');
               const reader = firstItem.getReader();
               const chunks = [];
               
@@ -78,7 +86,7 @@ export class ReplicateService {
                 chunks.push(value);
               }
               
-              // Combine chunks and decode as text
+              // Combine chunks
               const buffer = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0));
               let offset = 0;
               for (const chunk of chunks) {
@@ -86,8 +94,23 @@ export class ReplicateService {
                 offset += chunk.length;
               }
               
-              imageUrl = new TextDecoder().decode(buffer);
-              console.log('[REPLICATE] Stream decoded to:', imageUrl);
+              // Check if this is text (URL) or binary (image data)
+              console.log('[REPLICATE] Buffer size:', buffer.length);
+              console.log('[REPLICATE] First 20 bytes:', Array.from(buffer.slice(0, 20)).map(b => b.toString(16)).join(' '));
+              
+              // If it starts with PNG header or other image format, it's image data
+              const isPNG = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+              const isJPEG = buffer[0] === 0xFF && buffer[1] === 0xD8;
+              const isWebP = buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+              
+              if (isPNG || isJPEG || isWebP) {
+                console.log('[REPLICATE] Stream contains image data, not URL');
+                throw new Error('Replicate returned image data instead of URL. This model configuration needs adjustment.');
+              } else {
+                // Try to decode as text URL
+                imageUrl = new TextDecoder().decode(buffer).trim();
+                console.log('[REPLICATE] Stream decoded as text:', imageUrl);
+              }
             } else {
               // Fallback: try to extract URL if it's a response object
               imageUrl = firstItem.url || firstItem.href || firstItem.toString();
