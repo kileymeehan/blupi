@@ -104,8 +104,33 @@ export class ReplicateService {
               const isWebP = buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
               
               if (isPNG || isJPEG || isWebP) {
-                console.log('[REPLICATE] Stream contains image data, not URL');
-                throw new Error('Replicate returned image data instead of URL. This model configuration needs adjustment.');
+                console.log('[REPLICATE] Stream contains image data, converting to URL...');
+                
+                // Save the image data to a file and return a URL
+                const crypto = await import('crypto');
+                const fs = await import('fs');
+                const path = await import('path');
+                
+                // Generate unique filename
+                const imageId = crypto.randomUUID();
+                const extension = isPNG ? '.png' : isJPEG ? '.jpg' : '.webp';
+                const filename = `storyboard-${imageId}${extension}`;
+                
+                // Save to public/images directory
+                const publicDir = path.join(process.cwd(), 'client', 'public', 'images');
+                const filePath = path.join(publicDir, filename);
+                
+                // Ensure directory exists
+                if (!fs.existsSync(publicDir)) {
+                  fs.mkdirSync(publicDir, { recursive: true });
+                }
+                
+                // Write image data to file
+                fs.writeFileSync(filePath, buffer);
+                
+                // Return URL path
+                imageUrl = `/images/${filename}`;
+                console.log('[REPLICATE] Saved image data to:', imageUrl);
               } else {
                 // Try to decode as text URL
                 imageUrl = new TextDecoder().decode(buffer).trim();
