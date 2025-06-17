@@ -141,7 +141,7 @@ export function StoryboardGenerator({
   if (column.storyboardImageUrl && !showGenerator) {
     return (
       <>
-        <div className="mb-3">
+        <div className="mb-6">
           <div className="relative group">
             <img
               src={column.storyboardImageUrl}
@@ -157,7 +157,7 @@ export function StoryboardGenerator({
                   onClick={() => setShowImageModal(true)}
                   className="bg-white/90 hover:bg-white text-gray-900 h-6 px-1.5 text-xs min-w-0"
                 >
-                  <ZoomIn className="w-3 h-3" />
+                  <ZoomIn className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"
@@ -168,7 +168,7 @@ export function StoryboardGenerator({
                   }}
                   className="bg-white/90 hover:bg-white text-gray-900 h-6 px-1.5 text-xs min-w-0"
                 >
-                  <Palette className="w-3 h-3" />
+                  <Palette className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"
@@ -176,7 +176,7 @@ export function StoryboardGenerator({
                   onClick={handleClearStoryboard}
                   className="bg-red-600/90 hover:bg-red-600 h-6 px-1.5 text-xs min-w-0"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-4 h-4" />
                 </Button>
               </div>
             </div>

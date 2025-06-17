@@ -381,7 +381,7 @@ export default function ImageUpload({
                 onClick={() => setShowImageModal(true)}
                 className="bg-white/90 hover:bg-white text-gray-900 h-6 px-1.5 text-xs min-w-0"
               >
-                <ZoomIn className="w-3 h-3" />
+                <ZoomIn className="w-4 h-4" />
               </Button>
               <Button
                 size="sm"
@@ -389,7 +389,7 @@ export default function ImageUpload({
                 onClick={handleReplace}
                 className="bg-white/90 hover:bg-white text-gray-900 h-6 px-1.5 text-xs min-w-0"
               >
-                <Upload className="w-3 h-3" />
+                <Upload className="w-4 h-4" />
               </Button>
               <Button
                 size="sm"
@@ -397,7 +397,7 @@ export default function ImageUpload({
                 onClick={handleDelete}
                 className="bg-red-600/90 hover:bg-red-600 h-6 px-1.5 text-xs min-w-0"
               >
-                <X className="w-3 h-3" />
+                <X className="w-4 h-4" />
               </Button>
             </div>
           </div>
