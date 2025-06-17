@@ -1,7 +1,7 @@
 import { 
   projects, boards as boardsTable, 
   users, projectMembers, sheetDocuments, projectSheetDocuments,
-  boardPermissions, teamMembers, pendingInvitations, notifications,
+  boardPermissions, teamMembers, pendingInvitations, notifications, flaggedBlocks,
   type Board, type InsertBoard, 
   type User, type InsertUser, 
   type Project, type InsertProject,
@@ -11,7 +11,8 @@ import {
   type BoardPermission, type InsertBoardPermission,
   type TeamMember, type InsertTeamMember,
   type PendingInvitation, type InsertPendingInvitation,
-  type Notification, type InsertNotification
+  type Notification, type InsertNotification,
+  type FlaggedBlock, type InsertFlaggedBlock
 } from "@shared/schema";
 import { db, sql as neonSql } from "./db";
 import { eq, desc, or, and, inArray, count, sql } from "drizzle-orm";
@@ -1165,6 +1166,97 @@ export class DatabaseStorage {
         );
     } catch (error) {
       console.error('[Storage] Error updating project member role:', error);
+      throw error;
+    }
+  }
+
+  // Flagged blocks methods
+  async flagBlock(flaggedBlock: InsertFlaggedBlock): Promise<FlaggedBlock> {
+    try {
+      console.log('[Storage] Flagging block:', flaggedBlock);
+      const [result] = await db
+        .insert(flaggedBlocks)
+        .values(flaggedBlock)
+        .returning();
+      return result;
+    } catch (error) {
+      console.error('[Storage] Error flagging block:', error);
+      throw error;
+    }
+  }
+
+  async unflagBlock(boardId: number, blockId: string, userId: number): Promise<void> {
+    try {
+      console.log('[Storage] Unflagging block:', { boardId, blockId, userId });
+      await db
+        .delete(flaggedBlocks)
+        .where(
+          and(
+            eq(flaggedBlocks.boardId, boardId),
+            eq(flaggedBlocks.blockId, blockId),
+            eq(flaggedBlocks.userId, userId)
+          )
+        );
+    } catch (error) {
+      console.error('[Storage] Error unflagging block:', error);
+      throw error;
+    }
+  }
+
+  async getFlaggedBlocks(userId: number): Promise<(FlaggedBlock & { board: { name: string } })[]> {
+    try {
+      console.log('[Storage] Getting flagged blocks for user:', userId);
+      const results = await db
+        .select({
+          id: flaggedBlocks.id,
+          boardId: flaggedBlocks.boardId,
+          blockId: flaggedBlocks.blockId,
+          userId: flaggedBlocks.userId,
+          reason: flaggedBlocks.reason,
+          createdAt: flaggedBlocks.createdAt,
+          resolvedAt: flaggedBlocks.resolvedAt,
+          resolved: flaggedBlocks.resolved,
+          boardName: boardsTable.name
+        })
+        .from(flaggedBlocks)
+        .innerJoin(boardsTable, eq(flaggedBlocks.boardId, boardsTable.id))
+        .where(and(
+          eq(flaggedBlocks.userId, userId),
+          eq(flaggedBlocks.resolved, false)
+        ))
+        .orderBy(desc(flaggedBlocks.createdAt));
+      
+      return results.map(result => ({
+        id: result.id,
+        boardId: result.boardId,
+        blockId: result.blockId,
+        userId: result.userId,
+        reason: result.reason,
+        createdAt: result.createdAt,
+        resolvedAt: result.resolvedAt,
+        resolved: result.resolved,
+        board: {
+          name: result.boardName
+        }
+      }));
+    } catch (error) {
+      console.error('[Storage] Error getting flagged blocks:', error);
+      throw error;
+    }
+  }
+
+  async resolveFlaggedBlock(flaggedBlockId: number): Promise<void> {
+    try {
+      console.log('[Storage] Resolving flagged block:', flaggedBlockId);
+      await db
+        .update(flaggedBlocks)
+        .set({
+          resolved: true,
+          resolvedAt: new Date()
+        })
+        .where(eq(flaggedBlocks.id, flaggedBlockId));
+    } catch (error) {
+      console.error('[Storage] Error resolving flagged block:', error);
       throw error;
     }
   }

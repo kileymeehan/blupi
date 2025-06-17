@@ -3829,6 +3829,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to get authenticated user ID
+  const getSessionUserId = async (req: Request): Promise<number | null> => {
+    const userId = req.session?.userId;
+    if (!userId) return null;
+    
+    let userIdNum = parseInt(String(userId));
+    
+    // Handle Google OAuth user IDs
+    if (isNaN(userIdNum) && typeof userId === 'string' && userId.startsWith('google_')) {
+      try {
+        const user = await storage.getUserByFirebaseUid(userId);
+        if (user) {
+          userIdNum = user.id;
+        } else {
+          return null;
+        }
+      } catch (error) {
+        console.error('[HTTP] Error looking up user by Firebase UID:', error);
+        return null;
+      }
+    }
+    
+    return isNaN(userIdNum) ? null : userIdNum;
+  };
+
+  // Flagged blocks API endpoints
+  app.post('/api/blocks/flag', async (req, res) => {
+    try {
+      const { boardId, blockId, reason } = req.body;
+      const userId = await getSessionUserId(req);
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      console.log('[HTTP] Flagging block:', { boardId, blockId, userId, reason });
+
+      const flaggedBlock = await storage.flagBlock({
+        boardId: parseInt(boardId),
+        blockId,
+        userId,
+        reason: reason || null,
+        resolved: false
+      });
+
+      res.json({ success: true, flaggedBlock });
+    } catch (error) {
+      console.error('[HTTP] Error flagging block:', error);
+      res.status(500).json({ error: 'Failed to flag block' });
+    }
+  });
+
+  app.delete('/api/blocks/flag/:boardId/:blockId', async (req, res) => {
+    try {
+      const { boardId, blockId } = req.params;
+      const userId = await getSessionUserId(req);
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      console.log('[HTTP] Unflagging block:', { boardId, blockId, userId });
+
+      await storage.unflagBlock(parseInt(boardId), blockId, userId);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('[HTTP] Error unflagging block:', error);
+      res.status(500).json({ error: 'Failed to unflag block' });
+    }
+  });
+
+  app.get('/api/flagged-blocks', async (req, res) => {
+    try {
+      const userId = await getSessionUserId(req);
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      console.log('[HTTP] Getting flagged blocks for user:', userId);
+
+      const flaggedBlocks = await storage.getFlaggedBlocks(userId);
+
+      res.json(flaggedBlocks);
+    } catch (error) {
+      console.error('[HTTP] Error getting flagged blocks:', error);
+      res.status(500).json({ error: 'Failed to get flagged blocks' });
+    }
+  });
+
+  app.post('/api/flagged-blocks/:id/resolve', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = await getSessionUserId(req);
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      console.log('[HTTP] Resolving flagged block:', id);
+
+      await storage.resolveFlaggedBlock(parseInt(id));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('[HTTP] Error resolving flagged block:', error);
+      res.status(500).json({ error: 'Failed to resolve flagged block' });
+    }
+  });
+
   return httpServer;
 }
 
