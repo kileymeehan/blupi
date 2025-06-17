@@ -296,7 +296,8 @@ export async function convertWorkflowStepsToBlocks(
       emoji: '',
       department: undefined as any,
       customDepartment: '',
-      isDivider: false
+      isDivider: false,
+      flagged: false
     };
     
     blocks.push(block);
