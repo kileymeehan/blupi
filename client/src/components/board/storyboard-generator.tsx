@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Palette, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Loader2, Palette, X, ZoomIn, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Column } from '@shared/schema';
 
@@ -25,6 +26,7 @@ export function StoryboardGenerator({
   const [prompt, setPrompt] = useState(column.storyboardPrompt || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
   const { toast } = useToast();
 
   const handleGenerateStoryboard = async () => {
@@ -106,48 +108,124 @@ export function StoryboardGenerator({
     });
   };
 
+  const handleDownloadImage = async () => {
+    if (!column.storyboardImageUrl) return;
+    
+    try {
+      const response = await fetch(column.storyboardImageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `storyboard-${column.name || 'image'}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Image downloaded",
+        description: "Storyboard image has been saved to your downloads.",
+      });
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "Could not download the image.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Show existing storyboard image if available
   if (column.storyboardImageUrl && !showGenerator) {
     return (
-      <div className="mb-3">
-        <div className="relative group">
-          <img
-            src={column.storyboardImageUrl}
-            alt={column.storyboardPrompt || 'Storyboard'}
-            className="w-full h-32 object-cover rounded-lg border border-gray-200"
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => {
-                  setPrompt(column.storyboardPrompt || '');
-                  setShowGenerator(true);
-                }}
-                className="bg-white/90 hover:bg-white text-gray-900"
-              >
-                <Palette className="w-3 h-3 mr-1" />
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={handleClearStoryboard}
-                className="bg-red-600/90 hover:bg-red-600"
-              >
-                <X className="w-3 h-3 mr-1" />
-                Remove
-              </Button>
+      <>
+        <div className="mb-3">
+          <div className="relative group">
+            <img
+              src={column.storyboardImageUrl}
+              alt={column.storyboardPrompt || 'Storyboard'}
+              className="w-full h-32 object-cover rounded-lg border border-gray-200 cursor-pointer"
+              onClick={() => setShowImageModal(true)}
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setShowImageModal(true)}
+                  className="bg-white/90 hover:bg-white text-gray-900"
+                >
+                  <ZoomIn className="w-3 h-3 mr-1" />
+                  View
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setPrompt(column.storyboardPrompt || '');
+                    setShowGenerator(true);
+                  }}
+                  className="bg-white/90 hover:bg-white text-gray-900"
+                >
+                  <Palette className="w-3 h-3 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleClearStoryboard}
+                  className="bg-red-600/90 hover:bg-red-600"
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  Remove
+                </Button>
+              </div>
             </div>
           </div>
+          {column.storyboardPrompt && (
+            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+              "{column.storyboardPrompt}"
+            </p>
+          )}
         </div>
-        {column.storyboardPrompt && (
-          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-            "{column.storyboardPrompt}"
-          </p>
-        )}
-      </div>
+
+        {/* Image Zoom Modal */}
+        <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
+          <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+            <DialogHeader className="p-6 pb-4">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-lg font-semibold">
+                  Storyboard Image
+                </DialogTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadImage}
+                  className="ml-2"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+              {column.storyboardPrompt && (
+                <p className="text-sm text-gray-600 mt-2">
+                  "{column.storyboardPrompt}"
+                </p>
+              )}
+            </DialogHeader>
+            <div className="px-6 pb-6">
+              <img
+                src={column.storyboardImageUrl}
+                alt={column.storyboardPrompt || 'Storyboard'}
+                className="w-full h-auto rounded-lg border border-gray-200"
+                style={{ maxHeight: 'calc(90vh - 200px)' }}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
