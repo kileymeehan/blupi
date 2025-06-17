@@ -1,5 +1,5 @@
 import { useRef, useEffect, KeyboardEvent, useState, useCallback } from "react";
-import { MessageSquare, ImageIcon, StickyNote, Smile, Tag, ChevronDown, X, Table as TableIcon, Beaker, CheckCircle, XCircle } from "lucide-react";
+import { MessageSquare, ImageIcon, StickyNote, Smile, Tag, ChevronDown, X, Table as TableIcon, Beaker, CheckCircle, XCircle, Flag } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import * as Icons from "lucide-react";
 import type {
@@ -80,6 +80,9 @@ interface BlockProps {
   isCondensed?: boolean;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
+  onFlag?: (blockId: string, reason?: string) => void;
+  onUnflag?: (blockId: string) => void;
+  isFlagged?: boolean;
 }
 
 const TYPE_LABELS = {
@@ -149,6 +152,9 @@ export default function Block({
   isCondensed = false,
   isExpanded = false,
   onToggleExpand,
+  onFlag,
+  onUnflag,
+  isFlagged = false,
 }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
