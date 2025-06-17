@@ -55,7 +55,52 @@ export class ReplicateService {
         if (output.length === 0) {
           throw new Error('No image data returned from Replicate');
         }
-        imageUrl = output[0];
+        
+        const firstItem = output[0];
+        console.log('[REPLICATE] First item type:', typeof firstItem);
+        console.log('[REPLICATE] First item:', firstItem);
+        
+        if (typeof firstItem === 'string') {
+          imageUrl = firstItem;
+        } else if (firstItem && typeof firstItem === 'object') {
+          // Handle ReadableStream - need to read the stream to get the URL
+          console.log('[REPLICATE] Attempting to read stream...');
+          
+          try {
+            // Convert ReadableStream to string
+            if (firstItem instanceof ReadableStream) {
+              const reader = firstItem.getReader();
+              const chunks = [];
+              
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+              }
+              
+              // Combine chunks and decode as text
+              const buffer = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0));
+              let offset = 0;
+              for (const chunk of chunks) {
+                buffer.set(chunk, offset);
+                offset += chunk.length;
+              }
+              
+              imageUrl = new TextDecoder().decode(buffer);
+              console.log('[REPLICATE] Stream decoded to:', imageUrl);
+            } else {
+              // Fallback: try to extract URL if it's a response object
+              imageUrl = firstItem.url || firstItem.href || firstItem.toString();
+              console.log('[REPLICATE] Extracted URL from object:', imageUrl);
+            }
+          } catch (streamError) {
+            console.error('[REPLICATE] Stream reading failed:', streamError);
+            throw new Error('Failed to read stream response from Replicate');
+          }
+        } else {
+          console.error('[REPLICATE] Unexpected first item format:', firstItem);
+          throw new Error('Unexpected item format in Replicate response array');
+        }
       } else if (typeof output === 'string') {
         // Direct string URL
         imageUrl = output;
@@ -65,9 +110,16 @@ export class ReplicateService {
         throw new Error('Unexpected response format from Replicate API');
       }
       
+      // Validate that we have a proper URL string
       if (!imageUrl || typeof imageUrl !== 'string') {
         console.error('[REPLICATE] Invalid image URL:', imageUrl, typeof imageUrl);
         throw new Error('No valid image URL returned from Replicate');
+      }
+      
+      // Basic URL validation
+      if (!imageUrl.startsWith('http')) {
+        console.error('[REPLICATE] Invalid URL format:', imageUrl);
+        throw new Error('Invalid URL format returned from Replicate');
       }
 
       console.log('[REPLICATE] Successfully generated storyboard image:', imageUrl);
