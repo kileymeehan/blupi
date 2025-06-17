@@ -180,12 +180,13 @@ export function StoryboardGenerator({
                 </Button>
               </div>
             </div>
+            {/* Prompt text overlay - only visible on hover */}
+            {column.storyboardPrompt && (
+              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-2 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                <p className="line-clamp-2">"{column.storyboardPrompt}"</p>
+              </div>
+            )}
           </div>
-          {column.storyboardPrompt && (
-            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-              "{column.storyboardPrompt}"
-            </p>
-          )}
         </div>
 
         {/* Image Zoom Modal */}
