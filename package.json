@@ -93,6 +93,7 @@
     "react-resizable-panels": "^2.1.4",
     "react-to-pdf": "^2.0.1",
     "recharts": "^2.13.0",
+    "replicate": "^1.0.1",
     "sharp": "^0.34.2",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",

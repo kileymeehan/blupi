@@ -12,6 +12,7 @@ import { getFrictionMetrics, isPendoConfigured, getAuthorizationUrl, exchangeCod
 import { parseSheetId, fetchSheetData, getSheetNames, convertSheetDataToCsv, fetchSheetCell } from './utils/google-sheets-fixed';
 import { GoogleSlidesService } from './utils/google-slides';
 import { OpenAIService } from './utils/openai';
+import { replicateService } from './utils/replicate';
 import { classifyDataWithAI, analyzeCsvStructure } from './utils/ai-classifier';
 import { parseWorkflowPDF, convertWorkflowStepsToBlocks } from './utils/pdf-workflow-parser';
 import { sendTeamInviteEmail } from './email-service';
@@ -1270,8 +1271,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log(`[STORYBOARD] === STARTING STORYBOARD GENERATION ===`);
     console.log(`[STORYBOARD] Request params:`, req.params);
     console.log(`[STORYBOARD] Request body:`, req.body);
-    console.log(`[STORYBOARD] OpenAI API Key present:`, !!process.env.OPENAI_API_KEY);
-    console.log(`[STORYBOARD] OpenAI API Key length:`, process.env.OPENAI_API_KEY?.length || 0);
+    console.log(`[STORYBOARD] Replicate API Token present:`, !!process.env.REPLICATE_API_TOKEN);
+    console.log(`[STORYBOARD] Using Stable Diffusion XL via Replicate`);
     
     try {
       const { prompt } = req.body;
@@ -1321,12 +1322,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: true, message: "Column not found" });
       }
 
-      // Initialize OpenAI service and generate image
-      console.log(`[STORYBOARD] Initializing OpenAI service...`);
-      const openaiService = new OpenAIService();
-      console.log(`[STORYBOARD] OpenAI service initialized, calling generateStoryboardImage...`);
-      const imageUrl = await openaiService.generateStoryboardImage(prompt);
-      console.log(`[STORYBOARD] Image generation completed, URL: ${imageUrl}`);
+      // Check if column already has this prompt to avoid regeneration
+      let existingImageUrl = null;
+      for (const phase of board.phases) {
+        for (const column of phase.columns) {
+          if (column.id === columnId && column.storyboardPrompt === prompt.trim() && column.storyboardImageUrl) {
+            existingImageUrl = column.storyboardImageUrl;
+            console.log(`[STORYBOARD] Found cached image for same prompt, reusing: ${existingImageUrl}`);
+            break;
+          }
+        }
+        if (existingImageUrl) break;
+      }
+
+      let imageUrl: string;
+      if (existingImageUrl) {
+        imageUrl = existingImageUrl;
+      } else {
+        // Generate new image with SDXL
+        console.log(`[STORYBOARD] Using Replicate SDXL for image generation...`);
+        imageUrl = await replicateService.generateStoryboardImage(prompt);
+        console.log(`[STORYBOARD] SDXL image generation completed, URL: ${imageUrl}`);
+      }
 
       // Update the board with the new storyboard prompt and image URL
       const updatedPhases = board.phases.map(phase => ({
