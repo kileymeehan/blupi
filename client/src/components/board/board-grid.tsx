@@ -1028,9 +1028,22 @@ export default function BoardGrid({
     imageUrl: string,
     prompt: string,
   ) => {
+    console.log('[BOARD GRID] === STORYBOARD CALLBACK RECEIVED ===');
+    console.log('[BOARD GRID] Phase:', phaseIndex, 'Column:', columnIndex);
+    console.log('[BOARD GRID] Image URL:', imageUrl);
+    console.log('[BOARD GRID] Prompt:', prompt);
+    console.log('[BOARD GRID] Current board phases:', board.phases.length);
+    
     const newPhases = [...board.phases];
+    const targetColumn = newPhases[phaseIndex].columns[columnIndex];
+    console.log('[BOARD GRID] Target column before update:', targetColumn);
+    
     newPhases[phaseIndex].columns[columnIndex].storyboardImageUrl = imageUrl;
     newPhases[phaseIndex].columns[columnIndex].storyboardPrompt = prompt;
+    
+    console.log('[BOARD GRID] Target column after update:', newPhases[phaseIndex].columns[columnIndex]);
+    console.log('[BOARD GRID] Calling onPhasesChange with updated phases');
+    
     onPhasesChange(newPhases);
   };
 

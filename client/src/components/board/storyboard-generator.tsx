@@ -57,9 +57,23 @@ export function StoryboardGenerator({
 
       const result = await response.json();
       
-      console.log('Storyboard generated successfully:', result);
+      console.log('[STORYBOARD UI] === GENERATION SUCCESS ===');
+      console.log('[STORYBOARD UI] API Response:', result);
+      console.log('[STORYBOARD UI] Image URL:', result.imageUrl);
+      console.log('[STORYBOARD UI] Prompt:', result.prompt);
+      console.log('[STORYBOARD UI] Column ID:', result.columnId);
+      
+      // Validate image URL accessibility
+      if (result.imageUrl) {
+        console.log('[STORYBOARD UI] Testing image URL accessibility...');
+        const img = new Image();
+        img.onload = () => console.log('[STORYBOARD UI] ✓ Image URL is accessible');
+        img.onerror = (err) => console.error('[STORYBOARD UI] ✗ Image URL failed to load:', err);
+        img.src = result.imageUrl;
+      }
       
       // Update the local state and notify parent
+      console.log('[STORYBOARD UI] Calling onStoryboardGenerated with:', result.imageUrl, prompt.trim());
       onStoryboardGenerated(result.imageUrl, prompt.trim());
       
       toast({

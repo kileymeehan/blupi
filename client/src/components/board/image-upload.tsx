@@ -238,10 +238,21 @@ export default function ImageUpload({
 
       const data = await response.json();
 
+      console.log('[IMAGE UPLOAD] === STORYBOARD API RESPONSE ===');
+      console.log('[IMAGE UPLOAD] Response OK:', response.ok);
+      console.log('[IMAGE UPLOAD] Data success:', data.success);
+      console.log('[IMAGE UPLOAD] Data imageUrl:', data.imageUrl);
+      console.log('[IMAGE UPLOAD] Full response data:', data);
+
       if (response.ok && data.success && data.imageUrl) {
+        console.log('[IMAGE UPLOAD] Calling onImageChange with:', data.imageUrl);
         onImageChange(data.imageUrl);
+        
         if (onStoryboardGenerated) {
+          console.log('[IMAGE UPLOAD] Calling onStoryboardGenerated with:', data.imageUrl, storyboardPromptInput.trim());
           onStoryboardGenerated(data.imageUrl, storyboardPromptInput.trim());
+        } else {
+          console.warn('[IMAGE UPLOAD] onStoryboardGenerated callback not provided');
         }
         setStoryboardPromptInput("");
         
