@@ -379,6 +379,35 @@ export const insertProjectSheetDocumentSchema = createInsertSchema(projectSheetD
 export type InsertProjectSheetDocument = z.infer<typeof insertProjectSheetDocumentSchema>;
 export type ProjectSheetDocument = typeof projectSheetDocuments.$inferSelect;
 
+// Flagged blocks schema - tracks blocks that users have flagged for follow-up
+export const flaggedBlocks = pgTable("flagged_blocks", {
+  id: serial("id").primaryKey(),
+  boardId: integer("board_id").references(() => boards.id).notNull(),
+  blockId: text("block_id").notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  reason: text("reason"), // Optional reason for flagging
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at"),
+  resolved: boolean("resolved").notNull().default(false)
+});
+
+export const flaggedBlocksRelations = relations(flaggedBlocks, ({ one }) => ({
+  board: one(boards, {
+    fields: [flaggedBlocks.boardId],
+    references: [boards.id],
+  }),
+  user: one(users, {
+    fields: [flaggedBlocks.userId],
+    references: [users.id],
+  })
+}));
+
+export const insertFlaggedBlockSchema = createInsertSchema(flaggedBlocks)
+  .omit({ id: true, createdAt: true, resolvedAt: true });
+
+export type InsertFlaggedBlock = z.infer<typeof insertFlaggedBlockSchema>;
+export type FlaggedBlock = typeof flaggedBlocks.$inferSelect;
+
 // Now we can define blockSchema since its dependencies are defined
 export const blockSchema = z.object({
   id: z.string(),
@@ -395,6 +424,7 @@ export const blockSchema = z.object({
   isDivider: z.boolean().optional().default(false), // To mark divider-style blocks
   sheetsConnection: sheetsConnectionSchema.optional(), // Google Sheets connection for metrics blocks
   experimentTarget: z.string().optional(), // Target value for experiment blocks
+  flagged: z.boolean().optional().default(false), // Whether this block is flagged for follow-up
 });
 
 export type Block = z.infer<typeof blockSchema>;

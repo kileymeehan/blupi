@@ -257,6 +257,7 @@ export default function BoardGrid({
       customDepartment: "",
       emoji: "",
       isDivider: selectedType?.isDivider || false,
+      flagged: false,
     };
 
     const updatedBlocks = [...board.blocks, newBlock];
@@ -582,6 +583,7 @@ export default function BoardGrid({
           department: undefined,
           customDepartment: "",
           isDivider: false,
+          flagged: false,
         };
 
         // Get blocks in destination column to determine insertion point
@@ -727,7 +729,8 @@ export default function BoardGrid({
       isDivider: false,
       attachments: [],
       customDepartment: '',
-      experimentTarget: ''
+      experimentTarget: '',
+      flagged: false
     };
 
     const updatedBlocks = [...board.blocks, newBlock];
