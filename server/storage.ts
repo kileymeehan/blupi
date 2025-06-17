@@ -1260,6 +1260,18 @@ export class DatabaseStorage {
       throw error;
     }
   }
+
+  async deleteFlaggedBlock(flaggedBlockId: number): Promise<void> {
+    try {
+      console.log('[Storage] Deleting flagged block:', flaggedBlockId);
+      await db
+        .delete(flaggedBlocks)
+        .where(eq(flaggedBlocks.id, flaggedBlockId));
+    } catch (error) {
+      console.error('[Storage] Error deleting flagged block:', error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

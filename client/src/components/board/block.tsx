@@ -792,7 +792,7 @@ export default function Block({
               <Smile className="w-4 h-4" />
             </button>
 
-            {/* Flag button */}
+            {/* Star button */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -808,13 +808,13 @@ export default function Block({
                 text-xs transition-all duration-150
                 shadow-sm hover:shadow hover:border-gray-300
                 ${isFlagged 
-                  ? 'text-red-600 hover:text-red-700 after:content-["•"] after:text-red-500 after:absolute after:top-[-2px] after:right-[-2px]' 
+                  ? 'text-yellow-500 hover:text-yellow-600 after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' 
                   : 'text-gray-600 hover:text-gray-900'
                 }
               `}
-              title={isFlagged ? "Remove flag" : "Flag for attention"}
+              title={isFlagged ? "Remove star" : "Star for attention"}
             >
-              <Flag className="w-4 h-4" />
+              <Star className={`w-4 h-4 ${isFlagged ? 'fill-current' : ''}`} />
             </button>
           </div>
 

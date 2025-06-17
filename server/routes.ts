@@ -3921,7 +3921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/flagged-blocks/:id/resolve', async (req, res) => {
+  app.patch('/api/flagged-blocks/:id/resolve', async (req, res) => {
     try {
       const { id } = req.params;
       const userId = await getSessionUserId(req);
@@ -3938,6 +3938,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[HTTP] Error resolving flagged block:', error);
       res.status(500).json({ error: 'Failed to resolve flagged block' });
+    }
+  });
+
+  app.delete('/api/flagged-blocks/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = await getSessionUserId(req);
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      console.log('[HTTP] Deleting flagged block:', id);
+
+      // Add a method to delete the flagged block entirely
+      await storage.deleteFlaggedBlock(parseInt(id));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('[HTTP] Error deleting flagged block:', error);
+      res.status(500).json({ error: 'Failed to delete flagged block' });
     }
   });
 
