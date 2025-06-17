@@ -41,21 +41,37 @@ export class ReplicateService {
             refine: "expert_ensemble_refiner"
           }
         }
-      ) as string[];
+      );
 
       console.log('[REPLICATE] API call completed, processing response...');
+      console.log('[REPLICATE] Raw output type:', typeof output);
+      console.log('[REPLICATE] Raw output:', output);
 
-      if (!output || output.length === 0) {
-        throw new Error('No image data returned from Replicate');
-      }
-
-      const imageUrl = output[0];
+      // Handle different response types from Replicate
+      let imageUrl: string;
       
-      if (!imageUrl) {
-        throw new Error('No image URL returned from Replicate');
+      if (Array.isArray(output)) {
+        // Standard array response
+        if (output.length === 0) {
+          throw new Error('No image data returned from Replicate');
+        }
+        imageUrl = output[0];
+      } else if (typeof output === 'string') {
+        // Direct string URL
+        imageUrl = output;
+      } else {
+        // Handle other response formats
+        console.error('[REPLICATE] Unexpected output format:', output);
+        throw new Error('Unexpected response format from Replicate API');
+      }
+      
+      if (!imageUrl || typeof imageUrl !== 'string') {
+        console.error('[REPLICATE] Invalid image URL:', imageUrl, typeof imageUrl);
+        throw new Error('No valid image URL returned from Replicate');
       }
 
       console.log('[REPLICATE] Successfully generated storyboard image:', imageUrl);
+      console.log('[REPLICATE] Final URL type:', typeof imageUrl);
       return imageUrl;
 
     } catch (error: any) {
