@@ -36,6 +36,12 @@ export default function ImageUpload({
   onStoryboardGenerated,
   storyboardPrompt,
 }: ImageUploadProps) {
+  
+  console.log('[IMAGE UPLOAD] === COMPONENT RENDER ===');
+  console.log('[IMAGE UPLOAD] currentImage:', currentImage);
+  console.log('[IMAGE UPLOAD] storyboardPrompt:', storyboardPrompt);
+  console.log('[IMAGE UPLOAD] boardId:', boardId, 'columnId:', columnId);
+  console.log('[IMAGE UPLOAD] onStoryboardGenerated callback provided:', !!onStoryboardGenerated);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

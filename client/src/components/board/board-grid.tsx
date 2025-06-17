@@ -2990,23 +2990,36 @@ export default function BoardGrid({
                                         </Button>
                                       </div>
 
-                                      <ImageUpload
-                                        currentImage={column.image || column.storyboardImageUrl}
-                                        onImageChange={(image) =>
-                                          handleImageChange(
-                                            phaseIndex,
-                                            columnIndex,
-                                            image,
-                                          )
-                                        }
-                                        requireConfirmation={true}
-                                        boardId={board.id}
-                                        columnId={column.id}
-                                        onStoryboardGenerated={(imageUrl, prompt) => {
-                                          handleStoryboardGenerated(phaseIndex, columnIndex, imageUrl, prompt);
-                                        }}
-                                        storyboardPrompt={column.storyboardPrompt}
-                                      />
+                                      {/* Show StoryboardGenerator if there's storyboard data and no regular image */}
+                                      {column.storyboardImageUrl && !column.image ? (
+                                        <StoryboardGenerator
+                                          column={column}
+                                          boardId={board.id}
+                                          phaseIndex={phaseIndex}
+                                          columnIndex={columnIndex}
+                                          onStoryboardGenerated={(imageUrl, prompt) => {
+                                            handleStoryboardGenerated(phaseIndex, columnIndex, imageUrl, prompt);
+                                          }}
+                                        />
+                                      ) : (
+                                        <ImageUpload
+                                          currentImage={column.image}
+                                          onImageChange={(image) =>
+                                            handleImageChange(
+                                              phaseIndex,
+                                              columnIndex,
+                                              image,
+                                            )
+                                          }
+                                          requireConfirmation={true}
+                                          boardId={board.id}
+                                          columnId={column.id}
+                                          onStoryboardGenerated={(imageUrl, prompt) => {
+                                            handleStoryboardGenerated(phaseIndex, columnIndex, imageUrl, prompt);
+                                          }}
+                                          storyboardPrompt={column.storyboardPrompt}
+                                        />
+                                      )}
 
                                       <Droppable
                                         droppableId={`${phaseIndex}-${columnIndex}`}
