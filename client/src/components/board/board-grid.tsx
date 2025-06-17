@@ -1038,6 +1038,8 @@ export default function BoardGrid({
     const targetColumn = newPhases[phaseIndex].columns[columnIndex];
     console.log('[BOARD GRID] Target column before update:', targetColumn);
     
+    // Clear regular image and set storyboard data
+    newPhases[phaseIndex].columns[columnIndex].image = undefined;
     newPhases[phaseIndex].columns[columnIndex].storyboardImageUrl = imageUrl;
     newPhases[phaseIndex].columns[columnIndex].storyboardPrompt = prompt;
     

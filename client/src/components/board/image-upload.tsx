@@ -245,14 +245,16 @@ export default function ImageUpload({
       console.log('[IMAGE UPLOAD] Full response data:', data);
 
       if (response.ok && data.success && data.imageUrl) {
-        console.log('[IMAGE UPLOAD] Calling onImageChange with:', data.imageUrl);
-        onImageChange(data.imageUrl);
-        
+        // For storyboard generation, only use the onStoryboardGenerated callback
+        // Don't call onImageChange as it conflicts with storyboard display logic
         if (onStoryboardGenerated) {
           console.log('[IMAGE UPLOAD] Calling onStoryboardGenerated with:', data.imageUrl, storyboardPromptInput.trim());
           onStoryboardGenerated(data.imageUrl, storyboardPromptInput.trim());
         } else {
           console.warn('[IMAGE UPLOAD] onStoryboardGenerated callback not provided');
+          // Fallback to regular image if no storyboard callback
+          console.log('[IMAGE UPLOAD] Fallback: Calling onImageChange with:', data.imageUrl);
+          onImageChange(data.imageUrl);
         }
         setStoryboardPromptInput("");
         
