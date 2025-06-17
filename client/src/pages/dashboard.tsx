@@ -27,6 +27,8 @@ import {
   Check,
   UserPlus,
   Share2,
+  Star,
+  ExternalLink,
 
 } from "lucide-react";
 import {
@@ -150,7 +152,7 @@ export default function Dashboard() {
   const [googleSheetsImportOpen, setGoogleSheetsImportOpen] = useState(false);
   const [selectedProjectForImport, setSelectedProjectForImport] = useState<Project | null>(null);
   const [selectedBlueprints, setSelectedBlueprints] = useState<Set<number>>(new Set());
-  const [activeTab, setActiveTab] = useState<'projects' | 'blueprints' | 'team'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'blueprints' | 'starred' | 'team'>('projects');
   
   // Enhanced search and filtering state
   const [searchTerm, setSearchTerm] = useState('');
@@ -256,10 +258,60 @@ export default function Dashboard() {
     },
   });
 
+  // Query for starred (flagged) blocks
+  const { data: starredItems = [], isLoading: starredLoading } = useQuery({
+    queryKey: ["/api/flagged-blocks"],
+    queryFn: async () => {
+      const response = await fetch("/api/flagged-blocks");
+      if (!response.ok) {
+        throw new Error('Failed to fetch starred items');
+      }
+      return response.json();
+    },
+    enabled: !!user,
+    staleTime: 30000,
+    gcTime: 1800000,
+    initialData: [],
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+
+  // Mutations for starred items
+  const resolveStarredItemMutation = useMutation({
+    mutationFn: async (flaggedBlockId: number) => {
+      const response = await fetch(`/api/flagged-blocks/${flaggedBlockId}/resolve`, {
+        method: 'PATCH',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to resolve starred item');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/flagged-blocks"] });
+    },
+  });
+
+  const removeStarredItemMutation = useMutation({
+    mutationFn: async (flaggedBlockId: number) => {
+      const response = await fetch(`/api/flagged-blocks/${flaggedBlockId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to remove starred item');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/flagged-blocks"] });
+    },
+  });
+
   useEffect(() => {
     if (!projectToDelete) {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/flagged-blocks"] });
     }
   }, [projectToDelete]);
 
@@ -819,6 +871,17 @@ export default function Dashboard() {
               Blueprints
             </button>
             <button
+              onClick={() => setActiveTab('starred')}
+              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'starred'
+                  ? 'border-[#302E87] text-[#302E87]'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Star className="w-4 h-4 inline mr-2" />
+              Starred Items
+            </button>
+            <button
               onClick={() => setActiveTab('team')}
               className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'team'
@@ -831,6 +894,94 @@ export default function Dashboard() {
             </button>
           </nav>
         </div>
+
+        {/* Starred Items Tab */}
+        {activeTab === 'starred' && (
+          <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-2">
+                <Star className="h-6 w-6 text-yellow-500" />
+                <h2 className="text-2xl font-semibold">Starred Items</h2>
+              </div>
+              <div className="text-sm text-gray-500">
+                {starredItems.length} items starred
+              </div>
+            </div>
+
+            {starredLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            ) : starredItems.length === 0 ? (
+              <div className="text-center py-12">
+                <Star className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No starred items yet</h3>
+                <p className="text-gray-500">
+                  Star blocks in your blueprints to track important design opportunities and friction points
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {starredItems.map((item: any) => (
+                  <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                          <div className="flex items-center gap-2">
+                            <Link href={`/board/${item.boardId}`} className="text-blue-600 hover:text-blue-800 font-medium">
+                              {item.board?.name || 'Blueprint'}
+                            </Link>
+                            <ExternalLink className="h-3 w-3 text-gray-400" />
+                          </div>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-sm text-gray-600">
+                            {projects.find(p => p.id === item.board?.projectId)?.name || 'Unknown Project'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {item.blockId.split('-')[0] || 'Block'}
+                          </Badge>
+                          {item.reason && (
+                            <span className="text-sm text-gray-600">
+                              {item.reason}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Starred {new Date(item.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => resolveStarredItemMutation.mutate(item.id)}
+                          disabled={resolveStarredItemMutation.isPending}
+                          className="text-green-600 border-green-600 hover:bg-green-50"
+                        >
+                          <Check className="h-3 w-3 mr-1" />
+                          Done
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeStarredItemMutation.mutate(item.id)}
+                          disabled={removeStarredItemMutation.isPending}
+                          className="text-red-600 border-red-600 hover:bg-red-50"
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Team Management Tab */}
         {activeTab === 'team' && (

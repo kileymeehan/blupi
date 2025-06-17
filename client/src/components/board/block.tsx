@@ -1,5 +1,5 @@
 import { useRef, useEffect, KeyboardEvent, useState, useCallback } from "react";
-import { MessageSquare, ImageIcon, StickyNote, Smile, Tag, ChevronDown, X, Table as TableIcon, Beaker, CheckCircle, XCircle, Flag } from "lucide-react";
+import { MessageSquare, ImageIcon, StickyNote, Smile, Tag, ChevronDown, X, Table as TableIcon, Beaker, CheckCircle, XCircle, Star } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import * as Icons from "lucide-react";
 import type {
