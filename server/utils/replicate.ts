@@ -164,8 +164,8 @@ export class ReplicateService {
         throw new Error('No valid image URL returned from Replicate');
       }
       
-      // Basic URL validation
-      if (!imageUrl.startsWith('http')) {
+      // Basic URL validation - accept both external URLs and local file paths
+      if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
         console.error('[REPLICATE] Invalid URL format:', imageUrl);
         throw new Error('Invalid URL format returned from Replicate');
       }
