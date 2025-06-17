@@ -425,8 +425,7 @@ export default function BoardGrid({
   // Undo functionality
   const [undoHistory, setUndoHistory] = useState<{action: string, blocks: BlockType[]}[]>([]);
   
-  // Toast for notifications
-  const { toast } = useToast();
+
 
   // Fetch project boards for the sidebar
   const { data: projectBoards } = useQuery<Board[]>({
@@ -3292,6 +3291,9 @@ export default function BoardGrid({
                                                         );
                                                       }
                                                     }}
+                                                    onFlag={handleFlagBlock}
+                                                    onUnflag={handleUnflagBlock}
+                                                    isFlagged={flaggedBlocks.has(block.id)}
                                                   />
                                                 </div>
                                               )}
