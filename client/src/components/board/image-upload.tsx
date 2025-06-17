@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
-import { Image as ImageIcon, X, Upload, Trash, Wand2, Plus } from "lucide-react";
+import { Image as ImageIcon, X, Upload, Trash, Wand2, Plus, ZoomIn, Download, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +45,7 @@ export default function ImageUpload({
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const [showStoryboardPrompt, setShowStoryboardPrompt] = useState(false);
   const [storyboardPromptInput, setStoryboardPromptInput] = useState("");
@@ -283,6 +284,35 @@ export default function ImageUpload({
     }
   };
 
+  const handleDownloadImage = async () => {
+    if (!currentImage) return;
+    
+    try {
+      const response = await fetch(currentImage);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `image-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Image downloaded",
+        description: "Image has been saved to your downloads.",
+      });
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "Could not download the image.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleClick = () => {
     if (currentImage) {
       setIsLightboxOpen(true);
@@ -340,25 +370,39 @@ export default function ImageUpload({
           <img
             src={currentImage}
             alt="Uploaded"
-            className="w-full h-40 object-cover"
+            className="w-full h-40 object-cover rounded-lg border border-gray-200 cursor-pointer"
+            onClick={() => setShowImageModal(true)}
           />
-          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-opacity flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleReplace}
-              className="text-white hover:text-white hover:bg-transparent"
-            >
-              <Upload className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDelete}
-              className="text-white hover:text-white hover:bg-transparent"
-            >
-              <Trash className="w-4 h-4" />
-            </Button>
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setShowImageModal(true)}
+                className="bg-white/90 hover:bg-white text-gray-900 h-7 px-2 text-xs"
+              >
+                <ZoomIn className="w-2.5 h-2.5 mr-1" />
+                View
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleReplace}
+                className="bg-white/90 hover:bg-white text-gray-900 h-7 px-2 text-xs"
+              >
+                <Upload className="w-2.5 h-2.5 mr-1" />
+                Edit
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={handleDelete}
+                className="bg-red-600/90 hover:bg-red-600 h-7 px-2 text-xs"
+              >
+                <X className="w-2.5 h-2.5 mr-1" />
+                Remove
+              </Button>
+            </div>
           </div>
         </>
       ) : isGeneratingStoryboard ? (
@@ -413,7 +457,7 @@ export default function ImageUpload({
     return (
       <div
         onClick={handleClick}
-        className={`mb-6 h-40 border-2 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer relative overflow-hidden w-full self-start ${
+        className={`mb-6 h-40 border-2 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer relative overflow-hidden w-full self-start group ${
           currentImage 
             ? "border-solid border-gray-800" 
             : "border-dashed border-gray-200 hover:border-gray-300"
@@ -427,6 +471,38 @@ export default function ImageUpload({
   return (
     <>
       {mainUI()}
+
+      {/* Image Zoom Modal */}
+      <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-lg font-semibold">
+                Image View
+              </DialogTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadImage}
+                className="ml-2"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="px-6 pb-6">
+            {currentImage && (
+              <img
+                src={currentImage}
+                alt="Full size image"
+                className="w-full h-auto rounded-lg border border-gray-200"
+                style={{ maxHeight: 'calc(90vh - 200px)' }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Storyboard Prompt Dialog - Always rendered */}
       <Dialog open={showStoryboardPrompt} onOpenChange={setShowStoryboardPrompt}>
