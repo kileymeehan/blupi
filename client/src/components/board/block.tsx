@@ -791,6 +791,31 @@ export default function Block({
             >
               <Smile className="w-4 h-4" />
             </button>
+
+            {/* Flag button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isFlagged) {
+                  onUnflag?.(block.id);
+                } else {
+                  onFlag?.(block.id);
+                }
+              }}
+              className={`
+                flex items-center justify-center w-6 h-6 p-0
+                rounded bg-white border border-gray-200
+                text-xs transition-all duration-150
+                shadow-sm hover:shadow hover:border-gray-300
+                ${isFlagged 
+                  ? 'text-red-600 hover:text-red-700 after:content-["•"] after:text-red-500 after:absolute after:top-[-2px] after:right-[-2px]' 
+                  : 'text-gray-600 hover:text-gray-900'
+                }
+              `}
+              title={isFlagged ? "Remove flag" : "Flag for attention"}
+            >
+              <Flag className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Block type icon - only show for regular blocks, not dividers */}

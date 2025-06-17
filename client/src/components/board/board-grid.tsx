@@ -67,7 +67,7 @@ import ImageUpload from "./image-upload";
 import { StoryboardGenerator } from "./storyboard-generator";
 import { CommentsOverview } from "./comments-overview";
 import { NotificationBell } from "@/components/notifications/notification-bell";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import AddToProjectDialog from "./add-to-project-dialog";
 import { UsersPresence } from "./users-presence";
 import {
@@ -188,6 +188,84 @@ export default function BoardGrid({
   const [bulkEditMode, setBulkEditMode] = useState(false);
   const [selectedBlocks, setSelectedBlocks] = useState<Set<string>>(new Set());
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  
+  // Flagging state
+  const [flaggedBlocks, setFlaggedBlocks] = useState<Set<string>>(new Set());
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Flagging mutations
+  const flagBlockMutation = useMutation({
+    mutationFn: async ({ blockId, reason }: { blockId: string; reason?: string }) => {
+      const response = await fetch(`/api/boards/${id}/blocks/${blockId}/flag`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to flag block');
+      }
+      return response.json();
+    },
+    onSuccess: (_, { blockId }) => {
+      setFlaggedBlocks(prev => new Set(Array.from(prev).concat(blockId)));
+      toast({
+        title: "Block flagged",
+        description: "Block has been flagged for attention",
+      });
+    },
+    onError: (error) => {
+      console.error('Error flagging block:', error);
+      toast({
+        title: "Error",
+        description: "Failed to flag block",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const unflagBlockMutation = useMutation({
+    mutationFn: async (blockId: string) => {
+      const response = await fetch(`/api/boards/${id}/blocks/${blockId}/unflag`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to unflag block');
+      }
+      return response.json();
+    },
+    onSuccess: (_, blockId) => {
+      setFlaggedBlocks(prev => {
+        const newSet = new Set(Array.from(prev));
+        newSet.delete(blockId);
+        return newSet;
+      });
+      toast({
+        title: "Flag removed",
+        description: "Block flag has been removed",
+      });
+    },
+    onError: (error) => {
+      console.error('Error unflagging block:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove flag",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Flagging handler functions
+  const handleFlagBlock = (blockId: string, reason?: string) => {
+    flagBlockMutation.mutate({ blockId, reason });
+  };
+
+  const handleUnflagBlock = (blockId: string) => {
+    unflagBlockMutation.mutate(blockId);
+  };
   
   // Presentation mode state
   const [presentationMode, setPresentationMode] = useState(false);
