@@ -1386,7 +1386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('[STORYBOARD] Full error object:', JSON.stringify(error, null, 2));
       console.error('[STORYBOARD] Error stack:', error?.stack);
       
-      if (error.message?.includes('OpenAI')) {
+      if (error.message?.includes('Replicate')) {
         return res.status(500).json({ 
           error: true, 
           message: error.message 
