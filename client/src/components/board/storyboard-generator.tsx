@@ -150,15 +150,14 @@ export function StoryboardGenerator({
               onClick={() => setShowImageModal(true)}
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-              <div className="flex gap-1">
+              <div className="flex flex-col gap-1">
                 <Button
                   size="sm"
                   variant="secondary"
                   onClick={() => setShowImageModal(true)}
-                  className="bg-white/90 hover:bg-white text-gray-900 h-7 px-2 text-xs"
+                  className="bg-white/90 hover:bg-white text-gray-900 h-6 px-1.5 text-xs min-w-0"
                 >
-                  <ZoomIn className="w-2.5 h-2.5 mr-1" />
-                  View
+                  <ZoomIn className="w-3 h-3" />
                 </Button>
                 <Button
                   size="sm"
@@ -167,19 +166,17 @@ export function StoryboardGenerator({
                     setPrompt(column.storyboardPrompt || '');
                     setShowGenerator(true);
                   }}
-                  className="bg-white/90 hover:bg-white text-gray-900 h-7 px-2 text-xs"
+                  className="bg-white/90 hover:bg-white text-gray-900 h-6 px-1.5 text-xs min-w-0"
                 >
-                  <Palette className="w-2.5 h-2.5 mr-1" />
-                  Edit
+                  <Palette className="w-3 h-3" />
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
                   onClick={handleClearStoryboard}
-                  className="bg-red-600/90 hover:bg-red-600 h-7 px-2 text-xs"
+                  className="bg-red-600/90 hover:bg-red-600 h-6 px-1.5 text-xs min-w-0"
                 >
-                  <X className="w-2.5 h-2.5 mr-1" />
-                  Remove
+                  <X className="w-3 h-3" />
                 </Button>
               </div>
             </div>
