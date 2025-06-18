@@ -1203,7 +1203,7 @@ export class DatabaseStorage {
     }
   }
 
-  async getFlaggedBlocks(userId: number): Promise<(FlaggedBlock & { board: { name: string } })[]> {
+  async getFlaggedBlocks(userId: number): Promise<(FlaggedBlock & { board: { name: string, projectId: number | null }; user: { username: string } })[]> {
     try {
       console.log('[Storage] Getting flagged blocks for user:', userId);
       const results = await db
@@ -1216,10 +1216,13 @@ export class DatabaseStorage {
           createdAt: flaggedBlocks.createdAt,
           resolvedAt: flaggedBlocks.resolvedAt,
           resolved: flaggedBlocks.resolved,
-          boardName: boardsTable.name
+          boardName: boardsTable.name,
+          boardProjectId: boardsTable.projectId,
+          username: users.username
         })
         .from(flaggedBlocks)
         .innerJoin(boardsTable, eq(flaggedBlocks.boardId, boardsTable.id))
+        .innerJoin(users, eq(flaggedBlocks.userId, users.id))
         .where(and(
           eq(flaggedBlocks.userId, userId),
           eq(flaggedBlocks.resolved, false)
@@ -1236,7 +1239,11 @@ export class DatabaseStorage {
         resolvedAt: result.resolvedAt,
         resolved: result.resolved,
         board: {
-          name: result.boardName
+          name: result.boardName,
+          projectId: result.boardProjectId
+        },
+        user: {
+          username: result.username
         }
       }));
     } catch (error) {

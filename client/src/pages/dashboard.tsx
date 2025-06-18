@@ -922,62 +922,74 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {starredItems.map((item: any) => (
-                  <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <div className="flex items-center gap-2">
-                            <Link href={`/board/${item.boardId}`} className="text-blue-600 hover:text-blue-800 font-medium">
-                              {item.board?.name || 'Blueprint'}
-                            </Link>
-                            <ExternalLink className="h-3 w-3 text-gray-400" />
-                          </div>
-                          <span className="text-gray-400">•</span>
-                          <span className="text-sm text-gray-600">
-                            {projects.find(p => p.id === item.board?.projectId)?.name || 'Unknown Project'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="secondary" className="text-xs">
-                            {item.blockId.split('-')[0] || 'Block'}
-                          </Badge>
-                          {item.reason && (
+                {starredItems.map((item: any) => {
+                  // Find the actual block in the board data to get type and content
+                  const board = boards.find(b => b.id === item.boardId);
+                  const block = board?.blocks?.find((b: any) => b.id === item.blockId);
+                  const project = projects.find(p => p.id === item.board?.projectId);
+                  
+                  return (
+                    <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            <div className="flex items-center gap-2">
+                              <Link href={`/board/${item.boardId}`} className="text-blue-600 hover:text-blue-800 font-medium">
+                                {board?.name || 'Blueprint'}
+                              </Link>
+                              <ExternalLink className="h-3 w-3 text-gray-400" />
+                            </div>
+                            <span className="text-gray-400">•</span>
                             <span className="text-sm text-gray-600">
-                              {item.reason}
+                              {project?.name || 'No Project'}
                             </span>
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="secondary" className="text-xs capitalize">
+                              {block?.type?.replace('-', ' ') || 'Block'}
+                            </Badge>
+                            {block?.content && (
+                              <span className="text-sm text-gray-600 truncate max-w-md">
+                                {block.content.length > 50 ? `${block.content.substring(0, 50)}...` : block.content}
+                              </span>
+                            )}
+                          </div>
+                          {item.reason && (
+                            <div className="text-sm text-gray-600 mb-1">
+                              <span className="font-medium">Note:</span> {item.reason}
+                            </div>
                           )}
+                          <div className="text-xs text-gray-500">
+                            Starred by {item.user?.username || 'Unknown'} on {new Date(item.createdAt).toLocaleDateString()}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          Starred {new Date(item.createdAt).toLocaleDateString()}
+                        <div className="flex items-center gap-2 ml-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => resolveStarredItemMutation.mutate(item.id)}
+                            disabled={resolveStarredItemMutation.isPending}
+                            className="text-green-600 border-green-600 hover:bg-green-50"
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            Done
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeStarredItemMutation.mutate(item.id)}
+                            disabled={removeStarredItemMutation.isPending}
+                            className="text-red-600 border-red-600 hover:bg-red-50"
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Remove
+                          </Button>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => resolveStarredItemMutation.mutate(item.id)}
-                          disabled={resolveStarredItemMutation.isPending}
-                          className="text-green-600 border-green-600 hover:bg-green-50"
-                        >
-                          <Check className="h-3 w-3 mr-1" />
-                          Done
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeStarredItemMutation.mutate(item.id)}
-                          disabled={removeStarredItemMutation.isPending}
-                          className="text-red-600 border-red-600 hover:bg-red-50"
-                        >
-                          <X className="h-3 w-3 mr-1" />
-                          Remove
-                        </Button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
