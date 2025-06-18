@@ -192,6 +192,21 @@ export default function BoardGrid({
   // Flagging state
   const [flaggedBlocks, setFlaggedBlocks] = useState<Set<string>>(new Set());
 
+  // Query to get current user's flagged blocks for this board
+  const { data: currentUserFlaggedBlocks } = useQuery({
+    queryKey: ["/api/flagged-blocks"],
+  });
+
+  // Initialize flagged blocks state when data loads
+  useEffect(() => {
+    if (currentUserFlaggedBlocks && Array.isArray(currentUserFlaggedBlocks)) {
+      const flaggedBlockIds = currentUserFlaggedBlocks
+        .filter((item: any) => item.boardId === parseInt(id))
+        .map((item: any) => item.blockId);
+      setFlaggedBlocks(new Set(flaggedBlockIds));
+    }
+  }, [currentUserFlaggedBlocks, id]);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -235,9 +250,10 @@ export default function BoardGrid({
     },
     onSuccess: (_, { blockId }) => {
       setFlaggedBlocks(prev => new Set(Array.from(prev).concat(blockId)));
+      queryClient.invalidateQueries({ queryKey: ["/api/flagged-blocks"] });
       toast({
-        title: "Block flagged",
-        description: "Block has been flagged for attention",
+        title: "Block starred",
+        description: "Block has been starred for attention",
       });
     },
     onError: (error) => {
@@ -266,9 +282,10 @@ export default function BoardGrid({
         newSet.delete(blockId);
         return newSet;
       });
+      queryClient.invalidateQueries({ queryKey: ["/api/flagged-blocks"] });
       toast({
-        title: "Flag removed",
-        description: "Block flag has been removed",
+        title: "Star removed",
+        description: "Block star has been removed",
       });
     },
     onError: (error) => {

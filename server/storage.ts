@@ -1174,6 +1174,27 @@ export class DatabaseStorage {
   async flagBlock(flaggedBlock: InsertFlaggedBlock): Promise<FlaggedBlock> {
     try {
       console.log('[Storage] Flagging block:', flaggedBlock);
+      
+      // Check if this block is already flagged by this user
+      const existingFlag = await db
+        .select()
+        .from(flaggedBlocks)
+        .where(
+          and(
+            eq(flaggedBlocks.boardId, flaggedBlock.boardId),
+            eq(flaggedBlocks.blockId, flaggedBlock.blockId),
+            eq(flaggedBlocks.userId, flaggedBlock.userId),
+            eq(flaggedBlocks.resolved, false)
+          )
+        )
+        .limit(1);
+
+      if (existingFlag.length > 0) {
+        console.log('[Storage] Block already flagged, returning existing flag');
+        return existingFlag[0];
+      }
+
+      // Create new flag if none exists
       const [result] = await db
         .insert(flaggedBlocks)
         .values(flaggedBlock)
