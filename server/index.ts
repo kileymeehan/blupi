@@ -67,6 +67,31 @@ async function initializeServer() {
     }));
     log('[INFO] Security middleware initialized');
     
+    // Add diagnostic middleware for image requests
+    app.use('/images/*', (req, res, next) => {
+      console.log('[CSP DEBUG] Image request received:', {
+        url: req.originalUrl,
+        method: req.method,
+        userAgent: req.get('User-Agent'),
+        referer: req.get('Referer'),
+        host: req.get('Host'),
+        protocol: req.protocol,
+        secure: req.secure
+      });
+      
+      // Log CSP headers being sent
+      res.on('finish', () => {
+        console.log('[CSP DEBUG] Response sent:', {
+          status: res.statusCode,
+          contentType: res.get('Content-Type'),
+          csp: res.get('Content-Security-Policy'),
+          headers: Object.keys(res.getHeaders())
+        });
+      });
+      
+      next();
+    });
+    
     // General rate limiting - more permissive
     const generalLimiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes

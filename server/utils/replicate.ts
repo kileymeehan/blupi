@@ -172,6 +172,31 @@ export class ReplicateService {
 
       console.log('[REPLICATE] Successfully generated storyboard image:', imageUrl);
       console.log('[REPLICATE] Final URL type:', typeof imageUrl);
+      
+      // Production diagnostic logging
+      console.log('[REPLICATE] [PRODUCTION DEBUG] Environment checks:');
+      console.log('[REPLICATE] [PRODUCTION DEBUG] - NODE_ENV:', process.env.NODE_ENV);
+      console.log('[REPLICATE] [PRODUCTION DEBUG] - Working directory:', process.cwd());
+      console.log('[REPLICATE] [PRODUCTION DEBUG] - Image URL generated:', imageUrl);
+      console.log('[REPLICATE] [PRODUCTION DEBUG] - URL starts with http:', imageUrl.startsWith('http'));
+      console.log('[REPLICATE] [PRODUCTION DEBUG] - URL starts with /:', imageUrl.startsWith('/'));
+      
+      // Check if file exists for local URLs
+      if (imageUrl.startsWith('/')) {
+        const fs = await import('fs');
+        const path = await import('path');
+        const fullPath = path.join(process.cwd(), 'client', 'public', imageUrl);
+        const exists = fs.existsSync(fullPath);
+        console.log('[REPLICATE] [PRODUCTION DEBUG] - File exists at path:', exists);
+        console.log('[REPLICATE] [PRODUCTION DEBUG] - Full file path:', fullPath);
+        
+        if (exists) {
+          const stats = fs.statSync(fullPath);
+          console.log('[REPLICATE] [PRODUCTION DEBUG] - File size:', stats.size);
+          console.log('[REPLICATE] [PRODUCTION DEBUG] - File permissions:', stats.mode.toString(8));
+        }
+      }
+      
       return imageUrl;
 
     } catch (error: any) {
