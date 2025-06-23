@@ -48,12 +48,13 @@ async function initializeServer() {
                     "https://*.firebaseapp.com",
                     "https://accounts.google.com",
                     "https://*.google.com"],
-          imgSrc: ["'self'", "data:", "blob:", "https:"],
+          imgSrc: ["'self'", "data:", "blob:", "https:", "*.replit.app", "*.replit.dev"],
           styleSrc: ["'self'", "'unsafe-inline'", "https:"],
           fontSrc: ["'self'", "data:", "https:"],
           formAction: ["'self'", "https://accounts.google.com"],
           frameAncestors: ["'self'"],
-          objectSrc: ["'none'"]
+          objectSrc: ["'none'"],
+          reportUri: ["/api/csp-violation-report"]
         }
       },
       crossOriginEmbedderPolicy: false, // For compatibility with some embedded resources
@@ -90,6 +91,42 @@ async function initializeServer() {
       });
       
       next();
+    });
+
+    // CSP violation reporting endpoint
+    app.post('/api/csp-violation-report', express.json({ type: 'application/csp-report' }), (req, res) => {
+      console.error('[CSP VIOLATION] CSP violation reported:', {
+        timestamp: new Date().toISOString(),
+        report: req.body,
+        userAgent: req.get('User-Agent'),
+        referer: req.get('Referer')
+      });
+      res.status(204).send(); // No content response
+    });
+
+    // Diagnostic endpoint for CSP and image serving issues
+    app.get('/api/debug/csp-info', (req, res) => {
+      const debugInfo = {
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        host: req.get('Host'),
+        protocol: req.protocol,
+        secure: req.secure,
+        userAgent: req.get('User-Agent'),
+        cspDirectives: {
+          imgSrc: ["'self'", "data:", "blob:", "https:", "*.replit.app", "*.replit.dev"],
+          defaultSrc: ["'self'"],
+          connectSrc: ["'self'", "wss:", "https://*.googleapis.com", "https://*.firebaseio.com"],
+        },
+        serverInfo: {
+          nodeVersion: process.version,
+          platform: process.platform,
+          workingDirectory: process.cwd()
+        }
+      };
+      
+      console.log('[CSP DEBUG] Debug info requested:', debugInfo);
+      res.json(debugInfo);
     });
     
     // General rate limiting - more permissive

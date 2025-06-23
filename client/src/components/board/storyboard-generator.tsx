@@ -65,13 +65,63 @@ export function StoryboardGenerator({
       console.log('[STORYBOARD UI] Prompt:', result.prompt);
       console.log('[STORYBOARD UI] Column ID:', result.columnId);
       
-      // Validate image URL accessibility
+      // Comprehensive image URL accessibility testing
       if (result.imageUrl) {
-        console.log('[STORYBOARD UI] Testing image URL accessibility...');
+        console.log('[STORYBOARD UI] [PRODUCTION DEBUG] Testing image URL accessibility...');
+        console.log('[STORYBOARD UI] [PRODUCTION DEBUG] Image URL:', result.imageUrl);
+        console.log('[STORYBOARD UI] [PRODUCTION DEBUG] Current location:', window.location.href);
+        console.log('[STORYBOARD UI] [PRODUCTION DEBUG] Current domain:', window.location.hostname);
+        console.log('[STORYBOARD UI] [PRODUCTION DEBUG] Current protocol:', window.location.protocol);
+        
+        // Check for CSP violations
+        const cspListener = (event) => {
+          console.error('[STORYBOARD UI] [PRODUCTION DEBUG] CSP Violation detected:', {
+            blockedURI: event.blockedURI,
+            violatedDirective: event.violatedDirective,
+            originalPolicy: event.originalPolicy,
+            source: event.sourceFile,
+            line: event.lineNumber
+          });
+        };
+        
+        // Listen for CSP violations
+        document.addEventListener('securitypolicyviolation', cspListener);
+        
         const img = new Image();
-        img.onload = () => console.log('[STORYBOARD UI] ✓ Image URL is accessible');
-        img.onerror = (err) => console.error('[STORYBOARD UI] ✗ Image URL failed to load:', err);
+        img.onload = () => {
+          console.log('[STORYBOARD UI] [PRODUCTION DEBUG] ✓ Image loaded successfully');
+          console.log('[STORYBOARD UI] [PRODUCTION DEBUG] Image dimensions:', img.naturalWidth, 'x', img.naturalHeight);
+          document.removeEventListener('securitypolicyviolation', cspListener);
+        };
+        
+        img.onerror = (err) => {
+          console.error('[STORYBOARD UI] [PRODUCTION DEBUG] ✗ Image failed to load:', err);
+          console.error('[STORYBOARD UI] [PRODUCTION DEBUG] Error type:', err.type);
+          console.error('[STORYBOARD UI] [PRODUCTION DEBUG] Error target:', err.target);
+          console.error('[STORYBOARD UI] [PRODUCTION DEBUG] Error event:', err);
+          
+          // Check if it's a CSP issue
+          if (err.type === 'error') {
+            console.error('[STORYBOARD UI] [PRODUCTION DEBUG] Likely CSP violation or network error');
+          }
+          
+          document.removeEventListener('securitypolicyviolation', cspListener);
+        };
+        
+        console.log('[STORYBOARD UI] [PRODUCTION DEBUG] Setting image src...');
         img.src = result.imageUrl;
+        
+        // Also test with fetch to see if the resource is accessible
+        setTimeout(async () => {
+          try {
+            console.log('[STORYBOARD UI] [PRODUCTION DEBUG] Testing with fetch...');
+            const fetchResponse = await fetch(result.imageUrl, { method: 'HEAD' });
+            console.log('[STORYBOARD UI] [PRODUCTION DEBUG] Fetch response status:', fetchResponse.status);
+            console.log('[STORYBOARD UI] [PRODUCTION DEBUG] Fetch response headers:', Object.fromEntries(fetchResponse.headers));
+          } catch (fetchError) {
+            console.error('[STORYBOARD UI] [PRODUCTION DEBUG] Fetch failed:', fetchError);
+          }
+        }, 1000);
       }
       
       // Update the local state and notify parent
@@ -148,6 +198,23 @@ export function StoryboardGenerator({
               alt={column.storyboardPrompt || 'Storyboard'}
               className="w-full h-40 object-cover rounded-lg border border-gray-200 cursor-pointer"
               onClick={() => setShowImageModal(true)}
+              onLoad={() => {
+                console.log('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] ✓ Image loaded successfully in display');
+                console.log('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Image URL:', column.storyboardImageUrl);
+              }}
+              onError={(e) => {
+                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] ✗ Image failed to load in display');
+                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Image URL:', column.storyboardImageUrl);
+                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Error event:', e);
+                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Error target:', e.target);
+                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Error type:', e.type);
+                
+                // Check if this is a CSP-related error
+                if (e.type === 'error') {
+                  console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Likely CSP violation blocking image');
+                  console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Current CSP:', document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content'));
+                }
+              }}
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
               <div className="flex gap-1">
