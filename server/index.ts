@@ -48,7 +48,7 @@ async function initializeServer() {
                     "https://*.firebaseapp.com",
                     "https://accounts.google.com",
                     "https://*.google.com"],
-          imgSrc: ["'self'", "data:", "blob:", "https:", "*.replit.app", "*.replit.dev"],
+          imgSrc: ["'self'", "data:", "blob:", "https:", "https://*.replit.app", "https://*.replit.dev"],
           styleSrc: ["'self'", "'unsafe-inline'", "https:"],
           fontSrc: ["'self'", "data:", "https:"],
           formAction: ["'self'", "https://accounts.google.com"],
@@ -114,7 +114,7 @@ async function initializeServer() {
         secure: req.secure,
         userAgent: req.get('User-Agent'),
         cspDirectives: {
-          imgSrc: ["'self'", "data:", "blob:", "https:", "*.replit.app", "*.replit.dev"],
+          imgSrc: ["'self'", "data:", "blob:", "https:", "https://*.replit.app", "https://*.replit.dev"],
           defaultSrc: ["'self'"],
           connectSrc: ["'self'", "wss:", "https://*.googleapis.com", "https://*.firebaseio.com"],
         },

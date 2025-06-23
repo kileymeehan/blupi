@@ -1289,8 +1289,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if user is authenticated (temporarily bypass for testing)
-      const userId = (req.session as any)?.userId || 8; // Use test user ID for debugging
+      // Check if user is authenticated
+      const userId = (req.session as any)?.userId;
       console.log(`[STORYBOARD] User authentication check - userId: ${userId}`);
       if (!userId) {
         console.log(`[STORYBOARD] Authentication failed - no userId in session`);
