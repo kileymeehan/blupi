@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Storyboard Generation Test</title>
+    <script>
+        async function testStoryboardGeneration() {
+            console.log('Testing storyboard generation...');
+            
+            try {
+                const response = await fetch('/api/boards/83/columns/AOs0lwjtIrw6jNPisI9_m/generate-storyboard', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        prompt: 'A small business owner working late at night organizing receipts and invoices on their desk with scattered papers and a laptop'
+                    })
+                });
+
+                const result = await response.json();
+                console.log('Storyboard generation result:', result);
+                
+                if (result.success && result.imageUrl) {
+                    console.log('[TEST] Image URL received:', result.imageUrl);
+                    
+                    // Test image loading
+                    const img = new Image();
+                    img.onload = () => {
+                        console.log('[TEST] ✓ Image loaded successfully');
+                        document.getElementById('result').innerHTML = `
+                            <h3>Success!</h3>
+                            <p>Image URL: ${result.imageUrl}</p>
+                            <img src="${result.imageUrl}" style="max-width: 400px; border: 1px solid #ccc;" />
+                        `;
+                    };
+                    img.onerror = (err) => {
+                        console.error('[TEST] ✗ Image failed to load:', err);
+                        document.getElementById('result').innerHTML = `
+                            <h3>Image Generation Success, but Loading Failed</h3>
+                            <p>Image URL: ${result.imageUrl}</p>
+                            <p style="color: red;">Image failed to load - likely CSP issue</p>
+                        `;
+                    };
+                    img.src = result.imageUrl;
+                } else {
+                    document.getElementById('result').innerHTML = `
+                        <h3>Generation Failed</h3>
+                        <p>${result.message || 'Unknown error'}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Test failed:', error);
+                document.getElementById('result').innerHTML = `
+                    <h3>Request Failed</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        // Listen for CSP violations
+        document.addEventListener('securitypolicyviolation', (e) => {
+            console.error('[CSP VIOLATION]', {
+                blockedURI: e.blockedURI,
+                violatedDirective: e.violatedDirective,
+                originalPolicy: e.originalPolicy
+            });
+        });
+
+        window.onload = () => {
+            console.log('Page loaded, ready to test');
+            document.getElementById('testBtn').addEventListener('click', testStoryboardGeneration);
+        };
+    </script>
+</head>
+<body>
+    <h1>Storyboard Generation Test</h1>
+    <button id="testBtn">Test Storyboard Generation</button>
+    <div id="result"></div>
+    
+    <script>
+        // Check CSP info
+        fetch('/api/debug/csp-info')
+            .then(r => r.json())
+            .then(data => {
+                console.log('CSP Debug Info:', data);
+                document.body.insertAdjacentHTML('beforeend', `
+                    <h3>CSP Configuration</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `);
+            });
+    </script>
+</body>
+</html>
