@@ -19,8 +19,8 @@ export class ReplicateService {
       console.log('[REPLICATE] === STARTING SDXL IMAGE GENERATION ===');
       console.log('[REPLICATE] Original prompt:', prompt);
       
-      // Use the specified prompt template for storyboard sketches
-      const styledPrompt = `Storyboard sketch, pencil-drawn, black-and-white, expressive character, side view. Scene: ${prompt}`;
+      // Use the specified prompt template for storyboard sketches with minimalist graphic novel style
+      const styledPrompt = `A storyboard frame in the style of a minimalist graphic novel, with clean line art, high contrast black-and-white tones, and flat shading. The composition should resemble the work of artists like Seth or Adrian Tomine — simple, expressive, and emotionally restrained. Use minimal detail, strong silhouettes, and consistent framing, similar to a comic panel. Avoid photorealism. Focus on storytelling clarity, mood, and subtle character posture. Scene: ${prompt}`;
       console.log('[REPLICATE] Styled prompt:', styledPrompt);
       
       console.log('[REPLICATE] Making SDXL API call...');
