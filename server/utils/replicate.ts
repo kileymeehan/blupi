@@ -180,20 +180,42 @@ export class ReplicateService {
       console.log('[REPLICATE] [PRODUCTION DEBUG] - Image URL generated:', imageUrl);
       console.log('[REPLICATE] [PRODUCTION DEBUG] - URL starts with http:', imageUrl.startsWith('http'));
       console.log('[REPLICATE] [PRODUCTION DEBUG] - URL starts with /:', imageUrl.startsWith('/'));
+      console.log('[REPLICATE] [PRODUCTION DEBUG] - REPL_SLUG:', process.env.REPL_SLUG);
+      console.log('[REPLICATE] [PRODUCTION DEBUG] - REPL_OWNER:', process.env.REPL_OWNER);
+      console.log('[REPLICATE] [PRODUCTION DEBUG] - REPLIT_DEPLOYMENT:', process.env.REPLIT_DEPLOYMENT);
       
       // Check if file exists for local URLs
       if (imageUrl.startsWith('/')) {
         const fs = await import('fs');
         const path = await import('path');
-        const fullPath = path.join(process.cwd(), 'client', 'public', imageUrl);
-        const exists = fs.existsSync(fullPath);
-        console.log('[REPLICATE] [PRODUCTION DEBUG] - File exists at path:', exists);
-        console.log('[REPLICATE] [PRODUCTION DEBUG] - Full file path:', fullPath);
         
-        if (exists) {
-          const stats = fs.statSync(fullPath);
-          console.log('[REPLICATE] [PRODUCTION DEBUG] - File size:', stats.size);
-          console.log('[REPLICATE] [PRODUCTION DEBUG] - File permissions:', stats.mode.toString(8));
+        // Check multiple possible paths
+        const possiblePaths = [
+          path.join(process.cwd(), 'client', 'public', imageUrl),
+          path.join(process.cwd(), 'public', imageUrl),
+          path.join(process.cwd(), imageUrl.substring(1)), // Remove leading slash
+          path.join(__dirname, '..', '..', 'client', 'public', imageUrl),
+          path.join(__dirname, '..', '..', 'public', imageUrl)
+        ];
+        
+        console.log('[REPLICATE] [PRODUCTION DEBUG] - Checking possible file paths:');
+        for (const filePath of possiblePaths) {
+          const exists = fs.existsSync(filePath);
+          console.log(`[REPLICATE] [PRODUCTION DEBUG]   - ${filePath}: ${exists ? 'EXISTS' : 'NOT FOUND'}`);
+          if (exists) {
+            const stats = fs.statSync(filePath);
+            console.log(`[REPLICATE] [PRODUCTION DEBUG]     Size: ${stats.size} bytes, Permissions: ${stats.mode.toString(8)}`);
+          }
+        }
+        
+        // Also check directory structure
+        const imageDir = path.join(process.cwd(), 'client', 'public', 'images');
+        const imageDirExists = fs.existsSync(imageDir);
+        console.log('[REPLICATE] [PRODUCTION DEBUG] - Images directory exists:', imageDirExists);
+        if (imageDirExists) {
+          const files = fs.readdirSync(imageDir);
+          console.log('[REPLICATE] [PRODUCTION DEBUG] - Files in images directory:', files.length);
+          console.log('[REPLICATE] [PRODUCTION DEBUG] - Recent files:', files.slice(-5));
         }
       }
       

@@ -201,18 +201,35 @@ export function StoryboardGenerator({
               onLoad={() => {
                 console.log('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] ✓ Image loaded successfully in display');
                 console.log('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Image URL:', column.storyboardImageUrl);
+                console.log('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Current domain:', window.location.hostname);
+                console.log('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Full URL resolved to:', new URL(column.storyboardImageUrl, window.location.origin).href);
               }}
               onError={(e) => {
                 console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] ✗ Image failed to load in display');
                 console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Image URL:', column.storyboardImageUrl);
+                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Current domain:', window.location.hostname);
+                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Full URL resolved to:', new URL(column.storyboardImageUrl, window.location.origin).href);
                 console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Error event:', e);
-                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Error target:', e.target);
-                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Error type:', e.type);
+                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Error target src:', (e.target as HTMLImageElement)?.src);
+                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Error target naturalWidth:', (e.target as HTMLImageElement)?.naturalWidth);
+                console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Error target naturalHeight:', (e.target as HTMLImageElement)?.naturalHeight);
                 
-                // Check if this is a CSP-related error
-                if (e.type === 'error') {
-                  console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Likely CSP violation blocking image');
-                  console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Current CSP:', document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content'));
+                // Test if URL is accessible via fetch
+                fetch(column.storyboardImageUrl, { method: 'HEAD' })
+                  .then(response => {
+                    console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Fetch test - Status:', response.status);
+                    console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Fetch test - Headers:', Object.fromEntries(response.headers));
+                  })
+                  .catch(fetchError => {
+                    console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Fetch test failed:', fetchError);
+                  });
+                
+                // Check CSP
+                const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+                if (cspMeta) {
+                  console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] Current CSP:', cspMeta.getAttribute('content'));
+                } else {
+                  console.error('[STORYBOARD DISPLAY] [PRODUCTION DEBUG] No CSP meta tag found');
                 }
               }}
             />

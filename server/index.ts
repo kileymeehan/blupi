@@ -70,19 +70,51 @@ async function initializeServer() {
     
     // Add diagnostic middleware for image requests
     app.use('/images/*', (req, res, next) => {
-      console.log('[CSP DEBUG] Image request received:', {
+      console.log('[IMAGE SERVING DEBUG] Image request received:', {
         url: req.originalUrl,
         method: req.method,
         userAgent: req.get('User-Agent'),
         referer: req.get('Referer'),
         host: req.get('Host'),
         protocol: req.protocol,
-        secure: req.secure
+        secure: req.secure,
+        deployment: process.env.REPLIT_DEPLOYMENT,
+        nodeEnv: process.env.NODE_ENV,
+        workingDir: process.cwd()
       });
+      
+      // Check if file exists before serving
+      const path = require('path');
+      const fs = require('fs');
+      const imagePath = req.originalUrl; // e.g., /images/storyboard-xxx.png
+      
+      const possiblePaths = [
+        path.join(process.cwd(), 'client', 'public', imagePath),
+        path.join(process.cwd(), 'public', imagePath),
+        path.join(process.cwd(), imagePath.substring(1)), // Remove leading slash
+        path.join(__dirname, '..', 'client', 'public', imagePath),
+        path.join(__dirname, '..', 'public', imagePath)
+      ];
+      
+      console.log('[IMAGE SERVING DEBUG] Checking file paths:');
+      let fileFound = false;
+      for (const filePath of possiblePaths) {
+        const exists = fs.existsSync(filePath);
+        console.log(`[IMAGE SERVING DEBUG]   ${filePath}: ${exists ? 'EXISTS' : 'NOT FOUND'}`);
+        if (exists && !fileFound) {
+          fileFound = true;
+          const stats = fs.statSync(filePath);
+          console.log(`[IMAGE SERVING DEBUG]   File size: ${stats.size} bytes, Permissions: ${stats.mode.toString(8)}`);
+        }
+      }
+      
+      if (!fileFound) {
+        console.log('[IMAGE SERVING DEBUG] FILE NOT FOUND - will likely return 404');
+      }
       
       // Log CSP headers being sent
       res.on('finish', () => {
-        console.log('[CSP DEBUG] Response sent:', {
+        console.log('[IMAGE SERVING DEBUG] Response sent:', {
           status: res.statusCode,
           contentType: res.get('Content-Type'),
           csp: res.get('Content-Security-Policy'),
@@ -127,6 +159,100 @@ async function initializeServer() {
       
       console.log('[CSP DEBUG] Debug info requested:', debugInfo);
       res.json(debugInfo);
+    });
+
+    // Image serving diagnostic endpoint
+    app.get('/api/debug/images/:filename?', (req, res) => {
+      const fs = require('fs');
+      const path = require('path');
+      
+      console.log('[IMAGE DEBUG] Diagnostic request received');
+      
+      const imageDir = path.join(process.cwd(), 'client', 'public', 'images');
+      const publicDir = path.join(process.cwd(), 'public');
+      
+      let diagnostics = {
+        timestamp: new Date().toISOString(),
+        environment: {
+          NODE_ENV: process.env.NODE_ENV,
+          REPLIT_DEPLOYMENT: process.env.REPLIT_DEPLOYMENT,
+          REPL_SLUG: process.env.REPL_SLUG,
+          REPL_OWNER: process.env.REPL_OWNER,
+          workingDir: process.cwd(),
+          serverDir: __dirname,
+          host: req.get('Host'),
+          protocol: req.protocol
+        },
+        directories: {
+          clientPublicImages: {
+            path: imageDir,
+            exists: fs.existsSync(imageDir),
+            files: []
+          },
+          publicRoot: {
+            path: publicDir,
+            exists: fs.existsSync(publicDir),
+            files: []
+          }
+        },
+        requestedFile: null
+      };
+      
+      // Check directories and list recent storyboard files
+      if (diagnostics.directories.clientPublicImages.exists) {
+        try {
+          const files = fs.readdirSync(imageDir)
+            .filter(file => file.startsWith('storyboard-') && file.endsWith('.png'))
+            .map(file => {
+              const filePath = path.join(imageDir, file);
+              const stats = fs.statSync(filePath);
+              return {
+                name: file,
+                size: stats.size,
+                permissions: stats.mode.toString(8),
+                modified: stats.mtime.toISOString(),
+                url: `/images/${file}`,
+                accessibleUrl: `${req.protocol}://${req.get('Host')}/images/${file}`
+              };
+            })
+            .sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime())
+            .slice(0, 10); // Most recent 10 files
+          
+          diagnostics.directories.clientPublicImages.files = files;
+        } catch (error) {
+          diagnostics.directories.clientPublicImages.error = error.message;
+        }
+      }
+      
+      // If specific filename requested, check that file
+      if (req.params.filename) {
+        const filename = req.params.filename;
+        const possiblePaths = [
+          path.join(process.cwd(), 'client', 'public', 'images', filename),
+          path.join(process.cwd(), 'public', 'images', filename),
+          path.join(process.cwd(), 'images', filename),
+          path.join(__dirname, '..', 'client', 'public', 'images', filename)
+        ];
+        
+        diagnostics.requestedFile = {
+          filename: filename,
+          possiblePaths: possiblePaths.map(filePath => ({
+            path: filePath,
+            exists: fs.existsSync(filePath),
+            stats: fs.existsSync(filePath) ? (() => {
+              const stats = fs.statSync(filePath);
+              return {
+                size: stats.size,
+                permissions: stats.mode.toString(8),
+                modified: stats.mtime.toISOString()
+              };
+            })() : null
+          }))
+        };
+      }
+      
+      console.log('[IMAGE DEBUG] Diagnostics compiled:', JSON.stringify(diagnostics, null, 2));
+      res.json(diagnostics);
     });
     
     // General rate limiting - more permissive
