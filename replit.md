@@ -34,6 +34,7 @@ Blupi is an advanced collaborative product design platform that leverages AI and
 - **Replaced express.static middleware** with dedicated API route for image serving
 - **Eliminated 500 errors** when serving AI-generated storyboard images
 - **Enhanced artistic style** with minimalist graphic novel aesthetic inspired by Seth and Adrian Tomine
+- **Improved prompt accuracy** by prioritizing scene description over artistic style directives
 - **Production storyboard generation now fully functional** on my.blupi.io
 
 ### Staging Environment Setup (June 23, 2025)
