@@ -19,8 +19,8 @@ export class ReplicateService {
       console.log('[REPLICATE] === STARTING SDXL IMAGE GENERATION ===');
       console.log('[REPLICATE] Original prompt:', prompt);
       
-      // Prioritize scene accuracy while maintaining artistic style
-      const styledPrompt = `${prompt}. Drawn as a minimalist graphic novel panel in the style of Seth or Adrian Tomine, with clean black-and-white line art, high contrast, and flat shading. Simple composition with strong silhouettes and clear storytelling focus. Avoid photorealism.`;
+      // Prioritize scene accuracy with simplified illustration style
+      const styledPrompt = `${prompt}. Simple black and white line drawing, clean minimal style, clear composition, avoid photorealism.`;
       console.log('[REPLICATE] Styled prompt:', styledPrompt);
       
       console.log('[REPLICATE] Making SDXL API call...');
