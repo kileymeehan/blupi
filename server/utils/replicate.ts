@@ -120,13 +120,32 @@ export class ReplicateService {
                 const publicDir = path.join(process.cwd(), 'client', 'public', 'images');
                 const filePath = path.join(publicDir, filename);
                 
+                console.log('[REPLICATE DEBUG] File save attempt:', {
+                    publicDir,
+                    filePath,
+                    filename,
+                    workingDir: process.cwd(),
+                    publicDirExists: fs.existsSync(publicDir)
+                });
+                
                 // Ensure directory exists
                 if (!fs.existsSync(publicDir)) {
                   fs.mkdirSync(publicDir, { recursive: true });
                 }
                 
+                console.log('[REPLICATE DEBUG] Directory creation result:', {
+                    publicDirExistsAfterMkdir: fs.existsSync(publicDir),
+                    bufferSize: buffer.length
+                });
+                
                 // Write image data to file
                 fs.writeFileSync(filePath, buffer);
+                
+                console.log('[REPLICATE DEBUG] File write result:', {
+                    fileExists: fs.existsSync(filePath),
+                    fileSize: fs.existsSync(filePath) ? fs.statSync(filePath).size : 'N/A',
+                    returnedUrl: `/images/${filename}`
+                });
                 
                 // Return URL path
                 imageUrl = `/images/${filename}`;
