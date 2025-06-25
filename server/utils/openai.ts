@@ -17,8 +17,8 @@ export class OpenAIService {
       console.log('[OPENAI] === STARTING DALL-E 3 IMAGE GENERATION ===');
       console.log('[OPENAI] Raw prompt received:', JSON.stringify(prompt));
       
-      // Use clean, direct prompt for better accuracy
-      const styledPrompt = `${prompt}. Simple black and white line drawing illustration, minimal style, clean composition.`;
+      // Use clean, direct prompt with cartoon style and generic representation
+      const styledPrompt = `${prompt}. Simple cartoon line drawing, black and white, minimal style, stick figures or basic shapes, non-specific generic people, clean composition.`;
       console.log('[OPENAI] Final styled prompt sent to DALL-E 3:', JSON.stringify(styledPrompt));
       
       console.log('[OPENAI] Making DALL-E 3 API call...');
