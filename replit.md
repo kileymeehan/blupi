@@ -28,6 +28,13 @@ Blupi is an advanced collaborative product design platform that leverages AI and
 
 ## Recent Changes (December 2024)
 
+### AI Image Generation Fixed (June 25, 2025)
+- **Resolved storyboard generation issue** affecting both development and production
+- **Fixed `__dirname` compatibility errors** in ES module production environment
+- **Replaced express.static middleware** with dedicated API route for image serving
+- **Eliminated 500 errors** when serving AI-generated storyboard images
+- **Production storyboard generation now fully functional** on my.blupi.io
+
 ### Staging Environment Setup (June 23, 2025)
 - **Comprehensive staging deployment configuration** implemented
 - **Environment-aware configuration system** with staging/production separation

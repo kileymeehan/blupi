@@ -261,14 +261,29 @@ async function initializeServer() {
     setupAuth(app);
     log('[INFO] Auth routes initialized');
 
-    // Serve static images from client/public/images
-    app.use('/images', express.static(path.join(process.cwd(), 'client', 'public', 'images'), {
-      setHeaders: (res, filePath) => {
-        console.log('[IMAGE SERVING] Serving file:', filePath);
-        res.set('Cache-Control', 'public, max-age=86400'); // 24 hours
+    // Serve images via API route to bypass CSP issues
+    app.get('/images/:filename', (req, res) => {
+      const fs = require('fs');
+      const filename = req.params.filename;
+      const filePath = path.join(process.cwd(), 'client', 'public', 'images', filename);
+      
+      console.log('[IMAGE SERVING] Request for:', filename);
+      console.log('[IMAGE SERVING] Full path:', filePath);
+      
+      // Check if file exists and serve it
+      if (fs.existsSync(filePath)) {
+        const stats = fs.statSync(filePath);
+        console.log('[IMAGE SERVING] File found, size:', stats.size, 'bytes');
+        
+        res.set('Content-Type', 'image/png');
+        res.set('Cache-Control', 'public, max-age=86400');
+        res.sendFile(filePath);
+      } else {
+        console.log('[IMAGE SERVING] File not found:', filePath);
+        res.status(404).json({ error: 'Image not found' });
       }
-    }));
-    log('[INFO] Static image serving initialized');
+    });
+    log('[INFO] Image serving API route initialized');
 
     // Logging middleware
     app.use((req, res, next) => {

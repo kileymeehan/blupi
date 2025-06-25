@@ -1268,13 +1268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Generate storyboard image for a column
   app.post("/api/boards/:boardId/columns/:columnId/generate-storyboard", aiRateLimit, async (req, res) => {
-    console.log(`[STORYBOARD] === STARTING STORYBOARD GENERATION ===`);
-    console.log(`[STORYBOARD] Request params:`, req.params);
-    console.log(`[STORYBOARD] Request body:`, req.body);
-    console.log(`[STORYBOARD] Replicate API Token present:`, !!process.env.REPLICATE_API_TOKEN);
-    console.log(`[STORYBOARD] Using Stable Diffusion XL via Replicate`);
-    console.log(`[STORYBOARD] Session data:`, req.session);
-    console.log(`[STORYBOARD] Current working directory:`, process.cwd());
+    console.log(`[STORYBOARD] Starting storyboard generation for board ${req.params.boardId}, column ${req.params.columnId}`);
     
     try {
       const { prompt } = req.body;
