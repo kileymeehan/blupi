@@ -1369,44 +1369,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       console.log(`[STORYBOARD] Successfully generated and stored storyboard image for column ${columnId}`);
-      
-      // Production diagnostic logging for CSP and image serving issues
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] Final response preparation:`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - Image URL: ${imageUrl}`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - URL type: ${typeof imageUrl}`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - URL starts with http: ${imageUrl.startsWith('http')}`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - URL starts with /: ${imageUrl.startsWith('/')}`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - Request Host: ${req.get('Host')}`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - Request Protocol: ${req.protocol}`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - Request Secure: ${req.secure}`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - Request Origin: ${req.get('Origin')}`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - Request Referer: ${req.get('Referer')}`);
-      
-      // Check if this is a local file URL and if file exists
-      if (imageUrl.startsWith('/')) {
-        const fs = await import('fs');
-        const path = await import('path');
-        const fullPath = path.join(process.cwd(), 'client', 'public', imageUrl);
-        const exists = fs.existsSync(fullPath);
-        console.log(`[STORYBOARD] [PRODUCTION DEBUG] - Local file exists: ${exists}`);
-        if (exists) {
-          const stats = fs.statSync(fullPath);
-          console.log(`[STORYBOARD] [PRODUCTION DEBUG] - File size: ${stats.size} bytes`);
-          console.log(`[STORYBOARD] [PRODUCTION DEBUG] - File modified: ${stats.mtime}`);
-        }
-      }
-      
-      // Log response headers that will be set
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - Response headers to be set:`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - Content-Type: application/json`);
-      console.log(`[STORYBOARD] [PRODUCTION DEBUG] - CSP header: ${res.get('Content-Security-Policy') || 'not set yet'}`);
-      
-      res.json({ 
-        success: true, 
-        imageUrl,
-        prompt,
-        columnId 
-      });
+
+      // Update CSP to allow OpenAI DALL-E image URLs
+      res.setHeader('Content-Security-Policy', 
+        "default-src 'self';" +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com https://accounts.google.com https://www.gstatic.com https://accounts.google.com/* https://ssl.gstatic.com https://www.google.com;" +
+        "connect-src 'self' wss: https://*.googleapis.com https://*.firebaseio.com https://*.firebase.com https://*.gstatic.com https://accounts.google.com https://www.googleapis.com https://securetoken.googleapis.com https://oauth2.googleapis.com;" +
+        "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com;" +
+        "img-src 'self' data: blob: https: https://*.replit.app https://*.replit.dev https://oaidalleapiprodscus.blob.core.windows.net;" +
+        "style-src 'self' 'unsafe-inline' https:;" +
+        "font-src 'self' data: https:;" +
+        "form-action 'self' https://accounts.google.com;" +
+        "frame-ancestors 'self';" +
+        "object-src 'none';" +
+        "report-uri /api/csp-violation-report;" +
+        "base-uri 'self';" +
+        "script-src-attr 'none';" +
+        "upgrade-insecure-requests"
+      );
+
+      res.json({ success: true, imageUrl });
 
     } catch (error: any) {
       console.error('[STORYBOARD] === DETAILED ERROR ANALYSIS ===');
