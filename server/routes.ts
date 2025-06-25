@@ -1289,11 +1289,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if user is authenticated
-      const userId = (req.session as any)?.userId;
+      // Check if user is authenticated using the existing helper function
+      const userId = await getSessionUserId(req);
       console.log(`[STORYBOARD] User authentication check - userId: ${userId}`);
       if (!userId) {
-        console.log(`[STORYBOARD] Authentication failed - no userId in session`);
+        console.log(`[STORYBOARD] Authentication failed - no userId found`);
         return res.status(401).json({ 
           error: true, 
           message: "Authentication required to generate storyboard images" 
