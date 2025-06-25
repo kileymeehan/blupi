@@ -13,6 +13,7 @@ import { parseSheetId, fetchSheetData, getSheetNames, convertSheetDataToCsv, fet
 import { GoogleSlidesService } from './utils/google-slides';
 import { OpenAIService } from './utils/openai';
 import { replicateService } from './utils/replicate';
+import { openaiService } from './utils/openai';
 import { classifyDataWithAI, analyzeCsvStructure } from './utils/ai-classifier';
 import { parseWorkflowPDF, convertWorkflowStepsToBlocks } from './utils/pdf-workflow-parser';
 import { sendTeamInviteEmail } from './email-service';
@@ -1338,10 +1339,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingImageUrl) {
         imageUrl = existingImageUrl;
       } else {
-        // Generate new image with SDXL
-        console.log(`[STORYBOARD] Using Replicate SDXL for image generation...`);
-        imageUrl = await replicateService.generateStoryboardImage(prompt);
-        console.log(`[STORYBOARD] SDXL image generation completed, URL: ${imageUrl}`);
+        // Generate new image with DALL-E 3
+        console.log(`[STORYBOARD] Using DALL-E 3 for image generation...`);
+        imageUrl = await openaiService.generateStoryboardImage(prompt);
+        console.log(`[STORYBOARD] DALL-E 3 image generation completed, URL: ${imageUrl}`);
         console.log(`[STORYBOARD] URL type: ${typeof imageUrl}`);
         console.log(`[STORYBOARD] URL value: ${JSON.stringify(imageUrl)}`);
       }
