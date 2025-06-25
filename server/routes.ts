@@ -1273,6 +1273,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log(`[STORYBOARD] Request body:`, req.body);
     console.log(`[STORYBOARD] Replicate API Token present:`, !!process.env.REPLICATE_API_TOKEN);
     console.log(`[STORYBOARD] Using Stable Diffusion XL via Replicate`);
+    console.log(`[STORYBOARD] Session data:`, req.session);
+    console.log(`[STORYBOARD] Current working directory:`, process.cwd());
     
     try {
       const { prompt } = req.body;
