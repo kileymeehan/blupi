@@ -17,8 +17,8 @@ export class OpenAIService {
       console.log('[OPENAI] === STARTING DALL-E 3 IMAGE GENERATION ===');
       console.log('[OPENAI] Raw prompt received:', JSON.stringify(prompt));
       
-      // Use clean, direct prompt with cartoon style and generic representation
-      const styledPrompt = `${prompt}. Simple cartoon line drawing, black and white, minimal style, stick figures or basic shapes, non-specific generic people, clean composition.`;
+      // Use contextual prompt with environment focus and generic representation
+      const styledPrompt = `${prompt}. Show the full scene with environment and context, not just close-up of person. Simple cartoon style, black and white line drawing, generic non-specific people (stick figures or basic shapes), show setting/location clearly. Use 1-3 panels if helpful to tell the story. Minimal clean style.`;
       console.log('[OPENAI] Final styled prompt sent to DALL-E 3:', JSON.stringify(styledPrompt));
       
       console.log('[OPENAI] Making DALL-E 3 API call...');

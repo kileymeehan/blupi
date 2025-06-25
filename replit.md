@@ -37,6 +37,7 @@ Blupi is an advanced collaborative product design platform that leverages AI and
 - **Improved prompt accuracy** by prioritizing scene description over artistic style directives
 - **Switched from Stable Diffusion XL to DALL-E 3** for significantly better prompt adherence and scene accuracy
 - **Updated prompt style to cartoon/stick figure format** to create generic, non-specific character representations
+- **Enhanced prompts to show environment/context** rather than person close-ups, with optional multi-panel storytelling
 - **Updated CSP headers** to allow OpenAI DALL-E image URLs for proper image serving
 - **Production storyboard generation now fully functional** on my.blupi.io
 
