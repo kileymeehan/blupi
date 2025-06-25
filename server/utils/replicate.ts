@@ -194,8 +194,8 @@ export class ReplicateService {
           path.join(process.cwd(), 'client', 'public', imageUrl),
           path.join(process.cwd(), 'public', imageUrl),
           path.join(process.cwd(), imageUrl.substring(1)), // Remove leading slash
-          path.join(__dirname, '..', '..', 'client', 'public', imageUrl),
-          path.join(__dirname, '..', '..', 'public', imageUrl)
+          path.join(process.cwd(), 'server', '..', 'client', 'public', imageUrl),
+          path.join(process.cwd(), 'server', '..', 'public', imageUrl)
         ];
         
         console.log('[REPLICATE] [PRODUCTION DEBUG] - Checking possible file paths:');

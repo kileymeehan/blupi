@@ -92,8 +92,8 @@ async function initializeServer() {
         path.join(process.cwd(), 'client', 'public', imagePath),
         path.join(process.cwd(), 'public', imagePath),
         path.join(process.cwd(), imagePath.substring(1)), // Remove leading slash
-        path.join(__dirname, '..', 'client', 'public', imagePath),
-        path.join(__dirname, '..', 'public', imagePath)
+        path.join(process.cwd(), 'server', '..', 'client', 'public', imagePath),
+        path.join(process.cwd(), 'server', '..', 'public', imagePath)
       ];
       
       console.log('[IMAGE SERVING DEBUG] Checking file paths:');
@@ -179,7 +179,7 @@ async function initializeServer() {
           REPL_SLUG: process.env.REPL_SLUG,
           REPL_OWNER: process.env.REPL_OWNER,
           workingDir: process.cwd(),
-          serverDir: __dirname,
+          serverDir: process.cwd(),
           host: req.get('Host'),
           protocol: req.protocol
         },
@@ -231,7 +231,7 @@ async function initializeServer() {
           path.join(process.cwd(), 'client', 'public', 'images', filename),
           path.join(process.cwd(), 'public', 'images', filename),
           path.join(process.cwd(), 'images', filename),
-          path.join(__dirname, '..', 'client', 'public', 'images', filename)
+          path.join(process.cwd(), 'server', '..', 'client', 'public', 'images', filename)
         ];
         
         diagnostics.requestedFile = {
