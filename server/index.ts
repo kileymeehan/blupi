@@ -9,6 +9,7 @@ import { setupAuth } from "./auth";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { errorMonitoringMiddleware, getHealthStatus } from "./monitoring";
+import path from "path";
 
 async function initializeServer() {
   try {
@@ -67,63 +68,6 @@ async function initializeServer() {
       }
     }));
     log('[INFO] Security middleware initialized');
-    
-    // Add diagnostic middleware for image requests
-    app.use('/images/*', (req, res, next) => {
-      console.log('[IMAGE SERVING DEBUG] Image request received:', {
-        url: req.originalUrl,
-        method: req.method,
-        userAgent: req.get('User-Agent'),
-        referer: req.get('Referer'),
-        host: req.get('Host'),
-        protocol: req.protocol,
-        secure: req.secure,
-        deployment: process.env.REPLIT_DEPLOYMENT,
-        nodeEnv: process.env.NODE_ENV,
-        workingDir: process.cwd()
-      });
-      
-      // Check if file exists before serving
-      const path = require('path');
-      const fs = require('fs');
-      const imagePath = req.originalUrl; // e.g., /images/storyboard-xxx.png
-      
-      const possiblePaths = [
-        path.join(process.cwd(), 'client', 'public', imagePath),
-        path.join(process.cwd(), 'public', imagePath),
-        path.join(process.cwd(), imagePath.substring(1)), // Remove leading slash
-        path.join(process.cwd(), 'server', '..', 'client', 'public', imagePath),
-        path.join(process.cwd(), 'server', '..', 'public', imagePath)
-      ];
-      
-      console.log('[IMAGE SERVING DEBUG] Checking file paths:');
-      let fileFound = false;
-      for (const filePath of possiblePaths) {
-        const exists = fs.existsSync(filePath);
-        console.log(`[IMAGE SERVING DEBUG]   ${filePath}: ${exists ? 'EXISTS' : 'NOT FOUND'}`);
-        if (exists && !fileFound) {
-          fileFound = true;
-          const stats = fs.statSync(filePath);
-          console.log(`[IMAGE SERVING DEBUG]   File size: ${stats.size} bytes, Permissions: ${stats.mode.toString(8)}`);
-        }
-      }
-      
-      if (!fileFound) {
-        console.log('[IMAGE SERVING DEBUG] FILE NOT FOUND - will likely return 404');
-      }
-      
-      // Log CSP headers being sent
-      res.on('finish', () => {
-        console.log('[IMAGE SERVING DEBUG] Response sent:', {
-          status: res.statusCode,
-          contentType: res.get('Content-Type'),
-          csp: res.get('Content-Security-Policy'),
-          headers: Object.keys(res.getHeaders())
-        });
-      });
-      
-      next();
-    });
 
     // CSP violation reporting endpoint
     app.post('/api/csp-violation-report', express.json({ type: 'application/csp-report' }), (req, res) => {
@@ -316,6 +260,15 @@ async function initializeServer() {
     // Setup authentication routes
     setupAuth(app);
     log('[INFO] Auth routes initialized');
+
+    // Serve static images from client/public/images
+    app.use('/images', express.static(path.join(process.cwd(), 'client', 'public', 'images'), {
+      setHeaders: (res, filePath) => {
+        console.log('[IMAGE SERVING] Serving file:', filePath);
+        res.set('Cache-Control', 'public, max-age=86400'); // 24 hours
+      }
+    }));
+    log('[INFO] Static image serving initialized');
 
     // Logging middleware
     app.use((req, res, next) => {
