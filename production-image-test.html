@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Production Image Loading Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+        .image-test { max-width: 200px; border: 1px solid #ddd; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Production Image Loading Diagnostic Test</h1>
+    <p>This page tests AI-generated image loading on production vs development environments.</p>
+    
+    <div id="environment-info" class="test-result info">
+        <h3>Environment Information</h3>
+        <div id="env-details">Loading...</div>
+    </div>
+    
+    <div id="image-diagnostic" class="test-result info">
+        <h3>Image Directory Diagnostic</h3>
+        <div id="img-details">Loading...</div>
+    </div>
+    
+    <div id="image-tests" class="test-result">
+        <h3>Image Loading Tests</h3>
+        <div id="test-results">No tests run yet</div>
+    </div>
+    
+    <button onclick="runTests()">Run Image Loading Tests</button>
+    <button onclick="fetchDiagnostics()">Refresh Diagnostics</button>
+    
+    <script>
+        let diagnosticData = null;
+        
+        async function fetchDiagnostics() {
+            try {
+                // Get environment info
+                const envResponse = await fetch('/api/debug/csp-info');
+                const envData = await envResponse.json();
+                
+                document.getElementById('env-details').innerHTML = `
+                    <strong>Domain:</strong> ${window.location.hostname}<br>
+                    <strong>Protocol:</strong> ${window.location.protocol}<br>
+                    <strong>Environment:</strong> ${envData.environment}<br>
+                    <strong>Host:</strong> ${envData.host}<br>
+                    <strong>Working Directory:</strong> ${envData.serverInfo.workingDirectory}<br>
+                    <strong>CSP img-src:</strong> ${JSON.stringify(envData.cspDirectives.imgSrc)}
+                `;
+                
+                // Get image directory info
+                const imgResponse = await fetch('/api/debug/images');
+                const imgData = await imgResponse.json();
+                diagnosticData = imgData;
+                
+                document.getElementById('img-details').innerHTML = `
+                    <strong>Images Directory:</strong> ${imgData.directories.clientPublicImages.path}<br>
+                    <strong>Directory Exists:</strong> ${imgData.directories.clientPublicImages.exists}<br>
+                    <strong>Recent Storyboard Files:</strong> ${imgData.directories.clientPublicImages.files.length}<br>
+                    <strong>Node Environment:</strong> ${imgData.environment.NODE_ENV}<br>
+                    <strong>Deployment:</strong> ${imgData.environment.REPLIT_DEPLOYMENT || 'Not set'}<br>
+                    ${imgData.directories.clientPublicImages.files.length > 0 ? `
+                    <details>
+                        <summary>Recent Files (${imgData.directories.clientPublicImages.files.length})</summary>
+                        <pre>${JSON.stringify(imgData.directories.clientPublicImages.files, null, 2)}</pre>
+                    </details>
+                    ` : '<em>No storyboard files found</em>'}
+                `;
+                
+            } catch (error) {
+                console.error('Failed to fetch diagnostics:', error);
+                document.getElementById('env-details').innerHTML = `<span class="error">Failed to load: ${error.message}</span>`;
+                document.getElementById('img-details').innerHTML = `<span class="error">Failed to load: ${error.message}</span>`;
+            }
+        }
+        
+        async function runTests() {
+            if (!diagnosticData || diagnosticData.directories.clientPublicImages.files.length === 0) {
+                document.getElementById('test-results').innerHTML = '<div class="error">No image files found to test. Run image generation first.</div>';
+                return;
+            }
+            
+            const testResults = document.getElementById('test-results');
+            testResults.innerHTML = '<div class="info">Running tests...</div>';
+            
+            const results = [];
+            const testFiles = diagnosticData.directories.clientPublicImages.files.slice(0, 3); // Test first 3 files
+            
+            for (const file of testFiles) {
+                const result = await testImageLoading(file);
+                results.push(result);
+            }
+            
+            testResults.innerHTML = results.map(result => `
+                <div class="test-result ${result.success ? 'success' : 'error'}">
+                    <h4>Test: ${result.filename}</h4>
+                    <p><strong>Status:</strong> ${result.success ? 'SUCCESS' : 'FAILED'}</p>
+                    <p><strong>URL:</strong> ${result.url}</p>
+                    <p><strong>Full URL:</strong> ${result.fullUrl}</p>
+                    ${result.fetchStatus ? `<p><strong>Fetch Status:</strong> ${result.fetchStatus}</p>` : ''}
+                    ${result.error ? `<p><strong>Error:</strong> ${result.error}</p>` : ''}
+                    ${result.success ? `<img src="${result.url}" class="image-test" alt="Test image">` : ''}
+                    <details>
+                        <summary>Debug Info</summary>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    </details>
+                </div>
+            `).join('');
+        }
+        
+        async function testImageLoading(file) {
+            const url = file.url;
+            const fullUrl = new URL(url, window.location.origin).href;
+            
+            return new Promise((resolve) => {
+                const startTime = Date.now();
+                
+                // Test 1: Fetch request
+                fetch(url, { method: 'HEAD' })
+                    .then(response => {
+                        const fetchResult = {
+                            filename: file.name,
+                            url: url,
+                            fullUrl: fullUrl,
+                            fetchStatus: response.status,
+                            fetchSuccess: response.ok,
+                            headers: Object.fromEntries(response.headers),
+                            timing: Date.now() - startTime
+                        };
+                        
+                        // Test 2: Image element loading
+                        const img = new Image();
+                        img.onload = () => {
+                            resolve({
+                                ...fetchResult,
+                                success: true,
+                                imageLoadSuccess: true,
+                                naturalWidth: img.naturalWidth,
+                                naturalHeight: img.naturalHeight
+                            });
+                        };
+                        img.onerror = (e) => {
+                            resolve({
+                                ...fetchResult,
+                                success: false,
+                                imageLoadSuccess: false,
+                                error: 'Image element failed to load',
+                                errorEvent: e.type
+                            });
+                        };
+                        img.src = url;
+                        
+                        // Timeout after 5 seconds
+                        setTimeout(() => {
+                            resolve({
+                                ...fetchResult,
+                                success: false,
+                                imageLoadSuccess: false,
+                                error: 'Image loading timeout'
+                            });
+                        }, 5000);
+                        
+                    })
+                    .catch(fetchError => {
+                        resolve({
+                            filename: file.name,
+                            url: url,
+                            fullUrl: fullUrl,
+                            success: false,
+                            fetchSuccess: false,
+                            error: `Fetch failed: ${fetchError.message}`,
+                            timing: Date.now() - startTime
+                        });
+                    });
+            });
+        }
+        
+        // Run diagnostics on page load
+        window.addEventListener('load', fetchDiagnostics);
+    </script>
+</body>
+</html>
