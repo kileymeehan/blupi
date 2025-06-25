@@ -35,6 +35,8 @@ Blupi is an advanced collaborative product design platform that leverages AI and
 - **Eliminated 500 errors** when serving AI-generated storyboard images
 - **Simplified artistic style** to clean black and white line drawings without panel framing
 - **Improved prompt accuracy** by prioritizing scene description over artistic style directives
+- **Added negative prompts** to prevent unwanted elements like panels, frames, and photorealistic rendering
+- **Optimized SDXL parameters** with reduced guidance scale and improved scheduler for better scene accuracy
 - **Production storyboard generation now fully functional** on my.blupi.io
 
 ### Staging Environment Setup (June 23, 2025)

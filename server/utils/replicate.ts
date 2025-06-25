@@ -17,11 +17,13 @@ export class ReplicateService {
   async generateStoryboardImage(prompt: string): Promise<string> {
     try {
       console.log('[REPLICATE] === STARTING SDXL IMAGE GENERATION ===');
-      console.log('[REPLICATE] Original prompt:', prompt);
+      console.log('[REPLICATE] Raw prompt received:', JSON.stringify(prompt));
+      console.log('[REPLICATE] Prompt type:', typeof prompt);
+      console.log('[REPLICATE] Prompt length:', prompt?.length);
       
-      // Prioritize scene accuracy with simplified illustration style
-      const styledPrompt = `${prompt}. Simple black and white line drawing, clean minimal style, clear composition, avoid photorealism.`;
-      console.log('[REPLICATE] Styled prompt:', styledPrompt);
+      // Use clean, direct prompt without complex styling
+      const styledPrompt = `${prompt}, simple black and white illustration`;
+      console.log('[REPLICATE] Final styled prompt sent to SDXL:', JSON.stringify(styledPrompt));
       
       console.log('[REPLICATE] Making SDXL API call...');
       
@@ -30,15 +32,14 @@ export class ReplicateService {
         {
           input: {
             prompt: styledPrompt,
+            negative_prompt: "text, words, letters, photorealistic, photo, complex background, panels, frames, borders",
             width: 1024,
             height: 1024,
             num_outputs: 1,
-            scheduler: "K_EULER",
-            num_inference_steps: 50,
-            guidance_scale: 12.0,
-            apply_watermark: false,
-            lora_scale: 0.6,
-            refine: "expert_ensemble_refiner"
+            scheduler: "DPMSolverMultistep",
+            num_inference_steps: 30,
+            guidance_scale: 7.5,
+            apply_watermark: false
           }
         }
       );

@@ -1275,6 +1275,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const boardId = Number(req.params.boardId);
       const columnId = req.params.columnId;
 
+      console.log(`[STORYBOARD] Raw request body:`, JSON.stringify(req.body));
+      console.log(`[STORYBOARD] Extracted prompt:`, JSON.stringify(prompt));
+      console.log(`[STORYBOARD] Prompt type:`, typeof prompt);
       console.log(`[STORYBOARD] Parsed values - boardId: ${boardId}, columnId: ${columnId}, prompt: "${prompt}"`);
 
       if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
