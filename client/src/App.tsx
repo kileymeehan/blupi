@@ -24,7 +24,10 @@ import LandingPage from "@/pages/landing";
 import PendoConnectedPage from "@/pages/pendo-connected";
 import InvitePage from "@/pages/invite-page";
 
+console.log('[APP] App component imported successfully');
+
 function Router() {
+  console.log('[APP] Router component rendering...');
   // Get URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const [location] = useLocation();
@@ -95,15 +98,27 @@ function Router() {
 }
 
 function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AutoRefreshHandler />
-        <Router />
-        <Toaster />
-      </AuthProvider>
-    </QueryClientProvider>
-  );
+  console.log('[APP] App function called');
+  
+  try {
+    console.log('[APP] Creating QueryClientProvider...');
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <AutoRefreshHandler />
+          <Router />
+          <Toaster />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+  } catch (error) {
+    console.error('[APP] Error in App component:', error);
+    return <div style={{padding: '20px', color: 'red'}}>
+      <h1>Application Error</h1>
+      <p>Failed to load the application. Check the console for details.</p>
+      <pre>{error.toString()}</pre>
+    </div>;
+  }
 }
 
 export default App;
