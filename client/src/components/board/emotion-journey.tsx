@@ -24,9 +24,10 @@ interface EmotionJourneyProps {
   phases: Phase[];
   onEmotionChange: (phaseIndex: number, columnIndex: number, emotion: Emotion | null) => void;
   className?: string;
+  singleColumn?: boolean;
 }
 
-export function EmotionJourney({ phases, onEmotionChange, className = '' }: EmotionJourneyProps) {
+export function EmotionJourney({ phases, onEmotionChange, className = '', singleColumn = false }: EmotionJourneyProps) {
   const [animationComplete, setAnimationComplete] = useState(false);
   
   // Get all columns across all phases for the journey
@@ -68,6 +69,62 @@ export function EmotionJourney({ phases, onEmotionChange, className = '' }: Emot
   }, []);
 
   if (allColumns.length === 0) return null;
+
+  // Single column mode - just show the emotion dot
+  if (singleColumn) {
+    const column = allColumns[0];
+    const emotion = column.emotion;
+    
+    return (
+      <div className={`w-full flex justify-center ${className}`}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 rounded-full border-2 shadow-sm hover:scale-110 transition-transform text-white font-semibold"
+              style={{
+                backgroundColor: emotion?.color || '#e2e8f0',
+                borderColor: emotion?.color || '#cbd5e1',
+                color: emotion ? 'white' : '#64748b'
+              }}
+            >
+              <span className="text-sm">
+                {emotion?.value || '○'}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="w-44">
+            {Object.entries(EMOTION_SCALE).map(([value, data]) => (
+              <DropdownMenuItem
+                key={value}
+                onClick={() => handleEmotionSelect(column.phaseIndex, column.columnIndex, parseInt(value))}
+                className="flex items-center gap-2"
+              >
+                <div 
+                  className="w-4 h-4 rounded-full" 
+                  style={{ backgroundColor: data.color }}
+                />
+                <span className="text-sm font-medium">{value}</span>
+                <span className="text-xs text-slate-500">{data.label}</span>
+              </DropdownMenuItem>
+            ))}
+            {emotion && (
+              <>
+                <div className="border-t my-1" />
+                <DropdownMenuItem
+                  onClick={() => handleRemoveEmotion(column.phaseIndex, column.columnIndex)}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  Remove emotion
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
+  }
 
   return (
     <div className={`w-full bg-gradient-to-b from-slate-50 to-white border border-slate-200 rounded-lg p-4 ${className}`}>

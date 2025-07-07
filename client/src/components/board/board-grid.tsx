@@ -2963,17 +2963,6 @@ export default function BoardGrid({
                 }}
               >
                 <div ref={boardRef} className="p-4 sm:p-6 lg:p-8 pt-4 min-w-max" style={{ minWidth: '120vw' }}>
-                  {/* Emotion Journey Component */}
-                  {showEmotionJourney && (
-                    <div className="mb-6">
-                      <EmotionJourney 
-                        phases={board.phases}
-                        onEmotionChange={handleEmotionChange}
-                        className="mx-auto max-w-full"
-                      />
-                    </div>
-                  )}
-                  
                   <div className="flex items-start gap-4 sm:gap-6 lg:gap-8">
                   {board.phases.map((phase, phaseIndex) => (
                     <div 
@@ -3182,6 +3171,21 @@ export default function BoardGrid({
                                           }}
                                           storyboardPrompt={column.storyboardPrompt}
                                         />
+                                      )}
+
+                                      {/* Emotion Journey Component for this column */}
+                                      {showEmotionJourney && (
+                                        <div className="mb-4">
+                                          <EmotionJourney 
+                                            phases={[{
+                                              ...phase,
+                                              columns: [column]
+                                            }]}
+                                            onEmotionChange={(pIdx, cIdx, emotion) => handleEmotionChange(phaseIndex, columnIndex, emotion)}
+                                            className="w-full"
+                                            singleColumn={true}
+                                          />
+                                        </div>
                                       )}
 
                                       <Droppable
