@@ -40,6 +40,16 @@ export function EmotionJourney({ phases, onEmotionChange, className = '', single
     }))
   );
 
+  // Debugging logs
+  console.log('=== EMOTION JOURNEY DEBUG ===');
+  console.log('Total columns:', allColumns.length);
+  console.log('Columns:', allColumns.map((c, i) => ({ index: i, name: c.name, phaseIndex: c.phaseIndex, columnIndex: c.columnIndex })));
+  
+  allColumns.forEach((column, index) => {
+    const leftPosition = allColumns.length === 1 ? '50%' : `${(index / (allColumns.length - 1)) * 100}%`;
+    console.log(`Column ${index} (${column.name}): leftPosition = ${leftPosition}`);
+  });
+
   // Calculate positions for the line graph
   const getEmotionPosition = (emotion: Emotion | undefined) => {
     if (!emotion) return 50; // Center for unset

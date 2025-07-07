@@ -2975,6 +2975,17 @@ export default function BoardGrid({
                   )}
                   
                   <div className="flex items-start gap-4 sm:gap-6 lg:gap-8">
+                  {(() => {
+                    console.log('=== BOARD COLUMNS DEBUG ===');
+                    console.log('Board phases:', board.phases.length);
+                    board.phases.forEach((phase, phaseIndex) => {
+                      console.log(`Phase ${phaseIndex}:`, phase.columns.length, 'columns');
+                      phase.columns.forEach((column, columnIndex) => {
+                        console.log(`  Column ${columnIndex}: ${column.name}`);
+                      });
+                    });
+                    return null;
+                  })()}
                   {board.phases.map((phase, phaseIndex) => (
                     <div 
                       key={phase.id}
