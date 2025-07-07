@@ -121,6 +121,9 @@ import { BlueprintImportTrigger } from "./blueprint-import-dialog";
 import { CustomScrollbar } from "./custom-scrollbar";
 import { ProfileModal } from "@/components/profile-modal";
 import { ProfileIcon } from "@/components/profile-icon";
+import { EmotionJourney } from "./emotion-journey";
+import { TrendingUp } from "lucide-react";
+import type { Emotion } from "@shared/schema";
 
 
 
@@ -188,6 +191,7 @@ export default function BoardGrid({
   const [bulkEditMode, setBulkEditMode] = useState(false);
   const [selectedBlocks, setSelectedBlocks] = useState<Set<string>>(new Set());
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [showEmotionJourney, setShowEmotionJourney] = useState(false);
   
   // Flagging state
   const [flaggedBlocks, setFlaggedBlocks] = useState<Set<string>>(new Set());
@@ -1138,6 +1142,23 @@ export default function BoardGrid({
       column.image = image;
       column.storyboardImageUrl = undefined;
       column.storyboardPrompt = undefined;
+    }
+    
+    onPhasesChange(newPhases);
+  };
+
+  const handleEmotionChange = (
+    phaseIndex: number,
+    columnIndex: number,
+    emotion: Emotion | null
+  ) => {
+    const newPhases = [...board.phases];
+    const column = newPhases[phaseIndex].columns[columnIndex];
+    
+    if (emotion) {
+      column.emotion = emotion;
+    } else {
+      column.emotion = undefined;
     }
     
     onPhasesChange(newPhases);
@@ -2351,6 +2372,16 @@ export default function BoardGrid({
             </Button>
             
             <Button
+              variant={showEmotionJourney ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setShowEmotionJourney(!showEmotionJourney)}
+              className="h-9 w-9 p-0"
+              title="Toggle Emotional Journey"
+            >
+              <TrendingUp className="w-4 h-4" />
+            </Button>
+            
+            <Button
               variant="ghost"
               size="sm"
               onClick={() => setBoardViewMode(boardViewMode === 'normal' ? 'condensed' : 'normal')}
@@ -2932,6 +2963,17 @@ export default function BoardGrid({
                 }}
               >
                 <div ref={boardRef} className="p-4 sm:p-6 lg:p-8 pt-4 min-w-max" style={{ minWidth: '120vw' }}>
+                  {/* Emotion Journey Component */}
+                  {showEmotionJourney && (
+                    <div className="mb-6">
+                      <EmotionJourney 
+                        phases={board.phases}
+                        onEmotionChange={handleEmotionChange}
+                        className="mx-auto max-w-full"
+                      />
+                    </div>
+                  )}
+                  
                   <div className="flex items-start gap-4 sm:gap-6 lg:gap-8">
                   {board.phases.map((phase, phaseIndex) => (
                     <div 

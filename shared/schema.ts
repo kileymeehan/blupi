@@ -286,12 +286,20 @@ export const attachmentSchema = z.object({
 
 export type Attachment = z.infer<typeof attachmentSchema>;
 
+export const emotionSchema = z.object({
+  value: z.number().min(1).max(7), // 1-7 scale for emotional intensity
+  color: z.string() // hex color for the emotion level
+});
+
+export type Emotion = z.infer<typeof emotionSchema>;
+
 export const columnSchema = z.object({
   id: z.string(),
   name: z.string(),
   image: z.string().optional(),
   storyboardPrompt: z.string().optional(),
-  storyboardImageUrl: z.string().optional()
+  storyboardImageUrl: z.string().optional(),
+  emotion: emotionSchema.optional() // Optional emotion for blueprint feature
 });
 
 export type Column = z.infer<typeof columnSchema>;
