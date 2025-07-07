@@ -160,12 +160,12 @@ export function EmotionJourney({ phases, onEmotionChange, className = '', single
           {/* Connecting line */}
           <svg 
             className="absolute inset-0 w-full h-full"
-            viewBox={`0 0 ${Math.max(allColumns.length - 1, 1) * 100} 100`}
+            viewBox={`0 0 100 100`}
             preserveAspectRatio="none"
           >
             <motion.path
               d={allColumns.map((column, index) => {
-                const x = index * (100 / (allColumns.length - 1 || 1));
+                const x = allColumns.length === 1 ? 50 : (index / (allColumns.length - 1)) * 100;
                 const y = 100 - getEmotionPosition(column.emotion);
                 return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
               }).join(' ')}
@@ -180,18 +180,22 @@ export function EmotionJourney({ phases, onEmotionChange, className = '', single
           </svg>
           
           {/* Emotion dots */}
-          <div className="absolute inset-0 flex justify-between items-center">
+          <div className="absolute inset-0">
             {allColumns.map((column, index) => {
               const emotion = column.emotion;
               const yPosition = getEmotionPosition(emotion);
               
+              // Calculate proper positioning to align with columns below
+              const leftPosition = allColumns.length === 1 ? '50%' : `${(index / (allColumns.length - 1)) * 100}%`;
+              
               return (
                 <motion.div
                   key={`${column.phaseIndex}-${column.columnIndex}`}
-                  className="relative flex flex-col items-center"
+                  className="absolute flex flex-col items-center"
                   style={{
+                    left: leftPosition,
                     top: `${100 - yPosition}%`,
-                    transform: 'translateY(-50%)'
+                    transform: 'translate(-50%, -50%)'
                   }}
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
