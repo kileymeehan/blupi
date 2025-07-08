@@ -144,7 +144,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
           <span>1</span>
         </div>
         
-        {/* Main graph area - match the exact structure of the columns below */}
+        {/* Main graph area */}
         <div className="ml-10 relative" style={{ height: '120px' }}>
           {/* Grid lines */}
           <div className="absolute inset-0 flex flex-col justify-between">
@@ -153,96 +153,88 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
             ))}
           </div>
           
-          {/* Create a container that exactly matches the phase container structure */}
-          <div className="absolute inset-0 flex items-start gap-4 sm:gap-6 lg:gap-8">
-            {board.phases.map((phase, phaseIndex) => (
-              <div key={phase.id} className="flex-shrink-0 relative mr-4 sm:mr-6 lg:mr-8">
-                <div className="px-4">
-                  <div className="flex items-start gap-4 sm:gap-6 lg:gap-8">
-                    {phase.columns.map((column, columnIndex) => {
-                      const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc, p) => acc + p.columns.length, 0) + columnIndex;
-                      const emotion = allColumns[globalColumnIndex]?.emotion;
-                      const yPosition = getEmotionPosition(emotion);
-                      
-                      return (
-                        <div key={column.id} className="flex-1 flex justify-center relative">
-                          {/* Vertical guideline */}
-                          <div className="absolute w-px h-full bg-slate-100" style={{ top: 0 }} />
-                          
-                          {/* Emotion dot */}
-                          <motion.div
-                            className="absolute flex flex-col items-center"
-                            style={{
-                              top: `${100 - yPosition}%`,
-                              transform: 'translateY(-50%)'
-                            }}
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ 
-                              delay: globalColumnIndex * 0.1,
-                              duration: 0.3,
-                              type: "spring",
-                              stiffness: 200 
-                            }}
+          {/* Emotion dots positioned absolutely to match column centers */}
+          <div className="absolute inset-0">
+            {allColumns.map((column, index) => {
+              const emotion = column.emotion;
+              const yPosition = getEmotionPosition(emotion);
+              
+              // Calculate position based on column distribution
+              // For single phase with multiple columns, distribute evenly
+              const totalColumns = allColumns.length;
+              const leftPercentage = totalColumns === 1 ? 50 : ((index / (totalColumns - 1)) * 100);
+              
+              return (
+                <motion.div
+                  key={`${column.phaseIndex}-${column.columnIndex}`}
+                  className="absolute flex flex-col items-center"
+                  style={{
+                    left: `${leftPercentage}%`,
+                    top: `${100 - yPosition}%`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ 
+                    delay: index * 0.1,
+                    duration: 0.3,
+                    type: "spring",
+                    stiffness: 200 
+                  }}
+                >
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 rounded-full border-2 shadow-sm hover:scale-110 transition-transform text-white font-semibold"
+                        style={{
+                          backgroundColor: emotion?.color || '#e2e8f0',
+                          borderColor: emotion?.color || '#cbd5e1',
+                          color: emotion ? 'white' : '#64748b'
+                        }}
+                      >
+                        <span className="text-sm">
+                          {emotion?.value || '○'}
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center" className="w-44">
+                      {Object.entries(EMOTION_SCALE).map(([value, data]) => (
+                        <DropdownMenuItem
+                          key={value}
+                          onClick={() => handleEmotionSelect(column.phaseIndex, column.columnIndex, parseInt(value))}
+                          className="flex items-center gap-2"
+                        >
+                          <div 
+                            className="w-4 h-4 rounded-full" 
+                            style={{ backgroundColor: data.color }}
+                          />
+                          <span className="text-sm font-medium">{value}</span>
+                          <span className="text-xs text-slate-500">{data.label}</span>
+                        </DropdownMenuItem>
+                      ))}
+                      {emotion && (
+                        <>
+                          <div className="border-t my-1" />
+                          <DropdownMenuItem
+                            onClick={() => handleRemoveEmotion(column.phaseIndex, column.columnIndex)}
+                            className="text-red-600 hover:text-red-700"
                           >
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 rounded-full border-2 shadow-sm hover:scale-110 transition-transform text-white font-semibold"
-                                  style={{
-                                    backgroundColor: emotion?.color || '#e2e8f0',
-                                    borderColor: emotion?.color || '#cbd5e1',
-                                    color: emotion ? 'white' : '#64748b'
-                                  }}
-                                >
-                                  <span className="text-sm">
-                                    {emotion?.value || '○'}
-                                  </span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="center" className="w-44">
-                                {Object.entries(EMOTION_SCALE).map(([value, data]) => (
-                                  <DropdownMenuItem
-                                    key={value}
-                                    onClick={() => handleEmotionSelect(phaseIndex, columnIndex, parseInt(value))}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <div 
-                                      className="w-4 h-4 rounded-full" 
-                                      style={{ backgroundColor: data.color }}
-                                    />
-                                    <span className="text-sm font-medium">{value}</span>
-                                    <span className="text-xs text-slate-500">{data.label}</span>
-                                  </DropdownMenuItem>
-                                ))}
-                                {emotion && (
-                                  <>
-                                    <div className="border-t my-1" />
-                                    <DropdownMenuItem
-                                      onClick={() => handleRemoveEmotion(phaseIndex, columnIndex)}
-                                      className="text-red-600 hover:text-red-700"
-                                    >
-                                      Remove emotion
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                            
-                            {/* Column name below the dot */}
-                            <span className="text-xs text-slate-500 mt-1 text-center max-w-16 truncate">
-                              {column.name}
-                            </span>
-                          </motion.div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            ))}
+                            Remove emotion
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  {/* Column name below the dot */}
+                  <span className="text-xs text-slate-500 mt-1 text-center max-w-16 truncate">
+                    {column.name}
+                  </span>
+                </motion.div>
+              );
+            })}
           </div>
           
           {/* Connecting line */}
@@ -253,8 +245,8 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
           >
             <motion.path
               d={allColumns.map((column, index) => {
-                // Simple distribution for now - will be refined based on actual positioning
-                const x = allColumns.length === 1 ? 50 : (index / (allColumns.length - 1)) * 100;
+                const totalColumns = allColumns.length;
+                const x = totalColumns === 1 ? 50 : ((index / (totalColumns - 1)) * 100);
                 const y = 100 - getEmotionPosition(column.emotion);
                 return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
               }).join(' ')}
