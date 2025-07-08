@@ -49,6 +49,11 @@ export function EmotionJourney({ phases, onEmotionChange, className = '', single
     const leftPosition = allColumns.length === 1 ? '50%' : `${(index / (allColumns.length - 1)) * 100}%`;
     console.log(`Column ${index} (${column.name}): leftPosition = ${leftPosition}`);
   });
+  
+  // Alert to make sure logs are visible
+  if (allColumns.length > 1) {
+    console.log('🔥 ALIGNMENT DEBUG: Check console for emotion journey positioning');
+  }
 
   // Calculate positions for the line graph
   const getEmotionPosition = (emotion: Emotion | undefined) => {
@@ -160,62 +165,67 @@ export function EmotionJourney({ phases, onEmotionChange, className = '', single
             ))}
           </div>
           
-          {/* Vertical guidelines for each column */}
-          <div className="absolute inset-0 flex justify-between">
+          {/* Vertical guidelines for each column - match the actual column layout */}
+          <div className="absolute inset-0 flex items-start gap-4 sm:gap-6 lg:gap-8">
             {allColumns.map((_, index) => (
-              <div key={index} className="w-px h-full bg-slate-100" />
+              <div key={index} className="flex-1 flex justify-center">
+                <div className="w-px h-full bg-slate-100" />
+              </div>
             ))}
           </div>
           
-          {/* Connecting line */}
-          <svg 
-            className="absolute inset-0 w-full h-full"
-            viewBox={`0 0 100 100`}
-            preserveAspectRatio="none"
-          >
-            <motion.path
-              d={allColumns.map((column, index) => {
-                const x = allColumns.length === 1 ? 50 : (index / (allColumns.length - 1)) * 100;
-                const y = 100 - getEmotionPosition(column.emotion);
-                return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-              }).join(' ')}
-              stroke="#6366f1"
-              strokeWidth="2"
-              fill="none"
-              strokeDasharray="4,4"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 2, ease: "easeInOut" }}
-            />
-          </svg>
+          {/* Connecting line - positioned relative to the flex layout */}
+          <div className="absolute inset-0 flex items-start gap-4 sm:gap-6 lg:gap-8">
+            <svg 
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+            >
+              <motion.path
+                d={allColumns.map((column, index) => {
+                  // Calculate x position based on flex layout
+                  const totalGaps = allColumns.length - 1;
+                  const gapWidth = 4; // Approximate gap width in percentage
+                  const availableWidth = 100 - (totalGaps * gapWidth);
+                  const columnWidth = availableWidth / allColumns.length;
+                  const x = (index * (columnWidth + gapWidth)) + (columnWidth / 2);
+                  const y = 100 - getEmotionPosition(column.emotion);
+                  return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+                }).join(' ')}
+                stroke="#6366f1"
+                strokeWidth="2"
+                fill="none"
+                strokeDasharray="4,4"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 2, ease: "easeInOut" }}
+              />
+            </svg>
+          </div>
           
-          {/* Emotion dots */}
-          <div className="absolute inset-0">
+          {/* Emotion dots - match the actual column layout */}
+          <div className="absolute inset-0 flex items-start gap-4 sm:gap-6 lg:gap-8">
             {allColumns.map((column, index) => {
               const emotion = column.emotion;
               const yPosition = getEmotionPosition(emotion);
               
-              // Calculate proper positioning to align with columns below
-              const leftPosition = allColumns.length === 1 ? '50%' : `${(index / (allColumns.length - 1)) * 100}%`;
-              
               return (
-                <motion.div
-                  key={`${column.phaseIndex}-${column.columnIndex}`}
-                  className="absolute flex flex-col items-center"
-                  style={{
-                    left: leftPosition,
-                    top: `${100 - yPosition}%`,
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ 
-                    delay: index * 0.1,
-                    duration: 0.3,
-                    type: "spring",
-                    stiffness: 200 
-                  }}
-                >
+                <div key={`${column.phaseIndex}-${column.columnIndex}`} className="flex-1 flex justify-center relative">
+                  <motion.div
+                    className="absolute flex flex-col items-center"
+                    style={{
+                      top: `${100 - yPosition}%`,
+                      transform: 'translateY(-50%)'
+                    }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ 
+                      delay: index * 0.1,
+                      duration: 0.3,
+                      type: "spring",
+                      stiffness: 200 
+                    }}
+                  >
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -267,9 +277,10 @@ export function EmotionJourney({ phases, onEmotionChange, className = '', single
                     {column.name}
                   </span>
                 </motion.div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
+        </div>
         </div>
         
         {/* Legend */}
