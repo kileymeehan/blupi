@@ -2968,6 +2968,7 @@ export default function BoardGrid({
                     <div className="mb-6">
                       <EmotionJourney 
                         phases={board.phases}
+                        board={board}
                         onEmotionChange={handleEmotionChange}
                         className="mx-auto max-w-full"
                       />
