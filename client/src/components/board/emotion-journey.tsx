@@ -46,8 +46,8 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
   // Calculate positions for the line graph
   const getEmotionPosition = (emotion: Emotion | undefined) => {
     if (!emotion) return 50; // Center for unset
-    // Convert value (1-7) to percentage (0-100)
-    return ((emotion.value - 1) / 6) * 100;
+    // Convert value (1-7) to percentage (0-100), inverted so higher values are higher on graph
+    return 100 - ((emotion.value - 1) / 6) * 100;
   };
 
   const handleEmotionSelect = (phaseIndex: number, columnIndex: number, value: number) => {
@@ -157,7 +157,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
           <div className="absolute inset-0 flex items-start gap-4 sm:gap-6 lg:gap-8">
             {board.phases.map((phase, phaseIndex) => (
               <div key={phase.id} className="flex-shrink-0 relative mr-4 sm:mr-6 lg:mr-8">
-                <div className="px-4">
+                <div>
                   <div className="flex items-start gap-4 sm:gap-6 lg:gap-8">
                     {phase.columns.map((column, columnIndex) => {
                       const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc, p) => acc + p.columns.length, 0) + columnIndex;
@@ -173,8 +173,9 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                           <motion.div
                             className="absolute flex flex-col items-center"
                             style={{
-                              top: `${100 - yPosition}%`,
-                              transform: 'translateY(-50%)'
+                              top: `${yPosition}%`,
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)'
                             }}
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
@@ -253,31 +254,28 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
           >
             <motion.path
               d={(() => {
-                let currentX = 0;
-                const totalWidth = 100;
                 const pathCommands: string[] = [];
                 
-                // Calculate approximate positions based on the invisible container structure
-                board.phases.forEach((phase, phaseIndex) => {
-                  phase.columns.forEach((column, columnIndex) => {
-                    const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc, p) => acc + p.columns.length, 0) + columnIndex;
-                    const emotion = allColumns[globalColumnIndex]?.emotion;
-                    const y = 100 - getEmotionPosition(emotion);
-                    
-                    // Approximate x position based on container structure
-                    const columnWidth = totalWidth / allColumns.length;
-                    const x = (globalColumnIndex * columnWidth) + (columnWidth / 2);
-                    
-                    pathCommands.push(`${globalColumnIndex === 0 ? 'M' : 'L'} ${x} ${y}`);
-                  });
+                // Calculate positions that match the exact dot positions
+                allColumns.forEach((column, globalColumnIndex) => {
+                  const emotion = column.emotion;
+                  const y = getEmotionPosition(emotion);
+                  
+                  // Calculate x position to match the centered dots
+                  const totalColumns = allColumns.length;
+                  const columnWidth = 100 / totalColumns;
+                  const x = (globalColumnIndex * columnWidth) + (columnWidth / 2);
+                  
+                  pathCommands.push(`${globalColumnIndex === 0 ? 'M' : 'L'} ${x} ${y}`);
                 });
                 
                 return pathCommands.join(' ');
               })()}
               stroke="#6366f1"
-              strokeWidth="2"
+              strokeWidth="1.5"
               fill="none"
-              strokeDasharray="4,4"
+              strokeDasharray="3,3"
+              opacity="0.7"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 2, ease: "easeInOut" }}
