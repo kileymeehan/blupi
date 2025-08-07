@@ -31,14 +31,14 @@ export interface EnvironmentConfig {
 const getEnvironment = (): string => {
   // Check explicit environment variable first
   if (process.env.ENVIRONMENT) {
-    return process.env.ENVIRONMENT.toLowerCase();
+    return process.env.ENVIRONMENT.trim().toLowerCase();
   }
-  
+
   // Fall back to NODE_ENV
   if (process.env.NODE_ENV) {
-    return process.env.NODE_ENV.toLowerCase();
+    return process.env.NODE_ENV.trim().toLowerCase();
   }
-  
+
   // Default to development
   return 'development';
 };
