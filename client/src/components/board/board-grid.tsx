@@ -64,7 +64,6 @@ import { getDepartmentInfo } from "./department-utils";
 import { getIconForBlockType } from "./type-utils";
 import * as Icons from "lucide-react";
 import ImageUpload from "./image-upload";
-import { StoryboardGenerator } from "./storyboard-generator";
 import { CommentsOverview } from "./comments-overview";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -3155,36 +3154,24 @@ export default function BoardGrid({
                                         </Button>
                                       </div>
 
-                                      {/* Show StoryboardGenerator if there's storyboard data and no regular image */}
-                                      {column.storyboardImageUrl && !column.image ? (
-                                        <StoryboardGenerator
-                                          column={column}
-                                          boardId={board.id}
-                                          phaseIndex={phaseIndex}
-                                          columnIndex={columnIndex}
-                                          onStoryboardGenerated={(imageUrl, prompt) => {
-                                            handleStoryboardGenerated(phaseIndex, columnIndex, imageUrl, prompt);
-                                          }}
-                                        />
-                                      ) : (
-                                        <ImageUpload
-                                          currentImage={column.image}
-                                          onImageChange={(image) =>
-                                            handleImageChange(
-                                              phaseIndex,
-                                              columnIndex,
-                                              image,
-                                            )
-                                          }
-                                          requireConfirmation={true}
-                                          boardId={board.id}
-                                          columnId={column.id}
-                                          onStoryboardGenerated={(imageUrl, prompt) => {
-                                            handleStoryboardGenerated(phaseIndex, columnIndex, imageUrl, prompt);
-                                          }}
-                                          storyboardPrompt={column.storyboardPrompt}
-                                        />
-                                      )}
+                                      {/* Image upload for column */}
+                                      <ImageUpload
+                                        currentImage={column.image}
+                                        onImageChange={(image) =>
+                                          handleImageChange(
+                                            phaseIndex,
+                                            columnIndex,
+                                            image,
+                                          )
+                                        }
+                                        requireConfirmation={true}
+                                        boardId={board.id}
+                                        columnId={column.id}
+                                        onStoryboardGenerated={(imageUrl, prompt) => {
+                                          handleStoryboardGenerated(phaseIndex, columnIndex, imageUrl, prompt);
+                                        }}
+                                        storyboardPrompt={column.storyboardPrompt}
+                                      />
 
 
 
