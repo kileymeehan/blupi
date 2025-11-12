@@ -10,10 +10,7 @@ if (process.env.OPENAI_API_KEY) {
   openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   console.log('[PDF-PARSER] OpenAI service initialized successfully');
 } else {
-  if (isProduction()) {
-    throw new Error('OPENAI_API_KEY environment variable is required in production');
-  }
-  console.warn('[PDF-PARSER] OpenAI API key not configured - PDF AI analysis features will be disabled in development');
+  console.warn('[PDF-PARSER] OpenAI API key not configured - PDF AI analysis features are disabled');
 }
 
 export interface WorkflowStep {

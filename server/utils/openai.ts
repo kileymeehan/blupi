@@ -9,10 +9,7 @@ export class OpenAIService {
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
-      if (isProduction()) {
-        throw new Error('OPENAI_API_KEY environment variable is required in production');
-      }
-      console.warn('[OPENAI] API key not configured - service will return mock responses in development');
+      console.warn('[OPENAI] API key not configured - AI storyboard generation is disabled');
       this.openai = null;
       this.isEnabled = false;
       return;

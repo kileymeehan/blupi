@@ -8,10 +8,7 @@ if (process.env.OPENAI_API_KEY) {
   openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   console.log('[AI-CLASSIFIER] Service initialized successfully');
 } else {
-  if (isProduction()) {
-    throw new Error('OPENAI_API_KEY environment variable is required in production');
-  }
-  console.warn('[AI-CLASSIFIER] API key not configured - AI classification features will be disabled in development');
+  console.warn('[AI-CLASSIFIER] API key not configured - AI classification features are disabled');
 }
 
 export interface ClassifiedBlock {
