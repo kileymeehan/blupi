@@ -1,11 +1,18 @@
 import { MailService } from '@sendgrid/mail';
+import { isProduction } from '../config/environment';
 
-if (!process.env.SENDGRID_API_KEY) {
-  throw new Error("SENDGRID_API_KEY environment variable must be set");
+let mailService: MailService | null = null;
+
+if (process.env.SENDGRID_API_KEY) {
+  mailService = new MailService();
+  mailService.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('[EMAIL-SERVICE] SendGrid initialized successfully');
+} else {
+  if (isProduction()) {
+    throw new Error('SENDGRID_API_KEY environment variable is required in production');
+  }
+  console.warn('[EMAIL-SERVICE] SendGrid API key not configured - email features will be disabled in development');
 }
-
-const mailService = new MailService();
-mailService.setApiKey(process.env.SENDGRID_API_KEY);
 
 interface InviteEmailParams {
   toEmail: string;
@@ -17,6 +24,11 @@ interface InviteEmailParams {
 }
 
 export async function sendTeamInviteEmail(params: InviteEmailParams): Promise<boolean> {
+  if (!mailService) {
+    console.warn('[EMAIL-SERVICE] Cannot send invite email - SendGrid not configured');
+    return false;
+  }
+  
   try {
     const inviteUrl = `${params.appUrl}/invite/${params.inviteToken}`;
     
