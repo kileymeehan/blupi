@@ -1,11 +1,14 @@
 import { MailService } from '@sendgrid/mail';
 
-if (!process.env.SENDGRID_API_KEY) {
-  throw new Error("SENDGRID_API_KEY environment variable must be set");
-}
+let mailService: MailService | null = null;
 
-const mailService = new MailService();
-mailService.setApiKey(process.env.SENDGRID_API_KEY);
+if (process.env.SENDGRID_API_KEY) {
+  mailService = new MailService();
+  mailService.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('[SENDGRID] SendGrid initialized successfully');
+} else {
+  console.warn('[SENDGRID] SendGrid API key not configured - email features will be disabled');
+}
 
 interface InvitationEmailParams {
   to: string;
@@ -20,6 +23,11 @@ export async function sendProjectInvitation({
   role,
   inviterName
 }: InvitationEmailParams) {
+  if (!mailService) {
+    console.warn('[SENDGRID] Cannot send invitation email - SendGrid not configured');
+    return false;
+  }
+
   const msg = {
     to,
     from: process.env.SENDGRID_VERIFIED_SENDER || 'noreply@blueprint-app.com', // Replace with your verified sender

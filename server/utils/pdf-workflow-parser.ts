@@ -2,8 +2,16 @@ import OpenAI from "openai";
 import { PDFDocument } from "pdf-lib";
 import sharp from "sharp";
 import pdf2pic from "pdf2pic";
+import { isProduction } from '../../config/environment';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai: OpenAI | null = null;
+
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  console.log('[PDF-PARSER] OpenAI service initialized successfully');
+} else {
+  console.warn('[PDF-PARSER] OpenAI API key not configured - PDF AI analysis features are disabled');
+}
 
 export interface WorkflowStep {
   stepNumber: number;
@@ -139,6 +147,11 @@ async function convertPDFToImages(pdfBuffer: Buffer): Promise<Buffer[]> {
 
 async function extractStepsFromPage(imageBuffer: Buffer, pageNumber: number): Promise<WorkflowStep[]> {
   try {
+    if (!openai) {
+      console.warn('[PDF-PARSER] OpenAI not configured, skipping AI-based step extraction');
+      return [];
+    }
+    
     // Convert image to base64 for OpenAI Vision API
     const base64Image = imageBuffer.toString('base64');
     
