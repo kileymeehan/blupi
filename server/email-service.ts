@@ -8,10 +8,7 @@ if (process.env.SENDGRID_API_KEY) {
   mailService.setApiKey(process.env.SENDGRID_API_KEY);
   console.log('[EMAIL-SERVICE] SendGrid initialized successfully');
 } else {
-  if (isProduction()) {
-    throw new Error('SENDGRID_API_KEY environment variable is required in production');
-  }
-  console.warn('[EMAIL-SERVICE] SendGrid API key not configured - email features will be disabled in development');
+  console.warn('[EMAIL-SERVICE] SendGrid API key not configured - email features will be disabled');
 }
 
 interface InviteEmailParams {
