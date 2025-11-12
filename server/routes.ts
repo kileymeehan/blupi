@@ -245,108 +245,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PDF workflow parsing endpoint - must be registered early
+  // PDF workflow parsing endpoint - DISABLED (AI features removed)
   app.post("/api/boards/:boardId/import-pdf-workflow", upload.single('pdf'), async (req, res) => {
-    console.log(`[HTTP] PDF workflow import endpoint reached! Board: ${req.params.boardId}`);
-    
+    console.log(`[HTTP] PDF workflow import requested but feature is disabled`);
     res.setHeader('Content-Type', 'application/json');
-    
-    try {
-      const boardId = Number(req.params.boardId);
-      if (isNaN(boardId) || boardId <= 0) {
-        console.error('[HTTP] Invalid board ID:', req.params.boardId);
-        return res.status(400).json({ 
-          error: true, 
-          message: "Valid board ID is required" 
-        });
-      }
-
-      if (!req.file) {
-        console.error('[HTTP] No PDF file uploaded');
-        return res.status(400).json({ 
-          error: true, 
-          message: "PDF file is required" 
-        });
-      }
-
-      // Check if board exists
-      const board = await storage.getBoard(boardId);
-      if (!board) {
-        console.error('[HTTP] Board not found:', boardId);
-        return res.status(404).json({ 
-          error: true, 
-          message: "Board not found" 
-        });
-      }
-
-      console.log(`[HTTP] Processing PDF workflow for board ${boardId}, file size: ${req.file.size} bytes`);
-
-      // Parse PDF workflow steps using AI
-      const workflowSteps = await parseWorkflowPDF(req.file.buffer);
-
-      console.log(`[HTTP] Extracted ${workflowSteps.length} workflow steps from PDF`);
-
-      // Convert workflow steps to blocks
-      const newBlocks = await convertWorkflowStepsToBlocks(
-        workflowSteps, 
-        boardId,
-        board.blocks.length > 0 ? Math.max(...board.blocks.map(b => b.phaseIndex)) : 0,
-        0
-      );
-
-      // Add new blocks to the board
-      const updatedBlocks = [...board.blocks, ...newBlocks];
-      
-      // Update the board with new blocks
-      await storage.updateBoard(boardId, {
-        blocks: updatedBlocks,
-        updatedAt: new Date()
-      });
-
-      // Broadcast the update to connected users
-      const boardUsers = Array.from(connectedUsers.values())
-        .filter(user => user.boardId === boardId.toString());
-      
-      const updatedBoard = await storage.getBoard(boardId);
-      
-      if (boardUsers.length > 0) {
-        const boardUpdateMessage = {
-          type: 'board_update',
-          board: updatedBoard
-        };
-        
-        boardUsers.forEach(user => {
-          if (user.ws.readyState === WebSocket.OPEN) {
-            user.ws.send(JSON.stringify(boardUpdateMessage));
-          }
-        });
-        
-        console.log(`[WS] Broadcasted board update to ${boardUsers.length} connected users`);
-      }
-
-      console.log(`[HTTP] Successfully processed PDF workflow import for board ${boardId}`);
-      
-      res.status(200).json({
-        success: true,
-        message: `Successfully imported ${workflowSteps.length} workflow steps`,
-        blocksAdded: newBlocks.length
-      });
-
-    } catch (error) {
-      console.error('[HTTP] Error in PDF workflow import:', error);
-      
-      if (error instanceof Error && error.message.includes('API')) {
-        return res.status(503).json({
-          error: true,
-          message: "AI service temporarily unavailable. Please try again later."
-        });
-      }
-      
-      res.status(500).json({
-        error: true,
-        message: error instanceof Error ? error.message : "Failed to process PDF workflow"
-      });
-    }
+    return res.status(503).json({ 
+      error: true, 
+      message: "AI-powered PDF workflow import is currently disabled" 
+    });
   });
 
   // Create WebSocket server with enhanced configuration for better connectivity
@@ -1267,152 +1173,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate storyboard image for a column
+  // Generate storyboard image for a column - DISABLED (AI features removed)
   app.post("/api/boards/:boardId/columns/:columnId/generate-storyboard", aiRateLimit, async (req, res) => {
-    console.log(`[STORYBOARD] Starting storyboard generation for board ${req.params.boardId}, column ${req.params.columnId}`);
-    
-    try {
-      const { prompt } = req.body;
-      const boardId = Number(req.params.boardId);
-      const columnId = req.params.columnId;
-
-      console.log(`[STORYBOARD] Raw request body:`, JSON.stringify(req.body));
-      console.log(`[STORYBOARD] Extracted prompt:`, JSON.stringify(prompt));
-      console.log(`[STORYBOARD] Prompt type:`, typeof prompt);
-      console.log(`[STORYBOARD] Parsed values - boardId: ${boardId}, columnId: ${columnId}, prompt: "${prompt}"`);
-
-      if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
-        console.log(`[STORYBOARD] Invalid prompt validation failed`);
-        return res.status(400).json({ 
-          error: true, 
-          message: "Prompt is required and must be a non-empty string" 
-        });
-      }
-
-      // Check if user is authenticated using the existing helper function
-      const userId = await getSessionUserId(req);
-      console.log(`[STORYBOARD] User authentication check - userId: ${userId}`);
-      if (!userId) {
-        console.log(`[STORYBOARD] Authentication failed - no userId found`);
-        return res.status(401).json({ 
-          error: true, 
-          message: "Authentication required to generate storyboard images" 
-        });
-      }
-
-      // Verify board exists and user has access
-      const board = await storage.getBoard(boardId);
-      if (!board) {
-        return res.status(404).json({ error: true, message: "Board not found" });
-      }
-
-      // Find the column to update
-      let columnFound = false;
-      for (const phase of board.phases) {
-        for (const column of phase.columns) {
-          if (column.id === columnId) {
-            columnFound = true;
-            break;
-          }
-        }
-        if (columnFound) break;
-      }
-
-      if (!columnFound) {
-        return res.status(404).json({ error: true, message: "Column not found" });
-      }
-
-      // Check if column already has this prompt to avoid regeneration
-      let existingImageUrl = null;
-      for (const phase of board.phases) {
-        for (const column of phase.columns) {
-          if (column.id === columnId && column.storyboardPrompt === prompt.trim() && column.storyboardImageUrl) {
-            existingImageUrl = column.storyboardImageUrl;
-            console.log(`[STORYBOARD] Found cached image for same prompt, reusing: ${existingImageUrl}`);
-            break;
-          }
-        }
-        if (existingImageUrl) break;
-      }
-
-      let imageUrl: string;
-      if (existingImageUrl) {
-        imageUrl = existingImageUrl;
-      } else {
-        // Generate new image with DALL-E 3
-        console.log(`[STORYBOARD] Using DALL-E 3 for image generation...`);
-        imageUrl = await openaiService.generateStoryboardImage(prompt);
-        console.log(`[STORYBOARD] DALL-E 3 image generation completed, URL: ${imageUrl}`);
-        console.log(`[STORYBOARD] URL type: ${typeof imageUrl}`);
-        console.log(`[STORYBOARD] URL value: ${JSON.stringify(imageUrl)}`);
-      }
-
-      // Update the board with the new storyboard prompt and image URL
-      const updatedPhases = board.phases.map(phase => ({
-        ...phase,
-        columns: phase.columns.map(column => {
-          if (column.id === columnId) {
-            return {
-              ...column,
-              storyboardPrompt: prompt,
-              storyboardImageUrl: imageUrl
-            };
-          }
-          return column;
-        })
-      }));
-
-      const updatedBoard = await storage.updateBoard(boardId, {
-        phases: updatedPhases
-        // Only update the phases, don't spread the entire board object
-        // updatedAt is automatically set by the storage layer
-      });
-
-      console.log(`[STORYBOARD] Successfully generated and stored storyboard image for column ${columnId}`);
-
-      // Update CSP to allow OpenAI DALL-E image URLs
-      res.setHeader('Content-Security-Policy', 
-        "default-src 'self';" +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com https://accounts.google.com https://www.gstatic.com https://accounts.google.com/* https://ssl.gstatic.com https://www.google.com;" +
-        "connect-src 'self' wss: https://*.googleapis.com https://*.firebaseio.com https://*.firebase.com https://*.gstatic.com https://accounts.google.com https://www.googleapis.com https://securetoken.googleapis.com https://oauth2.googleapis.com;" +
-        "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com;" +
-        "img-src 'self' data: blob: https: https://*.replit.app https://*.replit.dev https://oaidalleapiprodscus.blob.core.windows.net;" +
-        "style-src 'self' 'unsafe-inline' https:;" +
-        "font-src 'self' data: https:;" +
-        "form-action 'self' https://accounts.google.com;" +
-        "frame-ancestors 'self';" +
-        "object-src 'none';" +
-        "report-uri /api/csp-violation-report;" +
-        "base-uri 'self';" +
-        "script-src-attr 'none';" +
-        "upgrade-insecure-requests"
-      );
-
-      res.json({ success: true, imageUrl });
-
-    } catch (error: any) {
-      console.error('[STORYBOARD] === DETAILED ERROR ANALYSIS ===');
-      console.error('[STORYBOARD] Error type:', typeof error);
-      console.error('[STORYBOARD] Error constructor:', error?.constructor?.name);
-      console.error('[STORYBOARD] Error message:', error?.message);
-      console.error('[STORYBOARD] Error code:', error?.code);
-      console.error('[STORYBOARD] Error status:', error?.status);
-      console.error('[STORYBOARD] Error response:', error?.response?.data);
-      console.error('[STORYBOARD] Full error object:', JSON.stringify(error, null, 2));
-      console.error('[STORYBOARD] Error stack:', error?.stack);
-      
-      if (error.message?.includes('Replicate')) {
-        return res.status(500).json({ 
-          error: true, 
-          message: error.message 
-        });
-      }
-      
-      res.status(500).json({ 
-        error: true, 
-        message: `Failed to generate storyboard image: ${error?.message || 'Unknown error'}` 
-      });
-    }
+    console.log(`[STORYBOARD] Storyboard generation requested but feature is disabled`);
+    return res.status(503).json({ 
+      error: true, 
+      message: "AI storyboard generation is currently disabled" 
+    });
   });
 
   // Google OAuth initiation endpoint
@@ -1678,42 +1445,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // AI-powered CSV analysis endpoint
+  // AI-powered CSV analysis endpoint - DISABLED (AI features removed)
   app.post('/api/analyze-csv', async (req, res) => {
-    try {
-      console.log('[AI Analysis] Starting CSV analysis');
-      const { csvData, headers } = req.body;
-      
-      if (!csvData || !headers) {
-        return res.status(400).json({ 
-          error: true,
-          message: 'Missing CSV data or headers' 
-        });
-      }
-
-      // Analyze structure first
-      const structureAnalysis = await analyzeCsvStructure(headers, csvData.slice(0, 5));
-      
-      // Classify the data with AI
-      const classifiedBlocks = await classifyDataWithAI(csvData);
-      
-      console.log('[AI Analysis] Successfully analyzed', csvData.length, 'rows, suggested', classifiedBlocks.length, 'blocks');
-      
-      res.json({
-        success: true,
-        structureAnalysis,
-        classifiedBlocks,
-        totalRows: csvData.length,
-        message: `AI analyzed ${csvData.length} rows and suggested ${classifiedBlocks.length} blocks`
-      });
-
-    } catch (error) {
-      console.error('[AI Analysis] Error:', error);
-      res.status(500).json({ 
-        error: true,
-        message: `AI analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
-      });
-    }
+    console.log('[AI Analysis] CSV analysis requested but feature is disabled');
+    return res.status(503).json({ 
+      error: true,
+      message: 'AI-powered CSV analysis is currently disabled' 
+    });
   });
 
   // Add endpoint for creating a board directly from CSV data
