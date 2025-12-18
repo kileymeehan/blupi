@@ -1,7 +1,15 @@
 import OpenAI from "openai";
+import { isProduction } from '../../config/environment';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai: OpenAI | null = null;
+
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  console.log('[AI-CLASSIFIER] Service initialized successfully');
+} else {
+  console.warn('[AI-CLASSIFIER] API key not configured - AI classification features are disabled');
+}
 
 export interface ClassifiedBlock {
   content: string;
@@ -47,8 +55,8 @@ export async function classifyDataWithAI(rows: AnalysisRow[]): Promise<Classifie
   try {
     console.log('[AI] Starting data classification for', rows.length, 'rows');
     
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured');
+    if (!openai) {
+      throw new Error('OpenAI service is not configured. Please add OPENAI_API_KEY to your environment variables to enable AI classification.');
     }
     
     // Limit to first 10 rows to control costs and response time
@@ -122,6 +130,15 @@ export async function analyzeCsvStructure(headers: string[], sampleRows: Analysi
 }> {
   try {
     console.log('[AI] Analyzing CSV structure');
+    
+    if (!openai) {
+      console.warn('[AI] OpenAI not configured, using default orientation');
+      return {
+        suggestedOrientation: 'columns',
+        reasoning: 'Default orientation (OpenAI not configured)',
+        confidence: 0.5
+      };
+    }
     
     const headerContext = headers.join(', ');
     const sampleData = sampleRows.slice(0, 3).map(row => 

@@ -119,7 +119,7 @@ async function initializeServer() {
       const imageDir = path.join(process.cwd(), 'client', 'public', 'images');
       const publicDir = path.join(process.cwd(), 'public');
       
-      let diagnostics = {
+      let diagnostics: any = {
         timestamp: new Date().toISOString(),
         environment: {
           NODE_ENV: process.env.NODE_ENV,
@@ -150,8 +150,8 @@ async function initializeServer() {
       if (diagnostics.directories.clientPublicImages.exists) {
         try {
           const files = fs.readdirSync(imageDir)
-            .filter(file => file.startsWith('storyboard-') && file.endsWith('.png'))
-            .map(file => {
+            .filter((file: string) => file.startsWith('storyboard-') && file.endsWith('.png'))
+            .map((file: string) => {
               const filePath = path.join(imageDir, file);
               const stats = fs.statSync(filePath);
               return {
@@ -163,12 +163,12 @@ async function initializeServer() {
                 accessibleUrl: `${req.protocol}://${req.get('Host')}/images/${file}`
               };
             })
-            .sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime())
+            .sort((a: any, b: any) => new Date(b.modified).getTime() - new Date(a.modified).getTime())
             .slice(0, 10); // Most recent 10 files
           
           diagnostics.directories.clientPublicImages.files = files;
-        } catch (error) {
-          diagnostics.directories.clientPublicImages.error = error.message;
+        } catch (error: any) {
+          (diagnostics.directories.clientPublicImages as any).error = error?.message || String(error);
         }
       }
       
