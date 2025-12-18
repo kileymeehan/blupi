@@ -1,9 +1,16 @@
 -- =============================================================================
 -- RLS (Row-Level Security) Migration for Blupi
 -- =============================================================================
--- This migration enables Row-Level Security on core tables to enforce 
--- data isolation at the database level. The application sets the session
--- context variable 'blupi.current_user_id' before each transaction.
+-- IMPORTANT: This migration is NOT automatically applied at startup.
+-- It should be applied manually after verifying application compatibility.
+--
+-- To apply: Connect to the database and run this entire file.
+-- To verify: SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public';
+--
+-- Prerequisites before enabling RLS:
+-- 1. Update notification service to use create_system_notification() for cross-tenant notifications
+-- 2. Ensure all write operations set the session context via withRLS()
+-- 3. Test thoroughly in staging before applying to production
 --
 -- Usage in Drizzle:
 --   await db.transaction(async (tx) => {
@@ -237,10 +244,48 @@ CREATE POLICY notifications_select_policy ON notifications
   FOR SELECT
   USING (to_user_id = current_user_id());
 
+-- NOTE: Notification inserts are handled via SECURITY DEFINER function to allow
+-- legitimate cross-tenant notifications (e.g., user A sends invitation to user B)
+-- Direct inserts are blocked by RLS; use create_notification() function instead
 DROP POLICY IF EXISTS notifications_insert_policy ON notifications;
 CREATE POLICY notifications_insert_policy ON notifications
   FOR INSERT
-  WITH CHECK (true); -- System can create notifications for any user
+  WITH CHECK (
+    -- Only allow inserts when using the system notification function (via SECURITY DEFINER)
+    -- or when inserting to self (for testing)
+    to_user_id = current_user_id()
+  );
+
+-- SECURITY DEFINER function for system-generated cross-tenant notifications
+-- Sets the session context to the recipient's ID to satisfy RLS policy
+CREATE OR REPLACE FUNCTION create_system_notification(
+  p_id TEXT,
+  p_to_user_id INTEGER,
+  p_type TEXT,
+  p_title TEXT,
+  p_message TEXT,
+  p_meta JSONB DEFAULT NULL
+) RETURNS VOID AS $$
+DECLARE
+  v_old_user_id TEXT;
+BEGIN
+  -- Save current user context (if any)
+  v_old_user_id := current_setting('blupi.current_user_id', true);
+  
+  -- Temporarily set context to recipient for RLS compliance
+  PERFORM set_config('blupi.current_user_id', p_to_user_id::TEXT, true);
+  
+  INSERT INTO notifications (id, to_user_id, type, title, message, meta, read, created_at)
+  VALUES (p_id, p_to_user_id, p_type, p_title, p_message, p_meta, false, NOW());
+  
+  -- Restore original context (if any)
+  IF v_old_user_id IS NOT NULL AND v_old_user_id != '' THEN
+    PERFORM set_config('blupi.current_user_id', v_old_user_id, true);
+  END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION create_system_notification(TEXT, INTEGER, TEXT, TEXT, TEXT, JSONB) TO PUBLIC;
 
 DROP POLICY IF EXISTS notifications_update_policy ON notifications;
 CREATE POLICY notifications_update_policy ON notifications

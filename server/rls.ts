@@ -7,8 +7,11 @@ export async function withRLS<T>(
   userId: number,
   callback: (tx: TransactionDB) => Promise<T>
 ): Promise<T> {
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw new Error('Invalid userId for RLS context');
+  }
   return await db.transaction(async (tx) => {
-    await tx.execute(sql.raw(`SET LOCAL blupi.current_user_id = '${userId}'`));
+    await tx.execute(sql`SET LOCAL blupi.current_user_id = ${String(userId)}`);
     return await callback(tx);
   });
 }
@@ -67,24 +70,17 @@ export async function applyRLSMigration(): Promise<void> {
   
   const migrationSQL = fs.readFileSync(migrationPath, 'utf-8');
   
-  const statements = migrationSQL
-    .split(/;\s*$/gm)
-    .map(s => s.trim())
-    .filter(s => s.length > 0 && !s.startsWith('--'));
-  
-  for (const statement of statements) {
-    try {
-      await pool.query(statement);
-    } catch (error: any) {
-      if (error.code === '42710') {
-        continue;
-      }
-      console.error('[RLS] Error executing statement:', statement.substring(0, 100));
-      throw error;
+  try {
+    await pool.query(migrationSQL);
+    console.log('[RLS] Migration applied successfully');
+  } catch (error: any) {
+    if (error.code === '42710') {
+      console.log('[RLS] Some policies already exist, continuing...');
+      return;
     }
+    console.error('[RLS] Error applying migration:', error.message);
+    throw error;
   }
-  
-  console.log('[RLS] Migration applied successfully');
 }
 
 export async function testRLSIsolation(userId: number): Promise<{ success: boolean; message: string }> {
