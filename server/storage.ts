@@ -30,10 +30,11 @@ export class DatabaseStorage {
     }
 
     // Use PostgreSQL-backed session store for persistence and scalability
+    // Uses existing 'session' table - do not auto-create to avoid conflicts
     this.sessionStore = new PgSessionStore({
       pool: pool as any,
-      tableName: 'user_sessions',
-      createTableIfMissing: true,
+      tableName: 'session',
+      createTableIfMissing: false,
       pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
       errorLog: (error: Error) => {
         console.error('[Session Store] PostgreSQL session error:', error.message);
