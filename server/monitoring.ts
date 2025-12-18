@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { getFeatureFlags, getEnabledFeatures, getDisabledFeatures } from './feature-flags';
 
 interface ErrorReport {
   timestamp: string;
@@ -89,12 +90,18 @@ export function errorMonitoringMiddleware(err: Error, req: Request, res: Respons
 // Health check endpoint data
 export function getHealthStatus() {
   const errorStats = monitoring.getErrorStats();
+  const featureFlags = getFeatureFlags();
   
   return {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),
-    errors: errorStats
+    errors: errorStats,
+    features: {
+      enabled: getEnabledFeatures(),
+      disabled: getDisabledFeatures(),
+      flags: featureFlags
+    }
   };
 }

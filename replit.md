@@ -28,6 +28,41 @@ Blupi is an advanced collaborative product design platform that leverages AI and
 
 ## Recent Changes (December 2024)
 
+### Database & Session Stability Improvements (December 18, 2024)
+- **PostgreSQL-backed session storage** using connect-pg-simple for persistence across restarts
+- **Neon serverless driver upgraded** to Pool-based connection with WebSocket support for transactions
+- **Row-Level Security (RLS) infrastructure** added with comprehensive policy migration script
+- **RLS utility module** (`server/rls.ts`) with `withRLS()` transaction wrapper for data isolation
+- **Feature flag system** (`server/feature-flags.ts`) for graceful handling of disabled features
+- **Enhanced health endpoint** now includes feature flags status and enabled/disabled features
+- **Transaction support verified** for future RLS policy enforcement
+
+### RLS Policy System
+The application now includes a comprehensive RLS migration in `server/migrations/rls-policies.sql` covering:
+- Projects (owner access + project member access)
+- Boards (owner, permission-based, and project-based access)
+- Notifications (user-specific only)
+- Team members and invitations (organization-scoped)
+- Flagged blocks (user-specific)
+
+Usage pattern:
+```typescript
+import { withRLS } from './rls';
+await withRLS(userId, async (tx) => {
+  // All queries automatically filtered by RLS policies
+});
+```
+
+### Feature Flags
+Features are automatically enabled/disabled based on API key availability:
+- `aiStoryboardGeneration`: Requires OPENAI_API_KEY or REPLICATE_API_TOKEN
+- `aiCsvClassification`: Requires OPENAI_API_KEY
+- `emailNotifications`: Requires SENDGRID_API_KEY
+- `pendoIntegration`: Requires PENDO_API_KEY
+- `googleSheetsIntegration`: Requires GOOGLE_SERVICE_ACCOUNT_KEY
+
+Check `/api/health` endpoint for current feature status.
+
 ### AI Image Generation Fixed (June 25, 2025)
 - **Resolved storyboard generation issue** affecting both development and production
 - **Fixed `__dirname` compatibility errors** in ES module production environment
