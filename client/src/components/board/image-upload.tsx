@@ -220,6 +220,7 @@ export default function ImageUpload({
     }
   };
 
+  // AI FEATURE TEMPORARILY DISABLED - This function is part of the storyboard generation feature
   const handleGenerateStoryboard = async () => {
     if (!boardId || !columnId || !storyboardPromptInput.trim()) {
       toast({
@@ -439,12 +440,14 @@ export default function ImageUpload({
               <Upload className="w-4 h-4 mr-2" />
               Upload Image
             </DropdownMenuItem>
+            {/* AI FEATURE TEMPORARILY DISABLED - Uncomment to re-enable storyboard generation
             <DropdownMenuItem 
               onClick={() => setShowStoryboardPrompt(true)}
             >
               <Wand2 className="w-4 h-4 mr-2" />
               Generate Storyboard
             </DropdownMenuItem>
+            */}
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -501,7 +504,7 @@ export default function ImageUpload({
         </DialogContent>
       </Dialog>
 
-      {/* Storyboard Prompt Dialog - Always rendered */}
+      {/* AI FEATURE TEMPORARILY DISABLED - Storyboard Prompt Dialog (not accessible while menu item is hidden) */}
       <Dialog open={showStoryboardPrompt} onOpenChange={setShowStoryboardPrompt}>
         <DialogContent className="sm:max-w-md">
           <div className="space-y-4">
