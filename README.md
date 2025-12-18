@@ -429,6 +429,71 @@ blupi/
 
 ---
 
+## Cost-Effective RLS Pattern (Drizzle + Neon)
+
+PostgreSQL RLS (Row-Level Security) is essentially a "hard-coded" WHERE clause at the database level that enforces data isolation automatically.
+
+### Technical Strategy
+
+**1. Define a Role**
+Create an authenticated role in PostgreSQL:
+```sql
+CREATE ROLE authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+```
+
+**2. Session Context**
+Use a database transaction that sets a local variable before each query:
+```sql
+SET LOCAL blupi.current_user_id = 'user_id_here';
+```
+
+In Drizzle/Express, wrap queries in a transaction:
+```typescript
+await db.transaction(async (tx) => {
+  await tx.execute(sql`SET LOCAL blupi.current_user_id = ${userId}`);
+  // All subsequent queries in this transaction are now scoped to this user
+  return await tx.select().from(boards);
+});
+```
+
+**3. The Policies**
+Define policies on tables to enforce row-level isolation:
+```sql
+-- Enable RLS on tables
+ALTER TABLE boards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+
+-- Board isolation policy
+CREATE POLICY board_isolation ON boards
+  USING (user_id = current_setting('blupi.current_user_id')::integer);
+
+-- Project isolation policy  
+CREATE POLICY project_isolation ON projects
+  USING (user_id = current_setting('blupi.current_user_id')::integer);
+
+-- Team member access (for shared resources)
+CREATE POLICY board_team_access ON boards
+  USING (
+    user_id = current_setting('blupi.current_user_id')::integer
+    OR id IN (
+      SELECT board_id FROM board_permissions 
+      WHERE user_id = current_setting('blupi.current_user_id')::integer
+    )
+  );
+```
+
+### Benefits
+- **Zero application-level filtering** - Database enforces isolation automatically
+- **Defense in depth** - Even if app code has bugs, data remains isolated
+- **Audit-friendly** - Policies are declarative and reviewable
+- **Cost-effective** - Uses native PostgreSQL features, no additional services
+
+### Current Implementation Status
+Currently using application-level filtering in `storage.ts`. RLS policies are a recommended future enhancement for production hardening.
+
+---
+
 ## Commands
 
 ```bash
