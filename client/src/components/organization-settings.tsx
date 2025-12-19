@@ -270,7 +270,7 @@ export function OrganizationSettings() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-[#302E87]" />
+                <Building2 className="h-5 w-5 text-[#4D629B]" />
                 Organization
               </CardTitle>
               <CardDescription className="mt-1.5">
@@ -319,7 +319,7 @@ export function OrganizationSettings() {
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="bg-[#302E87] hover:bg-[#252371]"
+                className="bg-primary hover:bg-primary/90"
                 data-testid="create-org-button"
               >
                 <Plus className="h-4 w-4 mr-2" />

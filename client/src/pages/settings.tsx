@@ -9,8 +9,8 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'team' | 'other'>('team');
 
   return (
-    <div className="min-h-screen bg-[#F8F8F8]">
-      <header className="border-b bg-[#302E87] shadow-sm">
+    <div className="min-h-screen bg-[#F0EEE9]">
+      <header className="border-b bg-[#4D629B] shadow-sm">
         <div className="max-w-[1440px] mx-auto flex h-16 items-center px-6">
           <Button variant="ghost" asChild className="text-white hover:bg-white/10">
             <Link href="/">
@@ -23,7 +23,7 @@ export default function SettingsPage() {
 
       <main className="max-w-[1440px] mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#302E87] flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-[#4D629B] flex items-center gap-3">
             <SettingsIcon className="h-8 w-8" />
             Settings
           </h1>
@@ -39,7 +39,7 @@ export default function SettingsPage() {
               onClick={() => setActiveTab('team')}
               className={`pb-3 px-1 font-medium transition-colors ${
                 activeTab === 'team'
-                  ? 'text-[#302E87] border-b-2 border-[#302E87]'
+                  ? 'text-[#4D629B] border-b-2 border-[#4D629B]'
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
@@ -49,7 +49,7 @@ export default function SettingsPage() {
               onClick={() => setActiveTab('other')}
               className={`pb-3 px-1 font-medium transition-colors ${
                 activeTab === 'other'
-                  ? 'text-[#302E87] border-b-2 border-[#302E87]'
+                  ? 'text-[#4D629B] border-b-2 border-[#4D629B]'
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
