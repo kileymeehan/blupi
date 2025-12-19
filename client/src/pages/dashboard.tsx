@@ -90,7 +90,7 @@ function LoadingSkeleton({ count = 3 }) {
       {Array(count)
         .fill(null)
         .map((_, i) => (
-          <Card key={i} className="relative overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-200">
+          <Card key={i} className="relative overflow-hidden border border-gray-200 hover:shadow transition-all duration-200">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
@@ -677,51 +677,6 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Create New Button */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  className="bg-[#F2918C] text-[#302E87] hover:bg-[#f07a73] font-bold h-9 border border-white shadow-sm flex items-center gap-1"
-                >
-                  Create New
-                  <ChevronDown size={14} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem 
-                  onClick={() => setCreateProjectOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
-                >
-                  <Folder className="mr-2 h-4 w-4 text-[#302E87]" />
-                  New Project
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setCreateBlueprintOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
-                >
-                  <FileText className="mr-2 h-4 w-4 text-[#302E87]" />
-                  New Blueprint
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => setImportDialogOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
-                >
-                  <Upload className="mr-2 h-4 w-4 text-[#302E87]" />
-                  Import from CSV
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="cursor-not-allowed text-sm py-3"
-                >
-                  <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
-                  <div className="flex items-center justify-between w-full">
-                    <span>Import from Google Sheets</span>
-                    <ComingSoonBadge size="sm" />
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
             {/* Settings Icon */}
             <Button
               variant="ghost"
@@ -787,7 +742,7 @@ export default function Dashboard() {
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
         {showWelcome && (
-          <div className="bg-white rounded-lg p-10 shadow-lg border border-gray-300 relative welcome-content">
+          <div className="bg-white rounded-lg p-10 shadow border border-gray-300 relative welcome-content">
             <div className="absolute top-4 right-4">
               <Button 
                 variant="ghost"
@@ -849,10 +804,10 @@ export default function Dashboard() {
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('projects')}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`whitespace-nowrap py-2 px-1 border-b-2 font-bold text-sm ${
                 activeTab === 'projects'
-                  ? 'border-[#302E87] text-[#302E87]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[#1a1a1a] text-[#1a1a1a]'
+                  : 'border-transparent text-[#4a4a4a] hover:text-[#1a1a1a] hover:border-[#1a1a1a]'
               }`}
             >
               <Folder className="w-4 h-4 inline mr-2" />
@@ -860,10 +815,10 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => setActiveTab('blueprints')}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`whitespace-nowrap py-2 px-1 border-b-2 font-bold text-sm ${
                 activeTab === 'blueprints'
-                  ? 'border-[#302E87] text-[#302E87]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[#1a1a1a] text-[#1a1a1a]'
+                  : 'border-transparent text-[#4a4a4a] hover:text-[#1a1a1a] hover:border-[#1a1a1a]'
               }`}
             >
               <LayoutGrid className="w-4 h-4 inline mr-2" />
@@ -871,10 +826,10 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => setActiveTab('starred')}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`whitespace-nowrap py-2 px-1 border-b-2 font-bold text-sm ${
                 activeTab === 'starred'
-                  ? 'border-[#302E87] text-[#302E87]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[#1a1a1a] text-[#1a1a1a]'
+                  : 'border-transparent text-[#4a4a4a] hover:text-[#1a1a1a] hover:border-[#1a1a1a]'
               }`}
             >
               <Star className="w-4 h-4 inline mr-2" />
@@ -885,7 +840,7 @@ export default function Dashboard() {
 
         {/* Starred Items Tab */}
         {activeTab === 'starred' && (
-          <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
+          <section className="bg-white rounded-lg p-10 shadow border border-gray-300">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
                 <Star className="h-6 w-6 text-yellow-500" />
@@ -985,7 +940,7 @@ export default function Dashboard() {
 
         {/* BLUEPRINTS SECTION */}
         {activeTab === 'blueprints' && (
-          <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
+          <section className="bg-white rounded-lg p-10 shadow border border-gray-300">
             {/* Blueprint section header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
@@ -1322,7 +1277,7 @@ export default function Dashboard() {
 
         {/* PROJECTS SECTION */}
         {activeTab === 'projects' && (
-          <section className="bg-white rounded-lg p-10 shadow-lg border border-gray-300">
+          <section className="bg-white rounded-lg p-10 shadow border border-gray-300">
             {/* Project section header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
@@ -1370,7 +1325,7 @@ export default function Dashboard() {
                 {filteredProjects.map((project) => (
                   <Card
                     key={project.id}
-                    className="relative overflow-hidden border border-gray-400 hover:shadow-lg transition-all duration-200"
+                    className="relative overflow-hidden border border-gray-400 hover:shadow transition-all duration-200"
                   >
                     <div
                       className="absolute h-1 w-full top-0 left-0"
