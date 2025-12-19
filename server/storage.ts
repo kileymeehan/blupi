@@ -711,6 +711,19 @@ export class DatabaseStorage {
     }
   }
 
+  async getPendingInvitationById(invitationId: number): Promise<PendingInvitation | undefined> {
+    try {
+      const [invitation] = await db
+        .select()
+        .from(pendingInvitations)
+        .where(eq(pendingInvitations.id, invitationId));
+      return invitation;
+    } catch (error) {
+      console.error('[Storage] Error getting pending invitation by id:', error);
+      throw error;
+    }
+  }
+
   async getPendingInvitations(organizationId: number): Promise<PendingInvitation[]> {
     try {
       const invitations = await db
