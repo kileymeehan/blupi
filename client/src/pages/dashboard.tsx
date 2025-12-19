@@ -55,6 +55,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -701,22 +702,7 @@ export default function Dashboard() {
                   <FileText className="mr-2 h-4 w-4 text-[#302E87]" />
                   New Blueprint
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            {/* Import Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="bg-transparent border-white text-white hover:bg-white/10 font-medium h-9 flex items-center gap-1"
-                >
-                  <Upload size={14} />
-                  Import
-                  <ChevronDown size={14} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={() => setImportDialogOpen(true)}
                   className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
