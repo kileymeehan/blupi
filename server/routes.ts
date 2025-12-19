@@ -396,7 +396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Google Sheets import endpoint - moved here to avoid routing conflicts
-  app.post("/api/projects/:projectId/boards/import-sheet", async (req, res) => {
+  app.post("/api/projects/:projectId/boards/import-sheet", requireTenant, async (req, res) => {
     console.log(`[HTTP] Google Sheets import endpoint reached! Project: ${req.params.projectId}`);
     console.log(`[HTTP] Request method: ${req.method}, URL: ${req.url}`);
     console.log(`[HTTP] Headers:`, req.headers);
@@ -564,7 +564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Basic routes without WebSocket functionality
-  app.get("/api/boards", async (req, res) => {
+  app.get("/api/boards", requireTenant, async (req, res) => {
     try {
       console.log('🔵 [BOARDS API] === BOARDS FETCH REQUEST STARTED ===');
       
@@ -619,7 +619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/projects", async (req, res) => {
+  app.get("/api/projects", requireTenant, async (req, res) => {
     try {
       // Get authenticated user ID from session
       const userId = req.session?.userId;
@@ -687,7 +687,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects", async (req, res) => {
+  app.post("/api/projects", requireTenant, async (req, res) => {
     try {
       const userId = req.session.userId;
       console.log('[HTTP] Creating project with data:', req.body);
@@ -767,7 +767,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/projects/:id", async (req, res) => {
+  app.get("/api/projects/:id", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Fetching project with ID: ${req.params.id}, org: ${req.tenantId}`);
       const project = await storage.getProject(Number(req.params.id), req.tenantId);
@@ -782,10 +782,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/projects/:id", async (req, res) => {
+  app.patch("/api/projects/:id", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Updating project with ID: ${req.params.id}`);
-      const project = await storage.updateProject(Number(req.params.id), req.body);
+      const project = await storage.updateProject(Number(req.params.id), req.body, req.tenantId);
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
@@ -797,7 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects/:id/invite", async (req, res) => {
+  app.post("/api/projects/:id/invite", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Sending invitation for project ID: ${req.params.id}`);
       const { email, role } = req.body;
@@ -860,7 +860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
-  app.get("/api/projects/:id/boards", async (req, res) => {
+  app.get("/api/projects/:id/boards", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Fetching boards for project ID: ${req.params.id}, org: ${req.tenantId}`);
       const boards = await storage.getBoardsByProject(Number(req.params.id), req.tenantId);
@@ -876,7 +876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.post("/api/boards", async (req, res) => {
+  app.post("/api/boards", requireTenant, async (req, res) => {
     try {
       console.log('[HTTP] Creating board with data:', req.body);
       console.log('[HTTP] DETAILED SESSION DEBUG - req.session:', JSON.stringify(req.session, null, 2));
@@ -968,7 +968,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/boards/:id", generalRateLimit, async (req, res) => {
+  app.get("/api/boards/:id", generalRateLimit, requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Fetching board with ID: ${req.params.id}, org: ${req.tenantId}`);
       const board = await storage.getBoard(Number(req.params.id), req.tenantId);
@@ -983,10 +983,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/boards/:id", boardUpdateRateLimit, async (req, res) => {
+  app.patch("/api/boards/:id", boardUpdateRateLimit, requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Updating board with ID: ${req.params.id}`);
-      const board = await storage.updateBoard(Number(req.params.id), req.body);
+      const board = await storage.updateBoard(Number(req.params.id), req.body, req.tenantId);
       console.log(`[HTTP] Successfully updated board: ${board.id}`);
       res.json(board);
     } catch (err) {
@@ -995,10 +995,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/boards/:id", async (req, res) => {
+  app.delete("/api/boards/:id", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Deleting board with ID: ${req.params.id}`);
-      await storage.deleteBoard(Number(req.params.id));
+      await storage.deleteBoard(Number(req.params.id), req.tenantId);
       console.log(`[HTTP] Successfully deleted board: ${req.params.id}`);
       res.status(204).send();
     } catch (err) {
@@ -1008,7 +1008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Replace the existing public board route with the corrected path
-  app.get("/api/boards/:id/public", async (req, res) => {
+  app.get("/api/boards/:id/public", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Fetching public board with ID: ${req.params.id}, org: ${req.tenantId}`);
       const board = await storage.getBoard(Number(req.params.id), req.tenantId);
@@ -1034,7 +1034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get comments for a block
-  app.get("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
+  app.get("/api/boards/:boardId/blocks/:blockId/comments", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Fetching comments for board ${req.params.boardId}, block ${req.params.blockId}, org: ${req.tenantId}`);
       
@@ -1055,7 +1055,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
+  app.post("/api/boards/:boardId/blocks/:blockId/comments", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Adding comment to board ${req.params.boardId}, block ${req.params.blockId}`);
       const { content, username } = req.body;
@@ -1092,7 +1092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedBoard = await storage.updateBoard(Number(req.params.boardId), {
         blocks: updatedBlocks
-      });
+      }, req.tenantId);
       console.log(`[HTTP] Successfully added comment to board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
     } catch (err) {
@@ -1101,7 +1101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/boards/:boardId/blocks/:blockId/comments/clear", async (req, res) => {
+  app.post("/api/boards/:boardId/blocks/:blockId/comments/clear", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Clearing comments for board ${req.params.boardId}, block ${req.params.blockId}, org: ${req.tenantId}`);
       const board = await storage.getBoard(Number(req.params.boardId), req.tenantId);
@@ -1122,7 +1122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedBoard = await storage.updateBoard(Number(req.params.boardId), {
         ...board,
         blocks: updatedBlocks
-      });
+      }, req.tenantId);
       console.log(`[HTTP] Successfully cleared comments for board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
     } catch (err) {
@@ -1131,7 +1131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/boards/:boardId/blocks/:blockId/comments/:commentId/toggle", async (req, res) => {
+  app.patch("/api/boards/:boardId/blocks/:blockId/comments/:commentId/toggle", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Toggling comment completion for board ${req.params.boardId}, block ${req.params.blockId}, comment ${req.params.commentId}, org: ${req.tenantId}`);
       const { completed } = req.body;
@@ -1162,7 +1162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedBoard = await storage.updateBoard(Number(req.params.boardId), {
         ...board,
         blocks: updatedBlocks
-      });
+      }, req.tenantId);
       console.log(`[HTTP] Successfully toggled comment completion for board ${updatedBoard.id}, block ${req.params.blockId}, comment ${req.params.commentId}`);
       res.json(updatedBoard);
     } catch (err) {
@@ -1453,7 +1453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add endpoint for creating a board directly from CSV data
-  app.post("/api/boards/import-csv", async (req, res) => {
+  app.post("/api/boards/import-csv", requireTenant, async (req, res) => {
     try {
       // Check authentication
       const userId = req.session?.passport?.user;
@@ -2276,7 +2276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Board permission endpoints
-  app.post("/api/boards/:boardId/permissions", async (req, res) => {
+  app.post("/api/boards/:boardId/permissions", requireTenant, async (req, res) => {
     try {
       const boardId = parseInt(req.params.boardId);
       const { userId, permission = 'edit' } = req.body;
@@ -2299,7 +2299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/boards/:boardId/permissions/:userId", async (req, res) => {
+  app.delete("/api/boards/:boardId/permissions/:userId", requireTenant, async (req, res) => {
     try {
       const boardId = parseInt(req.params.boardId);
       const userId = parseInt(req.params.userId);
@@ -3184,7 +3184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Project members routes
-  app.get("/api/projects/:id/members", async (req, res) => {
+  app.get("/api/projects/:id/members", requireTenant, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       console.log(`[HTTP] Fetching members for project: ${projectId}`);
@@ -3197,7 +3197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects/:id/members", async (req, res) => {
+  app.post("/api/projects/:id/members", requireTenant, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const { userId, role = 'member' } = req.body;
@@ -3249,7 +3249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/projects/:id/members/:userId", async (req, res) => {
+  app.delete("/api/projects/:id/members/:userId", requireTenant, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const userId = parseInt(req.params.userId);
@@ -3264,7 +3264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/projects/:id/members/:userId", async (req, res) => {
+  app.patch("/api/projects/:id/members/:userId", requireTenant, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const userId = parseInt(req.params.userId);

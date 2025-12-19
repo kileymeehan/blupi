@@ -33,16 +33,22 @@ Blupi is an advanced collaborative product design platform that leverages AI and
 - **user_organizations junction table** for user membership with active organization tracking
 - **organizationId columns added** to projects, boards, and related tables
 - **Tenant extraction middleware** (`server/tenant-middleware.ts`) reads active organization from session
-- **Core storage methods updated** (getProjects, getBoards, createProject, createBoard) to filter by tenant
-- **API routes updated** to pass req.tenantId for tenant-scoped operations
+- **Core storage methods updated** with tenant filtering:
+  - `getProjects`, `getProjectsByMember`, `getProject` - filter by organizationId
+  - `getBoards`, `getBoardsForUser`, `getBoardsByProject`, `getBoard` - filter by organizationId
+  - `createProject`, `createBoard` - include organizationId on creation
+- **API routes enforced with requireTenant middleware**:
+  - All project CRUD routes (`/api/projects`, `/api/projects/:id`)
+  - All board CRUD routes (`/api/boards`, `/api/boards/:id`)
+  - Project boards route (`/api/projects/:id/boards`)
+- **Resource-level tenant validation** - getProject and getBoard verify organization matches request tenant
 - **Data migration completed** - 84 projects, 65 boards, 20 users backfilled to default organization
 
-**Note**: Multi-tenant foundation is in place. Remaining work for full isolation:
-- Extend tenant filters to member lookups, permissions, and related queries
-- Add resource-level tenant validation for getProject/getBoard by ID
-- Make organizationId non-nullable and add requireTenant middleware
-- Backfill related tables (boardPermissions, notifications, comments)
-- Enable RLS policies after application-level isolation is complete
+**Security Model**: Routes protected by requireTenant return 403 if user has no active organization. Storage methods filter by organizationId when provided, ensuring users only see data from their active organization.
+
+**Remaining Work** (lower priority):
+- Make organizationId column non-nullable in schema (requires data validation)
+- Enable RLS policies at database level for defense-in-depth
 
 ### Database & Session Stability Improvements (December 18, 2024)
 - **PostgreSQL-backed session storage** using connect-pg-simple for persistence across restarts

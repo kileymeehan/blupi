@@ -174,16 +174,22 @@ export class DatabaseStorage {
     }
   }
 
-  async updateProject(id: number, updates: Partial<Project>): Promise<Project> {
+  async updateProject(id: number, updates: Partial<Project>, organizationId?: string): Promise<Project> {
     try {
-      console.log('[Storage] Updating project:', id, updates);
+      console.log('[Storage] Updating project:', id, 'org:', organizationId);
+      
+      // Build conditions: project ID and optionally validate organization
+      const conditions = organizationId
+        ? and(eq(projects.id, id), eq(projects.organizationId, organizationId))
+        : eq(projects.id, id);
+      
       const [project] = await db
         .update(projects)
         .set({
           ...updates,
           updatedAt: new Date()
         })
-        .where(eq(projects.id, id))
+        .where(conditions)
         .returning();
       return project;
     } catch (error) {
@@ -403,9 +409,9 @@ export class DatabaseStorage {
     }
   }
 
-  async updateBoard(id: number, updates: Partial<Board>): Promise<Board> {
+  async updateBoard(id: number, updates: Partial<Board>, organizationId?: string): Promise<Board> {
     try {
-      console.log('[Storage] Updating board:', id, updates);
+      console.log('[Storage] Updating board:', id, 'org:', organizationId);
       
       // Helper function to recursively convert string timestamps to Date objects
       const convertTimestamps = (obj: any): any => {
@@ -447,13 +453,18 @@ export class DatabaseStorage {
       // Process all updates to convert timestamps
       const processedUpdates = convertTimestamps({ ...updates });
       
+      // Build conditions: board ID and optionally validate organization
+      const conditions = organizationId
+        ? and(eq(boardsTable.id, id), eq(boardsTable.organizationId, organizationId))
+        : eq(boardsTable.id, id);
+      
       const [board] = await db
         .update(boardsTable)
         .set({
           ...processedUpdates,
           updatedAt: new Date() // Always set a fresh timestamp
         })
-        .where(eq(boardsTable.id, id))
+        .where(conditions)
         .returning();
 
       if (!board) {
@@ -467,9 +478,16 @@ export class DatabaseStorage {
     }
   }
 
-  async deleteBoard(id: number): Promise<void> {
+  async deleteBoard(id: number, organizationId?: string): Promise<void> {
     try {
-      await db.delete(boardsTable).where(eq(boardsTable.id, id));
+      console.log('[Storage] Deleting board:', id, 'org:', organizationId);
+      
+      // Build conditions: board ID and optionally validate organization
+      const conditions = organizationId
+        ? and(eq(boardsTable.id, id), eq(boardsTable.organizationId, organizationId))
+        : eq(boardsTable.id, id);
+      
+      await db.delete(boardsTable).where(conditions);
     } catch (error) {
       console.error('[Storage] Error deleting board:', error);
       throw error;
