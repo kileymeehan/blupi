@@ -666,7 +666,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F8] animate-fade-in">
+    <div className="min-h-screen bg-[#F0EEE9] animate-fade-in">
       <header className="border-b bg-[#302E87] shadow-sm">
         <div className="max-w-[1440px] mx-auto flex h-24 items-center px-6">
           <div className="flex-1 flex items-center gap-4">
