@@ -169,6 +169,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/organizations/:id", async (req, res) => {
+    try {
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const organizationId = req.params.id;
+      const role = await storage.getUserRoleInOrganization(userId, organizationId);
+      
+      if (!role || (role !== 'owner' && role !== 'admin')) {
+        return res.status(403).json({ error: "Only owners and admins can rename organizations" });
+      }
+      
+      const { name } = req.body;
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ error: "Organization name is required" });
+      }
+      
+      const org = await storage.updateOrganization(organizationId, { name: name.trim() });
+      
+      if (!org) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      
+      console.log(`[HTTP] Renamed organization ${organizationId} to "${name.trim()}" by user ${userId}`);
+      res.json(org);
+    } catch (error: any) {
+      console.error('[HTTP] Error renaming organization:', error);
+      res.status(500).json({ error: "Failed to rename organization" });
+    }
+  });
+
+  app.get("/api/organizations/:id/member-count", async (req, res) => {
+    try {
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const organizationId = req.params.id;
+      const count = await storage.getOrganizationMemberCount(organizationId);
+      
+      res.json({ count });
+    } catch (error: any) {
+      console.error('[HTTP] Error getting organization member count:', error);
+      res.status(500).json({ error: "Failed to get member count" });
+    }
+  });
+
   // Image proxy endpoint to bypass CSP restrictions
   app.post('/api/proxy-image', async (req, res) => {
     try {

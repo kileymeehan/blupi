@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Building2, Check, Loader2, Plus } from "lucide-react";
+import { Building2, Check, Loader2, Plus, Pencil, Users } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,10 +33,37 @@ interface UserOrganization {
   organization: Organization;
 }
 
+function MemberCount({ organizationId }: { organizationId: string }) {
+  const { data, isLoading } = useQuery<{ count: number }>({
+    queryKey: ['/api/organizations', organizationId, 'member-count'],
+    queryFn: async () => {
+      const res = await fetch(`/api/organizations/${organizationId}/member-count`, {
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error('Failed to fetch member count');
+      return res.json();
+    }
+  });
+
+  if (isLoading) {
+    return <span className="text-xs text-gray-400">...</span>;
+  }
+
+  const count = data?.count ?? 0;
+  return (
+    <span className="text-xs text-gray-500 flex items-center gap-1">
+      <Users className="h-3 w-3" />
+      {count} {count === 1 ? 'member' : 'members'}
+    </span>
+  );
+}
+
 export function OrganizationSettings() {
   const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newOrgName, setNewOrgName] = useState("");
+  const [editingOrgId, setEditingOrgId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
 
   const { data: organizations = [], isLoading: orgsLoading } = useQuery<UserOrganization[]>({
     queryKey: ['/api/organizations'],
@@ -97,11 +124,53 @@ export function OrganizationSettings() {
     },
   });
 
+  const renameOrganization = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const response = await apiRequest('PATCH', `/api/organizations/${id}`, { name });
+      return response.json();
+    },
+    onSuccess: (org) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations/active'] });
+      setEditingOrgId(null);
+      setEditName("");
+      toast({
+        title: "Organization renamed",
+        description: `Organization has been renamed to "${org.name}".`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to rename organization",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateOrg = () => {
     if (newOrgName.trim()) {
       createOrganization.mutate(newOrgName.trim());
     }
   };
+
+  const handleStartEdit = (org: UserOrganization) => {
+    setEditingOrgId(org.organizationId);
+    setEditName(org.organization.name);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingOrgId && editName.trim()) {
+      renameOrganization.mutate({ id: editingOrgId, name: editName.trim() });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingOrgId(null);
+    setEditName("");
+  };
+
+  const canEdit = (role: string) => role === 'owner' || role === 'admin';
 
   if (orgsLoading) {
     return (
@@ -217,42 +286,102 @@ export function OrganizationSettings() {
                 }`}
                 data-testid={`org-card-${org.organization.slug}`}
               >
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${org.isActive ? 'bg-[#302E87]' : 'bg-gray-100'}`}>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={`p-2 rounded-lg flex-shrink-0 ${org.isActive ? 'bg-[#302E87]' : 'bg-gray-100'}`}>
                     <Building2 className={`h-5 w-5 ${org.isActive ? 'text-white' : 'text-gray-600'}`} />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{org.organization.name}</span>
-                      {org.isActive && (
-                        <Badge variant="secondary" className="text-xs bg-[#302E87] text-white">
-                          Active
-                        </Badge>
-                      )}
-                    </div>
-                    <span className="text-sm text-gray-500 capitalize">{org.role}</span>
+                  <div className="flex-1 min-w-0">
+                    {editingOrgId === org.organizationId ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          className="h-8 text-sm"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveEdit();
+                            if (e.key === 'Escape') handleCancelEdit();
+                          }}
+                          data-testid="edit-org-name-input"
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleSaveEdit}
+                          disabled={!editName.trim() || renameOrganization.isPending}
+                          className="h-8 px-2"
+                          data-testid="save-org-name"
+                        >
+                          {renameOrganization.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Check className="h-4 w-4 text-green-600" />
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleCancelEdit}
+                          className="h-8 px-2"
+                          data-testid="cancel-edit-org"
+                        >
+                          <span className="text-gray-500">Cancel</span>
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium truncate">{org.organization.name}</span>
+                          {org.isActive && (
+                            <span 
+                              className="inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-[#302E87] text-white font-medium select-none"
+                              data-testid="active-badge"
+                            >
+                              Active
+                            </span>
+                          )}
+                          {canEdit(org.role) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
+                              onClick={() => handleStartEdit(org)}
+                              data-testid={`edit-org-${org.organization.slug}`}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <span className="text-sm text-gray-500 capitalize">{org.role}</span>
+                          <MemberCount organizationId={org.organizationId} />
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 
-                {org.isActive ? (
-                  <div className="flex items-center gap-2 text-[#302E87]">
-                    <Check className="h-5 w-5" />
-                    <span className="text-sm font-medium">Current</span>
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => switchOrganization.mutate(org.organizationId)}
-                    disabled={switchOrganization.isPending}
-                    data-testid={`switch-org-${org.organization.slug}`}
-                  >
-                    {switchOrganization.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      'Switch'
-                    )}
-                  </Button>
+                {editingOrgId !== org.organizationId && (
+                  org.isActive ? (
+                    <div className="flex items-center gap-2 text-[#302E87] flex-shrink-0">
+                      <Check className="h-5 w-5" />
+                      <span className="text-sm font-medium">Current</span>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => switchOrganization.mutate(org.organizationId)}
+                      disabled={switchOrganization.isPending}
+                      data-testid={`switch-org-${org.organization.slug}`}
+                    >
+                      {switchOrganization.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Switch'
+                      )}
+                    </Button>
+                  )
                 )}
               </div>
             ))}

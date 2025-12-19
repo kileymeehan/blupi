@@ -1490,6 +1490,37 @@ export class DatabaseStorage {
       throw error;
     }
   }
+
+  async getOrganizationMemberCount(organizationId: string): Promise<number> {
+    try {
+      const result = await db
+        .select({ memberCount: sql<number>`count(*)::int` })
+        .from(userOrganizations)
+        .where(eq(userOrganizations.organizationId, organizationId));
+      return result[0]?.memberCount ?? 0;
+    } catch (error) {
+      console.error('[Storage] Error getting organization member count:', error);
+      throw error;
+    }
+  }
+
+  async getUserRoleInOrganization(userId: number, organizationId: string): Promise<string | null> {
+    try {
+      const [membership] = await db
+        .select({ role: userOrganizations.role })
+        .from(userOrganizations)
+        .where(
+          and(
+            eq(userOrganizations.userId, userId),
+            eq(userOrganizations.organizationId, organizationId)
+          )
+        );
+      return membership?.role ?? null;
+    } catch (error) {
+      console.error('[Storage] Error getting user role in organization:', error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

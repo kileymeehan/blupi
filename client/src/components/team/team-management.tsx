@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   Users, 
@@ -10,7 +10,8 @@ import {
   X,
   Clock,
   ChevronDown,
-  RotateCcw
+  RotateCcw,
+  Building2
 } from "lucide-react";
 import {
   Card,
@@ -92,16 +93,33 @@ interface PendingInvitation {
   status: string;
 }
 
+interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export default function TeamManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  
+  const { data: activeOrg } = useQuery<Organization | null>({
+    queryKey: ['/api/organizations/active'],
+  });
+  
   const [inviteForm, setInviteForm] = useState<InviteTeamMemberForm>({
     email: "",
     role: "member",
-    teamName: "My Team", // This could be dynamic based on organization
+    teamName: "My Team",
     inviterName: user?.displayName || user?.email || "Team Admin"
   });
+
+  useEffect(() => {
+    if (activeOrg?.name) {
+      setInviteForm(prev => ({ ...prev, teamName: activeOrg.name }));
+    }
+  }, [activeOrg?.name]);
 
   // Use user ID as organization ID to ensure data isolation
   // Each user has their own team/organization scope
@@ -378,6 +396,13 @@ export default function TeamManagement() {
 
   return (
     <Card>
+      {activeOrg && (
+        <div className="bg-[#302E87]/5 border-b border-[#302E87]/20 px-6 py-3 flex items-center gap-2 text-sm">
+          <Building2 className="h-4 w-4 text-[#302E87]" />
+          <span className="text-[#302E87] font-medium">{activeOrg.name}</span>
+          <span className="text-gray-500">organization</span>
+        </div>
+      )}
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
