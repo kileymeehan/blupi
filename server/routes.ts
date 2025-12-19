@@ -45,6 +45,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(getHealthStatus());
   });
 
+  // Organization endpoints
+  app.get("/api/organizations", async (req, res) => {
+    try {
+      const userId = req.session?.passport?.user;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const orgs = await storage.getUserOrganizations(userId);
+      res.json(orgs);
+    } catch (error: any) {
+      console.error('[HTTP] Error fetching organizations:', error);
+      res.status(500).json({ error: "Failed to fetch organizations" });
+    }
+  });
+
+  app.get("/api/organizations/active", async (req, res) => {
+    try {
+      const userId = req.session?.passport?.user;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const activeOrg = await storage.getActiveOrganization(userId);
+      res.json(activeOrg || null);
+    } catch (error: any) {
+      console.error('[HTTP] Error fetching active organization:', error);
+      res.status(500).json({ error: "Failed to fetch active organization" });
+    }
+  });
+
+  app.post("/api/organizations/:id/activate", async (req, res) => {
+    try {
+      const userId = req.session?.passport?.user;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const organizationId = req.params.id;
+      const success = await storage.setActiveOrganization(userId, organizationId);
+      
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(400).json({ error: "Failed to switch organization" });
+      }
+    } catch (error: any) {
+      console.error('[HTTP] Error switching organization:', error);
+      res.status(500).json({ error: "Failed to switch organization" });
+    }
+  });
+
   // Image proxy endpoint to bypass CSP restrictions
   app.post('/api/proxy-image', async (req, res) => {
     try {

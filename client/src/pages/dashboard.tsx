@@ -73,6 +73,7 @@ import TeamManagement from "@/components/team/team-management";
 import { BoardImportDialog } from "@/components/google-sheets/board-import-dialog";
 import { ComingSoonBadge } from "@/components/ui/coming-soon-badge";
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { ShareFriendDialog } from "@/components/share-friend-dialog";
 import { useIntroTour } from "@/hooks/use-intro-tour";
 import { BubbleLoading } from "@/components/ui/bubble-loading";
@@ -671,6 +672,7 @@ export default function Dashboard() {
             <Link href="/" className="flex items-center">
               <img src="/blupi-logomark-white.png" alt="Blupi" className="h-8" />
             </Link>
+            <OrganizationSwitcher />
           </div>
 
           <div className="flex items-center gap-3">
