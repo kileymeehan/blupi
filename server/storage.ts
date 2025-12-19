@@ -711,6 +711,19 @@ export class DatabaseStorage {
     }
   }
 
+  async getPendingInvitationById(invitationId: number): Promise<PendingInvitation | undefined> {
+    try {
+      const [invitation] = await db
+        .select()
+        .from(pendingInvitations)
+        .where(eq(pendingInvitations.id, invitationId));
+      return invitation;
+    } catch (error) {
+      console.error('[Storage] Error getting pending invitation by id:', error);
+      throw error;
+    }
+  }
+
   async getPendingInvitations(organizationId: number): Promise<PendingInvitation[]> {
     try {
       const invitations = await db
@@ -724,6 +737,48 @@ export class DatabaseStorage {
       return invitations;
     } catch (error) {
       console.error('[Storage] Error getting pending invitations:', error);
+      throw error;
+    }
+  }
+
+  // UUID-based team member methods for new multi-tenant architecture
+  async getTeamMembersByOrgUuid(organizationUuid: string): Promise<(TeamMember & { user?: { username: string, email: string } })[]> {
+    try {
+      console.log('[Storage] Getting team members by org UUID:', organizationUuid);
+      const results = await db
+        .select()
+        .from(teamMembers)
+        .leftJoin(users, eq(teamMembers.userId, users.id))
+        .where(eq(teamMembers.organizationUuid, organizationUuid))
+        .orderBy(desc(teamMembers.invitedBy));
+      
+      return results.map(row => ({
+        ...row.team_members,
+        user: row.users ? { 
+          username: row.users.username, 
+          email: row.users.email 
+        } : undefined
+      }));
+    } catch (error) {
+      console.error('[Storage] Error getting team members by org UUID:', error);
+      throw error;
+    }
+  }
+
+  async getPendingInvitationsByOrgUuid(organizationUuid: string): Promise<PendingInvitation[]> {
+    try {
+      console.log('[Storage] Getting pending invitations by org UUID:', organizationUuid);
+      const invitations = await db
+        .select()
+        .from(pendingInvitations)
+        .where(and(
+          eq(pendingInvitations.organizationUuid, organizationUuid),
+          eq(pendingInvitations.status, 'pending')
+        ))
+        .orderBy(desc(pendingInvitations.createdAt));
+      return invitations;
+    } catch (error) {
+      console.error('[Storage] Error getting pending invitations by org UUID:', error);
       throw error;
     }
   }

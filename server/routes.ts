@@ -72,6 +72,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return null;
   }
 
+  // Security helper: Verify user belongs to organization with required role
+  async function verifyOrganizationAccess(
+    userId: number, 
+    organizationId: string, 
+    requiredRoles?: string[]
+  ): Promise<{ hasAccess: boolean; role?: string; error?: string }> {
+    try {
+      const role = await storage.getUserRoleInOrganization(userId, organizationId);
+      
+      if (!role) {
+        return { hasAccess: false, error: 'You are not a member of this organization' };
+      }
+      
+      if (requiredRoles && requiredRoles.length > 0) {
+        if (!requiredRoles.includes(role)) {
+          return { 
+            hasAccess: false, 
+            role,
+            error: `This action requires ${requiredRoles.join(' or ')} role` 
+          };
+        }
+      }
+      
+      return { hasAccess: true, role };
+    } catch (error) {
+      console.error('[Security] Error verifying organization access:', error);
+      return { hasAccess: false, error: 'Failed to verify organization access' };
+    }
+  }
+
   // Organization endpoints
   app.get("/api/organizations", async (req, res) => {
     try {
@@ -126,6 +156,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const organizationId = req.params.id;
+      
+      // Security: Verify user belongs to this organization before activating
+      const access = await verifyOrganizationAccess(userId, organizationId);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} denied activate access to org ${organizationId}: ${access.error}`);
+        return res.status(403).json({ error: access.error });
+      }
+      
       const success = await storage.setActiveOrganization(userId, organizationId);
       
       if (success) {
@@ -223,6 +261,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const organizationId = req.params.id;
+      
+      // Security: Verify user belongs to this organization before returning member count
+      const access = await verifyOrganizationAccess(userId, organizationId);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} denied member-count access for org ${organizationId}: ${access.error}`);
+        return res.status(403).json({ error: access.error });
+      }
+      
       const count = await storage.getOrganizationMemberCount(organizationId);
       
       res.json({ count });
@@ -1856,109 +1902,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/organizations/:id/activate", async (req, res) => {
-    try {
-      const userId = req.session?.userId;
-      if (!userId) {
-        return res.status(401).json({ error: true, message: "Unauthorized" });
-      }
-      
-      const organizationId = req.params.id;
-      const success = await storage.setActiveOrganization(userId, organizationId);
-      
-      if (!success) {
-        return res.status(400).json({ error: true, message: "Failed to activate organization" });
-      }
-      
-      res.json({ success: true });
-    } catch (error: any) {
-      console.error('[HTTP] Error activating organization:', error);
-      res.status(500).json({ error: true, message: "Failed to activate organization" });
-    }
-  });
-
-  app.get("/api/organizations/:id", async (req, res) => {
-    try {
-      const userId = req.session?.userId;
-      if (!userId) {
-        return res.status(401).json({ error: true, message: "Unauthorized" });
-      }
-      
-      const organization = await storage.getOrganization(req.params.id);
-      if (!organization) {
-        return res.status(404).json({ error: true, message: "Organization not found" });
-      }
-      
-      if (req.tenantId && req.tenantId !== organization.id) {
-        return res.status(403).json({ error: true, message: "Forbidden" });
-      }
-      
-      res.json(organization);
-    } catch (error: any) {
-      console.error('[HTTP] Error getting organization:', error);
-      res.status(500).json({ error: true, message: "Failed to get organization" });
-    }
-  });
-
   // Team management endpoints
+  // Security: Requires authenticated user with active organization context
+  // Queries by organization UUID directly from tenant context
   app.get("/api/teams/:organizationId/members", async (req, res) => {
     try {
-      const organizationId = parseInt(req.params.organizationId);
-      const userId = req.session?.userId;
-      
-      console.log('[HTTP] DEBUG - Team request - userId:', userId, 'organizationId:', organizationId);
-      
-      // SECURITY FIX: Validate userId and convert to number
-      if (!userId) {
-        console.log('[HTTP] SECURITY: No userId in session for team request');
+      // Security: Verify user is authenticated
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
         return res.status(401).json({ error: true, message: "Authentication required" });
       }
-
-      let userIdNum = parseInt(String(userId));
       
-      // DIAGNOSTIC: Log detailed session analysis for debugging
-      console.log('[DIAGNOSTIC] Team request session analysis:');
-      console.log('  - Raw userId:', userId);
-      console.log('  - userId type:', typeof userId);
-      console.log('  - parseInt result:', userIdNum);
-      console.log('  - isNaN(userIdNum):', isNaN(userIdNum));
-      console.log('  - Starts with google_:', typeof userId === 'string' && userId.startsWith('google_'));
-      console.log('  - Starts with user_:', typeof userId === 'string' && userId.startsWith('user_'));
-      console.log('  - organizationId from params:', organizationId);
-      console.log('  - organizationId isNaN:', isNaN(organizationId));
-      
-      // Handle Google OAuth user IDs for team operations
-      if (isNaN(userIdNum) && typeof userId === 'string' && userId.startsWith('google_')) {
-        console.log('[HTTP] Google OAuth user detected for team request, looking up user by Firebase UID:', userId);
-        try {
-          const user = await storage.getUserByFirebaseUid(userId);
-          if (user) {
-            userIdNum = user.id;
-            console.log('[HTTP] Found user by Firebase UID for team request - user ID:', userIdNum);
-          } else {
-            console.log('[HTTP] No user found for Firebase UID during team request:', userId);
-            return res.json([]);
-          }
-        } catch (lookupError) {
-          console.error('[HTTP] Error looking up user by Firebase UID during team request:', lookupError);
-          return res.json([]);
-        }
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Invalid user session" });
       }
       
-      if (isNaN(userIdNum)) {
-        console.log('[HTTP] SECURITY: Invalid userId for team request, returning empty members');
-        return res.json([]);
+      // Security: Require active organization from tenant middleware
+      if (!req.tenantId) {
+        console.log(`[HTTP] SECURITY: User ${userId} has no active organization for team access`);
+        return res.status(403).json({ error: true, message: "No active organization" });
       }
       
-      // SECURITY: Verify user has access to this organization
-      // For now, users can only access their own organization (where orgId = userId)
-      if (organizationId !== userIdNum) {
-        console.log(`[HTTP] SECURITY: User ${userIdNum} attempted to access organization ${organizationId}`);
-        return res.status(403).json({ error: true, message: "Access denied to this organization" });
+      // Verify user is actually a member of their active organization
+      const access = await verifyOrganizationAccess(userId, req.tenantId);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} not a member of their tenant org: ${access.error}`);
+        return res.status(403).json({ error: true, message: access.error });
       }
-
-      console.log('[HTTP] Fetching team members for organization:', organizationId);
-      const members = await storage.getTeamMembers(organizationId);
+      
+      // Query team members by verified tenant UUID
+      console.log('[HTTP] Fetching team members for org UUID:', req.tenantId, 'by user:', userId);
+      const members = await storage.getTeamMembersByOrgUuid(req.tenantId);
       res.json(members);
     } catch (err) {
       console.error('[HTTP] Error fetching team members:', err);
@@ -1968,8 +1943,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/teams/:organizationId/invite", async (req, res) => {
     try {
-      const organizationId = parseInt(req.params.organizationId);
+      const organizationId = req.params.organizationId;
       const { email, role = 'member', teamName, inviterName } = req.body;
+      
+      // Security: Verify user is authenticated
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: true, message: "Authentication required" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Invalid user session" });
+      }
+      
+      // Security: Verify user belongs to this organization with owner/admin role
+      const access = await verifyOrganizationAccess(userId, organizationId, ['owner', 'admin']);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} denied invite access to org ${organizationId}: ${access.error}`);
+        return res.status(403).json({ error: true, message: access.error });
+      }
       
       if (!email || !teamName || !inviterName) {
         return res.status(400).json({ 
@@ -1978,7 +1971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      console.log('[HTTP] Inviting team member:', email, 'to organization:', organizationId);
+      console.log('[HTTP] Inviting team member:', email, 'to organization:', organizationId, 'by user:', userId);
       
       // Check if user already exists with this email
       const existingUser = await storage.getUserByEmail(email);
@@ -2060,10 +2053,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const memberId = parseInt(req.params.memberId);
       const { role } = req.body;
       
-      console.log('[HTTP] Updating team member:', memberId);
+      // Security: Verify user is authenticated
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: true, message: "Authentication required" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Invalid user session" });
+      }
       
       // Get current member details before update
       const currentMember = await storage.getTeamMember(memberId);
+      
+      if (!currentMember) {
+        return res.status(404).json({ error: true, message: "Team member not found" });
+      }
+      
+      // Security: Verify user belongs to the same organization with owner/admin role
+      // Use organizationUuid (UUID string) not organizationId (legacy integer)
+      if (!currentMember.organizationUuid) {
+        console.log(`[HTTP] SECURITY: Member ${memberId} has no organizationUuid, denying access`);
+        return res.status(403).json({ error: true, message: "Member not associated with organization" });
+      }
+      
+      const access = await verifyOrganizationAccess(userId, currentMember.organizationUuid, ['owner', 'admin']);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} denied update access for member ${memberId}: ${access.error}`);
+        return res.status(403).json({ error: true, message: access.error });
+      }
+      
+      console.log('[HTTP] Updating team member:', memberId, 'by user:', userId);
       
       const member = await storage.updateTeamMember(memberId, req.body);
       
@@ -2091,7 +2112,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/teams/members/:memberId", async (req, res) => {
     try {
       const memberId = parseInt(req.params.memberId);
-      console.log('[HTTP] Removing team member:', memberId);
+      
+      // Security: Verify user is authenticated
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: true, message: "Authentication required" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Invalid user session" });
+      }
+      
+      // Get member to check organization
+      const member = await storage.getTeamMember(memberId);
+      if (!member) {
+        return res.status(404).json({ error: true, message: "Team member not found" });
+      }
+      
+      // Security: Verify user belongs to the same organization with owner/admin role
+      // Use organizationUuid (UUID string) not organizationId (legacy integer)
+      if (!member.organizationUuid) {
+        console.log(`[HTTP] SECURITY: Member ${memberId} has no organizationUuid, denying access`);
+        return res.status(403).json({ error: true, message: "Member not associated with organization" });
+      }
+      
+      const access = await verifyOrganizationAccess(userId, member.organizationUuid, ['owner', 'admin']);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} denied delete access for member ${memberId}: ${access.error}`);
+        return res.status(403).json({ error: true, message: access.error });
+      }
+      
+      console.log('[HTTP] Removing team member:', memberId, 'by user:', userId);
       await storage.removeTeamMember(memberId);
       res.status(204).send();
     } catch (err) {
@@ -2104,7 +2156,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/teams/pending-invitations/:invitationId", async (req, res) => {
     try {
       const invitationId = parseInt(req.params.invitationId);
-      console.log('[HTTP] Cancelling pending invitation:', invitationId);
+      
+      // Security: Verify user is authenticated
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: true, message: "Authentication required" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Invalid user session" });
+      }
+      
+      // Get invitation to check organization
+      const invitation = await storage.getPendingInvitationById(invitationId);
+      if (!invitation) {
+        return res.status(404).json({ error: true, message: "Invitation not found" });
+      }
+      
+      // Security: Verify user belongs to the same organization with owner/admin role
+      // Use organizationUuid (UUID string) not organizationId (legacy integer)
+      if (!invitation.organizationUuid) {
+        console.log(`[HTTP] SECURITY: Invitation ${invitationId} has no organizationUuid, denying access`);
+        return res.status(403).json({ error: true, message: "Invitation not associated with organization" });
+      }
+      
+      const access = await verifyOrganizationAccess(userId, invitation.organizationUuid, ['owner', 'admin']);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} denied cancel access for invitation ${invitationId}: ${access.error}`);
+        return res.status(403).json({ error: true, message: access.error });
+      }
+      
+      console.log('[HTTP] Cancelling pending invitation:', invitationId, 'by user:', userId);
       await storage.cancelPendingInvitation(invitationId);
       res.status(204).send();
     } catch (err) {
@@ -2114,48 +2197,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get pending invitations for an organization
+  // Security: Requires authenticated user with active organization context
+  // Queries by organization UUID directly from tenant context
   app.get("/api/teams/:organizationId/pending-invitations", async (req, res) => {
     try {
-      const organizationId = parseInt(req.params.organizationId);
-      const userId = req.session?.userId;
-      
-      console.log('[HTTP] DEBUG - Pending invitations request - userId:', userId, 'organizationId:', organizationId);
-      
-      if (!userId) {
-        console.log('[HTTP] SECURITY: No userId for pending invitations');
+      // Security: Verify user is authenticated
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
         return res.status(401).json({ error: true, message: "Authentication required" });
       }
       
-      let userIdNum = parseInt(String(userId));
-      
-      // Handle Google OAuth user IDs for pending invitations
-      if (isNaN(userIdNum) && typeof userId === 'string' && userId.startsWith('google_')) {
-        console.log('[HTTP] Google OAuth user detected for pending invitations, looking up user by Firebase UID:', userId);
-        try {
-          const user = await storage.getUserByFirebaseUid(userId);
-          if (user) {
-            userIdNum = user.id;
-            console.log('[HTTP] Found user by Firebase UID for pending invitations - user ID:', userIdNum);
-          } else {
-            console.log('[HTTP] No user found for Firebase UID during pending invitations:', userId);
-            return res.json([]);
-          }
-        } catch (lookupError) {
-          console.error('[HTTP] Error looking up user by Firebase UID during pending invitations:', lookupError);
-          return res.json([]);
-        }
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Invalid user session" });
       }
       
-      if (isNaN(userIdNum)) {
-        console.log('[HTTP] SECURITY: Invalid userId for pending invitations, returning empty array');
-        return res.json([]);
+      // Security: Require active organization from tenant middleware
+      if (!req.tenantId) {
+        console.log(`[HTTP] SECURITY: User ${userId} has no active organization for pending invitations`);
+        return res.status(403).json({ error: true, message: "No active organization" });
       }
       
-      // Update organizationId to use the resolved userIdNum
-      const resolvedOrgId = userIdNum;
+      // Verify user is actually a member of their active organization
+      const access = await verifyOrganizationAccess(userId, req.tenantId);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} not a member of their tenant org: ${access.error}`);
+        return res.status(403).json({ error: true, message: access.error });
+      }
       
-      console.log('[HTTP] Fetching pending invitations for organization:', organizationId);
-      const invitations = await storage.getPendingInvitations(organizationId);
+      // Query pending invitations by verified tenant UUID
+      console.log('[HTTP] Fetching pending invitations for org UUID:', req.tenantId, 'by user:', userId);
+      const invitations = await storage.getPendingInvitationsByOrgUuid(req.tenantId);
       res.json(invitations);
     } catch (err) {
       console.error('[HTTP] Error fetching pending invitations:', err);
@@ -2167,8 +2239,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/teams/invitations/:invitationId/resend", async (req, res) => {
     try {
       const invitationId = parseInt(req.params.invitationId);
-      console.log('[HTTP] Resending invitation:', invitationId);
       
+      // Security: Verify user is authenticated
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: true, message: "Authentication required" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Invalid user session" });
+      }
+      
+      // Get invitation to check organization
+      const existingInvitation = await storage.getPendingInvitationById(invitationId);
+      if (!existingInvitation) {
+        return res.status(404).json({ error: true, message: "Invitation not found" });
+      }
+      
+      // Security: Verify user belongs to the same organization with owner/admin role
+      // Use organizationUuid (UUID string) not organizationId (legacy integer)
+      if (!existingInvitation.organizationUuid) {
+        console.log(`[HTTP] SECURITY: Invitation ${invitationId} has no organizationUuid, denying access`);
+        return res.status(403).json({ error: true, message: "Invitation not associated with organization" });
+      }
+      
+      const access = await verifyOrganizationAccess(userId, existingInvitation.organizationUuid, ['owner', 'admin']);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} denied resend access for invitation ${invitationId}: ${access.error}`);
+        return res.status(403).json({ error: true, message: access.error });
+      }
+      
+      console.log('[HTTP] Resending invitation:', invitationId, 'by user:', userId);
       const invitation = await storage.resendInvitation(invitationId);
       
       if (!invitation) {
