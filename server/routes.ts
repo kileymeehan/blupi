@@ -72,24 +72,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Organization endpoints
   app.get("/api/organizations", async (req, res) => {
     try {
-      console.log('[ORG API] GET /api/organizations called');
-      console.log('[ORG API] Session:', JSON.stringify(req.session));
-      const sessionUserId = req.session?.passport?.user;
-      console.log('[ORG API] sessionUserId:', sessionUserId);
+      const sessionUserId = req.session?.userId;
       if (!sessionUserId) {
-        console.log('[ORG API] No session userId, returning 401');
         return res.status(401).json({ error: "Unauthorized" });
       }
       
       const userId = await resolveUserId(sessionUserId);
-      console.log('[ORG API] Resolved userId:', userId);
       if (!userId) {
-        console.log('[ORG API] Could not resolve userId, returning 401');
         return res.status(401).json({ error: "User not found" });
       }
       
       const orgs = await storage.getUserOrganizations(userId);
-      console.log('[ORG API] Returning orgs:', orgs?.length);
       res.json(orgs);
     } catch (error: any) {
       console.error('[HTTP] Error fetching organizations:', error);
@@ -99,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/organizations/active", async (req, res) => {
     try {
-      const sessionUserId = req.session?.passport?.user;
+      const sessionUserId = req.session?.userId;
       if (!sessionUserId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -119,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations/:id/activate", async (req, res) => {
     try {
-      const sessionUserId = req.session?.passport?.user;
+      const sessionUserId = req.session?.userId;
       if (!sessionUserId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -145,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations", async (req, res) => {
     try {
-      const sessionUserId = req.session?.passport?.user;
+      const sessionUserId = req.session?.userId;
       if (!sessionUserId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
