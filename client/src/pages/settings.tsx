@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import { ChevronLeft, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,8 @@ import { OrganizationSettings } from "@/components/organization-settings";
 import TeamManagement from "@/components/team/team-management";
 
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState<'team' | 'other'>('team');
+
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
       <header className="border-b bg-[#302E87] shadow-sm">
@@ -29,10 +32,46 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div className="space-y-6">
-          <OrganizationSettings />
-          <TeamManagement />
+        {/* Sub-navigation */}
+        <div className="mb-8 border-b border-gray-200">
+          <div className="flex gap-8">
+            <button
+              onClick={() => setActiveTab('team')}
+              className={`pb-3 px-1 font-medium transition-colors ${
+                activeTab === 'team'
+                  ? 'text-[#302E87] border-b-2 border-[#302E87]'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Team
+            </button>
+            <button
+              onClick={() => setActiveTab('other')}
+              className={`pb-3 px-1 font-medium transition-colors ${
+                activeTab === 'other'
+                  ? 'text-[#302E87] border-b-2 border-[#302E87]'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Other Settings
+            </button>
+          </div>
         </div>
+
+        {/* Team Tab */}
+        {activeTab === 'team' && (
+          <div className="space-y-6">
+            <OrganizationSettings />
+            <TeamManagement />
+          </div>
+        )}
+
+        {/* Other Settings Tab */}
+        {activeTab === 'other' && (
+          <div className="text-center py-12">
+            <p className="text-gray-600">Coming soon</p>
+          </div>
+        )}
       </main>
     </div>
   );

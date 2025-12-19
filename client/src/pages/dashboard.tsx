@@ -738,11 +738,11 @@ export default function Dashboard() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/10 h-9 w-9"
+              className="text-white hover:bg-white/10 h-10 w-10"
               onClick={() => window.location.href = '/settings'}
               data-testid="header-settings-button"
             >
-              <Settings className="h-5 w-5" />
+              <Settings className="h-6 w-6" />
             </Button>
             
             {/* Notification Bell */}
@@ -751,14 +751,14 @@ export default function Dashboard() {
             </div>
             
             {/* Divider */}
-            <div className="h-8 w-px bg-white/30"></div>
+            <div className="h-8 w-px bg-white/30 mx-1"></div>
             
             {/* Profile Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="relative flex items-center gap-2 h-8 text-white hover:bg-[#302E87]/20"
+                  className="relative flex items-center gap-2 h-10 w-10 p-0 text-white hover:bg-[#302E87]/20"
                 >
                   <div className="border-2 border-white rounded-full">
                     <ProfileIcon />
