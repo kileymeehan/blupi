@@ -48,18 +48,26 @@ export class DatabaseStorage {
   }
 
   // Project methods
-  async getProjects(userId?: number): Promise<(Project & { user?: { username: string, email: string } })[]> {
+  async getProjects(userId?: number, organizationId?: string): Promise<(Project & { user?: { username: string, email: string } })[]> {
     try {
-      console.log('[Storage] Getting projects for user:', userId);
+      console.log('[Storage] Getting projects for user:', userId, 'org:', organizationId);
       
       let results;
+      const conditions = [];
       
       if (userId) {
+        conditions.push(eq(projects.userId, userId));
+      }
+      if (organizationId) {
+        conditions.push(eq(projects.organizationId, organizationId));
+      }
+      
+      if (conditions.length > 0) {
         results = await db
           .select()
           .from(projects)
           .leftJoin(users, eq(projects.userId, users.id))
-          .where(eq(projects.userId, userId))
+          .where(conditions.length === 1 ? conditions[0] : and(...conditions))
           .orderBy(desc(projects.createdAt));
       } else {
         results = await db
@@ -131,7 +139,7 @@ export class DatabaseStorage {
     }
   }
 
-  async createProject(insertProject: InsertProject & { userId: number }): Promise<Project> {
+  async createProject(insertProject: InsertProject & { userId: number; organizationId?: string }): Promise<Project> {
     try {
       console.log('[Storage] Creating project:', insertProject);
       const [project] = await db.insert(projects).values({
@@ -139,7 +147,8 @@ export class DatabaseStorage {
         description: insertProject.description,
         color: insertProject.color || '#4F46E5',
         status: insertProject.status || 'draft',
-        userId: insertProject.userId
+        userId: insertProject.userId,
+        organizationId: insertProject.organizationId
       }).returning();
 
       if (!project) {
@@ -173,66 +182,45 @@ export class DatabaseStorage {
   }
 
   // Board methods
-  async getBoards(userId?: number): Promise<(Board & { user?: { username: string, email: string } })[]> {
+  async getBoards(userId?: number, organizationId?: string): Promise<(Board & { user?: { username: string, email: string } })[]> {
     try {
-      console.log('🔵 [STORAGE] === GETTING BOARDS DEBUG ===');
-      console.log('[Storage] Getting boards for user:', userId);
-      
-      // First, let's check total boards in database
-      const totalBoardsCount = await db
-        .select({ count: sql`count(*)` })
-        .from(boardsTable);
-      console.log('[Storage] Total boards in database:', totalBoardsCount[0]?.count);
-      
-      // Check boards owned by this user
-      if (userId) {
-        const userOwnedCount = await db
-          .select({ count: sql`count(*)` })
-          .from(boardsTable)
-          .where(eq(boardsTable.userId, userId));
-        console.log('[Storage] Boards owned by user', userId, ':', userOwnedCount[0]?.count);
-      }
-      
-      // Check boards in user's projects
-      if (userId) {
-        const userProjectsQuery = await db
-          .select({ projectId: projects.id })
-          .from(projects)
-          .where(eq(projects.userId, userId));
-        console.log('[Storage] User has', userProjectsQuery.length, 'projects');
-        
-        if (userProjectsQuery.length > 0) {
-          const projectIds = userProjectsQuery.map(p => p.projectId);
-          const boardsInProjectsCount = await db
-            .select({ count: sql`count(*)` })
-            .from(boardsTable)
-            .where(inArray(boardsTable.projectId, projectIds));
-          console.log('[Storage] Boards in user projects:', boardsInProjectsCount[0]?.count);
-        }
-      }
+      console.log('[Storage] Getting boards for user:', userId, 'org:', organizationId);
       
       let boardResults;
       
       if (userId) {
         // Get boards user owns OR boards in user's projects
+        const projectConditions = organizationId 
+          ? and(eq(projects.userId, userId), eq(projects.organizationId, organizationId))
+          : eq(projects.userId, userId);
+        
         const userProjects = await db
           .select({ id: projects.id })
           .from(projects)
-          .where(eq(projects.userId, userId));
+          .where(projectConditions);
         
         const projectIds = userProjects.map(p => p.id);
-        console.log('[Storage] User project IDs:', projectIds);
+        
+        const userBoardsCondition = organizationId
+          ? and(eq(boardsTable.userId, userId), eq(boardsTable.organizationId, organizationId))
+          : eq(boardsTable.userId, userId);
+        
+        const projectBoardsCondition = projectIds.length > 0 
+          ? inArray(boardsTable.projectId, projectIds) 
+          : sql`false`;
         
         boardResults = await db
           .select()
           .from(boardsTable)
           .leftJoin(users, eq(boardsTable.userId, users.id))
-          .where(
-            or(
-              eq(boardsTable.userId, userId), // Boards user owns
-              projectIds.length > 0 ? inArray(boardsTable.projectId, projectIds) : sql`false` // Boards in user's projects
-            )
-          )
+          .where(or(userBoardsCondition, projectBoardsCondition))
+          .orderBy(desc(boardsTable.createdAt));
+      } else if (organizationId) {
+        boardResults = await db
+          .select()
+          .from(boardsTable)
+          .leftJoin(users, eq(boardsTable.userId, users.id))
+          .where(eq(boardsTable.organizationId, organizationId))
           .orderBy(desc(boardsTable.createdAt));
       } else {
         boardResults = await db
@@ -351,7 +339,7 @@ export class DatabaseStorage {
     }
   }
 
-  async createBoard(insertBoard: InsertBoard & { userId: number }): Promise<Board> {
+  async createBoard(insertBoard: InsertBoard & { userId: number; organizationId?: string }): Promise<Board> {
     try {
       console.log('[Storage] Creating board:', insertBoard);
       // projectId is now optional, so we don't check for it
@@ -365,6 +353,7 @@ export class DatabaseStorage {
         description: insertBoard.description || '',
         projectId: insertBoard.projectId || null,
         userId: insertBoard.userId,
+        organizationId: insertBoard.organizationId,
         status: insertBoard.status || 'draft',
         blocks: blocks,
         phases: phases

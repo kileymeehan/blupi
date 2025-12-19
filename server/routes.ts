@@ -456,6 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: `Imported from Google Sheet: ${sheetUrl}`,
         projectId: projectId,
         userId: userIdNum,
+        organizationId: req.tenantId,
         blocks: [],
         phases: [{
           id: nanoid(),
@@ -603,8 +604,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      console.log('[BOARDS API] Fetching boards for user:', userIdNum);
-      const boards = await storage.getBoards(userIdNum);
+      console.log('[BOARDS API] Fetching boards for user:', userIdNum, 'tenant:', req.tenantId);
+      const boards = await storage.getBoards(userIdNum, req.tenantId);
       console.log(`[BOARDS API] Retrieved ${boards.length} boards for user ${userIdNum}`);
       
       if (boards.length > 0) {
@@ -657,10 +658,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      console.log('[HTTP] Fetching projects for user:', userIdNum);
+      console.log('[HTTP] Fetching projects for user:', userIdNum, 'tenant:', req.tenantId);
       
       // Get both owned projects and projects where user is a member
-      const ownedProjects = await storage.getProjects(userIdNum);
+      const ownedProjects = await storage.getProjects(userIdNum, req.tenantId);
       console.log(`[HTTP] Retrieved ${ownedProjects.length} owned projects for user ${userIdNum}`);
       
       // Get projects where user is assigned as a member
@@ -741,9 +742,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Add userId to the project data
-      const projectData = { ...parseResult.data, userId: userIdNum };
-      console.log('[HTTP] Creating project with userId:', userIdNum);
+      // Add userId and organizationId to the project data
+      const projectData = { ...parseResult.data, userId: userIdNum, organizationId: req.tenantId };
+      console.log('[HTTP] Creating project with userId:', userIdNum, 'organizationId:', req.tenantId);
       const project = await storage.createProject(projectData);
       console.log('[HTTP] Successfully created project:', project.id);
 
@@ -952,7 +953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const board = await storage.createBoard({ ...parseResult.data, userId: userIdNum });
+      const board = await storage.createBoard({ ...parseResult.data, userId: userIdNum, organizationId: req.tenantId });
       console.log('[HTTP] Successfully created board:', board.id);
       res.json(board);
     } catch (err) {
@@ -1541,7 +1542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const board = await storage.createBoard({ ...parseResult.data, userId: userIdNum });
+      const board = await storage.createBoard({ ...parseResult.data, userId: userIdNum, organizationId: req.tenantId });
       console.log('[HTTP] Successfully created board from CSV data:', board.id);
       
       res.json(board);

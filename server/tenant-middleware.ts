@@ -14,20 +14,28 @@ declare global {
 
 export async function tenantMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = req.user as { id: number } | undefined;
+    const sessionUserId = (req.session as any)?.userId;
+    let userId: number | undefined;
     
-    if (!user?.id) {
+    if (sessionUserId) {
+      userId = typeof sessionUserId === 'number' ? sessionUserId : parseInt(sessionUserId);
+      if (isNaN(userId)) {
+        userId = undefined;
+      }
+    }
+    
+    if (!userId) {
       return next();
     }
 
-    req.userId = user.id;
+    req.userId = userId;
 
     const activeOrg = await db
       .select()
       .from(userOrganizations)
       .where(
         and(
-          eq(userOrganizations.userId, user.id),
+          eq(userOrganizations.userId, userId),
           eq(userOrganizations.isActive, true)
         )
       )
