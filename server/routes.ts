@@ -2072,7 +2072,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Security: Verify user belongs to the same organization with owner/admin role
-      const access = await verifyOrganizationAccess(userId, String(currentMember.organizationId), ['owner', 'admin']);
+      // Use organizationUuid (UUID string) not organizationId (legacy integer)
+      if (!currentMember.organizationUuid) {
+        console.log(`[HTTP] SECURITY: Member ${memberId} has no organizationUuid, denying access`);
+        return res.status(403).json({ error: true, message: "Member not associated with organization" });
+      }
+      
+      const access = await verifyOrganizationAccess(userId, currentMember.organizationUuid, ['owner', 'admin']);
       if (!access.hasAccess) {
         console.log(`[HTTP] SECURITY: User ${userId} denied update access for member ${memberId}: ${access.error}`);
         return res.status(403).json({ error: true, message: access.error });
@@ -2125,7 +2131,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Security: Verify user belongs to the same organization with owner/admin role
-      const access = await verifyOrganizationAccess(userId, String(member.organizationId), ['owner', 'admin']);
+      // Use organizationUuid (UUID string) not organizationId (legacy integer)
+      if (!member.organizationUuid) {
+        console.log(`[HTTP] SECURITY: Member ${memberId} has no organizationUuid, denying access`);
+        return res.status(403).json({ error: true, message: "Member not associated with organization" });
+      }
+      
+      const access = await verifyOrganizationAccess(userId, member.organizationUuid, ['owner', 'admin']);
       if (!access.hasAccess) {
         console.log(`[HTTP] SECURITY: User ${userId} denied delete access for member ${memberId}: ${access.error}`);
         return res.status(403).json({ error: true, message: access.error });
@@ -2163,7 +2175,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Security: Verify user belongs to the same organization with owner/admin role
-      const access = await verifyOrganizationAccess(userId, String(invitation.organizationId), ['owner', 'admin']);
+      // Use organizationUuid (UUID string) not organizationId (legacy integer)
+      if (!invitation.organizationUuid) {
+        console.log(`[HTTP] SECURITY: Invitation ${invitationId} has no organizationUuid, denying access`);
+        return res.status(403).json({ error: true, message: "Invitation not associated with organization" });
+      }
+      
+      const access = await verifyOrganizationAccess(userId, invitation.organizationUuid, ['owner', 'admin']);
       if (!access.hasAccess) {
         console.log(`[HTTP] SECURITY: User ${userId} denied cancel access for invitation ${invitationId}: ${access.error}`);
         return res.status(403).json({ error: true, message: access.error });
@@ -2240,7 +2258,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Security: Verify user belongs to the same organization with owner/admin role
-      const access = await verifyOrganizationAccess(userId, String(existingInvitation.organizationId), ['owner', 'admin']);
+      // Use organizationUuid (UUID string) not organizationId (legacy integer)
+      if (!existingInvitation.organizationUuid) {
+        console.log(`[HTTP] SECURITY: Invitation ${invitationId} has no organizationUuid, denying access`);
+        return res.status(403).json({ error: true, message: "Invitation not associated with organization" });
+      }
+      
+      const access = await verifyOrganizationAccess(userId, existingInvitation.organizationUuid, ['owner', 'admin']);
       if (!access.hasAccess) {
         console.log(`[HTTP] SECURITY: User ${userId} denied resend access for invitation ${invitationId}: ${access.error}`);
         return res.status(403).json({ error: true, message: access.error });
