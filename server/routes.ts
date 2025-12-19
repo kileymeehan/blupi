@@ -232,6 +232,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Organization logo upload endpoint
+  const logoUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 2 * 1024 * 1024, // 2MB limit for logos
+    },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+
+  app.post("/api/organizations/:id/logo", logoUpload.single('logo'), async (req, res) => {
+    try {
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const organizationId = req.params.id;
+      const role = await storage.getUserRoleInOrganization(userId, organizationId);
+      
+      if (!role || (role !== 'owner' && role !== 'admin')) {
+        return res.status(403).json({ error: "Only owners and admins can update organization logo" });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No logo file uploaded" });
+      }
+      
+      // Get current organization to merge settings
+      const currentOrg = await storage.getOrganization(organizationId);
+      if (!currentOrg) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      
+      // Save logo to disk
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const uploadsDir = path.join(process.cwd(), 'uploads', 'logos');
+      await fs.mkdir(uploadsDir, { recursive: true });
+      
+      const filename = `${organizationId}-${Date.now()}.${req.file.originalname.split('.').pop()}`;
+      const filepath = path.join(uploadsDir, filename);
+      await fs.writeFile(filepath, req.file.buffer);
+      
+      const logoUrl = `/uploads/logos/${filename}`;
+      
+      // Merge with existing settings
+      const updatedSettings = {
+        ...(currentOrg.settings || {}),
+        logoUrl
+      };
+      
+      const org = await storage.updateOrganization(organizationId, { settings: updatedSettings });
+      
+      console.log(`[HTTP] Updated logo for organization ${organizationId} by user ${userId}`);
+      res.json(org);
+    } catch (error: any) {
+      console.error('[HTTP] Error uploading organization logo:', error);
+      res.status(500).json({ error: "Failed to upload logo" });
+    }
+  });
+
+  app.delete("/api/organizations/:id/logo", async (req, res) => {
+    try {
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const organizationId = req.params.id;
+      const role = await storage.getUserRoleInOrganization(userId, organizationId);
+      
+      if (!role || (role !== 'owner' && role !== 'admin')) {
+        return res.status(403).json({ error: "Only owners and admins can remove organization logo" });
+      }
+      
+      const currentOrg = await storage.getOrganization(organizationId);
+      if (!currentOrg) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      
+      const updatedSettings = {
+        ...(currentOrg.settings || {}),
+        logoUrl: undefined
+      };
+      
+      const org = await storage.updateOrganization(organizationId, { settings: updatedSettings });
+      
+      console.log(`[HTTP] Removed logo for organization ${organizationId} by user ${userId}`);
+      res.json(org);
+    } catch (error: any) {
+      console.error('[HTTP] Error removing organization logo:', error);
+      res.status(500).json({ error: "Failed to remove logo" });
+    }
+  });
+
   // Image proxy endpoint to bypass CSP restrictions
   app.post('/api/proxy-image', async (req, res) => {
     try {
