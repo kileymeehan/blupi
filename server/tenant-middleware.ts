@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from './db';
-import { userOrganizations } from '@shared/schema';
+import { userOrganizations, users } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 declare global {
@@ -12,17 +12,34 @@ declare global {
   }
 }
 
+async function resolveUserIdFromSession(sessionUserId: string | number): Promise<number | null> {
+  if (typeof sessionUserId === 'number') {
+    return sessionUserId;
+  }
+  
+  if (typeof sessionUserId === 'string') {
+    if (sessionUserId.startsWith('google_') || sessionUserId.startsWith('user_')) {
+      const [user] = await db.select().from(users).where(eq(users.firebaseUid, sessionUserId)).limit(1);
+      return user?.id || null;
+    }
+    const parsed = parseInt(sessionUserId, 10);
+    if (!isNaN(parsed)) {
+      return parsed;
+    }
+  }
+  
+  return null;
+}
+
 export async function tenantMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
     const sessionUserId = (req.session as any)?.userId;
-    let userId: number | undefined;
     
-    if (sessionUserId) {
-      userId = typeof sessionUserId === 'number' ? sessionUserId : parseInt(sessionUserId);
-      if (isNaN(userId)) {
-        userId = undefined;
-      }
+    if (!sessionUserId) {
+      return next();
     }
+
+    const userId = await resolveUserIdFromSession(sessionUserId);
     
     if (!userId) {
       return next();
