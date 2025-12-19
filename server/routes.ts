@@ -1904,8 +1904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Team management endpoints
   // Security: Requires authenticated user with active organization context
-  // Legacy model: organizationId in teamMembers equals the org owner's userId
-  // Maps tenant UUID → organization.ownerId → legacy organizationId
+  // Queries by organization UUID directly from tenant context
   app.get("/api/teams/:organizationId/members", async (req, res) => {
     try {
       // Security: Verify user is authenticated
@@ -1932,17 +1931,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: true, message: access.error });
       }
       
-      // Map tenant UUID to legacy organizationId via organization.ownerId
-      const organization = await storage.getOrganization(req.tenantId);
-      if (!organization) {
-        console.log(`[HTTP] SECURITY: Active org ${req.tenantId} not found in organizations table`);
-        return res.status(404).json({ error: true, message: "Organization not found" });
-      }
-      
-      // In legacy model, organizationId = owner's userId
-      const legacyOrgId = organization.ownerId;
-      console.log('[HTTP] Fetching team members for org:', req.tenantId, 'legacy ID:', legacyOrgId, 'by user:', userId);
-      const members = await storage.getTeamMembers(legacyOrgId);
+      // Query team members by verified tenant UUID
+      console.log('[HTTP] Fetching team members for org UUID:', req.tenantId, 'by user:', userId);
+      const members = await storage.getTeamMembersByOrgUuid(req.tenantId);
       res.json(members);
     } catch (err) {
       console.error('[HTTP] Error fetching team members:', err);
@@ -2189,7 +2180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get pending invitations for an organization
   // Security: Requires authenticated user with active organization context
-  // Maps tenant UUID → organization.ownerId → legacy organizationId
+  // Queries by organization UUID directly from tenant context
   app.get("/api/teams/:organizationId/pending-invitations", async (req, res) => {
     try {
       // Security: Verify user is authenticated
@@ -2216,17 +2207,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: true, message: access.error });
       }
       
-      // Map tenant UUID to legacy organizationId via organization.ownerId
-      const organization = await storage.getOrganization(req.tenantId);
-      if (!organization) {
-        console.log(`[HTTP] SECURITY: Active org ${req.tenantId} not found in organizations table`);
-        return res.status(404).json({ error: true, message: "Organization not found" });
-      }
-      
-      // In legacy model, organizationId = owner's userId
-      const legacyOrgId = organization.ownerId;
-      console.log('[HTTP] Fetching pending invitations for org:', req.tenantId, 'legacy ID:', legacyOrgId, 'by user:', userId);
-      const invitations = await storage.getPendingInvitations(legacyOrgId);
+      // Query pending invitations by verified tenant UUID
+      console.log('[HTTP] Fetching pending invitations for org UUID:', req.tenantId, 'by user:', userId);
+      const invitations = await storage.getPendingInvitationsByOrgUuid(req.tenantId);
       res.json(invitations);
     } catch (err) {
       console.error('[HTTP] Error fetching pending invitations:', err);
