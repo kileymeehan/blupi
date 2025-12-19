@@ -45,12 +45,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(getHealthStatus());
   });
 
+  // Helper to resolve Firebase UID to database user ID
+  async function resolveUserId(sessionUserId: string | number): Promise<number | null> {
+    if (typeof sessionUserId === 'number') {
+      return sessionUserId;
+    }
+    if (typeof sessionUserId === 'string') {
+      if (sessionUserId.startsWith('google_') || sessionUserId.startsWith('user_')) {
+        const user = await storage.getUserByFirebaseUid(sessionUserId);
+        return user?.id || null;
+      }
+      const parsed = parseInt(sessionUserId, 10);
+      if (!isNaN(parsed)) {
+        return parsed;
+      }
+    }
+    return null;
+  }
+
   // Organization endpoints
   app.get("/api/organizations", async (req, res) => {
     try {
-      const userId = req.session?.passport?.user;
-      if (!userId) {
+      const sessionUserId = req.session?.passport?.user;
+      if (!sessionUserId) {
         return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
       }
       
       const orgs = await storage.getUserOrganizations(userId);
@@ -63,9 +86,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/organizations/active", async (req, res) => {
     try {
-      const userId = req.session?.passport?.user;
-      if (!userId) {
+      const sessionUserId = req.session?.passport?.user;
+      if (!sessionUserId) {
         return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
       }
       
       const activeOrg = await storage.getActiveOrganization(userId);
@@ -78,9 +106,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations/:id/activate", async (req, res) => {
     try {
-      const userId = req.session?.passport?.user;
-      if (!userId) {
+      const sessionUserId = req.session?.passport?.user;
+      if (!sessionUserId) {
         return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
       }
       
       const organizationId = req.params.id;
@@ -99,9 +132,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations", async (req, res) => {
     try {
-      const userId = req.session?.passport?.user;
-      if (!userId) {
+      const sessionUserId = req.session?.passport?.user;
+      if (!sessionUserId) {
         return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
       }
       
       const { name } = req.body;
