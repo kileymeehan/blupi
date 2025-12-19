@@ -45,6 +45,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(getHealthStatus());
   });
 
+  // Apply tenant middleware to all API requests (must be before route definitions)
+  app.use(tenantMiddleware);
+
   // Helper to resolve Firebase UID to database user ID
   async function resolveUserId(sessionUserId: string | number): Promise<number | null> {
     console.log('[resolveUserId] Input:', sessionUserId, 'Type:', typeof sessionUserId);
@@ -1739,66 +1742,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       res.status(500).json({ error: true, message: "Failed to create board from CSV data" });
-    }
-  });
-
-  // Apply tenant middleware to all requests
-  app.use(tenantMiddleware);
-
-  // Organization management endpoints
-  app.get("/api/organizations", async (req, res) => {
-    try {
-      const userId = req.session?.userId;
-      if (!userId) {
-        return res.status(401).json({ error: true, message: "Unauthorized" });
-      }
-      
-      const userOrgs = await storage.getUserOrganizations(userId);
-      res.json(userOrgs);
-    } catch (error: any) {
-      console.error('[HTTP] Error getting organizations:', error);
-      res.status(500).json({ error: true, message: "Failed to get organizations" });
-    }
-  });
-
-  app.get("/api/organizations/active", async (req, res) => {
-    try {
-      const userId = req.session?.userId;
-      if (!userId) {
-        return res.status(401).json({ error: true, message: "Unauthorized" });
-      }
-      
-      const activeOrg = await storage.getActiveOrganization(userId);
-      if (!activeOrg) {
-        return res.json({ organization: null });
-      }
-      res.json({ organization: activeOrg });
-    } catch (error: any) {
-      console.error('[HTTP] Error getting active organization:', error);
-      res.status(500).json({ error: true, message: "Failed to get active organization" });
-    }
-  });
-
-  app.post("/api/organizations", async (req, res) => {
-    try {
-      const userId = req.session?.userId;
-      if (!userId) {
-        return res.status(401).json({ error: true, message: "Unauthorized" });
-      }
-      
-      const validatedData = insertOrganizationSchema.parse(req.body);
-      const organization = await storage.createOrganization(validatedData);
-      
-      await storage.addUserToOrganization(userId, organization.id, 'admin');
-      await storage.setActiveOrganization(userId, organization.id);
-      
-      res.status(201).json(organization);
-    } catch (error: any) {
-      console.error('[HTTP] Error creating organization:', error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ error: true, message: "Invalid organization data", details: error.errors });
-      }
-      res.status(500).json({ error: true, message: "Failed to create organization" });
     }
   });
 
