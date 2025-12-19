@@ -425,8 +425,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if project exists
-      const project = await storage.getProject(projectId);
+      // Check if project exists and belongs to the tenant
+      const project = await storage.getProject(projectId, req.tenantId);
       if (!project) {
         console.error('[HTTP] Project not found:', projectId);
         return res.status(404).json({ 
@@ -665,7 +665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[HTTP] Retrieved ${ownedProjects.length} owned projects for user ${userIdNum}`);
       
       // Get projects where user is assigned as a member
-      const assignedProjects = await storage.getProjectsByMember(userIdNum);
+      const assignedProjects = await storage.getProjectsByMember(userIdNum, req.tenantId);
       console.log(`[HTTP] Retrieved ${assignedProjects.length} assigned projects for user ${userIdNum}`);
       
       // Combine and deduplicate projects (in case user owns and is assigned to same project)
@@ -749,7 +749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[HTTP] Successfully created project:', project.id);
 
       // Double check the project was stored
-      const storedProject = await storage.getProject(project.id);
+      const storedProject = await storage.getProject(project.id, req.tenantId);
       if (!storedProject) {
         throw new Error('Project creation failed - not found after creation');
       }
@@ -769,8 +769,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/projects/:id", async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching project with ID: ${req.params.id}`);
-      const project = await storage.getProject(Number(req.params.id));
+      console.log(`[HTTP] Fetching project with ID: ${req.params.id}, org: ${req.tenantId}`);
+      const project = await storage.getProject(Number(req.params.id), req.tenantId);
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
@@ -809,7 +809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const project = await storage.getProject(Number(req.params.id));
+      const project = await storage.getProject(Number(req.params.id), req.tenantId);
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
@@ -862,8 +862,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/projects/:id/boards", async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching boards for project ID: ${req.params.id}`);
-      const boards = await storage.getBoardsByProject(Number(req.params.id));
+      console.log(`[HTTP] Fetching boards for project ID: ${req.params.id}, org: ${req.tenantId}`);
+      const boards = await storage.getBoardsByProject(Number(req.params.id), req.tenantId);
       console.log(`[HTTP] Retrieved ${boards.length} boards for project ${req.params.id}`);
       res.json(boards);
     } catch (err) {
@@ -970,8 +970,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/boards/:id", generalRateLimit, async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching board with ID: ${req.params.id}`);
-      const board = await storage.getBoard(Number(req.params.id));
+      console.log(`[HTTP] Fetching board with ID: ${req.params.id}, org: ${req.tenantId}`);
+      const board = await storage.getBoard(Number(req.params.id), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -1010,8 +1010,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Replace the existing public board route with the corrected path
   app.get("/api/boards/:id/public", async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching public board with ID: ${req.params.id}`);
-      const board = await storage.getBoard(Number(req.params.id));
+      console.log(`[HTTP] Fetching public board with ID: ${req.params.id}, org: ${req.tenantId}`);
+      const board = await storage.getBoard(Number(req.params.id), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -1036,9 +1036,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get comments for a block
   app.get("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching comments for board ${req.params.boardId}, block ${req.params.blockId}`);
+      console.log(`[HTTP] Fetching comments for board ${req.params.boardId}, block ${req.params.blockId}, org: ${req.tenantId}`);
       
-      const board = await storage.getBoard(Number(req.params.boardId));
+      const board = await storage.getBoard(Number(req.params.boardId), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -1066,7 +1066,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const board = await storage.getBoard(Number(req.params.boardId));
+      const board = await storage.getBoard(Number(req.params.boardId), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -1103,8 +1103,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/boards/:boardId/blocks/:blockId/comments/clear", async (req, res) => {
     try {
-      console.log(`[HTTP] Clearing comments for board ${req.params.boardId}, block ${req.params.blockId}`);
-      const board = await storage.getBoard(Number(req.params.boardId));
+      console.log(`[HTTP] Clearing comments for board ${req.params.boardId}, block ${req.params.blockId}, org: ${req.tenantId}`);
+      const board = await storage.getBoard(Number(req.params.boardId), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -1133,10 +1133,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/boards/:boardId/blocks/:blockId/comments/:commentId/toggle", async (req, res) => {
     try {
-      console.log(`[HTTP] Toggling comment completion for board ${req.params.boardId}, block ${req.params.blockId}, comment ${req.params.commentId}`);
+      console.log(`[HTTP] Toggling comment completion for board ${req.params.boardId}, block ${req.params.blockId}, comment ${req.params.commentId}, org: ${req.tenantId}`);
       const { completed } = req.body;
 
-      const board = await storage.getBoard(Number(req.params.boardId));
+      const board = await storage.getBoard(Number(req.params.boardId), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -2055,7 +2055,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get board details for notifications
-      const board = await storage.getBoard(boardId);
+      const board = await storage.getBoard(boardId, req.tenantId);
       if (!board) {
         return res.status(404).json({ error: 'Board not found' });
       }
@@ -3227,7 +3227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[HTTP] Successfully added member to project - member ID: ${member.id}`);
       
       // Get project details for notification
-      const project = await storage.getProject(projectId);
+      const project = await storage.getProject(projectId, req.tenantId);
       if (project) {
         // Create notification for the assigned user
         await storage.createNotification({

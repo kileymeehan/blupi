@@ -94,9 +94,14 @@ export class DatabaseStorage {
     }
   }
 
-  async getProjectsByMember(userId: number): Promise<(Project & { user?: { username: string, email: string } })[]> {
+  async getProjectsByMember(userId: number, organizationId?: string): Promise<(Project & { user?: { username: string, email: string } })[]> {
     try {
-      console.log('[Storage] Getting projects where user is member:', userId);
+      console.log('[Storage] Getting projects where user is member:', userId, 'org:', organizationId);
+      
+      // Build conditions: user is member AND organization matches (if provided)
+      const conditions = organizationId 
+        ? and(eq(projectMembers.userId, userId), eq(projects.organizationId, organizationId))
+        : eq(projectMembers.userId, userId);
       
       // Join projectMembers with projects and users to get projects where user is assigned
       const results = await db
@@ -104,7 +109,7 @@ export class DatabaseStorage {
         .from(projectMembers)
         .innerJoin(projects, eq(projectMembers.projectId, projects.id))
         .leftJoin(users, eq(projects.userId, users.id))
-        .where(eq(projectMembers.userId, userId))
+        .where(conditions)
         .orderBy(desc(projects.createdAt));
       
       // Map to include user info in the expected format
@@ -124,13 +129,19 @@ export class DatabaseStorage {
     }
   }
 
-  async getProject(id: number): Promise<Project | undefined> {
+  async getProject(id: number, organizationId?: string): Promise<Project | undefined> {
     try {
-      console.log('[Storage] Getting project:', id);
+      console.log('[Storage] Getting project:', id, 'org:', organizationId);
+      
+      // Build conditions: project ID and optionally validate organization
+      const conditions = organizationId
+        ? and(eq(projects.id, id), eq(projects.organizationId, organizationId))
+        : eq(projects.id, id);
+      
       const [project] = await db
         .select()
         .from(projects)
-        .where(eq(projects.id, id))
+        .where(conditions)
         .orderBy(desc(projects.createdAt));
       return project;
     } catch (error) {
@@ -252,9 +263,18 @@ export class DatabaseStorage {
   }
 
   // Get boards that a specific user has access to
-  async getBoardsForUser(userId: number): Promise<(Board & { user?: { username: string, email: string } })[]> {
+  async getBoardsForUser(userId: number, organizationId?: string): Promise<(Board & { user?: { username: string, email: string } })[]> {
     try {
-      console.log('[Storage] Getting boards for user:', userId);
+      console.log('[Storage] Getting boards for user:', userId, 'org:', organizationId);
+      
+      // Build ownership and permission conditions with optional org filter
+      const ownershipCondition = organizationId
+        ? and(eq(boardsTable.userId, userId), eq(boardsTable.organizationId, organizationId))
+        : eq(boardsTable.userId, userId);
+      
+      const permissionCondition = organizationId
+        ? and(eq(boardPermissions.userId, userId), eq(boardsTable.organizationId, organizationId))
+        : eq(boardPermissions.userId, userId);
       
       // Get boards the user owns or has permissions to access
       const boardResults = await db
@@ -264,8 +284,8 @@ export class DatabaseStorage {
         .leftJoin(boardPermissions, eq(boardPermissions.boardId, boardsTable.id))
         .where(
           or(
-            eq(boardsTable.userId, userId), // User owns the board
-            eq(boardPermissions.userId, userId) // User has permission to access the board
+            ownershipCondition, // User owns the board
+            permissionCondition // User has permission to access the board
           )
         )
         .orderBy(desc(boardsTable.createdAt));
@@ -293,20 +313,25 @@ export class DatabaseStorage {
     }
   }
 
-  async getBoardsByProject(projectId: number): Promise<(Board & { user?: { username: string, email: string } })[]> {
+  async getBoardsByProject(projectId: number, organizationId?: string): Promise<(Board & { user?: { username: string, email: string } })[]> {
     try {
-      console.log('[Storage] Getting boards for project:', projectId);
+      console.log('[Storage] Getting boards for project:', projectId, 'org:', organizationId);
       if (!projectId) {
         console.error('[Storage] Project ID is required to get boards');
         return [];
       }
+
+      // Build conditions: project matches AND organization matches (if provided)
+      const conditions = organizationId
+        ? and(eq(boardsTable.projectId, projectId), eq(boardsTable.organizationId, organizationId))
+        : eq(boardsTable.projectId, projectId);
 
       // Use the correct table reference and ensure strict equality check
       const boardResults = await db
         .select()
         .from(boardsTable)
         .leftJoin(users, eq(boardsTable.userId, users.id))
-        .where(eq(boardsTable.projectId, projectId))
+        .where(conditions)
         .orderBy(desc(boardsTable.createdAt));
 
       // Map to include user info in the expected format
@@ -326,12 +351,19 @@ export class DatabaseStorage {
     }
   }
 
-  async getBoard(id: number): Promise<Board | undefined> {
+  async getBoard(id: number, organizationId?: string): Promise<Board | undefined> {
     try {
+      console.log('[Storage] Getting board:', id, 'org:', organizationId);
+      
+      // Build conditions: board ID and optionally validate organization
+      const conditions = organizationId
+        ? and(eq(boardsTable.id, id), eq(boardsTable.organizationId, organizationId))
+        : eq(boardsTable.id, id);
+      
       const [board] = await db
         .select()
         .from(boardsTable)
-        .where(eq(boardsTable.id, id));
+        .where(conditions);
       return board;
     } catch (error) {
       console.error('[Storage] Error getting board:', error);
