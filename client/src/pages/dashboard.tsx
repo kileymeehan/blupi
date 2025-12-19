@@ -29,7 +29,8 @@ import {
   Share2,
   Star,
   ExternalLink,
-
+  Settings,
+  Building2,
 } from "lucide-react";
 import {
   Card,
@@ -73,7 +74,7 @@ import TeamManagement from "@/components/team/team-management";
 import { BoardImportDialog } from "@/components/google-sheets/board-import-dialog";
 import { ComingSoonBadge } from "@/components/ui/coming-soon-badge";
 import { NotificationBell } from "@/components/notifications/notification-bell";
-import { OrganizationSwitcher } from "@/components/organization-switcher";
+import { OrganizationSettings } from "@/components/organization-settings";
 import { ShareFriendDialog } from "@/components/share-friend-dialog";
 import { useIntroTour } from "@/hooks/use-intro-tour";
 import { BubbleLoading } from "@/components/ui/bubble-loading";
@@ -153,7 +154,7 @@ export default function Dashboard() {
   const [googleSheetsImportOpen, setGoogleSheetsImportOpen] = useState(false);
   const [selectedProjectForImport, setSelectedProjectForImport] = useState<Project | null>(null);
   const [selectedBlueprints, setSelectedBlueprints] = useState<Set<number>>(new Set());
-  const [activeTab, setActiveTab] = useState<'projects' | 'blueprints' | 'starred' | 'team'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'blueprints' | 'starred' | 'settings'>('projects');
   
   // Enhanced search and filtering state
   const [searchTerm, setSearchTerm] = useState('');
@@ -672,7 +673,6 @@ export default function Dashboard() {
             <Link href="/" className="flex items-center">
               <img src="/blupi-logomark-white.png" alt="Blupi" className="h-8" />
             </Link>
-            <OrganizationSwitcher />
           </div>
 
           <div className="flex items-center gap-3">
@@ -884,15 +884,15 @@ export default function Dashboard() {
               Starred Items
             </button>
             <button
-              onClick={() => setActiveTab('team')}
+              onClick={() => setActiveTab('settings')}
               className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'team'
+                activeTab === 'settings'
                   ? 'border-[#302E87] text-[#302E87]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <Users className="w-4 h-4 inline mr-2" />
-              Team
+              <Settings className="w-4 h-4 inline mr-2" />
+              Settings
             </button>
           </nav>
         </div>
@@ -997,9 +997,10 @@ export default function Dashboard() {
           </section>
         )}
 
-        {/* Team Management Tab */}
-        {activeTab === 'team' && (
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
           <div className="space-y-6">
+            <OrganizationSettings />
             <TeamManagement />
           </div>
         )}
