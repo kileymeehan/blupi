@@ -23,6 +23,7 @@ import PublicBoard from "@/pages/public-board";
 import LandingPage from "@/pages/landing";
 import PendoConnectedPage from "@/pages/pendo-connected";
 import InvitePage from "@/pages/invite-page";
+import SettingsPage from "@/pages/settings";
 
 console.log('[APP] App component imported successfully');
 
@@ -83,6 +84,7 @@ function Router() {
         <Route path="/public/board/:id" component={PublicBoard} />
         <Route path="/pendo-connected" component={PendoConnectedPage} />
         <ProtectedRoute path="/" component={Dashboard} />
+        <ProtectedRoute path="/settings" component={SettingsPage} />
         <ProtectedRoute path="/team" component={TeamPage} />
         <ProtectedRoute path="/projects" component={Dashboard} />
         <ProtectedRoute path="/project/:id" component={Project} />

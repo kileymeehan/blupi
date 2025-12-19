@@ -1,7 +1,56 @@
-import { pgTable, text, serial, jsonb, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, integer, timestamp, boolean, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from 'drizzle-orm';
+
+// Organizations table - the tenant anchor for multi-tenancy
+export const organizations = pgTable("organizations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  settings: jsonb("settings").$type<OrganizationSettings>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+export type OrganizationSettings = {
+  logoUrl?: string;
+  primaryColor?: string;
+  allowPublicBoards?: boolean;
+};
+
+export const insertOrganizationSchema = createInsertSchema(organizations)
+  .omit({ id: true, createdAt: true, updatedAt: true });
+
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+export type Organization = typeof organizations.$inferSelect;
+
+// User-Organization membership - tracks which orgs users belong to
+export const userOrganizations = pgTable("user_organizations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  organizationId: uuid("organization_id").references(() => organizations.id).notNull(),
+  role: text("role").notNull().default('member'),
+  isActive: boolean("is_active").notNull().default(false),
+  joinedAt: timestamp("joined_at").defaultNow().notNull()
+});
+
+export const userOrganizationsRelations = relations(userOrganizations, ({ one }) => ({
+  user: one(users, {
+    fields: [userOrganizations.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [userOrganizations.organizationId],
+    references: [organizations.id],
+  })
+}));
+
+export const insertUserOrganizationSchema = createInsertSchema(userOrganizations)
+  .omit({ id: true, joinedAt: true });
+
+export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
+export type UserOrganization = typeof userOrganizations.$inferSelect;
 
 // User schema
 export const users = pgTable("users", {
@@ -38,6 +87,7 @@ export const projects = pgTable("projects", {
   color: text("color").notNull().default('#4F46E5'),
   status: text("status").notNull().default('draft'),
   userId: integer("user_id").references(() => users.id).notNull(),
+  organizationId: uuid("organization_id").references(() => organizations.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
@@ -90,6 +140,7 @@ export const boards = pgTable("boards", {
   status: text("status").notNull().default('draft'),
   projectId: integer("project_id").references(() => projects.id), // Made optional for blueprint-first approach
   userId: integer("user_id").references(() => users.id).notNull(),
+  organizationId: uuid("organization_id").references(() => organizations.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
@@ -139,9 +190,12 @@ export type InsertBoardPermission = z.infer<typeof insertBoardPermissionSchema>;
 export type BoardPermission = typeof boardPermissions.$inferSelect;
 
 // Team members schema - organization-level team management
+// Note: organizationId remains integer for backward compatibility with existing data
+// Will be migrated to UUID reference in future migration
 export const teamMembers = pgTable("team_members", {
   id: serial("id").primaryKey(),
-  organizationId: integer("organization_id").notNull(), // For multi-org support later
+  organizationId: integer("organization_id").notNull(),
+  organizationUuid: uuid("organization_uuid").references(() => organizations.id),
   userId: integer("user_id").references(() => users.id).notNull(),
   invitedBy: integer("invited_by").references(() => users.id).notNull(),
   email: text("email").notNull(),
@@ -170,11 +224,13 @@ export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 export type TeamMember = typeof teamMembers.$inferSelect;
 
 // Pending invitations for users who haven't registered yet
+// Note: organizationId remains integer for backward compatibility with existing data
 export const pendingInvitations = pgTable("pending_invitations", {
   id: serial("id").primaryKey(),
   token: text("token").notNull().unique(),
   email: text("email").notNull(),
   organizationId: integer("organization_id").notNull(),
+  organizationUuid: uuid("organization_uuid").references(() => organizations.id),
   invitedBy: integer("invited_by").references(() => users.id).notNull(),
   role: text("role").notNull().default('member'),
   teamName: text("team_name").notNull(),

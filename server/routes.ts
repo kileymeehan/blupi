@@ -17,6 +17,8 @@ import { simpleNotificationService } from './simple-notification-service';
 import { getHealthStatus } from './monitoring';
 import multer from 'multer';
 import { generalRateLimit, aiRateLimit, boardUpdateRateLimit, sheetsRateLimit } from './rate-limiter';
+import { tenantMiddleware, requireTenant } from './tenant-middleware';
+import { insertOrganizationSchema } from '@shared/schema';
 
 interface ConnectedUser {
   id: string;
@@ -41,6 +43,193 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
   app.get("/api/health", (req, res) => {
     res.json(getHealthStatus());
+  });
+
+  // Apply tenant middleware to all API requests (must be before route definitions)
+  app.use(tenantMiddleware);
+
+  // Helper to resolve Firebase UID to database user ID
+  async function resolveUserId(sessionUserId: string | number): Promise<number | null> {
+    console.log('[resolveUserId] Input:', sessionUserId, 'Type:', typeof sessionUserId);
+    if (typeof sessionUserId === 'number') {
+      console.log('[resolveUserId] Returning number directly:', sessionUserId);
+      return sessionUserId;
+    }
+    if (typeof sessionUserId === 'string') {
+      if (sessionUserId.startsWith('google_') || sessionUserId.startsWith('user_')) {
+        console.log('[resolveUserId] Looking up Firebase UID:', sessionUserId);
+        const user = await storage.getUserByFirebaseUid(sessionUserId);
+        console.log('[resolveUserId] Found user:', user?.id || 'null');
+        return user?.id || null;
+      }
+      const parsed = parseInt(sessionUserId, 10);
+      if (!isNaN(parsed)) {
+        console.log('[resolveUserId] Parsed string to number:', parsed);
+        return parsed;
+      }
+    }
+    console.log('[resolveUserId] Returning null');
+    return null;
+  }
+
+  // Organization endpoints
+  app.get("/api/organizations", async (req, res) => {
+    try {
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const orgs = await storage.getUserOrganizations(userId);
+      res.json(orgs);
+    } catch (error: any) {
+      console.error('[HTTP] Error fetching organizations:', error);
+      res.status(500).json({ error: "Failed to fetch organizations" });
+    }
+  });
+
+  app.get("/api/organizations/active", async (req, res) => {
+    try {
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const activeOrg = await storage.getActiveOrganization(userId);
+      res.json(activeOrg || null);
+    } catch (error: any) {
+      console.error('[HTTP] Error fetching active organization:', error);
+      res.status(500).json({ error: "Failed to fetch active organization" });
+    }
+  });
+
+  app.post("/api/organizations/:id/activate", async (req, res) => {
+    try {
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const organizationId = req.params.id;
+      const success = await storage.setActiveOrganization(userId, organizationId);
+      
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(400).json({ error: "Failed to switch organization" });
+      }
+    } catch (error: any) {
+      console.error('[HTTP] Error switching organization:', error);
+      res.status(500).json({ error: "Failed to switch organization" });
+    }
+  });
+
+  app.post("/api/organizations", async (req, res) => {
+    try {
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const { name } = req.body;
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ error: "Organization name is required" });
+      }
+      
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      
+      const org = await storage.createOrganization({ name: name.trim(), slug });
+      
+      await storage.addUserToOrganization(userId, org.id, 'owner');
+      
+      await storage.setActiveOrganization(userId, org.id);
+      
+      console.log(`[HTTP] Created organization ${org.name} for user ${userId}`);
+      res.json(org);
+    } catch (error: any) {
+      console.error('[HTTP] Error creating organization:', error);
+      res.status(500).json({ error: "Failed to create organization" });
+    }
+  });
+
+  app.patch("/api/organizations/:id", async (req, res) => {
+    try {
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const organizationId = req.params.id;
+      const role = await storage.getUserRoleInOrganization(userId, organizationId);
+      
+      if (!role || (role !== 'owner' && role !== 'admin')) {
+        return res.status(403).json({ error: "Only owners and admins can rename organizations" });
+      }
+      
+      const { name } = req.body;
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ error: "Organization name is required" });
+      }
+      
+      const org = await storage.updateOrganization(organizationId, { name: name.trim() });
+      
+      if (!org) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      
+      console.log(`[HTTP] Renamed organization ${organizationId} to "${name.trim()}" by user ${userId}`);
+      res.json(org);
+    } catch (error: any) {
+      console.error('[HTTP] Error renaming organization:', error);
+      res.status(500).json({ error: "Failed to rename organization" });
+    }
+  });
+
+  app.get("/api/organizations/:id/member-count", async (req, res) => {
+    try {
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const organizationId = req.params.id;
+      const count = await storage.getOrganizationMemberCount(organizationId);
+      
+      res.json({ count });
+    } catch (error: any) {
+      console.error('[HTTP] Error getting organization member count:', error);
+      res.status(500).json({ error: "Failed to get member count" });
+    }
   });
 
   // Image proxy endpoint to bypass CSP restrictions
@@ -394,7 +583,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Google Sheets import endpoint - moved here to avoid routing conflicts
-  app.post("/api/projects/:projectId/boards/import-sheet", async (req, res) => {
+  app.post("/api/projects/:projectId/boards/import-sheet", requireTenant, async (req, res) => {
     console.log(`[HTTP] Google Sheets import endpoint reached! Project: ${req.params.projectId}`);
     console.log(`[HTTP] Request method: ${req.method}, URL: ${req.url}`);
     console.log(`[HTTP] Headers:`, req.headers);
@@ -423,8 +612,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if project exists
-      const project = await storage.getProject(projectId);
+      // Check if project exists and belongs to the tenant
+      const project = await storage.getProject(projectId, req.tenantId);
       if (!project) {
         console.error('[HTTP] Project not found:', projectId);
         return res.status(404).json({ 
@@ -454,6 +643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: `Imported from Google Sheet: ${sheetUrl}`,
         projectId: projectId,
         userId: userIdNum,
+        organizationId: req.tenantId,
         blocks: [],
         phases: [{
           id: nanoid(),
@@ -561,7 +751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Basic routes without WebSocket functionality
-  app.get("/api/boards", async (req, res) => {
+  app.get("/api/boards", requireTenant, async (req, res) => {
     try {
       console.log('🔵 [BOARDS API] === BOARDS FETCH REQUEST STARTED ===');
       
@@ -601,8 +791,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      console.log('[BOARDS API] Fetching boards for user:', userIdNum);
-      const boards = await storage.getBoards(userIdNum);
+      console.log('[BOARDS API] Fetching boards for user:', userIdNum, 'tenant:', req.tenantId);
+      const boards = await storage.getBoards(userIdNum, req.tenantId);
       console.log(`[BOARDS API] Retrieved ${boards.length} boards for user ${userIdNum}`);
       
       if (boards.length > 0) {
@@ -616,7 +806,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/projects", async (req, res) => {
+  app.get("/api/projects", requireTenant, async (req, res) => {
     try {
       // Get authenticated user ID from session
       const userId = req.session?.userId;
@@ -655,14 +845,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      console.log('[HTTP] Fetching projects for user:', userIdNum);
+      console.log('[HTTP] Fetching projects for user:', userIdNum, 'tenant:', req.tenantId);
       
       // Get both owned projects and projects where user is a member
-      const ownedProjects = await storage.getProjects(userIdNum);
+      const ownedProjects = await storage.getProjects(userIdNum, req.tenantId);
       console.log(`[HTTP] Retrieved ${ownedProjects.length} owned projects for user ${userIdNum}`);
       
       // Get projects where user is assigned as a member
-      const assignedProjects = await storage.getProjectsByMember(userIdNum);
+      const assignedProjects = await storage.getProjectsByMember(userIdNum, req.tenantId);
       console.log(`[HTTP] Retrieved ${assignedProjects.length} assigned projects for user ${userIdNum}`);
       
       // Combine and deduplicate projects (in case user owns and is assigned to same project)
@@ -684,7 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects", async (req, res) => {
+  app.post("/api/projects", requireTenant, async (req, res) => {
     try {
       const userId = req.session.userId;
       console.log('[HTTP] Creating project with data:', req.body);
@@ -739,14 +929,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Add userId to the project data
-      const projectData = { ...parseResult.data, userId: userIdNum };
-      console.log('[HTTP] Creating project with userId:', userIdNum);
+      // Add userId and organizationId to the project data
+      const projectData = { ...parseResult.data, userId: userIdNum, organizationId: req.tenantId };
+      console.log('[HTTP] Creating project with userId:', userIdNum, 'organizationId:', req.tenantId);
       const project = await storage.createProject(projectData);
       console.log('[HTTP] Successfully created project:', project.id);
 
       // Double check the project was stored
-      const storedProject = await storage.getProject(project.id);
+      const storedProject = await storage.getProject(project.id, req.tenantId);
       if (!storedProject) {
         throw new Error('Project creation failed - not found after creation');
       }
@@ -764,10 +954,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/projects/:id", async (req, res) => {
+  app.get("/api/projects/:id", requireTenant, async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching project with ID: ${req.params.id}`);
-      const project = await storage.getProject(Number(req.params.id));
+      console.log(`[HTTP] Fetching project with ID: ${req.params.id}, org: ${req.tenantId}`);
+      const project = await storage.getProject(Number(req.params.id), req.tenantId);
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
@@ -779,10 +969,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/projects/:id", async (req, res) => {
+  app.patch("/api/projects/:id", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Updating project with ID: ${req.params.id}`);
-      const project = await storage.updateProject(Number(req.params.id), req.body);
+      const project = await storage.updateProject(Number(req.params.id), req.body, req.tenantId);
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
@@ -794,7 +984,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects/:id/invite", async (req, res) => {
+  app.post("/api/projects/:id/invite", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Sending invitation for project ID: ${req.params.id}`);
       const { email, role } = req.body;
@@ -806,7 +996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const project = await storage.getProject(Number(req.params.id));
+      const project = await storage.getProject(Number(req.params.id), req.tenantId);
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
@@ -857,10 +1047,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
-  app.get("/api/projects/:id/boards", async (req, res) => {
+  app.get("/api/projects/:id/boards", requireTenant, async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching boards for project ID: ${req.params.id}`);
-      const boards = await storage.getBoardsByProject(Number(req.params.id));
+      console.log(`[HTTP] Fetching boards for project ID: ${req.params.id}, org: ${req.tenantId}`);
+      const boards = await storage.getBoardsByProject(Number(req.params.id), req.tenantId);
       console.log(`[HTTP] Retrieved ${boards.length} boards for project ${req.params.id}`);
       res.json(boards);
     } catch (err) {
@@ -873,7 +1063,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.post("/api/boards", async (req, res) => {
+  app.post("/api/boards", requireTenant, async (req, res) => {
     try {
       console.log('[HTTP] Creating board with data:', req.body);
       console.log('[HTTP] DETAILED SESSION DEBUG - req.session:', JSON.stringify(req.session, null, 2));
@@ -950,7 +1140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const board = await storage.createBoard({ ...parseResult.data, userId: userIdNum });
+      const board = await storage.createBoard({ ...parseResult.data, userId: userIdNum, organizationId: req.tenantId });
       console.log('[HTTP] Successfully created board:', board.id);
       res.json(board);
     } catch (err) {
@@ -965,10 +1155,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/boards/:id", generalRateLimit, async (req, res) => {
+  app.get("/api/boards/:id", generalRateLimit, requireTenant, async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching board with ID: ${req.params.id}`);
-      const board = await storage.getBoard(Number(req.params.id));
+      console.log(`[HTTP] Fetching board with ID: ${req.params.id}, org: ${req.tenantId}`);
+      const board = await storage.getBoard(Number(req.params.id), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -980,10 +1170,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/boards/:id", boardUpdateRateLimit, async (req, res) => {
+  app.patch("/api/boards/:id", boardUpdateRateLimit, requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Updating board with ID: ${req.params.id}`);
-      const board = await storage.updateBoard(Number(req.params.id), req.body);
+      const board = await storage.updateBoard(Number(req.params.id), req.body, req.tenantId);
       console.log(`[HTTP] Successfully updated board: ${board.id}`);
       res.json(board);
     } catch (err) {
@@ -992,10 +1182,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/boards/:id", async (req, res) => {
+  app.delete("/api/boards/:id", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Deleting board with ID: ${req.params.id}`);
-      await storage.deleteBoard(Number(req.params.id));
+      await storage.deleteBoard(Number(req.params.id), req.tenantId);
       console.log(`[HTTP] Successfully deleted board: ${req.params.id}`);
       res.status(204).send();
     } catch (err) {
@@ -1005,10 +1195,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Replace the existing public board route with the corrected path
-  app.get("/api/boards/:id/public", async (req, res) => {
+  app.get("/api/boards/:id/public", requireTenant, async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching public board with ID: ${req.params.id}`);
-      const board = await storage.getBoard(Number(req.params.id));
+      console.log(`[HTTP] Fetching public board with ID: ${req.params.id}, org: ${req.tenantId}`);
+      const board = await storage.getBoard(Number(req.params.id), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -1031,11 +1221,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get comments for a block
-  app.get("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
+  app.get("/api/boards/:boardId/blocks/:blockId/comments", requireTenant, async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching comments for board ${req.params.boardId}, block ${req.params.blockId}`);
+      console.log(`[HTTP] Fetching comments for board ${req.params.boardId}, block ${req.params.blockId}, org: ${req.tenantId}`);
       
-      const board = await storage.getBoard(Number(req.params.boardId));
+      const board = await storage.getBoard(Number(req.params.boardId), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -1052,7 +1242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/boards/:boardId/blocks/:blockId/comments", async (req, res) => {
+  app.post("/api/boards/:boardId/blocks/:blockId/comments", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Adding comment to board ${req.params.boardId}, block ${req.params.blockId}`);
       const { content, username } = req.body;
@@ -1063,7 +1253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const board = await storage.getBoard(Number(req.params.boardId));
+      const board = await storage.getBoard(Number(req.params.boardId), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -1089,7 +1279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedBoard = await storage.updateBoard(Number(req.params.boardId), {
         blocks: updatedBlocks
-      });
+      }, req.tenantId);
       console.log(`[HTTP] Successfully added comment to board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
     } catch (err) {
@@ -1098,10 +1288,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/boards/:boardId/blocks/:blockId/comments/clear", async (req, res) => {
+  app.post("/api/boards/:boardId/blocks/:blockId/comments/clear", requireTenant, async (req, res) => {
     try {
-      console.log(`[HTTP] Clearing comments for board ${req.params.boardId}, block ${req.params.blockId}`);
-      const board = await storage.getBoard(Number(req.params.boardId));
+      console.log(`[HTTP] Clearing comments for board ${req.params.boardId}, block ${req.params.blockId}, org: ${req.tenantId}`);
+      const board = await storage.getBoard(Number(req.params.boardId), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -1119,7 +1309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedBoard = await storage.updateBoard(Number(req.params.boardId), {
         ...board,
         blocks: updatedBlocks
-      });
+      }, req.tenantId);
       console.log(`[HTTP] Successfully cleared comments for board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
     } catch (err) {
@@ -1128,12 +1318,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/boards/:boardId/blocks/:blockId/comments/:commentId/toggle", async (req, res) => {
+  app.patch("/api/boards/:boardId/blocks/:blockId/comments/:commentId/toggle", requireTenant, async (req, res) => {
     try {
-      console.log(`[HTTP] Toggling comment completion for board ${req.params.boardId}, block ${req.params.blockId}, comment ${req.params.commentId}`);
+      console.log(`[HTTP] Toggling comment completion for board ${req.params.boardId}, block ${req.params.blockId}, comment ${req.params.commentId}, org: ${req.tenantId}`);
       const { completed } = req.body;
 
-      const board = await storage.getBoard(Number(req.params.boardId));
+      const board = await storage.getBoard(Number(req.params.boardId), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
@@ -1159,7 +1349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedBoard = await storage.updateBoard(Number(req.params.boardId), {
         ...board,
         blocks: updatedBlocks
-      });
+      }, req.tenantId);
       console.log(`[HTTP] Successfully toggled comment completion for board ${updatedBoard.id}, block ${req.params.blockId}, comment ${req.params.commentId}`);
       res.json(updatedBoard);
     } catch (err) {
@@ -1450,7 +1640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add endpoint for creating a board directly from CSV data
-  app.post("/api/boards/import-csv", async (req, res) => {
+  app.post("/api/boards/import-csv", requireTenant, async (req, res) => {
     try {
       // Check authentication
       const userId = req.session?.passport?.user;
@@ -1539,7 +1729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const board = await storage.createBoard({ ...parseResult.data, userId: userIdNum });
+      const board = await storage.createBoard({ ...parseResult.data, userId: userIdNum, organizationId: req.tenantId });
       console.log('[HTTP] Successfully created board from CSV data:', board.id);
       
       res.json(board);
@@ -1552,6 +1742,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       res.status(500).json({ error: true, message: "Failed to create board from CSV data" });
+    }
+  });
+
+  app.post("/api/organizations/:id/activate", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Unauthorized" });
+      }
+      
+      const organizationId = req.params.id;
+      const success = await storage.setActiveOrganization(userId, organizationId);
+      
+      if (!success) {
+        return res.status(400).json({ error: true, message: "Failed to activate organization" });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('[HTTP] Error activating organization:', error);
+      res.status(500).json({ error: true, message: "Failed to activate organization" });
+    }
+  });
+
+  app.get("/api/organizations/:id", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Unauthorized" });
+      }
+      
+      const organization = await storage.getOrganization(req.params.id);
+      if (!organization) {
+        return res.status(404).json({ error: true, message: "Organization not found" });
+      }
+      
+      if (req.tenantId && req.tenantId !== organization.id) {
+        return res.status(403).json({ error: true, message: "Forbidden" });
+      }
+      
+      res.json(organization);
+    } catch (error: any) {
+      console.error('[HTTP] Error getting organization:', error);
+      res.status(500).json({ error: true, message: "Failed to get organization" });
     }
   });
 
@@ -1948,7 +2182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get board details for notifications
-      const board = await storage.getBoard(boardId);
+      const board = await storage.getBoard(boardId, req.tenantId);
       if (!board) {
         return res.status(404).json({ error: 'Board not found' });
       }
@@ -2169,7 +2403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Board permission endpoints
-  app.post("/api/boards/:boardId/permissions", async (req, res) => {
+  app.post("/api/boards/:boardId/permissions", requireTenant, async (req, res) => {
     try {
       const boardId = parseInt(req.params.boardId);
       const { userId, permission = 'edit' } = req.body;
@@ -2192,7 +2426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/boards/:boardId/permissions/:userId", async (req, res) => {
+  app.delete("/api/boards/:boardId/permissions/:userId", requireTenant, async (req, res) => {
     try {
       const boardId = parseInt(req.params.boardId);
       const userId = parseInt(req.params.userId);
@@ -3077,7 +3311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Project members routes
-  app.get("/api/projects/:id/members", async (req, res) => {
+  app.get("/api/projects/:id/members", requireTenant, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       console.log(`[HTTP] Fetching members for project: ${projectId}`);
@@ -3090,7 +3324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects/:id/members", async (req, res) => {
+  app.post("/api/projects/:id/members", requireTenant, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const { userId, role = 'member' } = req.body;
@@ -3120,7 +3354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[HTTP] Successfully added member to project - member ID: ${member.id}`);
       
       // Get project details for notification
-      const project = await storage.getProject(projectId);
+      const project = await storage.getProject(projectId, req.tenantId);
       if (project) {
         // Create notification for the assigned user
         await storage.createNotification({
@@ -3142,7 +3376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/projects/:id/members/:userId", async (req, res) => {
+  app.delete("/api/projects/:id/members/:userId", requireTenant, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const userId = parseInt(req.params.userId);
@@ -3157,7 +3391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/projects/:id/members/:userId", async (req, res) => {
+  app.patch("/api/projects/:id/members/:userId", requireTenant, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const userId = parseInt(req.params.userId);
