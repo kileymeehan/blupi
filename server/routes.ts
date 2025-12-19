@@ -47,19 +47,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Helper to resolve Firebase UID to database user ID
   async function resolveUserId(sessionUserId: string | number): Promise<number | null> {
+    console.log('[resolveUserId] Input:', sessionUserId, 'Type:', typeof sessionUserId);
     if (typeof sessionUserId === 'number') {
+      console.log('[resolveUserId] Returning number directly:', sessionUserId);
       return sessionUserId;
     }
     if (typeof sessionUserId === 'string') {
       if (sessionUserId.startsWith('google_') || sessionUserId.startsWith('user_')) {
+        console.log('[resolveUserId] Looking up Firebase UID:', sessionUserId);
         const user = await storage.getUserByFirebaseUid(sessionUserId);
+        console.log('[resolveUserId] Found user:', user?.id || 'null');
         return user?.id || null;
       }
       const parsed = parseInt(sessionUserId, 10);
       if (!isNaN(parsed)) {
+        console.log('[resolveUserId] Parsed string to number:', parsed);
         return parsed;
       }
     }
+    console.log('[resolveUserId] Returning null');
     return null;
   }
 
