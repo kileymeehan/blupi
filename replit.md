@@ -28,6 +28,22 @@ Blupi is an advanced collaborative product design platform that leverages AI and
 
 ## Recent Changes (December 2024)
 
+### Multi-Tenant Architecture Implementation (December 19, 2024)
+- **Organizations table created** with UUID primary keys for tenant isolation
+- **user_organizations junction table** for user membership with active organization tracking
+- **organizationId columns added** to projects, boards, and related tables
+- **Tenant extraction middleware** (`server/tenant-middleware.ts`) reads active organization from session
+- **Core storage methods updated** (getProjects, getBoards, createProject, createBoard) to filter by tenant
+- **API routes updated** to pass req.tenantId for tenant-scoped operations
+- **Data migration completed** - 84 projects, 65 boards, 20 users backfilled to default organization
+
+**Note**: Multi-tenant foundation is in place. Remaining work for full isolation:
+- Extend tenant filters to member lookups, permissions, and related queries
+- Add resource-level tenant validation for getProject/getBoard by ID
+- Make organizationId non-nullable and add requireTenant middleware
+- Backfill related tables (boardPermissions, notifications, comments)
+- Enable RLS policies after application-level isolation is complete
+
 ### Database & Session Stability Improvements (December 18, 2024)
 - **PostgreSQL-backed session storage** using connect-pg-simple for persistence across restarts
 - **Neon serverless driver upgraded** to Pool-based connection with WebSocket support for transactions
