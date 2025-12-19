@@ -51,6 +51,24 @@ Blupi is an advanced collaborative product design platform that leverages AI and
 
 **Security Model**: Routes protected by requireTenant return 403 if user has no active organization. Storage methods filter by organizationId when provided, ensuring users only see data from their active organization.
 
+### Team Management Security Hardening (December 19, 2024)
+- **verifyOrganizationAccess helper** validates user membership and role before organization operations
+- **GET team endpoints secured** - derive legacy org ID from verified tenant context via `organization.ownerId`, ignoring URL params
+- **Mutation endpoints require owner/admin role** - invite, cancel, resend, remove actions validate user role
+- **Cross-tenant enumeration blocked** - URL parameters completely ignored for authorization decisions
+- **Legacy data model mapping** - tenant UUID → organizations.ownerId → teamMembers.organizationId
+
+**Security Flow**:
+1. Authenticate user (session required)
+2. Extract active organization from tenant middleware (req.tenantId)
+3. Verify user membership in organization (verifyOrganizationAccess)
+4. For mutations: verify owner/admin role
+5. For reads: derive legacy org ID from verified organization record
+
+**Known Limitations** (for future migration):
+- Legacy `organizationId` (integer) vs new `organizationUuid` (UUID) columns not yet synchronized
+- Future data model should fully migrate to UUID-based organization references
+
 **Remaining Work** (lower priority):
 - Make organizationId parameter mandatory in storage method signatures (currently optional for backward compatibility)
 - Make organizationId column non-nullable in schema (requires data validation)
