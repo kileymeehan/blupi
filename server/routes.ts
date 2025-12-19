@@ -97,6 +97,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/organizations", async (req, res) => {
+    try {
+      const userId = req.session?.passport?.user;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const { name } = req.body;
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ error: "Organization name is required" });
+      }
+      
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      
+      const org = await storage.createOrganization({ name: name.trim(), slug });
+      
+      await storage.addUserToOrganization(userId, org.id, 'owner');
+      
+      await storage.setActiveOrganization(userId, org.id);
+      
+      console.log(`[HTTP] Created organization ${org.name} for user ${userId}`);
+      res.json(org);
+    } catch (error: any) {
+      console.error('[HTTP] Error creating organization:', error);
+      res.status(500).json({ error: "Failed to create organization" });
+    }
+  });
+
   // Image proxy endpoint to bypass CSP restrictions
   app.post('/api/proxy-image', async (req, res) => {
     try {
