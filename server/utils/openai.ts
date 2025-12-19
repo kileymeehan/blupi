@@ -1,18 +1,33 @@
 import OpenAI from 'openai';
+import { isProduction } from '../../config/environment';
 
 export class OpenAIService {
-  private openai: OpenAI;
+  private openai: OpenAI | null;
+  private isEnabled: boolean;
 
   constructor() {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY environment variable is required');
+    const apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      console.warn('[OPENAI] API key not configured - AI storyboard generation is disabled');
+      this.openai = null;
+      this.isEnabled = false;
+      return;
     }
+    
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: apiKey,
     });
+    this.isEnabled = true;
+    console.log('[OPENAI] Service initialized successfully');
   }
 
   async generateStoryboardImage(prompt: string): Promise<string> {
+    if (!this.isEnabled || !this.openai) {
+      console.warn('[OPENAI] Service not available - OpenAI API key not configured');
+      throw new Error('OpenAI service is not configured. Please add OPENAI_API_KEY to your environment variables to enable AI storyboard generation.');
+    }
+    
     try {
       console.log('[OPENAI] === STARTING DALL-E 3 IMAGE GENERATION ===');
       console.log('[OPENAI] Raw prompt received:', JSON.stringify(prompt));
@@ -52,6 +67,10 @@ export class OpenAIService {
   }
 
   async healthCheck(): Promise<boolean> {
+    if (!this.isEnabled || !this.openai) {
+      return false;
+    }
+    
     try {
       await this.openai.models.list();
       return true;
