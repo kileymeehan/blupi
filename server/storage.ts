@@ -14,12 +14,12 @@ import {
   type Notification, type InsertNotification,
   type FlaggedBlock, type InsertFlaggedBlock
 } from "@shared/schema";
-import { db, sql as neonSql } from "./db";
+import { db, sql as neonSql, pool } from "./db";
 import { eq, desc, or, and, inArray, count, sql } from "drizzle-orm";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 
-const MemoryStoreSession = MemoryStore(session);
+const PgSessionStore = connectPgSimple(session);
 
 export class DatabaseStorage {
   public sessionStore: session.Store;
@@ -29,15 +29,19 @@ export class DatabaseStorage {
       throw new Error('DATABASE_URL environment variable is required');
     }
 
-    // Use memory store for sessions to avoid pool issues during startup
-    this.sessionStore = new MemoryStoreSession({
-      checkPeriod: 86400000, // prune expired entries every 24h
-      max: 10000, // max number of sessions
-      ttl: 86400000, // 24 hours
-      dispose: (key: string, val: any) => {
-        console.log('[Session Store] Disposing session:', key);
+    // Use PostgreSQL-backed session store for persistence and scalability
+    // Uses existing 'session' table - do not auto-create to avoid conflicts
+    this.sessionStore = new PgSessionStore({
+      pool: pool as any,
+      tableName: 'session',
+      createTableIfMissing: false,
+      pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
+      errorLog: (error: Error) => {
+        console.error('[Session Store] PostgreSQL session error:', error.message);
       }
     });
+    
+    console.log('[Session Store] PostgreSQL-backed session store initialized');
   }
 
   // Project methods
