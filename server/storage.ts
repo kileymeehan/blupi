@@ -2,6 +2,7 @@ import {
   projects, boards as boardsTable, 
   users, projectMembers, sheetDocuments, projectSheetDocuments,
   boardPermissions, teamMembers, pendingInvitations, notifications, flaggedBlocks,
+  organizations, userOrganizations,
   type Board, type InsertBoard, 
   type User, type InsertUser, 
   type Project, type InsertProject,
@@ -12,7 +13,9 @@ import {
   type TeamMember, type InsertTeamMember,
   type PendingInvitation, type InsertPendingInvitation,
   type Notification, type InsertNotification,
-  type FlaggedBlock, type InsertFlaggedBlock
+  type FlaggedBlock, type InsertFlaggedBlock,
+  type Organization, type InsertOrganization,
+  type UserOrganization, type InsertUserOrganization
 } from "@shared/schema";
 import { db, sql as neonSql, pool } from "./db";
 import { eq, desc, or, and, inArray, count, sql } from "drizzle-orm";
@@ -1301,6 +1304,150 @@ export class DatabaseStorage {
         .where(eq(flaggedBlocks.id, flaggedBlockId));
     } catch (error) {
       console.error('[Storage] Error deleting flagged block:', error);
+      throw error;
+    }
+  }
+
+  async getOrganizations(): Promise<Organization[]> {
+    try {
+      return await db.select().from(organizations).orderBy(desc(organizations.createdAt));
+    } catch (error) {
+      console.error('[Storage] Error getting organizations:', error);
+      throw error;
+    }
+  }
+
+  async getOrganization(id: string): Promise<Organization | undefined> {
+    try {
+      const [org] = await db.select().from(organizations).where(eq(organizations.id, id));
+      return org;
+    } catch (error) {
+      console.error('[Storage] Error getting organization:', error);
+      throw error;
+    }
+  }
+
+  async createOrganization(data: InsertOrganization): Promise<Organization> {
+    try {
+      const [org] = await db.insert(organizations).values(data).returning();
+      return org;
+    } catch (error) {
+      console.error('[Storage] Error creating organization:', error);
+      throw error;
+    }
+  }
+
+  async updateOrganization(id: string, data: Partial<InsertOrganization>): Promise<Organization | undefined> {
+    try {
+      const [org] = await db
+        .update(organizations)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(organizations.id, id))
+        .returning();
+      return org;
+    } catch (error) {
+      console.error('[Storage] Error updating organization:', error);
+      throw error;
+    }
+  }
+
+  async getUserOrganizations(userId: number): Promise<(UserOrganization & { organization: Organization })[]> {
+    try {
+      const results = await db
+        .select()
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(eq(userOrganizations.userId, userId));
+      
+      return results.map(r => ({
+        ...r.user_organizations,
+        organization: r.organizations
+      }));
+    } catch (error) {
+      console.error('[Storage] Error getting user organizations:', error);
+      throw error;
+    }
+  }
+
+  async addUserToOrganization(userId: number, organizationId: string, role: string = 'member'): Promise<UserOrganization> {
+    try {
+      const [membership] = await db
+        .insert(userOrganizations)
+        .values({ userId, organizationId, role, isActive: false })
+        .returning();
+      return membership;
+    } catch (error) {
+      console.error('[Storage] Error adding user to organization:', error);
+      throw error;
+    }
+  }
+
+  async setActiveOrganization(userId: number, organizationId: string): Promise<boolean> {
+    try {
+      await db
+        .update(userOrganizations)
+        .set({ isActive: false })
+        .where(eq(userOrganizations.userId, userId));
+
+      await db
+        .update(userOrganizations)
+        .set({ isActive: true })
+        .where(
+          and(
+            eq(userOrganizations.userId, userId),
+            eq(userOrganizations.organizationId, organizationId)
+          )
+        );
+      return true;
+    } catch (error) {
+      console.error('[Storage] Error setting active organization:', error);
+      return false;
+    }
+  }
+
+  async getActiveOrganization(userId: number): Promise<Organization | undefined> {
+    try {
+      const results = await db
+        .select()
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(
+          and(
+            eq(userOrganizations.userId, userId),
+            eq(userOrganizations.isActive, true)
+          )
+        )
+        .limit(1);
+      
+      return results.length > 0 ? results[0].organizations : undefined;
+    } catch (error) {
+      console.error('[Storage] Error getting active organization:', error);
+      throw error;
+    }
+  }
+
+  async getProjectsByOrganization(organizationId: string): Promise<Project[]> {
+    try {
+      return await db
+        .select()
+        .from(projects)
+        .where(eq(projects.organizationId, organizationId))
+        .orderBy(desc(projects.createdAt));
+    } catch (error) {
+      console.error('[Storage] Error getting projects by organization:', error);
+      throw error;
+    }
+  }
+
+  async getBoardsByOrganization(organizationId: string): Promise<Board[]> {
+    try {
+      return await db
+        .select()
+        .from(boardsTable)
+        .where(eq(boardsTable.organizationId, organizationId))
+        .orderBy(desc(boardsTable.createdAt));
+    } catch (error) {
+      console.error('[Storage] Error getting boards by organization:', error);
       throw error;
     }
   }

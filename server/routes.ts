@@ -17,6 +17,8 @@ import { simpleNotificationService } from './simple-notification-service';
 import { getHealthStatus } from './monitoring';
 import multer from 'multer';
 import { generalRateLimit, aiRateLimit, boardUpdateRateLimit, sheetsRateLimit } from './rate-limiter';
+import { tenantMiddleware, requireTenant } from './tenant-middleware';
+import { insertOrganizationSchema } from '@shared/schema';
 
 interface ConnectedUser {
   id: string;
@@ -1552,6 +1554,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       res.status(500).json({ error: true, message: "Failed to create board from CSV data" });
+    }
+  });
+
+  // Apply tenant middleware to all requests
+  app.use(tenantMiddleware);
+
+  // Organization management endpoints
+  app.get("/api/organizations", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Unauthorized" });
+      }
+      
+      const userOrgs = await storage.getUserOrganizations(userId);
+      res.json(userOrgs);
+    } catch (error: any) {
+      console.error('[HTTP] Error getting organizations:', error);
+      res.status(500).json({ error: true, message: "Failed to get organizations" });
+    }
+  });
+
+  app.get("/api/organizations/active", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Unauthorized" });
+      }
+      
+      const activeOrg = await storage.getActiveOrganization(userId);
+      if (!activeOrg) {
+        return res.json({ organization: null });
+      }
+      res.json({ organization: activeOrg });
+    } catch (error: any) {
+      console.error('[HTTP] Error getting active organization:', error);
+      res.status(500).json({ error: true, message: "Failed to get active organization" });
+    }
+  });
+
+  app.post("/api/organizations", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Unauthorized" });
+      }
+      
+      const validatedData = insertOrganizationSchema.parse(req.body);
+      const organization = await storage.createOrganization(validatedData);
+      
+      await storage.addUserToOrganization(userId, organization.id, 'admin');
+      await storage.setActiveOrganization(userId, organization.id);
+      
+      res.status(201).json(organization);
+    } catch (error: any) {
+      console.error('[HTTP] Error creating organization:', error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: true, message: "Invalid organization data", details: error.errors });
+      }
+      res.status(500).json({ error: true, message: "Failed to create organization" });
+    }
+  });
+
+  app.post("/api/organizations/:id/activate", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Unauthorized" });
+      }
+      
+      const organizationId = req.params.id;
+      const success = await storage.setActiveOrganization(userId, organizationId);
+      
+      if (!success) {
+        return res.status(400).json({ error: true, message: "Failed to activate organization" });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('[HTTP] Error activating organization:', error);
+      res.status(500).json({ error: true, message: "Failed to activate organization" });
+    }
+  });
+
+  app.get("/api/organizations/:id", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Unauthorized" });
+      }
+      
+      const organization = await storage.getOrganization(req.params.id);
+      if (!organization) {
+        return res.status(404).json({ error: true, message: "Organization not found" });
+      }
+      
+      if (req.tenantId && req.tenantId !== organization.id) {
+        return res.status(403).json({ error: true, message: "Forbidden" });
+      }
+      
+      res.json(organization);
+    } catch (error: any) {
+      console.error('[HTTP] Error getting organization:', error);
+      res.status(500).json({ error: true, message: "Failed to get organization" });
     }
   });
 
