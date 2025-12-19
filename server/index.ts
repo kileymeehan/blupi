@@ -22,6 +22,8 @@ async function initializeServer() {
 
     // Serve images before security middleware to avoid CSP conflicts
     app.use('/images', express.static(path.join(process.cwd(), 'client', 'public', 'images')));
+    // Serve uploaded files (logos, etc.)
+    app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
     log('[INFO] Static image serving initialized');
 
     // Security middleware - should be one of the first middleware
