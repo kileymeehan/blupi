@@ -156,6 +156,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const organizationId = req.params.id;
+      
+      // Security: Verify user belongs to this organization before activating
+      const access = await verifyOrganizationAccess(userId, organizationId);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} denied activate access to org ${organizationId}: ${access.error}`);
+        return res.status(403).json({ error: access.error });
+      }
+      
       const success = await storage.setActiveOrganization(userId, organizationId);
       
       if (success) {
@@ -253,6 +261,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const organizationId = req.params.id;
+      
+      // Security: Verify user belongs to this organization before returning member count
+      const access = await verifyOrganizationAccess(userId, organizationId);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} denied member-count access for org ${organizationId}: ${access.error}`);
+        return res.status(403).json({ error: access.error });
+      }
+      
       const count = await storage.getOrganizationMemberCount(organizationId);
       
       res.json({ count });
@@ -1886,109 +1902,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/organizations/:id/activate", async (req, res) => {
+  // Team management endpoints
+  // Security: Requires authenticated user with active organization context
+  // Legacy model: organizationId in teamMembers equals the org owner's userId
+  // Maps tenant UUID → organization.ownerId → legacy organizationId
+  app.get("/api/teams/:organizationId/members", async (req, res) => {
     try {
-      const userId = req.session?.userId;
+      // Security: Verify user is authenticated
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
+        return res.status(401).json({ error: true, message: "Authentication required" });
+      }
+      
+      const userId = await resolveUserId(sessionUserId);
       if (!userId) {
-        return res.status(401).json({ error: true, message: "Unauthorized" });
+        return res.status(401).json({ error: true, message: "Invalid user session" });
       }
       
-      const organizationId = req.params.id;
-      const success = await storage.setActiveOrganization(userId, organizationId);
-      
-      if (!success) {
-        return res.status(400).json({ error: true, message: "Failed to activate organization" });
+      // Security: Require active organization from tenant middleware
+      if (!req.tenantId) {
+        console.log(`[HTTP] SECURITY: User ${userId} has no active organization for team access`);
+        return res.status(403).json({ error: true, message: "No active organization" });
       }
       
-      res.json({ success: true });
-    } catch (error: any) {
-      console.error('[HTTP] Error activating organization:', error);
-      res.status(500).json({ error: true, message: "Failed to activate organization" });
-    }
-  });
-
-  app.get("/api/organizations/:id", async (req, res) => {
-    try {
-      const userId = req.session?.userId;
-      if (!userId) {
-        return res.status(401).json({ error: true, message: "Unauthorized" });
+      // Verify user is actually a member of their active organization
+      const access = await verifyOrganizationAccess(userId, req.tenantId);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} not a member of their tenant org: ${access.error}`);
+        return res.status(403).json({ error: true, message: access.error });
       }
       
-      const organization = await storage.getOrganization(req.params.id);
+      // Map tenant UUID to legacy organizationId via organization.ownerId
+      const organization = await storage.getOrganization(req.tenantId);
       if (!organization) {
+        console.log(`[HTTP] SECURITY: Active org ${req.tenantId} not found in organizations table`);
         return res.status(404).json({ error: true, message: "Organization not found" });
       }
       
-      if (req.tenantId && req.tenantId !== organization.id) {
-        return res.status(403).json({ error: true, message: "Forbidden" });
-      }
-      
-      res.json(organization);
-    } catch (error: any) {
-      console.error('[HTTP] Error getting organization:', error);
-      res.status(500).json({ error: true, message: "Failed to get organization" });
-    }
-  });
-
-  // Team management endpoints
-  app.get("/api/teams/:organizationId/members", async (req, res) => {
-    try {
-      const organizationId = parseInt(req.params.organizationId);
-      const userId = req.session?.userId;
-      
-      console.log('[HTTP] DEBUG - Team request - userId:', userId, 'organizationId:', organizationId);
-      
-      // SECURITY FIX: Validate userId and convert to number
-      if (!userId) {
-        console.log('[HTTP] SECURITY: No userId in session for team request');
-        return res.status(401).json({ error: true, message: "Authentication required" });
-      }
-
-      let userIdNum = parseInt(String(userId));
-      
-      // DIAGNOSTIC: Log detailed session analysis for debugging
-      console.log('[DIAGNOSTIC] Team request session analysis:');
-      console.log('  - Raw userId:', userId);
-      console.log('  - userId type:', typeof userId);
-      console.log('  - parseInt result:', userIdNum);
-      console.log('  - isNaN(userIdNum):', isNaN(userIdNum));
-      console.log('  - Starts with google_:', typeof userId === 'string' && userId.startsWith('google_'));
-      console.log('  - Starts with user_:', typeof userId === 'string' && userId.startsWith('user_'));
-      console.log('  - organizationId from params:', organizationId);
-      console.log('  - organizationId isNaN:', isNaN(organizationId));
-      
-      // Handle Google OAuth user IDs for team operations
-      if (isNaN(userIdNum) && typeof userId === 'string' && userId.startsWith('google_')) {
-        console.log('[HTTP] Google OAuth user detected for team request, looking up user by Firebase UID:', userId);
-        try {
-          const user = await storage.getUserByFirebaseUid(userId);
-          if (user) {
-            userIdNum = user.id;
-            console.log('[HTTP] Found user by Firebase UID for team request - user ID:', userIdNum);
-          } else {
-            console.log('[HTTP] No user found for Firebase UID during team request:', userId);
-            return res.json([]);
-          }
-        } catch (lookupError) {
-          console.error('[HTTP] Error looking up user by Firebase UID during team request:', lookupError);
-          return res.json([]);
-        }
-      }
-      
-      if (isNaN(userIdNum)) {
-        console.log('[HTTP] SECURITY: Invalid userId for team request, returning empty members');
-        return res.json([]);
-      }
-      
-      // SECURITY: Verify user has access to this organization
-      // For now, users can only access their own organization (where orgId = userId)
-      if (organizationId !== userIdNum) {
-        console.log(`[HTTP] SECURITY: User ${userIdNum} attempted to access organization ${organizationId}`);
-        return res.status(403).json({ error: true, message: "Access denied to this organization" });
-      }
-
-      console.log('[HTTP] Fetching team members for organization:', organizationId);
-      const members = await storage.getTeamMembers(organizationId);
+      // In legacy model, organizationId = owner's userId
+      const legacyOrgId = organization.ownerId;
+      console.log('[HTTP] Fetching team members for org:', req.tenantId, 'legacy ID:', legacyOrgId, 'by user:', userId);
+      const members = await storage.getTeamMembers(legacyOrgId);
       res.json(members);
     } catch (err) {
       console.error('[HTTP] Error fetching team members:', err);
@@ -2234,48 +2188,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get pending invitations for an organization
+  // Security: Requires authenticated user with active organization context
+  // Maps tenant UUID → organization.ownerId → legacy organizationId
   app.get("/api/teams/:organizationId/pending-invitations", async (req, res) => {
     try {
-      const organizationId = parseInt(req.params.organizationId);
-      const userId = req.session?.userId;
-      
-      console.log('[HTTP] DEBUG - Pending invitations request - userId:', userId, 'organizationId:', organizationId);
-      
-      if (!userId) {
-        console.log('[HTTP] SECURITY: No userId for pending invitations');
+      // Security: Verify user is authenticated
+      const sessionUserId = req.session?.userId;
+      if (!sessionUserId) {
         return res.status(401).json({ error: true, message: "Authentication required" });
       }
       
-      let userIdNum = parseInt(String(userId));
-      
-      // Handle Google OAuth user IDs for pending invitations
-      if (isNaN(userIdNum) && typeof userId === 'string' && userId.startsWith('google_')) {
-        console.log('[HTTP] Google OAuth user detected for pending invitations, looking up user by Firebase UID:', userId);
-        try {
-          const user = await storage.getUserByFirebaseUid(userId);
-          if (user) {
-            userIdNum = user.id;
-            console.log('[HTTP] Found user by Firebase UID for pending invitations - user ID:', userIdNum);
-          } else {
-            console.log('[HTTP] No user found for Firebase UID during pending invitations:', userId);
-            return res.json([]);
-          }
-        } catch (lookupError) {
-          console.error('[HTTP] Error looking up user by Firebase UID during pending invitations:', lookupError);
-          return res.json([]);
-        }
+      const userId = await resolveUserId(sessionUserId);
+      if (!userId) {
+        return res.status(401).json({ error: true, message: "Invalid user session" });
       }
       
-      if (isNaN(userIdNum)) {
-        console.log('[HTTP] SECURITY: Invalid userId for pending invitations, returning empty array');
-        return res.json([]);
+      // Security: Require active organization from tenant middleware
+      if (!req.tenantId) {
+        console.log(`[HTTP] SECURITY: User ${userId} has no active organization for pending invitations`);
+        return res.status(403).json({ error: true, message: "No active organization" });
       }
       
-      // Update organizationId to use the resolved userIdNum
-      const resolvedOrgId = userIdNum;
+      // Verify user is actually a member of their active organization
+      const access = await verifyOrganizationAccess(userId, req.tenantId);
+      if (!access.hasAccess) {
+        console.log(`[HTTP] SECURITY: User ${userId} not a member of their tenant org: ${access.error}`);
+        return res.status(403).json({ error: true, message: access.error });
+      }
       
-      console.log('[HTTP] Fetching pending invitations for organization:', organizationId);
-      const invitations = await storage.getPendingInvitations(organizationId);
+      // Map tenant UUID to legacy organizationId via organization.ownerId
+      const organization = await storage.getOrganization(req.tenantId);
+      if (!organization) {
+        console.log(`[HTTP] SECURITY: Active org ${req.tenantId} not found in organizations table`);
+        return res.status(404).json({ error: true, message: "Organization not found" });
+      }
+      
+      // In legacy model, organizationId = owner's userId
+      const legacyOrgId = organization.ownerId;
+      console.log('[HTTP] Fetching pending invitations for org:', req.tenantId, 'legacy ID:', legacyOrgId, 'by user:', userId);
+      const invitations = await storage.getPendingInvitations(legacyOrgId);
       res.json(invitations);
     } catch (err) {
       console.error('[HTTP] Error fetching pending invitations:', err);
