@@ -70,11 +70,9 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { ProfileIcon } from "@/components/profile-icon";
 import { ColorPicker } from "@/components/color-picker";
 import { PendoImportDialog } from "@/components/csv-import/pendo-import-dialog";
-import TeamManagement from "@/components/team/team-management";
 import { BoardImportDialog } from "@/components/google-sheets/board-import-dialog";
 import { ComingSoonBadge } from "@/components/ui/coming-soon-badge";
 import { NotificationBell } from "@/components/notifications/notification-bell";
-import { OrganizationSettings } from "@/components/organization-settings";
 import { ShareFriendDialog } from "@/components/share-friend-dialog";
 import { useIntroTour } from "@/hooks/use-intro-tour";
 import { BubbleLoading } from "@/components/ui/bubble-loading";
@@ -154,7 +152,7 @@ export default function Dashboard() {
   const [googleSheetsImportOpen, setGoogleSheetsImportOpen] = useState(false);
   const [selectedProjectForImport, setSelectedProjectForImport] = useState<Project | null>(null);
   const [selectedBlueprints, setSelectedBlueprints] = useState<Set<number>>(new Set());
-  const [activeTab, setActiveTab] = useState<'projects' | 'blueprints' | 'starred' | 'settings'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'blueprints' | 'starred'>('projects');
   
   // Enhanced search and filtering state
   const [searchTerm, setSearchTerm] = useState('');
@@ -736,6 +734,17 @@ export default function Dashboard() {
               </DropdownMenuContent>
             </DropdownMenu>
             
+            {/* Settings Icon */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/10 h-9 w-9"
+              onClick={() => window.location.href = '/settings'}
+              data-testid="header-settings-button"
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+            
             {/* Notification Bell */}
             <div className="notification-bell">
               <NotificationBell variant="dark" />
@@ -883,17 +892,6 @@ export default function Dashboard() {
               <Star className="w-4 h-4 inline mr-2" />
               Starred Items
             </button>
-            <button
-              onClick={() => setActiveTab('settings')}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'settings'
-                  ? 'border-[#302E87] text-[#302E87]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Settings className="w-4 h-4 inline mr-2" />
-              Settings
-            </button>
           </nav>
         </div>
 
@@ -995,14 +993,6 @@ export default function Dashboard() {
               </div>
             )}
           </section>
-        )}
-
-        {/* Settings Tab */}
-        {activeTab === 'settings' && (
-          <div className="space-y-6">
-            <OrganizationSettings />
-            <TeamManagement />
-          </div>
         )}
 
         {/* BLUEPRINTS SECTION */}
