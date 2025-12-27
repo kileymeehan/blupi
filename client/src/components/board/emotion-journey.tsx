@@ -142,9 +142,12 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
             ))}
           </div>
           
-          <div className="absolute inset-0 flex items-start gap-4 sm:gap-6 lg:gap-8 pointer-events-none">
+          <div className="absolute inset-0 flex items-start pointer-events-none">
             {board.phases.map((phase: Phase, phaseIndex: number) => (
-              <div key={phase.id} className="flex-shrink-0 relative mr-4 sm:mr-6 lg:mr-8 pointer-events-auto">
+              <div 
+                key={phase.id} 
+                className="flex-shrink-0 relative mr-4 sm:mr-6 lg:mr-8 pointer-events-auto"
+              >
                 <div className="px-4">
                   <div className="flex gap-4 md:gap-8">
                     {phase.columns.map((column: Column, columnIndex: number) => {
