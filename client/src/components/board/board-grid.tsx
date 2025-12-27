@@ -3326,7 +3326,7 @@ export default function BoardGrid({
                                                                       {...provided.draggableProps}
                                                                       className={`
                                                                         ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
-                                                                        group relative rounded-lg border-3 border-gray-500 mb-2 p-2
+                                                                        group relative rounded-lg border-3 border-gray-500 mb-2 pt-6 px-2 pb-2
                                                                         transition-shadow duration-200
                                                                         ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                                         ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
@@ -3342,8 +3342,8 @@ export default function BoardGrid({
                                                                         style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
                                                                         title="Drag to move block"
                                                                       >
-                                                                        <div className="opacity-40 group-hover:opacity-100 transition-opacity">
-                                                                          <GripVertical size={16} className="text-gray-700" />
+                                                                        <div className="opacity-50 group-hover:opacity-100 transition-opacity">
+                                                                          <GripVertical size={16} className="text-gray-600" />
                                                                         </div>
                                                                       </div>
                                                                       <Block
@@ -3453,7 +3453,7 @@ export default function BoardGrid({
                                                       {...provided.draggableProps}
                                                       className={`
                                                         ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
-                                                        group relative rounded-lg border-3 border-gray-500 mb-2 p-2
+                                                        group relative rounded-lg border-3 border-gray-500 mb-2 pt-6 px-2 pb-2
                                                         transition-shadow duration-200
                                                         ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                         ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
@@ -3469,8 +3469,8 @@ export default function BoardGrid({
                                                         style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
                                                         title="Drag to move block"
                                                       >
-                                                        <div className="opacity-40 group-hover:opacity-100 transition-opacity">
-                                                          <GripVertical size={16} className="text-gray-700" />
+                                                        <div className="opacity-50 group-hover:opacity-100 transition-opacity">
+                                                          <GripVertical size={16} className="text-gray-600" />
                                                         </div>
                                                       </div>
                                                       <Block
