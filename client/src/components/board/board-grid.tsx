@@ -42,6 +42,8 @@ import {
   FileType,
   Presentation,
   Flag,
+  Layers,
+  TrendingUp,
 } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
@@ -121,7 +123,6 @@ import { CustomScrollbar } from "./custom-scrollbar";
 import { ProfileModal } from "@/components/profile-modal";
 import { ProfileIcon } from "@/components/profile-icon";
 import { EmotionJourney } from "./emotion-journey";
-import { TrendingUp } from "lucide-react";
 import type { Emotion } from "@shared/schema";
 
 
@@ -191,6 +192,8 @@ export default function BoardGrid({
   const [selectedBlocks, setSelectedBlocks] = useState<Set<string>>(new Set());
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [showEmotionJourney, setShowEmotionJourney] = useState(false);
+  const [groupBlocksByType, setGroupBlocksByType] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   
   // Flagging state
   const [flaggedBlocks, setFlaggedBlocks] = useState<Set<string>>(new Set());
@@ -2381,6 +2384,19 @@ export default function BoardGrid({
             </Button>
             
             <Button
+              variant={groupBlocksByType ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setGroupBlocksByType(!groupBlocksByType);
+                setExpandedGroups(new Set());
+              }}
+              className="h-9 w-9 p-0"
+              title={groupBlocksByType ? "Ungroup Blocks" : "Group Blocks by Type"}
+            >
+              <Layers className="w-4 h-4" />
+            </Button>
+            
+            <Button
               variant="ghost"
               size="sm"
               onClick={() => setBoardViewMode(boardViewMode === 'normal' ? 'condensed' : 'normal')}
@@ -3195,183 +3211,260 @@ export default function BoardGrid({
                                             onMouseEnter={() => setHoveredColumn({phaseIndex, columnIndex})}
                                             onMouseLeave={() => setHoveredColumn(null)}
                                           >
-                                            {board.blocks
-                                              .filter(
-                                                (b) =>
-                                                  (!departmentFilter ||
-                                                   b.department === departmentFilter) &&
-                                                  (!typeFilter ||
-                                                   b.type === typeFilter)
-                                              )
-                                              .filter(
-                                                (b) =>
-                                                  b.phaseIndex === phaseIndex &&
-                                                  b.columnIndex === columnIndex,
-                                              )
-                                              .map((block, index) => (
+                                            {(() => {
+                                              const columnBlocks = board.blocks
+                                                .filter(
+                                                  (b) =>
+                                                    (!departmentFilter ||
+                                                     b.department === departmentFilter) &&
+                                                    (!typeFilter ||
+                                                     b.type === typeFilter)
+                                                )
+                                                .filter(
+                                                  (b) =>
+                                                    b.phaseIndex === phaseIndex &&
+                                                    b.columnIndex === columnIndex,
+                                                );
+
+                                              if (groupBlocksByType && columnBlocks.length > 1) {
+                                                const groupedByType = columnBlocks.reduce((acc, block) => {
+                                                  const type = block.type || 'unknown';
+                                                  if (!acc[type]) acc[type] = [];
+                                                  acc[type].push(block);
+                                                  return acc;
+                                                }, {} as Record<string, BlockType[]>);
+
+                                                const groupEntries = Object.entries(groupedByType);
+                                                let blockIndex = 0;
+
+                                                return (
+                                                  <>
+                                                    {groupEntries.map(([type, blocksOfType]) => {
+                                                      const groupKey = `${phaseIndex}-${columnIndex}-${type}`;
+                                                      const isGroupExpanded = expandedGroups.has(groupKey);
+                                                      const layerType = LAYER_TYPES.find(l => l.type === type);
+
+                                                      if (blocksOfType.length === 1 || isGroupExpanded) {
+                                                        return (
+                                                          <div key={groupKey}>
+                                                            {isGroupExpanded && blocksOfType.length > 1 && (
+                                                              <button
+                                                                onClick={() => {
+                                                                  const newExpanded = new Set(expandedGroups);
+                                                                  newExpanded.delete(groupKey);
+                                                                  setExpandedGroups(newExpanded);
+                                                                }}
+                                                                className={`w-full mb-2 p-2 text-xs font-medium rounded-lg border-2 border-dashed ${layerType?.color || 'border-gray-400'} bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2 transition-colors`}
+                                                              >
+                                                                <ChevronUp className="w-3 h-3" />
+                                                                Collapse {blocksOfType.length} {layerType?.label || type} blocks
+                                                              </button>
+                                                            )}
+                                                            {blocksOfType.map((block) => {
+                                                              const currentIndex = blockIndex++;
+                                                              return (
+                                                                <Draggable
+                                                                  key={block.id}
+                                                                  draggableId={block.id}
+                                                                  index={currentIndex}
+                                                                >
+                                                                  {(provided, snapshot) => (
+                                                                    <div
+                                                                      id={block.id}
+                                                                      ref={provided.innerRef}
+                                                                      {...provided.draggableProps}
+                                                                      className={`
+                                                                        ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
+                                                                        group relative rounded-lg border-3 border-gray-500 mb-2 p-2
+                                                                        transition-shadow duration-200
+                                                                        ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
+                                                                        ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
+                                                                      `}
+                                                                      style={{
+                                                                        ...provided.draggableProps.style,
+                                                                        zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                                      }}
+                                                                    >
+                                                                      <div className="absolute inset-0 pointer-events-none">
+                                                                        {isModifierKeyPressed && (
+                                                                          <div 
+                                                                            {...provided.dragHandleProps}
+                                                                            className="absolute inset-0 pointer-events-auto cursor-grab active:cursor-grabbing bg-blue-500/10 border-2 border-blue-500 border-dashed rounded-lg"
+                                                                            style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
+                                                                            title="Drag to move or duplicate block between phases"
+                                                                          />
+                                                                        )}
+                                                                        <div 
+                                                                          {...provided.dragHandleProps}
+                                                                          className="absolute top-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing hover:bg-blue-500/20 transition-colors rounded-t-lg"
+                                                                          style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
+                                                                          title="Drag to move block"
+                                                                        >
+                                                                          <div className="h-full flex justify-center items-center opacity-30 group-hover:opacity-100 transition-opacity">
+                                                                            <GripVertical size={14} className="text-gray-600" />
+                                                                          </div>
+                                                                        </div>
+                                                                      </div>
+                                                                      <Block
+                                                                        block={block}
+                                                                        boardId={Number(id)}
+                                                                        onChange={(content, newType) => handleBlockChange(block.id, content, newType)}
+                                                                        onAttachmentChange={handleAttachmentChange}
+                                                                        onNotesChange={(notes) => handleNotesChange(block.id, notes)}
+                                                                        onEmojiChange={(blockId, emoji) => handleEmojiChange(blockId, emoji)}
+                                                                        onDepartmentChange={handleDepartmentChange}
+                                                                        onSheetsConnectionChange={handleSheetsConnectionChange}
+                                                                        bulkEditMode={bulkEditMode}
+                                                                        isSelected={selectedBlocks.has(block.id)}
+                                                                        onSelectionToggle={() => toggleBlockSelection(block.id)}
+                                                                        onDelete={handleDeleteBlock}
+                                                                        onCommentClick={() => handleCommentClick(block)}
+                                                                        projectId={board.projectId || undefined}
+                                                                        isCondensed={boardViewMode === 'condensed'}
+                                                                        isExpanded={expandedBlockId === block.id}
+                                                                        onToggleExpand={() => {
+                                                                          if (boardViewMode === 'condensed') {
+                                                                            setExpandedBlockId(expandedBlockId === block.id ? null : block.id);
+                                                                          }
+                                                                        }}
+                                                                        onFlag={handleFlagBlock}
+                                                                        onUnflag={handleUnflagBlock}
+                                                                        isFlagged={flaggedBlocks.has(block.id)}
+                                                                      />
+                                                                    </div>
+                                                                  )}
+                                                                </Draggable>
+                                                              );
+                                                            })}
+                                                          </div>
+                                                        );
+                                                      }
+
+                                                      // Collapsed stack view for multiple blocks of same type (not draggable)
+                                                      const firstBlock = blocksOfType[0];
+                                                      return (
+                                                        <div
+                                                          key={groupKey}
+                                                          onClick={() => {
+                                                            const newExpanded = new Set(expandedGroups);
+                                                            newExpanded.add(groupKey);
+                                                            setExpandedGroups(newExpanded);
+                                                          }}
+                                                          className={`
+                                                            relative cursor-pointer rounded-lg border-3 mb-2 p-3
+                                                            ${layerType?.color || 'border-gray-400'}
+                                                            hover:shadow-md transition-all bg-white
+                                                          `}
+                                                        >
+                                                          <div 
+                                                            className={`absolute -bottom-1 -right-1 left-1 h-full rounded-lg border-2 ${layerType?.color || 'border-gray-300'} bg-white -z-10`}
+                                                          />
+                                                          {blocksOfType.length > 2 && (
+                                                            <div 
+                                                              className={`absolute -bottom-2 -right-2 left-2 h-full rounded-lg border-2 ${layerType?.color || 'border-gray-300'} bg-gray-50 -z-20`}
+                                                            />
+                                                          )}
+                                                          <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-2">
+                                                              <div className={`w-3 h-3 rounded-full ${layerType?.color?.replace('border-', 'bg-') || 'bg-gray-400'}`} />
+                                                              <span className="text-sm font-medium text-gray-700">
+                                                                {layerType?.label || type}
+                                                              </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                              <span className="text-xs bg-gray-100 px-2 py-1 rounded-full font-medium text-gray-600">
+                                                                {blocksOfType.length} blocks
+                                                              </span>
+                                                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                                                            </div>
+                                                          </div>
+                                                          <p className="mt-2 text-xs text-gray-500 line-clamp-2">
+                                                            {firstBlock.content?.substring(0, 100) || 'Click to expand'}
+                                                            {(firstBlock.content?.length || 0) > 100 ? '...' : ''}
+                                                          </p>
+                                                        </div>
+                                                      );
+                                                    })}
+                                                  </>
+                                                );
+                                              }
+
+                                              // Normal rendering (no grouping)
+                                              return columnBlocks.map((block, index) => (
                                                 <Draggable
                                                   key={block.id}
                                                   draggableId={block.id}
                                                   index={index}
                                                 >
                                                   {(provided, snapshot) => (
-                                                <div
-                                                  id={block.id}
-                                                  ref={provided.innerRef}
-                                                  {...provided.draggableProps}
-                                                  className={`
-                                                    ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
-                                                    group relative rounded-lg border-3 border-gray-500 mb-2 p-2
-                                                    transition-shadow duration-200
-                                                    ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
-                                                    ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
-                                                  `}
-                                                  style={{
-                                                    ...provided.draggableProps.style,
-                                                    zIndex: snapshot.isDragging ? 9999 : "auto"
-                                                  }}
-                                                >
-                                                  {/* Enhanced drag handles for cross-phase dragging */}
-                                                  <div className="absolute inset-0 pointer-events-none">
-                                                    {/* Full block drag handle when modifier key is pressed */}
-                                                    {isModifierKeyPressed && (
-                                                      <div 
-                                                        {...provided.dragHandleProps}
-                                                        className="absolute inset-0 pointer-events-auto cursor-grab active:cursor-grabbing bg-blue-500/10 border-2 border-blue-500 border-dashed rounded-lg"
-                                                        style={{
-                                                          cursor: snapshot.isDragging ? "grabbing" : "grab"
-                                                        }}
-                                                        title="Drag to move or duplicate block between phases"
-                                                      />
-                                                    )}
-                                                    
-                                                    {/* Always-available drag handles for intuitive cross-phase movement */}
-                                                    <>
-                                                      {/* Top handle - primary drag area */}
-                                                      <div 
-                                                        {...provided.dragHandleProps}
-                                                        className="absolute top-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing hover:bg-blue-500/20 transition-colors rounded-t-lg"
-                                                        style={{
-                                                          cursor: snapshot.isDragging ? "grabbing" : "grab"
-                                                        }}
-                                                        title="Drag to move block between phases and columns"
-                                                      >
-                                                        {/* Visual indicator - always visible but more prominent on hover */}
-                                                        <div className="h-full flex justify-center items-center opacity-30 group-hover:opacity-100 transition-opacity">
-                                                          <GripVertical size={14} className="text-gray-600" />
-                                                        </div>
-                                                      </div>
-                                                      
-                                                      {/* Right handle - emphasized for cross-phase dragging - hidden in condensed mode */}
-                                                      {!(boardViewMode === 'condensed' && expandedBlockId !== block.id) && (
+                                                    <div
+                                                      id={block.id}
+                                                      ref={provided.innerRef}
+                                                      {...provided.draggableProps}
+                                                      className={`
+                                                        ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
+                                                        group relative rounded-lg border-3 border-gray-500 mb-2 p-2
+                                                        transition-shadow duration-200
+                                                        ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
+                                                        ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
+                                                      `}
+                                                      style={{
+                                                        ...provided.draggableProps.style,
+                                                        zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                      }}
+                                                    >
+                                                      <div className="absolute inset-0 pointer-events-none">
+                                                        {isModifierKeyPressed && (
+                                                          <div 
+                                                            {...provided.dragHandleProps}
+                                                            className="absolute inset-0 pointer-events-auto cursor-grab active:cursor-grabbing bg-blue-500/10 border-2 border-blue-500 border-dashed rounded-lg"
+                                                            style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
+                                                            title="Drag to move or duplicate block between phases"
+                                                          />
+                                                        )}
                                                         <div 
                                                           {...provided.dragHandleProps}
-                                                          className="absolute top-8 bottom-8 right-0 w-8 pointer-events-auto cursor-grab active:cursor-grabbing hover:bg-blue-500/20 transition-colors rounded-r-lg"
-                                                          style={{
-                                                            cursor: snapshot.isDragging ? "grabbing" : "grab"
-                                                          }}
-                                                          title="Drag horizontally to move between phases"
-                                                        >
-                                                          <div className="w-full h-full flex justify-center items-center opacity-30 group-hover:opacity-100 transition-opacity">
-                                                            <GripVertical size={14} className="text-gray-600 rotate-90" />
-                                                          </div>
-                                                        </div>
-                                                      )}
-                                                      
-                                                      {/* Left handle - hidden in condensed mode */}
-                                                      {!(boardViewMode === 'condensed' && expandedBlockId !== block.id) && (
-                                                        <div 
-                                                          {...provided.dragHandleProps}
-                                                          className="absolute top-8 bottom-8 left-0 w-8 pointer-events-auto cursor-grab active:cursor-grabbing hover:bg-blue-500/20 transition-colors rounded-l-lg"
-                                                          style={{
-                                                            cursor: snapshot.isDragging ? "grabbing" : "grab"
-                                                          }}
-                                                          title="Drag to move block"
-                                                        >
-                                                          <div className="w-full h-full flex justify-center items-center opacity-30 group-hover:opacity-100 transition-opacity">
-                                                            <GripVertical size={14} className="text-gray-600 rotate-90" />
-                                                          </div>
-                                                        </div>
-                                                      )}
-                                                      
-                                                      {/* Bottom handle - hidden in condensed mode */}
-                                                      {!(boardViewMode === 'condensed' && expandedBlockId !== block.id) && (
-                                                        <div 
-                                                          {...provided.dragHandleProps}
-                                                          className="absolute bottom-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing hover:bg-blue-500/20 transition-colors rounded-b-lg"
-                                                          style={{
-                                                            cursor: snapshot.isDragging ? "grabbing" : "grab"
-                                                          }}
-                                                          title="Drag to move block"
+                                                          className="absolute top-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing hover:bg-blue-500/20 transition-colors rounded-t-lg"
+                                                          style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
+                                                          title="Drag to move block between phases and columns"
                                                         >
                                                           <div className="h-full flex justify-center items-center opacity-30 group-hover:opacity-100 transition-opacity">
                                                             <GripVertical size={14} className="text-gray-600" />
                                                           </div>
                                                         </div>
-                                                      )}
-                                                    </>
-                                                  </div>
-                                                  
-                                                  <Block
-                                                      block={block}
-                                                      boardId={Number(id)}
-                                                      onChange={(content, newType) =>
-                                                        handleBlockChange(
-                                                          block.id,
-                                                          content,
-                                                          newType
-                                                        )
-                                                      }
-                                                    onAttachmentChange={handleAttachmentChange}
-                                                    onNotesChange={(notes) =>
-                                                      handleNotesChange(
-                                                        block.id,
-                                                        notes,
-                                                      )
-                                                    }
-                                                    onEmojiChange={(
-                                                      blockId,
-                                                      emoji,
-                                                    ) =>
-                                                      handleEmojiChange(
-                                                        blockId,
-                                                        emoji,
-                                                      )
-                                                    }
-                                                    onDepartmentChange={
-                                                      handleDepartmentChange
-                                                    }
-                                                    onSheetsConnectionChange={
-                                                      handleSheetsConnectionChange
-                                                    }
-                                                    bulkEditMode={bulkEditMode}
-                                                    isSelected={selectedBlocks.has(block.id)}
-                                                    onSelectionToggle={() => toggleBlockSelection(block.id)}
-                                                    onDelete={handleDeleteBlock}
-                                                    onCommentClick={() =>
-                                                      handleCommentClick(block)
-                                                    }
-                                                    projectId={
-                                                      board.projectId ||
-                                                      undefined
-                                                    }
-                                                    isCondensed={boardViewMode === 'condensed'}
-                                                    isExpanded={expandedBlockId === block.id}
-                                                    onToggleExpand={() => {
-                                                      if (boardViewMode === 'condensed') {
-                                                        setExpandedBlockId(
-                                                          expandedBlockId === block.id ? null : block.id
-                                                        );
-                                                      }
-                                                    }}
-                                                    onFlag={handleFlagBlock}
-                                                    onUnflag={handleUnflagBlock}
-                                                    isFlagged={flaggedBlocks.has(block.id)}
-                                                  />
-                                                </div>
-                                              )}
-                                            </Draggable>
-                                          ))}
+                                                      </div>
+                                                      
+                                                      <Block
+                                                        block={block}
+                                                        boardId={Number(id)}
+                                                        onChange={(content, newType) => handleBlockChange(block.id, content, newType)}
+                                                        onAttachmentChange={handleAttachmentChange}
+                                                        onNotesChange={(notes) => handleNotesChange(block.id, notes)}
+                                                        onEmojiChange={(blockId, emoji) => handleEmojiChange(blockId, emoji)}
+                                                        onDepartmentChange={handleDepartmentChange}
+                                                        onSheetsConnectionChange={handleSheetsConnectionChange}
+                                                        bulkEditMode={bulkEditMode}
+                                                        isSelected={selectedBlocks.has(block.id)}
+                                                        onSelectionToggle={() => toggleBlockSelection(block.id)}
+                                                        onDelete={handleDeleteBlock}
+                                                        onCommentClick={() => handleCommentClick(block)}
+                                                        projectId={board.projectId || undefined}
+                                                        isCondensed={boardViewMode === 'condensed'}
+                                                        isExpanded={expandedBlockId === block.id}
+                                                        onToggleExpand={() => {
+                                                          if (boardViewMode === 'condensed') {
+                                                            setExpandedBlockId(expandedBlockId === block.id ? null : block.id);
+                                                          }
+                                                        }}
+                                                        onFlag={handleFlagBlock}
+                                                        onUnflag={handleUnflagBlock}
+                                                        isFlagged={flaggedBlocks.has(block.id)}
+                                                      />
+                                                    </div>
+                                                  )}
+                                                </Draggable>
+                                              ));
+                                            })()}
                                           {provided.placeholder}
                                           
                                           {/* Quick block creation button */}
