@@ -1,65 +1,88 @@
 # Blupi Design Platform - Design Guidelines
 
-## Design Approach
-**Reference-Based with Design System Foundation**: Drawing inspiration from Linear's precision, Figma's collaborative interface, and Notion's workspace clarity. Modern SaaS aesthetic prioritizing productivity without sacrificing visual appeal.
+## Design Philosophy
+**Bauhaus-Inspired Modern UI**: High contrast, geometric shapes, bold primary colors, and clean functional design. Drawing from Bauhaus principles of "form follows function" while maintaining a contemporary, professional aesthetic.
+
+## Color Palette
+
+### Primary Colors (Bauhaus Bold)
+- **Deep Navy/Black**: `#0A0A0F` - Primary backgrounds, text
+- **Pure White**: `#FFFFFF` - Cards, containers, light backgrounds
+- **Bauhaus Red**: `#E53935` - Primary accent, CTAs, important actions
+- **Bauhaus Yellow**: `#FFD600` - Secondary accent, highlights, notifications
+- **Bauhaus Blue**: `#1976D2` - Links, interactive elements, info states
+
+### Extended Palette
+- **Electric Green**: `#00E676` - Success states, positive indicators
+- **Coral Orange**: `#FF7043` - Warnings, featured items
+- **Vibrant Purple**: `#7C4DFF` - Premium features, special states
+- **Light Gray**: `#F5F5F5` - Subtle backgrounds
+- **Dark Gray**: `#212121` - Secondary text
 
 ## Typography System
-- **Primary Font**: Inter (Google Fonts) - crisp, professional, excellent at small sizes
-- **Display/Headings**: Inter 600-700, 48px hero, 32px section headers, 24px subsections
-- **Body Text**: Inter 400-500, 16px base, 14px secondary content
-- **UI Elements**: Inter 500, 14px buttons/labels, 12px captions
-- **Code/Technical**: Fira Code for any code snippets or technical displays
+- **Primary Font**: Montserrat - geometric sans-serif, clean and modern
+- **Display/Headings**: Montserrat 700, 48px hero, 36px section headers, 24px subsections
+- **Body Text**: Montserrat 400-500, 16px base, 14px secondary
+- **UI Elements**: Montserrat 600, 14px buttons/labels, 12px captions
+- **Accent Headings**: Young Serif for hero statements (keep existing)
 
 ## Layout & Spacing System
-**Tailwind Units**: Standardize on 4, 6, 8, 12, 16, 24 for consistent rhythm
+**Grid-Based Design**: 12-column grid with 8px baseline
 - Section padding: py-24 desktop, py-16 mobile
 - Component spacing: gap-8 for grids, gap-6 for lists
 - Container: max-w-7xl with px-6 margins
-- Card padding: p-6 or p-8 for feature cards
+- Card padding: p-6 or p-8 with bold 3px borders
 
-## Component Library
+## Component Styling
 
-**Navigation**: Top bar with logo left, product links center, "Sign In" + "Start Free Trial" (primary CTA) right. Sticky on scroll with subtle shadow.
+### Cards & Containers
+- Sharp corners or minimal radius (rounded-lg max)
+- Bold borders (2-3px) in accent colors
+- High contrast backgrounds (pure white on dark, or dark on light)
+- Strong shadows for depth
 
-**Hero Section** (100vh): Split layout - left 50% bold headline + subheadline + dual CTAs ("Start Creating" primary, "Watch Demo" secondary with play icon), right 50% large hero image showing platform interface in action. Buttons with backdrop-blur-lg over image areas.
+### Buttons
+- **Primary**: Solid bright color (red/yellow), white text, bold uppercase
+- **Secondary**: White/light with colored border, colored text
+- **Ghost**: Transparent with hover state
+- All buttons: font-weight 700, tracking-wide, uppercase text
 
-**Feature Showcase**: Three-column grid (grid-cols-1 md:grid-cols-3) with icon cards - each featuring large icon top, bold title, 2-line description. Icons from Heroicons outline set.
+### Navigation
+- High contrast header: dark background (#0A0A0F) with white text
+- Bright accent color for active states
+- Geometric hover indicators
 
-**Real-Time Collaboration Section**: Two-column split - left shows animated mockup/screenshot of live cursors and comments, right has feature list with checkmarks and descriptions. Asymmetric layout (40/60 split).
+### Hero Sections
+- Bold geometric shapes as decorative elements
+- High contrast color blocks
+- Asymmetric layouts for visual interest
+- Large typography with clear hierarchy
 
-**AI Storyboard Generator**: Full-width demonstration with before/after slider interaction. Show input on left, AI-generated storyboard grid on right. Include "Try AI Generator" CTA.
+### Feature Cards
+- White cards with bold colored accents
+- Geometric icons (circles, squares, triangles)
+- Clear visual hierarchy with bold headings
 
-**Workspace Dashboard Preview**: Large screenshot/mockup showing clean project organization, folder structure, and team member avatars. Caption highlighting multi-tenant capabilities underneath.
-
-**Pricing Table**: Three-column comparison (Starter/Professional/Enterprise) with feature checkboxes, pricing emphasis, and contrasting CTA buttons.
-
-**Testimonials**: Two-column grid with customer quotes, company logos, headshot photos, name/title. 4-6 testimonials total.
-
-**Footer**: Rich footer with five columns - Product links, Company, Resources, Legal, Newsletter signup form. Social icons bottom right.
-
-## Images Section
-1. **Hero Image** (Right 50% of hero): Modern dashboard screenshot showing Blupi's interface with multiple users collaborating - visible cursor trails, comment bubbles, active design canvas. Clean, bright, professional aesthetic.
-
-2. **Collaboration Feature**: Screenshot showing real-time cursors from 3-4 team members, inline comments, and version history sidebar.
-
-3. **AI Storyboard Demo**: Split image - simple sketch input transforming into polished multi-panel storyboard with AI enhancement indicators.
-
-4. **Dashboard Preview**: Full workspace view with organized projects, team member presence indicators, and clean file structure.
-
-5. **Customer Logos**: 8-12 recognizable brand logos in testimonial section (grayscale, uniform sizing).
-
-6. **Team Photos**: Authentic headshots for testimonials (circular crop, consistent sizing).
+## Geometric Elements
+- Use circles, squares, and triangles as decorative accents
+- Bold lines and dividers
+- Asymmetric but balanced compositions
+- Color blocks as visual anchors
 
 ## Interaction Patterns
-- Smooth scroll-to-section navigation
-- Hover lift on feature cards (translate-y-1)
-- CTA buttons: No custom states needed - standard button component handles all contexts
-- Subtle fade-in animations on scroll for feature sections (single use, hero only)
-- Image zoom on hover for dashboard previews (scale-105 transform)
+- Smooth scale transforms on hover (scale-105)
+- Color transitions on interactive elements
+- Bold focus states with accent colors
+- Minimal but purposeful animations
 
 ## Responsive Strategy
-- Mobile: Stack all columns, full-width hero image below headline, reduce section padding to py-12
-- Tablet: Two-column layouts where applicable, maintain visual hierarchy
-- Desktop: Full multi-column grids, maximize horizontal space for dashboard previews
+- Mobile: Stack columns, maintain visual impact
+- Tablet: Two-column layouts, preserve geometric accents
+- Desktop: Full multi-column grids, maximize visual hierarchy
 
-**Key Principle**: Every section serves productivity narrative - showcasing collaboration, AI capabilities, and workspace organization with professional polish.
+## Brand Elements
+- **Blowfish Mascot**: Keep the existing blowfish mascot - integrate with geometric design elements
+- **Logo**: Use existing Blupi logo
+- **Visual Language**: Professional yet bold, functional yet visually striking
+
+**Key Principle**: Every element serves a purpose. Bold colors draw attention to key actions. Clean geometry creates visual harmony. High contrast ensures readability and accessibility.
