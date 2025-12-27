@@ -3354,15 +3354,16 @@ export default function BoardGrid({
                                                             relative cursor-pointer rounded-lg border-3 mb-2 p-2 w-full aspect-square
                                                             ${layerType?.color || 'border-gray-400'}
                                                             hover:shadow-md transition-all bg-white flex flex-col
+                                                            shadow-[0_0_0_1px_rgba(0,0,0,0.1)]
                                                           `}
                                                         >
                                                           {/* Stacked card effect - visible left/top borders */}
                                                           <div 
-                                                            className={`absolute -bottom-1 -right-1 left-1 top-1 rounded-lg border-2 ${layerType?.color || 'border-gray-300'} bg-white -z-10`}
+                                                            className={`absolute -bottom-1 -right-1 left-1 top-1 rounded-lg border-2 ${layerType?.color || 'border-gray-300'} bg-white -z-10 shadow-[0_0_0_1px_rgba(0,0,0,0.05)]`}
                                                           />
                                                           {blocksOfType.length > 2 && (
                                                             <div 
-                                                              className={`absolute -bottom-2 -right-2 left-2 top-2 rounded-lg border-2 ${layerType?.color || 'border-gray-300'} bg-gray-50 -z-20`}
+                                                              className={`absolute -bottom-2 -right-2 left-2 top-2 rounded-lg border-2 ${layerType?.color || 'border-gray-300'} bg-gray-50 -z-20 shadow-[0_0_0_1px_rgba(0,0,0,0.05)]`}
                                                             />
                                                           )}
                                                           
