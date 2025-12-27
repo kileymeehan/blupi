@@ -11,13 +11,13 @@ export default function BlockDrawer() {
   // Dynamic icon rendering function
   const renderIcon = (iconName: string) => {
     const IconComponent = (Icons as any)[iconName] || Icons.Square;
-    return <IconComponent className="w-3.5 h-3.5 mr-0.5 text-gray-900" />;
+    return <IconComponent className="w-3.5 h-3.5 mr-0.5 text-gray-900 dark:text-slate-100" />;
   };
 
   return (
     <div className="w-full p-4">
       <div className="flex items-center mb-4">
-        <h2 className="font-semibold text-gray-700">Content Blocks</h2>
+        <h2 className="font-semibold text-gray-700 dark:text-slate-200">Content Blocks</h2>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-8">
@@ -42,7 +42,7 @@ export default function BlockDrawer() {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="font-semibold text-[10px] text-gray-900 text-center flex flex-col items-center justify-center">
+                <div className="font-semibold text-[10px] text-gray-900 dark:text-slate-100 text-center flex flex-col items-center justify-center">
                   {renderIcon(layer.icon)}
                   <span className="mt-0.5 tracking-wide">{layer.label}</span>
                 </div>
@@ -54,7 +54,7 @@ export default function BlockDrawer() {
 
       {/* Divider blocks section */}
       <div className="flex items-center mb-4 mt-6 justify-start">
-        <h2 className="font-semibold text-gray-700">Stage Dividers</h2>
+        <h2 className="font-semibold text-gray-700 dark:text-slate-200">Stage Dividers</h2>
       </div>
       
       <div className="grid grid-cols-1 gap-2">
