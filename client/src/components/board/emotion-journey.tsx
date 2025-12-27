@@ -30,6 +30,9 @@ interface EmotionJourneyProps {
   singlePhaseIndex?: number;
 }
 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
+
 export function EmotionJourney({ phases, board, onEmotionChange, className = '', singlePhaseIndex }: EmotionJourneyProps) {
   const isSinglePhase = singlePhaseIndex !== undefined;
   const displayPhases = isSinglePhase ? [phases[singlePhaseIndex]] : phases;
@@ -134,26 +137,37 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
   if (allColumns.length === 0) return null;
 
   return (
-    <div className={`w-full bg-slate-50 border-2 border-slate-300 rounded-xl p-6 shadow-sm overflow-hidden ${className}`} ref={containerRef}>
+    <div className={`w-full bg-white border-4 border-[#0A0A0F] rounded-none p-6 shadow-[6px_6px_0px_0px_#0A0A0F] overflow-hidden ${className}`} ref={containerRef}>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-bold text-slate-900">Emotional Journey</h3>
-        <div className="flex items-center gap-6 text-xs font-medium text-slate-600">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm" />
-            <span>1-3 Negative</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-yellow-500 shadow-sm" />
-            <span>4 Neutral</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-green-500 shadow-sm" />
-            <span>5-7 Positive</span>
-          </div>
-        </div>
+        <h3 className="text-lg font-black uppercase tracking-widest text-[#0A0A0F]">Emotional Journey</h3>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-none border-2 border-[#0A0A0F] hover:bg-[#FFD600]">
+                <Info className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-white border-2 border-[#0A0A0F] rounded-none p-3 shadow-[4px_4px_0px_0px_#0A0A0F]">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500 border border-[#0A0A0F]" />
+                  <span className="text-[10px] font-black uppercase tracking-tight">1-3 Negative</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-yellow-500 border border-[#0A0A0F]" />
+                  <span className="text-[10px] font-black uppercase tracking-tight">4 Neutral</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500 border border-[#0A0A0F]" />
+                  <span className="text-[10px] font-black uppercase tracking-tight">5-7 Positive</span>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       
-      <div className="relative bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="relative bg-[#F8F9FA] rounded-none border-2 border-[#0A0A0F] overflow-hidden">
         <div 
           ref={contentRef} 
           className="relative flex items-start"
