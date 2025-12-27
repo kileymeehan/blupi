@@ -1352,12 +1352,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Replace the existing public board route with the corrected path
-  app.get("/api/boards/:id/public", requireTenant, async (req, res) => {
+  app.get("/api/boards/:id/public", async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching public board with ID: ${req.params.id}, org: ${req.tenantId}`);
-      const board = await storage.getBoard(Number(req.params.id), req.tenantId);
+      console.log(`[HTTP] Fetching public board with ID: ${req.params.id}`);
+      
+      // We search for the board without tenant restriction first to check if it's public
+      const [board] = await db.select().from(boardsTable).where(eq(boardsTable.id, Number(req.params.id)));
+      
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
+      }
+
+      // If board is not public, it still requires authentication and tenant check
+      if (!board.isPublic) {
+        // This will be handled by the client redirecting to login if needed
+        // For now, if it's not public, we return 403 or similar
+        return res.status(403).json({ error: true, message: "This board is private" });
       }
 
       // Remove sensitive information for public view
@@ -1365,7 +1375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...board,
         blocks: board.blocks.map(block => ({
           ...block,
-          comments: []
+          comments: [] // Public users shouldn't see internal comments
         }))
       };
 
@@ -1374,6 +1384,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error('[HTTP] Error fetching public board:', err);
       res.status(500).json({ error: true, message: "Failed to fetch board" });
+    }
+  });
+
+  app.patch("/api/boards/:id/public", requireTenant, async (req, res) => {
+    try {
+      const { isPublic, publicRole } = req.body;
+      const boardId = Number(req.params.id);
+      
+      const board = await storage.updateBoard(boardId, {
+        isPublic,
+        publicRole: publicRole || 'viewer'
+      }, req.tenantId);
+      
+      res.json(board);
+    } catch (err) {
+      console.error('[HTTP] Error updating public status:', err);
+      res.status(500).json({ error: true, message: "Failed to update public status" });
     }
   });
 

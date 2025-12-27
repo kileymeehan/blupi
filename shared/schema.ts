@@ -138,6 +138,8 @@ export const boards = pgTable("boards", {
   blocks: jsonb("blocks").$type<Block[]>().notNull().default([]),
   phases: jsonb("phases").$type<Phase[]>().notNull().default([]),
   status: text("status").notNull().default('draft'),
+  isPublic: boolean("is_public").notNull().default(false),
+  publicRole: text("public_role").notNull().default('viewer'), // 'viewer', 'editor'
   projectId: integer("project_id").references(() => projects.id), // Made optional for blueprint-first approach
   userId: integer("user_id").references(() => users.id).notNull(),
   organizationId: uuid("organization_id").references(() => organizations.id),
