@@ -46,6 +46,7 @@ import {
   TrendingUp,
   Eye,
   Check,
+  Settings,
 } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
