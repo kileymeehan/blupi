@@ -393,3 +393,59 @@
   height: 100% !important;
   border-radius: 3px !important;
 }
+
+/* Dark Mode Styles for Board */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #1a1a2e !important;
+  color: #e5e5e5 !important;
+}
+
+.dark .bg-white {
+  background-color: #1e1e32 !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: #252542 !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: #2d2d4a !important;
+}
+
+.dark .bg-gray-200 {
+  background-color: #3a3a5c !important;
+}
+
+.dark .text-gray-500,
+.dark .text-gray-600,
+.dark .text-gray-700 {
+  color: #a0a0b8 !important;
+}
+
+.dark .text-gray-800,
+.dark .text-gray-900 {
+  color: #e5e5e5 !important;
+}
+
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: #3a3a5c !important;
+}
+
+.dark .shadow-sm,
+.dark .shadow-md {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark header.bg-gray-50 {
+  background-color: #1e1e32 !important;
+  border-color: #3a3a5c !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+  background-color: #3a3a5c !important;
+}
