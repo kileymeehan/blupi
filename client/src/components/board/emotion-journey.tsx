@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { Phase, Column, Emotion, Board } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,6 +30,7 @@ interface EmotionJourneyProps {
 export function EmotionJourney({ phases, board, onEmotionChange, className = '', singleColumn = false }: EmotionJourneyProps) {
   const [pathD, setPathD] = useState<string>('');
   const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 });
+  const [hasInitialized, setHasInitialized] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   
@@ -83,8 +84,12 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
       setSvgDimensions({ width: scrollWidth, height });
       const path = dots.map((dot, i) => `${i === 0 ? 'M' : 'L'} ${dot.x} ${dot.y}`).join(' ');
       setPathD(path);
+      
+      if (!hasInitialized) {
+        setTimeout(() => setHasInitialized(true), 100);
+      }
     }
-  }, []);
+  }, [hasInitialized]);
 
   useEffect(() => {
     updateSparkline();
@@ -155,9 +160,12 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                 vectorEffect="non-scaling-stroke"
                 fill="none"
                 opacity="0.6"
-                initial={{ pathLength: 0 }}
+                initial={hasInitialized ? false : { pathLength: 0 }}
                 animate={{ pathLength: 1 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
+                transition={hasInitialized 
+                  ? { duration: 0.3, ease: "easeOut" } 
+                  : { duration: 1.2, ease: "easeOut" }
+                }
               />
             )}
           </svg>
@@ -176,14 +184,23 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                       className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] relative"
                       style={{ height: '140px' }}
                     >
-                      <div 
+                      <motion.div 
                         data-emotion-dot
                         className="absolute z-20"
-                        style={{
+                        animate={{
                           top: `${yPosition}%`,
+                        }}
+                        transition={{ 
+                          type: "spring", 
+                          stiffness: 300, 
+                          damping: 25,
+                          mass: 0.8
+                        }}
+                        style={{
                           left: '50%',
                           transform: 'translate(-50%, -50%)'
                         }}
+                        onAnimationComplete={updateSparkline}
                       >
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -230,7 +247,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </div>
+                      </motion.div>
                       
                       <div className="absolute bottom-0 left-0 right-0 text-center px-1">
                         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide truncate">
