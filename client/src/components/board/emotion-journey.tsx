@@ -236,10 +236,9 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-10 w-10 p-0 rounded-full border-2 shadow-md hover:scale-110 transition-transform text-white font-bold text-base"
+                                className="h-10 w-10 p-0 rounded-none border-4 border-[#0A0A0F] shadow-[4px_4px_0px_0px_#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-white font-bold text-base"
                                 style={{
                                   backgroundColor: emotion?.color || '#f8fafc',
-                                  borderColor: emotion?.color || '#e2e8f0',
                                   color: emotion ? 'white' : '#94a3b8'
                                 }}
                               >
@@ -254,7 +253,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                                   className="flex items-center gap-3 py-2"
                                 >
                                   <div 
-                                    className="w-5 h-5 rounded-full shadow-sm" 
+                                    className="w-5 h-5 rounded-none border-2 border-[#0A0A0F]" 
                                     style={{ backgroundColor: data.color }}
                                   />
                                   <div className="flex flex-col">
