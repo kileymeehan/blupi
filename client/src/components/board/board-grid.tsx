@@ -2679,11 +2679,20 @@ export default function BoardGrid({
               </div>
 
               {isDrawerOpen && (
-                <div className="flex-1 flex flex-col bg-slate-100 max-h-[calc(100vh-8.5rem)] overflow-hidden">
-                  <div className={`flex-1 overflow-y-auto ${showContext ? "block" : "hidden"}`}>
+                <div 
+                  className="flex-1 flex flex-col max-h-[calc(100vh-8.5rem)] overflow-hidden"
+                  style={{ backgroundColor: darkMode ? '#1e1e32' : '#f1f5f9' }}
+                >
+                  <div 
+                    className={`flex-1 overflow-y-auto ${showContext ? "block" : "hidden"}`}
+                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
+                  >
                     <div className="p-4 space-y-4">
                       <div>
-                        <label className="text-sm font-medium mb-2 block">
+                        <label 
+                          className="text-sm font-medium mb-2 block"
+                          style={{ color: darkMode ? '#e5e5e5' : 'inherit' }}
+                        >
                           Blueprint Details
                         </label>
                         <Textarea
@@ -2696,7 +2705,10 @@ export default function BoardGrid({
 
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium block">
+                          <label 
+                            className="text-sm font-medium block"
+                            style={{ color: darkMode ? '#e5e5e5' : 'inherit' }}
+                          >
                             Segments
                           </label>
                           <Textarea
@@ -2713,7 +2725,10 @@ export default function BoardGrid({
                         </div>
 
                         <div className="space-y-2">
-                          <label className="text-sm font-medium block">
+                          <label 
+                            className="text-sm font-medium block"
+                            style={{ color: darkMode ? '#e5e5e5' : 'inherit' }}
+                          >
                             Other Blueprints
                           </label>
                           <div className="space-y-1 max-h-48 overflow-y-auto">
@@ -2725,16 +2740,27 @@ export default function BoardGrid({
                                   href={`/board/${blueprint.id}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="block p-2 text-sm bg-white rounded border border-gray-200 hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                                  className="block p-2 text-sm rounded border transition-colors"
+                                  style={{
+                                    backgroundColor: darkMode ? '#2a2a4a' : 'white',
+                                    borderColor: darkMode ? '#3a3a5c' : '#e5e7eb',
+                                    color: darkMode ? '#e5e5e5' : 'inherit'
+                                  }}
                                 >
                                   <div className="flex items-center justify-between">
                                     <span className="truncate">{blueprint.name || 'Untitled Blueprint'}</span>
-                                    <ExternalLink className="w-3 h-3 text-gray-400 flex-shrink-0 ml-1" />
+                                    <ExternalLink className="w-3 h-3 flex-shrink-0 ml-1" style={{ color: darkMode ? '#9ca3af' : '#9ca3af' }} />
                                   </div>
                                 </a>
                               ))}
                             {(!projectBoards || projectBoards.filter(b => b.id !== board.id).length === 0) && (
-                              <div className="text-sm text-gray-500 p-2 bg-gray-50 rounded">
+                              <div 
+                                className="text-sm p-2 rounded"
+                                style={{
+                                  backgroundColor: darkMode ? '#2a2a4a' : '#f9fafb',
+                                  color: darkMode ? '#9ca3af' : '#6b7280'
+                                }}
+                              >
                                 No other blueprints in this project
                               </div>
                             )}
