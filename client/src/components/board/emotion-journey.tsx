@@ -181,11 +181,11 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
             {pathD && (
               <motion.path
                 d={pathD}
-                stroke="#6366f1"
-                strokeWidth="2"
+                stroke="#0A0A0F"
+                strokeWidth="3"
                 vectorEffect="non-scaling-stroke"
                 fill="none"
-                opacity="0.6"
+                opacity="0.8"
                 initial={hasInitialized ? false : { pathLength: 0 }}
                 animate={{ pathLength: 1 }}
                 transition={hasInitialized 
