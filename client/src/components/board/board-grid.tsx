@@ -2253,8 +2253,8 @@ export default function BoardGrid({
   };
 
   return (
-    <div className={`flex-1 relative overflow-hidden flex flex-col bg-[#F0EEE9]`}>
-      <header className="h-20 border-b-4 border-[#1976D2] px-8 flex justify-between items-center bg-[#0A0A0F] shadow-none flex-shrink-0 sticky top-0 left-0 right-0 z-50">
+    <div className={`flex-1 relative overflow-hidden flex flex-col bauhaus-halftone-bg`}>
+      <header className="h-20 border-b-4 border-[#0A0A0F] px-8 flex justify-between items-center bg-[#0A0A0F] shadow-none flex-shrink-0 sticky top-0 left-0 right-0 z-50">
         <div className="flex items-center gap-4 pl-4">
           <Button
             variant="ghost"

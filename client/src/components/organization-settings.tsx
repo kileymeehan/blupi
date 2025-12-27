@@ -562,5 +562,6 @@ export function OrganizationSettings() {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }
