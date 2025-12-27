@@ -219,15 +219,15 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
   };
 
   return (
-    <Card>
+    <Card className="bauhaus-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Users className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-widest text-[#0A0A0F]">
+              <Users className="w-5 h-5 text-[#1976D2]" />
               Project Members
             </CardTitle>
-            <CardDescription className="text-sm mt-1">
+            <CardDescription className="text-sm mt-1 font-bold text-[#6B7280] uppercase tracking-wider">
               Assign team members to this project
             </CardDescription>
           </div>
@@ -236,8 +236,7 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
           <DialogTrigger asChild>
             <Button 
               disabled={availableMembers.length === 0}
-              size="sm"
-              className="w-full mt-2"
+              className="bauhaus-btn w-full mt-4 h-12"
             >
               <UserPlus className="w-4 h-4 mr-2" />
               Assign Member
@@ -294,10 +293,11 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
             </div>
 
             <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
+              <Button className="bauhaus-btn" onClick={() => setAssignDialogOpen(false)}>
                 Cancel
               </Button>
               <Button 
+                className="bauhaus-btn-blue"
                 onClick={handleAssignMember}
                 disabled={!selectedUserId || assignMemberMutation.isPending}
               >
@@ -329,20 +329,20 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {projectMembers.map((member) => (
-              <div key={member.id} className="flex items-center justify-between p-2 border rounded-lg">
+              <div key={member.id} className="flex items-center justify-between p-3 bg-white border-2 border-[#0A0A0F] hover:bg-[#FFD600] transition-colors group">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback className="text-xs">
+                  <Avatar className="w-8 h-8 border-2 border-[#0A0A0F] rounded-none">
+                    <AvatarFallback className="text-xs font-black rounded-none">
                       {(member.user?.username || member.user?.email || 'U').charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium text-sm truncate">
+                    <div className="font-black text-xs uppercase tracking-widest text-[#0A0A0F] truncate">
                       {member.user?.username || member.user?.email}
                     </div>
-                    <div className="text-xs text-gray-500 truncate">{member.user?.email}</div>
+                    <div className="text-[10px] font-bold text-[#6B7280] group-hover:text-[#0A0A0F] truncate">{member.user?.email}</div>
                   </div>
                 </div>
                 
@@ -354,20 +354,18 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
                       role 
                     })}
                   >
-                    <SelectTrigger className="w-20 h-7 text-xs">
+                    <SelectTrigger className="w-20 h-7 text-[10px] font-black uppercase border-2 border-[#0A0A0F] rounded-none">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="editor">Editor</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                    <SelectContent className="border-4 border-[#0A0A0F] rounded-none">
+                      <SelectItem value="member" className="font-bold text-xs">Member</SelectItem>
+                      <SelectItem value="editor" className="font-bold text-xs">Editor</SelectItem>
+                      <SelectItem value="admin" className="font-bold text-xs">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                   
                   <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-7 h-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="w-7 h-7 p-0 bg-white border-2 border-[#0A0A0F] text-[#E53935] hover:bg-[#E53935] hover:text-white rounded-none"
                     onClick={() => removeMemberMutation.mutate(member.userId)}
                     disabled={removeMemberMutation.isPending}
                   >

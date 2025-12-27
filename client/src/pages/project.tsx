@@ -455,9 +455,7 @@ export default function Project() {
               {!showAddLinkForm ? (
                 <Button
                   onClick={() => setShowAddLinkForm(true)}
-                  variant="outline"
-                  className="w-full"
-                  size="sm"
+                  className="bauhaus-btn w-full h-12"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Link
@@ -468,13 +466,13 @@ export default function Project() {
                     placeholder="Title"
                     value={newDocumentTitle}
                     onChange={(e) => setNewDocumentTitle(e.target.value)}
-                    className="border-4 border-[#0A0A0F] rounded-none focus-visible:ring-0 font-bold"
+                    className="border-4 border-[#0A0A0F] rounded-none focus-visible:ring-0 font-black uppercase text-xs"
                   />
                   <Input
                     placeholder="URL"
                     value={newDocumentUrl}
                     onChange={(e) => setNewDocumentUrl(e.target.value)}
-                    className="border-4 border-[#0A0A0F] rounded-none focus-visible:ring-0 font-bold"
+                    className="border-4 border-[#0A0A0F] rounded-none focus-visible:ring-0 font-black text-xs"
                   />
                   <div className="flex gap-2">
                     <Button
@@ -489,8 +487,7 @@ export default function Project() {
                         }
                       }}
                       disabled={!newDocumentTitle || !newDocumentUrl || addDocumentMutation.isPending}
-                      className="flex-1"
-                      size="sm"
+                      className="bauhaus-btn-blue flex-1 h-10"
                     >
                       Add
                     </Button>
@@ -500,8 +497,7 @@ export default function Project() {
                         setNewDocumentTitle('');
                         setNewDocumentUrl('');
                       }}
-                      variant="outline"
-                      size="sm"
+                      className="bauhaus-btn flex-1 h-10"
                     >
                       Cancel
                     </Button>

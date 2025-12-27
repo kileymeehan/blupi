@@ -58,32 +58,31 @@ export function PageHeader({
   };
 
   return (
-    <div className="border-b">
-      <div className="max-w-[1440px] mx-auto px-8 py-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" asChild className="p-2">
+    <div className="bg-[#0A0A0F] border-b-4 border-[#1976D2]">
+      <div className="max-w-[1440px] mx-auto px-8 py-3">
+        <div className="flex items-center gap-6">
+          <Button asChild className="bauhaus-btn-blue h-9 px-4 text-xs">
             <Link href={backTo}>
-              <ChevronLeft className="h-4 w-4" />
-              Back to {backLabel}
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back
             </Link>
           </Button>
 
           <div className="flex-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               {isEditing ? (
                 <Input
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  className="text-lg font-semibold h-9"
+                  className="text-lg font-black uppercase tracking-widest h-9 bg-white text-[#0A0A0F] border-2 border-[#FFD600] rounded-none focus-visible:ring-0"
                   autoFocus
                 />
               ) : (
-                <h1 className="text-lg font-semibold">{title}</h1>
+                <h1 className="text-lg font-black uppercase tracking-widest text-white">{title}</h1>
               )}
               {onTitleChange && (
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  className="bauhaus-btn h-8 px-4 text-[10px]"
                   onClick={handleEdit}
                   disabled={updateMutation.isPending}
                 >
@@ -92,7 +91,7 @@ export function PageHeader({
               )}
             </div>
             {description && (
-              <p className="text-sm text-muted-foreground mt-1">{description}</p>
+              <p className="text-[10px] font-bold text-[#FFD600] uppercase tracking-wider mt-1">{description}</p>
             )}
           </div>
 
