@@ -2557,11 +2557,21 @@ export default function BoardGrid({
       <div className="flex flex-1 overflow-hidden relative pt-0.5">
         <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div
-            className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white dark:bg-slate-900 border-r border-gray-300 dark:border-slate-700 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-40 h-auto flex flex-col overflow-y-auto`}
+            className={`${isDrawerOpen ? "w-72" : "w-16"} flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-40 h-auto flex flex-col overflow-y-auto`}
+            style={{
+              backgroundColor: darkMode ? '#1e1e32' : 'white',
+              borderRight: darkMode ? '1px solid #3a3a5c' : '1px solid #d1d5db'
+            }}
           >
             <div className="flex flex-col flex-grow overflow-hidden relative">
               {/* Always present toggle button in line with navigation */}
-              <div className="border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm py-0">
+              <div 
+                className="shadow-sm py-0"
+                style={{
+                  backgroundColor: darkMode ? '#1e1e32' : 'white',
+                  borderBottom: darkMode ? '1px solid #3a3a5c' : '1px solid #e5e7eb'
+                }}
+              >
                 <div className="h-12 flex items-center justify-end pr-3">
                   <Button
                     variant="ghost"
@@ -2742,7 +2752,7 @@ export default function BoardGrid({
                           {...provided.droppableProps}
                           className="p-4"
                         >
-                          <BlockDrawer />
+                          <BlockDrawer darkMode={darkMode} />
                           {provided.placeholder}
                         </div>
                       )}
