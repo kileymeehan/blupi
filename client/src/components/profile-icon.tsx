@@ -88,14 +88,14 @@ export function ProfileIcon() {
   };
 
   // Determine avatar style
-  const borderStyle = "border-2 border-white";
+  const borderStyle = "border-2 border-[#0A0A0F]";
 
   // Render Google avatar or emoji avatar
   if (useGoogleAvatar && user?.photoURL && !AVATAR_OPTIONS.includes(user.photoURL)) {
     return (
-      <Avatar className={`w-8 h-8 ${borderStyle}`}>
+      <Avatar className={`w-8 h-8 rounded-none ${borderStyle}`}>
         <AvatarImage src={user.photoURL} alt={displayName} />
-        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+        <AvatarFallback className="bg-[#1976D2] text-white text-xs rounded-none">
           {getInitials()}
         </AvatarFallback>
       </Avatar>
@@ -104,7 +104,7 @@ export function ProfileIcon() {
 
   // Render emoji avatar
   return (
-    <div className={`w-8 h-8 flex items-center justify-center text-lg bg-gray-100 rounded-full ${borderStyle}`}>
+    <div className={`w-8 h-8 flex items-center justify-center text-lg bg-gray-100 rounded-none ${borderStyle}`}>
       {selectedAvatar}
     </div>
   );

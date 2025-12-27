@@ -2579,7 +2579,7 @@ export default function BoardGrid({
                     variant="ghost"
                     size="sm"
                     onClick={toggleSidebar}
-                    className="w-7 h-7 rounded-none bg-white border-2 border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] flex items-center justify-center p-0"
+                    className="w-7 h-7 rounded-none bg-white border-2 border-[#0A0A0F] shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none flex items-center justify-center p-0 transition-all"
                   >
                     {isDrawerOpen ? (
                       <ChevronLeft className="w-4 h-4 text-[#0A0A0F]" />
