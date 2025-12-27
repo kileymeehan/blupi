@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Phase, Column, Emotion, Board } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +18,9 @@ const EMOTION_SCALE = {
   6: { color: '#22c55e', label: 'Positive' },
   7: { color: '#16a34a', label: 'Very Positive' },
 };
+
+const CHART_AREA_HEIGHT = 140;
+const LABEL_HEIGHT = 28;
 
 interface EmotionJourneyProps {
   phases: Phase[];
@@ -43,9 +46,16 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
     }))
   );
 
-  const getEmotionY = (emotion: Emotion | undefined) => {
+  const getEmotionYPercent = (emotion: Emotion | undefined) => {
     if (!emotion) return 50;
     return 100 - ((emotion.value - 1) / 6) * 100;
+  };
+
+  const getEmotionYPixels = (emotion: Emotion | undefined) => {
+    const percent = getEmotionYPercent(emotion);
+    const padding = 20;
+    const usableHeight = CHART_AREA_HEIGHT - (padding * 2);
+    return padding + (percent / 100) * usableHeight;
   };
 
   const handleEmotionSelect = (phaseIndex: number, columnIndex: number, value: number) => {
@@ -69,7 +79,6 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
     
     const contentRect = contentRef.current.getBoundingClientRect();
     const scrollWidth = contentRef.current.scrollWidth;
-    const height = contentRef.current.offsetHeight;
     
     const dots: { x: number; y: number }[] = [];
     
@@ -81,7 +90,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
     });
     
     if (dots.length > 0) {
-      setSvgDimensions({ width: scrollWidth, height });
+      setSvgDimensions({ width: scrollWidth, height: CHART_AREA_HEIGHT });
       const path = dots.map((dot, i) => `${i === 0 ? 'M' : 'L'} ${dot.x} ${dot.y}`).join(' ');
       setPathD(path);
       
@@ -120,11 +129,8 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
 
   if (allColumns.length === 0) return null;
 
-  const CHART_HEIGHT = 180;
-  const BOTTOM_PADDING = 35;
-
   return (
-    <div className={`w-full bg-slate-50 border-2 border-slate-300 rounded-xl p-6 shadow-sm ${className}`} ref={containerRef}>
+    <div className={`w-full bg-slate-50 border-2 border-slate-300 rounded-xl p-6 shadow-sm overflow-hidden ${className}`} ref={containerRef}>
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-bold text-slate-900">Emotional Journey</h3>
         <div className="flex items-center gap-6 text-xs font-medium text-slate-600">
@@ -143,33 +149,16 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
         </div>
       </div>
       
-      <div className="relative bg-white rounded-lg border border-slate-200 p-4">
-        <div className="absolute left-4 top-4 bottom-4 w-6 flex flex-col justify-between text-[10px] font-semibold text-slate-400 z-10" style={{ paddingBottom: `${BOTTOM_PADDING}px` }}>
-          <span>7</span>
-          <span>6</span>
-          <span>5</span>
-          <span>4</span>
-          <span>3</span>
-          <span>2</span>
-          <span>1</span>
-        </div>
-        
-        <div className="absolute left-12 right-4 top-4 flex flex-col justify-between pointer-events-none" style={{ height: `${CHART_HEIGHT - BOTTOM_PADDING}px` }}>
-          {[7, 6, 5, 4, 3, 2, 1].map((level) => (
-            <div key={level} className="w-full h-px bg-slate-100" />
-          ))}
-        </div>
-        
+      <div className="relative bg-white rounded-lg border border-slate-200 overflow-hidden">
         <div 
           ref={contentRef} 
-          className="relative flex items-start ml-8" 
-          style={{ minHeight: `${CHART_HEIGHT}px` }}
+          className="relative flex items-start"
         >
           <svg 
-            className="absolute top-0 left-0 pointer-events-none z-0 overflow-visible"
+            className="absolute top-0 left-0 pointer-events-none z-0"
             width={svgDimensions.width || '100%'}
-            height={svgDimensions.height || '100%'}
-            style={{ minWidth: '100%', minHeight: '100%' }}
+            height={CHART_AREA_HEIGHT}
+            style={{ minWidth: '100%' }}
           >
             {pathD && (
               <motion.path
@@ -195,80 +184,85 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                 {phase.columns.map((column: Column, columnIndex: number) => {
                   const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc: number, p: Phase) => acc + p.columns.length, 0) + columnIndex;
                   const emotion = allColumns[globalColumnIndex]?.emotion;
-                  const yPosition = getEmotionY(emotion);
+                  const yPixels = getEmotionYPixels(emotion);
                   
                   return (
                     <div 
                       key={column.id} 
-                      className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] relative"
-                      style={{ height: `${CHART_HEIGHT}px`, paddingBottom: `${BOTTOM_PADDING}px` }}
+                      className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex flex-col"
                     >
-                      <motion.div 
-                        data-emotion-dot
-                        className="absolute z-20"
-                        animate={{
-                          top: `${yPosition}%`,
-                        }}
-                        transition={{ 
-                          type: "spring", 
-                          stiffness: 300, 
-                          damping: 25,
-                          mass: 0.8
-                        }}
-                        style={{
-                          left: '50%',
-                          transform: 'translate(-50%, -50%)'
-                        }}
-                        onAnimationComplete={updateSparkline}
+                      <div 
+                        className="relative"
+                        style={{ height: `${CHART_AREA_HEIGHT}px` }}
                       >
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-10 w-10 p-0 rounded-full border-2 shadow-md hover:scale-110 transition-transform text-white font-bold text-base"
-                              style={{
-                                backgroundColor: emotion?.color || '#f8fafc',
-                                borderColor: emotion?.color || '#e2e8f0',
-                                color: emotion ? 'white' : '#94a3b8'
-                              }}
-                            >
-                              {emotion?.value || '○'}
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="center" className="w-48">
-                            {Object.entries(EMOTION_SCALE).map(([value, data]) => (
-                              <DropdownMenuItem
-                                key={value}
-                                onClick={() => handleEmotionSelect(phaseIndex, columnIndex, parseInt(value))}
-                                className="flex items-center gap-3 py-2"
+                        <motion.div 
+                          data-emotion-dot
+                          className="absolute z-20"
+                          animate={{ top: yPixels }}
+                          transition={{ 
+                            type: "spring", 
+                            stiffness: 300, 
+                            damping: 25,
+                            mass: 0.8
+                          }}
+                          style={{
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)'
+                          }}
+                          onAnimationComplete={updateSparkline}
+                        >
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-10 w-10 p-0 rounded-full border-2 shadow-md hover:scale-110 transition-transform text-white font-bold text-base"
+                                style={{
+                                  backgroundColor: emotion?.color || '#f8fafc',
+                                  borderColor: emotion?.color || '#e2e8f0',
+                                  color: emotion ? 'white' : '#94a3b8'
+                                }}
                               >
-                                <div 
-                                  className="w-5 h-5 rounded-full shadow-sm" 
-                                  style={{ backgroundColor: data.color }}
-                                />
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-semibold">Level {value}</span>
-                                  <span className="text-[10px] text-slate-500 uppercase tracking-wider">{data.label}</span>
-                                </div>
-                              </DropdownMenuItem>
-                            ))}
-                            {emotion && (
-                              <>
-                                <div className="border-t my-1" />
+                                {emotion?.value || '○'}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="center" className="w-48">
+                              {Object.entries(EMOTION_SCALE).map(([value, data]) => (
                                 <DropdownMenuItem
-                                  onClick={() => handleRemoveEmotion(phaseIndex, columnIndex)}
-                                  className="text-red-600 hover:bg-red-50 font-medium"
+                                  key={value}
+                                  onClick={() => handleEmotionSelect(phaseIndex, columnIndex, parseInt(value))}
+                                  className="flex items-center gap-3 py-2"
                                 >
-                                  Clear Score
+                                  <div 
+                                    className="w-5 h-5 rounded-full shadow-sm" 
+                                    style={{ backgroundColor: data.color }}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-semibold">Level {value}</span>
+                                    <span className="text-[10px] text-slate-500 uppercase tracking-wider">{data.label}</span>
+                                  </div>
                                 </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </motion.div>
+                              ))}
+                              {emotion && (
+                                <>
+                                  <div className="border-t my-1" />
+                                  <DropdownMenuItem
+                                    onClick={() => handleRemoveEmotion(phaseIndex, columnIndex)}
+                                    className="text-red-600 hover:bg-red-50 font-medium"
+                                  >
+                                    Clear Score
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </motion.div>
+                      </div>
                       
-                      <div className="absolute bottom-1 left-0 right-0 text-center px-1">
+                      <div 
+                        className="text-center px-1 py-2 border-t border-slate-100 bg-slate-50"
+                        style={{ height: `${LABEL_HEIGHT}px` }}
+                      >
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide truncate">
                           {column.name || `Step ${columnIndex + 1}`}
                         </p>
