@@ -37,10 +37,10 @@ export function StatusSelector({ value, onChange, type, disabled = false }: Stat
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger className="w-[140px] border-2 border-[#0A0A0F] rounded-none bg-white shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none transition-all">
+      <SelectTrigger className="w-[180px] border-2 border-[#0A0A0F] rounded-none bg-white shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none transition-all">
         <SelectValue placeholder="Status">
           {value && (
-            <span className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-[#0A0A0F]">
+            <span className="px-1 py-1 text-xs font-black uppercase tracking-widest text-[#0A0A0F] whitespace-nowrap">
               {value}
             </span>
           )}
