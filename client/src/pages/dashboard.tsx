@@ -742,13 +742,13 @@ export default function Dashboard() {
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
         {showWelcome && (
-          <div className="bg-white border-4 border-[#0A0A0F] p-10 shadow-xl relative welcome-content">
+          <div className="bg-white border-4 border-[#0A0A0F] p-10 shadow-[8px_8px_0px_0px_#0A0A0F] relative welcome-content mb-8">
             <div className="absolute top-4 right-4">
               <Button 
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowWelcome(false)}
-                className="h-8 w-8 p-0 hover:bg-gray-100"
+                className="h-8 w-8 p-0 rounded-none border-2 border-[#0A0A0F] hover:bg-[#FFD600]"
               >
                 <span className="sr-only">Close</span>
                 <X className="h-4 w-4" />
@@ -764,7 +764,7 @@ export default function Dashboard() {
                 />
               </div>
               <div className="flex-1">
-                <div className="inline-block bg-[#E53935] text-white px-4 py-1 font-bold uppercase tracking-widest text-xs mb-4">
+                <div className="inline-block bg-[#1976D2] text-white px-4 py-1 font-bold uppercase tracking-widest text-xs mb-4">
                   Dashboard
                 </div>
                 <h1 className="text-5xl mb-3 font-black text-[#0A0A0F] uppercase tracking-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}>
@@ -777,7 +777,7 @@ export default function Dashboard() {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     size="sm"
-                    className="bg-[#E53935] text-white hover:bg-[#C62828] font-bold uppercase tracking-wider border-2 border-[#E53935]"
+                    className="bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
                     onClick={() => setCreateBlueprintOpen(true)}
                   >
                     <FileText className="mr-2 h-4 w-4" />
@@ -787,7 +787,7 @@ export default function Dashboard() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-2 border-[#0A0A0F] text-[#0A0A0F] font-bold uppercase tracking-wider hover:bg-[#0A0A0F] hover:text-white"
+                    className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
                     onClick={() => setImportDialogOpen(true)}
                   >
                     <Upload className="mr-2 h-4 w-4" />
@@ -800,7 +800,7 @@ export default function Dashboard() {
         )}
 
         {/* Tab Navigation */}
-        <div className="border-b-4 border-[#0A0A0F]" id="sidebar">
+        <div className={`border-b-4 border-[#0A0A0F] ${!showWelcome ? 'mt-4' : ''}`} id="sidebar">
           <nav className="-mb-px flex space-x-0">
             <button
               onClick={() => setActiveTab('projects')}
