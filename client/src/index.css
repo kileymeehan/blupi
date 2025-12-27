@@ -6,6 +6,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Bauhaus Design System - CSS Custom Properties */
+:root {
+  --bauhaus-bg: #0A0A0F;
+  --bauhaus-surface: #FFFFFF;
+  --bauhaus-accent-red: #E53935;
+  --bauhaus-accent-red-hover: #C62828;
+  --bauhaus-accent-yellow: #FFD600;
+  --bauhaus-accent-blue: #1976D2;
+  --bauhaus-accent-blue-hover: #1565C0;
+  --bauhaus-success: #00E676;
+  --bauhaus-neutral: #F5F5F5;
+  --bauhaus-text-dark: #0A0A0F;
+  --bauhaus-text-light: #FFFFFF;
+  --bauhaus-text-muted: #6B7280;
+}
+
 @layer base {
   * {
     @apply border-border;

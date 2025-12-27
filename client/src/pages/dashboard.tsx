@@ -666,12 +666,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0EEE9] animate-fade-in">
-      <header className="border-b bg-[#302E87] shadow-sm">
-        <div className="max-w-[1440px] mx-auto flex h-24 items-center px-6">
+    <div className="min-h-screen bg-[#F5F5F5] animate-fade-in">
+      <header className="border-b-4 border-[#E53935] bg-[#0A0A0F] shadow-lg">
+        <div className="max-w-[1440px] mx-auto flex h-20 items-center px-6">
           <div className="flex-1 flex items-center gap-4">
             <Link href="/" className="flex items-center">
-              <img src="/blupi-logomark-white.png" alt="Blupi" className="h-8" />
+              <img src="/blupi-logomark-white.png" alt="Blupi" className="h-10" />
             </Link>
             <OrganizationSwitcher />
           </div>
@@ -681,7 +681,7 @@ export default function Dashboard() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/10 h-10 w-10"
+              className="text-white hover:text-[#FFD600] hover:bg-white/10 h-10 w-10 transition-colors"
               onClick={() => window.location.href = '/settings'}
               data-testid="header-settings-button"
             >
@@ -694,16 +694,16 @@ export default function Dashboard() {
             </div>
             
             {/* Divider */}
-            <div className="h-8 w-px bg-white/30 mx-1"></div>
+            <div className="h-8 w-px bg-[#E53935] mx-1"></div>
             
             {/* Profile Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="relative flex items-center gap-2 h-10 w-10 p-0 text-white hover:bg-[#302E87]/20"
+                  className="relative flex items-center gap-2 h-10 w-10 p-0 text-white hover:bg-white/10"
                 >
-                  <div className="border-2 border-white rounded-full">
+                  <div className="border-2 border-[#FFD600] rounded-full">
                     <ProfileIcon />
                   </div>
                 </Button>
@@ -742,13 +742,13 @@ export default function Dashboard() {
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
         {showWelcome && (
-          <div className="bg-white rounded-lg p-10 shadow border border-gray-300 relative welcome-content">
+          <div className="bg-white border-4 border-[#0A0A0F] p-10 shadow-xl relative welcome-content">
             <div className="absolute top-4 right-4">
               <Button 
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowWelcome(false)}
-                className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
+                className="h-8 w-8 p-0 hover:bg-gray-100"
               >
                 <span className="sr-only">Close</span>
                 <X className="h-4 w-4" />
@@ -756,43 +756,43 @@ export default function Dashboard() {
             </div>
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="relative w-full max-w-[200px]">
+                <div className="absolute inset-0 bg-[#FFD600] -rotate-6 opacity-30" />
                 <img 
                   src="/blupi-pufferfish.png" 
                   alt="Blupi mascot" 
-                  className="w-full h-auto"
+                  className="w-full h-auto relative z-10"
                 />
               </div>
               <div className="flex-1">
-                <h1 className="text-6xl mb-3 welcome-header" style={{ color: '#302E87' }}>
+                <div className="inline-block bg-[#E53935] text-white px-4 py-1 font-bold uppercase tracking-widest text-xs mb-4">
+                  Dashboard
+                </div>
+                <h1 className="text-5xl mb-3 font-black text-[#0A0A0F] uppercase tracking-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                   Blueprinting Reimagined
                 </h1>
-                <p className="text-gray-600 mb-4 max-w-2xl text-lg leading-relaxed">
+                <p className="text-gray-600 mb-6 max-w-2xl text-lg leading-relaxed">
                   Design customer journeys with visual blueprints, invite your team to collaborate in real-time, 
-                  and import workflows from PDFs with AI assistance. Track friction points with Pendo analytics 
-                  and connect dynamic data from Google Sheets.
+                  and import workflows from PDFs with AI assistance.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Button
-                    variant="outline"
                     size="sm"
-                    className="border-[#302E87] text-[#302E87]"
+                    className="bg-[#E53935] text-white hover:bg-[#C62828] font-bold uppercase tracking-wider border-2 border-[#E53935]"
                     onClick={() => setCreateBlueprintOpen(true)}
                   >
                     <FileText className="mr-2 h-4 w-4" />
-                    Create New Blueprint
+                    Create Blueprint
                   </Button>
                   
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-[#302E87] text-[#302E87]"
+                    className="border-2 border-[#0A0A0F] text-[#0A0A0F] font-bold uppercase tracking-wider hover:bg-[#0A0A0F] hover:text-white"
                     onClick={() => setImportDialogOpen(true)}
                   >
                     <Upload className="mr-2 h-4 w-4" />
-                    Import from CSV
+                    Import CSV
                   </Button>
-                  
-
                 </div>
               </div>
             </div>
@@ -800,14 +800,14 @@ export default function Dashboard() {
         )}
 
         {/* Tab Navigation */}
-        <div className="border-b border-gray-200" id="sidebar">
-          <nav className="-mb-px flex space-x-8">
+        <div className="border-b-4 border-[#0A0A0F]" id="sidebar">
+          <nav className="-mb-px flex space-x-0">
             <button
               onClick={() => setActiveTab('projects')}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-bold text-sm ${
+              className={`whitespace-nowrap py-3 px-6 font-bold text-sm uppercase tracking-wider transition-all ${
                 activeTab === 'projects'
-                  ? 'border-[#1a1a1a] text-[#1a1a1a]'
-                  : 'border-transparent text-[#4a4a4a] hover:text-[#1a1a1a] hover:border-[#1a1a1a]'
+                  ? 'bg-[#0A0A0F] text-white'
+                  : 'bg-transparent text-[#0A0A0F] hover:bg-[#FFD600]'
               }`}
             >
               <Folder className="w-4 h-4 inline mr-2" />
@@ -815,10 +815,10 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => setActiveTab('blueprints')}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-bold text-sm ${
+              className={`whitespace-nowrap py-3 px-6 font-bold text-sm uppercase tracking-wider transition-all ${
                 activeTab === 'blueprints'
-                  ? 'border-[#1a1a1a] text-[#1a1a1a]'
-                  : 'border-transparent text-[#4a4a4a] hover:text-[#1a1a1a] hover:border-[#1a1a1a]'
+                  ? 'bg-[#0A0A0F] text-white'
+                  : 'bg-transparent text-[#0A0A0F] hover:bg-[#FFD600]'
               }`}
             >
               <LayoutGrid className="w-4 h-4 inline mr-2" />
@@ -826,25 +826,25 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => setActiveTab('starred')}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-bold text-sm ${
+              className={`whitespace-nowrap py-3 px-6 font-bold text-sm uppercase tracking-wider transition-all ${
                 activeTab === 'starred'
-                  ? 'border-[#1a1a1a] text-[#1a1a1a]'
-                  : 'border-transparent text-[#4a4a4a] hover:text-[#1a1a1a] hover:border-[#1a1a1a]'
+                  ? 'bg-[#0A0A0F] text-white'
+                  : 'bg-transparent text-[#0A0A0F] hover:bg-[#FFD600]'
               }`}
             >
               <Star className="w-4 h-4 inline mr-2" />
-              Starred Items
+              Starred
             </button>
           </nav>
         </div>
 
         {/* Starred Items Tab */}
         {activeTab === 'starred' && (
-          <section className="bg-white rounded-lg p-10 shadow border border-gray-300">
+          <section className="bg-white border-4 border-[#0A0A0F] p-10 shadow-lg">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
-                <Star className="h-6 w-6 text-yellow-500" />
-                <h2 className="text-2xl font-semibold">Starred Items</h2>
+                <Star className="h-6 w-6 text-[#FFD600]" />
+                <h2 className="text-2xl font-black uppercase tracking-wide text-[#0A0A0F]">Starred Items</h2>
               </div>
               <div className="text-sm text-gray-500">
                 {starredItems.length} items starred
@@ -940,19 +940,19 @@ export default function Dashboard() {
 
         {/* BLUEPRINTS SECTION */}
         {activeTab === 'blueprints' && (
-          <section className="bg-white rounded-lg p-10 shadow border border-gray-300">
+          <section className="bg-white border-4 border-[#0A0A0F] p-10 shadow-lg">
             {/* Blueprint section header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
-                <FileText className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-semibold text-gray-900">Blueprints</h2>
+                <FileText className="h-6 w-6 text-[#E53935]" />
+                <h2 className="text-2xl font-black uppercase tracking-wide text-[#0A0A0F]">Blueprints</h2>
               </div>
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAllBlueprints(!showAllBlueprints)}
-                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#302E87]"
+                  className="flex items-center gap-2 text-sm text-[#0A0A0F] font-bold uppercase tracking-wider hover:text-[#E53935]"
                 >
                   {showAllBlueprints ? (
                     <>
@@ -969,8 +969,7 @@ export default function Dashboard() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      variant="primary-cta"
-                      className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white flex items-center gap-1"
+                      className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold uppercase tracking-wider flex items-center gap-1 bg-[#E53935] text-white hover:bg-[#C62828] border-2 border-[#E53935]"
                       id="add-blueprint-btn"
                     >
                       <Plus className="h-4 w-4" />
@@ -980,9 +979,9 @@ export default function Dashboard() {
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem 
                       onClick={() => setCreateBlueprintOpen(true)}
-                      className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                      className="cursor-pointer text-sm py-3 hover:bg-[#FFD600]/30"
                     >
-                      <FileText className="mr-2 h-4 w-4 text-[#302E87]" />
+                      <FileText className="mr-2 h-4 w-4 text-[#0A0A0F]" />
                       New Empty Blueprint
                     </DropdownMenuItem>
                     <DropdownMenuItem 
@@ -1277,18 +1276,17 @@ export default function Dashboard() {
 
         {/* PROJECTS SECTION */}
         {activeTab === 'projects' && (
-          <section className="bg-white rounded-lg p-10 shadow border border-gray-300">
+          <section className="bg-white border-4 border-[#0A0A0F] p-10 shadow-lg">
             {/* Project section header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
-                <Folder className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-semibold text-gray-900">Projects</h2>
+                <Folder className="h-6 w-6 text-[#1976D2]" />
+                <h2 className="text-2xl font-black uppercase tracking-wide text-[#0A0A0F]">Projects</h2>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                 <Button
-                  variant="primary-cta"
-                  className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold border border-white flex items-center gap-1"
+                  className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold uppercase tracking-wider flex items-center gap-1 bg-[#1976D2] text-white hover:bg-[#1565C0] border-2 border-[#1976D2]"
                 >
                   <Plus className="h-4 w-4" />
                   Create Project
