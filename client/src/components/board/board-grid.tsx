@@ -2252,23 +2252,21 @@ export default function BoardGrid({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      <header className="h-20 border-b border-gray-300 px-8 flex justify-between items-center bg-gray-50 shadow-sm flex-shrink-0 sticky top-0 left-0 right-0 z-50">
+    <div className={`flex-1 relative overflow-hidden flex flex-col bg-[#F0EEE9]`}>
+      <header className="h-20 border-b-4 border-[#1976D2] px-8 flex justify-between items-center bg-[#0A0A0F] shadow-none flex-shrink-0 sticky top-0 left-0 right-0 z-50">
         <div className="flex items-center gap-4 pl-4">
           <Button
-            variant="ghost"
-            size="sm"
             onClick={handleClose}
-            className="h-10 px-3 -ml-3"
+            className="bauhaus-btn-blue h-10 px-4 text-xs"
           >
             <Home className="w-5 h-5 mr-2" />
-            Home
+            HOME
           </Button>
 
           {projectData && (
             <>
-              <div className="w-px h-6 bg-gray-200 mx-2" />
-              <Button variant="ghost" size="sm" asChild className="h-10 px-3">
+              <div className="w-[2px] h-8 bg-[#1976D2] mx-2" />
+              <Button asChild className="bauhaus-btn-blue h-10 px-4 text-xs">
                 <Link href={`/project/${projectData.id}`}>
                   <div className="flex items-center">
                     <Folder className="w-5 h-5 mr-2" />
@@ -2279,14 +2277,14 @@ export default function BoardGrid({
             </>
           )}
 
-          <div className="w-px h-6 bg-gray-200 mx-2" />
+          <div className="w-[2px] h-8 bg-[#1976D2] mx-2" />
 
           <div className="flex items-center gap-2">
             {isEditingName ? (
               <Input
                 value={editedBoardName}
                 onChange={(e) => setEditedBoardName(e.target.value)}
-                className="text-2xl font-bold h-12 border-0 bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-10 bg-white text-[#0A0A0F] border-2 border-[#FFD600] rounded-none font-black uppercase tracking-widest focus-visible:ring-0"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -2298,21 +2296,10 @@ export default function BoardGrid({
                 }}
               />
             ) : (
-              <h1 className="text-base font-bold" style={{fontSize: '1.1rem'}}>{board.name}</h1>
+              <h1 className="text-xl font-black uppercase tracking-widest text-white cursor-pointer hover:text-[#FFD600] transition-colors" onClick={handleBoardNameEdit}>
+                {board.name}
+              </h1>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBoardNameEdit}
-              disabled={boardNameMutation.isPending}
-              className="h-8"
-            >
-              {isEditingName ? (
-                boardNameMutation.isPending ? "Saving..." : "Save"
-              ) : (
-                "Edit"
-              )}
-            </Button>
           </div>
 
           <div className="w-px h-6 bg-gray-200 mx-2" />
@@ -2363,65 +2350,42 @@ export default function BoardGrid({
           )}
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-3">
           <UsersPresence users={connectedUsers} />
-          <div className="w-px h-6 bg-gray-200 mx-3" />
-          <div className="flex items-center gap-2">
-            {/* Bulk Edit Toggle Icon */}
+          <div className="w-[2px] h-8 bg-[#1976D2] mx-3" />
+          <div className="flex items-center gap-3">
             <Button
-              variant={bulkEditMode ? "default" : "ghost"}
-              size="sm"
               onClick={() => {
                 setBulkEditMode(!bulkEditMode);
                 setSelectedBlocks(new Set());
               }}
-              className="h-8 w-8 p-0"
+              className={`${bulkEditMode ? 'bauhaus-btn-blue' : 'bauhaus-btn'} h-10 px-4 text-xs`}
               title={bulkEditMode ? "Exit Bulk Edit" : "Bulk Edit"}
             >
-              <LayoutGrid className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowMinimap(!showMinimap)}
-              className="h-9 w-9 p-0"
-              title="Toggle Board Overview"
-            >
-              <Map className="w-4 h-4" />
+              <LayoutGrid className="w-4 h-4 mr-2" />
+              BULK EDIT
             </Button>
             
             <Button
-              variant={showEmotionJourney ? "default" : "ghost"}
-              size="sm"
               onClick={() => setShowEmotionJourney(!showEmotionJourney)}
-              className="h-9 w-9 p-0"
+              className={`${showEmotionJourney ? 'bauhaus-btn-blue' : 'bauhaus-btn'} h-10 px-4 text-xs`}
               title="Toggle Emotional Journey"
             >
-              <TrendingUp className="w-4 h-4" />
+              <TrendingUp className="w-4 h-4 mr-2" />
+              JOURNEY
             </Button>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 w-9 p-0" title="View Options">
-                  <Eye className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem 
-                  onSelect={() => setShowAlternatingColumns(!showAlternatingColumns)}
-                  className="flex items-center justify-between"
-                >
-                  <span>Alternating Columns</span>
-                  {showAlternatingColumns && <Check className="w-4 h-4" />}
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onSelect={() => {
-                    setGroupBlocksByType(!groupBlocksByType);
-                    setExpandedGroups(new Set());
-                  }}
-                  className="flex items-center justify-between"
-                >
-                  <div className="flex items-center">
+            <Button onClick={() => setPresentationMode(true)} className="bauhaus-btn h-10 px-4 text-xs">
+              <Presentation className="h-4 w-4 mr-2" />
+              PRESENT
+            </Button>
+
+            <Button onClick={() => setShareLinkOpen(true)} className="bauhaus-btn-blue h-10 px-4 text-xs">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              SHARE
+            </Button>
+          </div>
+        </div>
                     <Layers className="w-4 h-4 mr-2" />
                     <span>Stacked Mode</span>
                   </div>

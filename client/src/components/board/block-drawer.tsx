@@ -22,8 +22,8 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
     <div className="w-full p-4">
       <div className="flex items-center mb-4">
         <h2 
-          className="font-semibold"
-          style={{ color: darkMode ? '#c0c0d8' : '#374151' }}
+          className="font-black uppercase tracking-widest text-xs"
+          style={{ color: darkMode ? '#FFFFFF' : '#0A0A0F' }}
         >
           Content Blocks
         </h2>
@@ -41,9 +41,9 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-[90px] h-[40px] relative flex items-center justify-center
-                  ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
-                  transition-shadow duration-200
+                className={`${layer.color} border-2 border-[#0A0A0F] rounded-none w-[90px] h-[40px] relative flex items-center justify-center
+                  ${snapshot.isDragging ? "shadow-none" : "hover:bg-[#FFD600]"}
+                  transition-colors duration-200 shadow-[2px_2px_0px_0px_#0A0A0F]
                 `}
                 style={{
                   ...provided.draggableProps.style,
@@ -51,9 +51,9 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="font-semibold text-[10px] text-center flex flex-col items-center justify-center" style={{ color: darkMode ? '#e2e8f0' : '#111827' }}>
+                <div className="font-black text-[10px] uppercase tracking-widest text-[#0A0A0F] text-center flex flex-col items-center justify-center">
                   {renderIcon(layer.icon)}
-                  <span className="mt-0.5 tracking-wide">{layer.label}</span>
+                  <span className="mt-1">{layer.label}</span>
                 </div>
               </div>
             )}
@@ -64,8 +64,8 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
       {/* Divider blocks section */}
       <div className="flex items-center mb-4 mt-6 justify-start">
         <h2 
-          className="font-semibold"
-          style={{ color: darkMode ? '#c0c0d8' : '#374151' }}
+          className="font-black uppercase tracking-widest text-xs"
+          style={{ color: darkMode ? '#FFFFFF' : '#0A0A0F' }}
         >
           Stage Dividers
         </h2>
@@ -83,9 +83,9 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} rounded-lg w-full h-[40px] relative flex items-center justify-center text-white
-                  ${snapshot.isDragging ? "shadow-xl" : "hover:shadow-md"}
-                  transition-shadow duration-200
+                className={`${layer.color} border-2 border-[#0A0A0F] rounded-none w-full h-[40px] relative flex items-center justify-center text-white
+                  ${snapshot.isDragging ? "shadow-none" : "hover:bg-[#FFD600] hover:text-[#0A0A0F]"}
+                  transition-colors duration-200 shadow-[2px_2px_0px_0px_#0A0A0F]
                 `}
                 style={{
                   ...provided.draggableProps.style,
@@ -93,9 +93,9 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="font-semibold text-[10px] text-white text-center flex items-center justify-center">
+                <div className="font-black text-[10px] text-white text-center flex items-center justify-center uppercase tracking-widest">
                   {renderIcon(layer.icon)}
-                  <span className="ml-0.5 tracking-wide">{layer.label}</span>
+                  <span className="ml-1">{layer.label}</span>
                 </div>
               </div>
             )}

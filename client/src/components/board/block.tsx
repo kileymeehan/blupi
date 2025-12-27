@@ -413,9 +413,9 @@ export default function Block({
           className={`
             w-full relative
             ${getBlockBorderColor(block.type)}
-            ${block.type === 'video' ? 'border-[3px] rounded-lg' : ''}
-            ${block.type !== 'video' ? 'bg-white border-[3px] rounded-lg shadow-sm drop-shadow-[1px_1px_2px_rgba(0,0,0,0.15)]' : ''}
-            ${isCondensed && !isExpanded ? 'min-h-[50px] cursor-pointer hover:shadow-md transition-shadow' : 'min-h-[80px] aspect-[4/3]'}
+            ${block.type === 'video' ? 'border-4 border-[#0A0A0F] rounded-none' : ''}
+            ${block.type !== 'video' ? 'bg-white border-4 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F]' : ''}
+            ${isCondensed && !isExpanded ? 'min-h-[50px] cursor-pointer hover:bg-[#FFD600] transition-colors' : 'min-h-[80px] aspect-[4/3]'}
           `}
           onClick={() => {
             if (isCondensed && !isExpanded && onToggleExpand) {
