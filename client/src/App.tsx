@@ -84,6 +84,7 @@ function Router() {
         <Route path="/public/board/:id" component={PublicBoard} />
         <Route path="/pendo-connected" component={PendoConnectedPage} />
         <ProtectedRoute path="/" component={Dashboard} />
+        <ProtectedRoute path="/dashboard" component={Dashboard} />
         <ProtectedRoute path="/settings" component={SettingsPage} />
         <ProtectedRoute path="/team" component={TeamPage} />
         <ProtectedRoute path="/projects" component={Dashboard} />
