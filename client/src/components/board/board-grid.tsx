@@ -44,6 +44,8 @@ import {
   Flag,
   Layers,
   TrendingUp,
+  Eye,
+  Check,
 } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
@@ -194,6 +196,21 @@ export default function BoardGrid({
   const [showEmotionJourney, setShowEmotionJourney] = useState(false);
   const [groupBlocksByType, setGroupBlocksByType] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [showAlternatingColumns, setShowAlternatingColumns] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Apply dark mode to document
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    // Cleanup on unmount - remove dark class when leaving board
+    return () => {
+      document.documentElement.classList.remove('dark');
+    };
+  }, [darkMode]);
   
   // Flagging state
   const [flaggedBlocks, setFlaggedBlocks] = useState<Set<string>>(new Set());
@@ -2383,32 +2400,56 @@ export default function BoardGrid({
               <TrendingUp className="w-4 h-4" />
             </Button>
             
-            <Button
-              variant={groupBlocksByType ? "default" : "ghost"}
-              size="sm"
-              onClick={() => {
-                setGroupBlocksByType(!groupBlocksByType);
-                setExpandedGroups(new Set());
-              }}
-              className="h-9 w-9 p-0"
-              title={groupBlocksByType ? "Ungroup Blocks" : "Group Blocks by Type"}
-            >
-              <Layers className="w-4 h-4" />
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setBoardViewMode(boardViewMode === 'normal' ? 'condensed' : 'normal')}
-              className="h-9 w-9 p-0"
-              title={boardViewMode === 'normal' ? 'Switch to Condensed View' : 'Switch to Normal View'}
-            >
-              {boardViewMode === 'normal' ? (
-                <Minimize2 className="w-4 h-4" />
-              ) : (
-                <Maximize2 className="w-4 h-4" />
-              )}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0" title="View Options">
+                  <Eye className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem 
+                  onSelect={() => setShowAlternatingColumns(!showAlternatingColumns)}
+                  className="flex items-center justify-between"
+                >
+                  <span>Alternating Columns</span>
+                  {showAlternatingColumns && <Check className="w-4 h-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onSelect={() => {
+                    setGroupBlocksByType(!groupBlocksByType);
+                    setExpandedGroups(new Set());
+                  }}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center">
+                    <Layers className="w-4 h-4 mr-2" />
+                    <span>Stacked Mode</span>
+                  </div>
+                  {groupBlocksByType && <Check className="w-4 h-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onSelect={() => setBoardViewMode(boardViewMode === 'normal' ? 'condensed' : 'normal')}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center">
+                    <Minimize2 className="w-4 h-4 mr-2" />
+                    <span>Condensed View</span>
+                  </div>
+                  {boardViewMode === 'condensed' && <Check className="w-4 h-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onSelect={() => setDarkMode(!darkMode)}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center">
+                    {darkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                    <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                  </div>
+                  {darkMode && <Check className="w-4 h-4" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             <Button
               variant="ghost"
@@ -2832,7 +2873,7 @@ export default function BoardGrid({
 
                               <div className="flex gap-8">
                                 {phase.columns.map((column, columnIndex) => (
-                                  <div key={`minimap-${column.id}`} className={`flex-shrink-0 w-[225px] flex flex-col rounded-lg px-2 ${columnIndex % 2 === 0 ? 'bg-gray-100' : ''}`}>
+                                  <div key={`minimap-${column.id}`} className={`flex-shrink-0 w-[225px] flex flex-col rounded-lg px-2 ${showAlternatingColumns && columnIndex % 2 === 0 ? 'bg-gray-100' : ''}`}>
                                     <div className="flex items-center gap-2 mb-2 mt-4">
                                       <div className="cursor-grab text-gray-600 p-1 -ml-1 rounded">
                                         <GripVertical className="w-4 h-4" />
@@ -3106,7 +3147,7 @@ export default function BoardGrid({
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       data-column-id={column.id}
-                                      className={`flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex flex-col rounded-lg px-2 ${columnIndex % 2 === 0 ? 'bg-gray-100' : ''}`}
+                                      className={`flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex flex-col rounded-lg px-2 ${showAlternatingColumns && columnIndex % 2 === 0 ? 'bg-gray-100' : ''}`}
                                       style={{
                                         ...provided.draggableProps.style,
                                         zIndex: snapshot.isDragging ? 9999 : 'auto'
