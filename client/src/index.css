@@ -449,3 +449,40 @@
 .dark .hover\:bg-gray-100:hover {
   background-color: #3a3a5c !important;
 }
+
+/* Dark Mode - Text colors */
+.dark .text-black {
+  color: #e5e5e5 !important;
+}
+
+.dark .font-semibold.text-gray-700,
+.dark h2.text-gray-700 {
+  color: #c0c0d8 !important;
+}
+
+.dark .text-gray-900 {
+  color: #e5e5e5 !important;
+}
+
+/* Dark Mode - Sidebar / Drawer */
+.dark .border-r.border-gray-300 {
+  background-color: #1e1e32 !important;
+  border-color: #3a3a5c !important;
+}
+
+/* Dark Mode - Dropdowns and Popovers */
+.dark [data-radix-popper-content-wrapper] > div,
+.dark [role="menu"],
+.dark .bg-popover {
+  background-color: #252542 !important;
+  border-color: #3a3a5c !important;
+  color: #e5e5e5 !important;
+}
+
+.dark [role="menuitem"] {
+  color: #e5e5e5 !important;
+}
+
+.dark [role="menuitem"]:hover {
+  background-color: #3a3a5c !important;
+}
