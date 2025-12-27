@@ -667,7 +667,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#F5F5F5] animate-fade-in">
-      <header className="border-b-4 border-[#E53935] bg-[#0A0A0F] shadow-lg">
+      <header className="border-b-4 border-[#1976D2] bg-[#0A0A0F] shadow-lg">
         <div className="max-w-[1440px] mx-auto flex h-20 items-center px-6">
           <div className="flex-1 flex items-center gap-4">
             <Link href="/" className="flex items-center">
@@ -694,7 +694,7 @@ export default function Dashboard() {
             </div>
             
             {/* Divider */}
-            <div className="h-8 w-px bg-[#E53935] mx-1"></div>
+            <div className="h-8 w-px bg-[#1976D2] mx-1"></div>
             
             {/* Profile Menu */}
             <DropdownMenu>
@@ -777,7 +777,7 @@ export default function Dashboard() {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     size="sm"
-                    className="bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
+                    className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
                     onClick={() => setCreateBlueprintOpen(true)}
                   >
                     <FileText className="mr-2 h-4 w-4" />
@@ -1375,7 +1375,7 @@ export default function Dashboard() {
                         }
                       />
                       <div className="flex items-center space-x-3">
-                        <Button asChild variant="ghost" size="sm">
+                        <Button asChild size="sm" className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all">
                           <Link href={`/project/${project.id}`}>
                             View
                           </Link>

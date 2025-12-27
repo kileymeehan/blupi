@@ -112,9 +112,9 @@ export function OrganizationSwitcher() {
 
   if (orgsLoading) {
     return (
-      <div className="bg-white rounded-lg px-3 py-2 flex items-center gap-2 shadow-sm border border-gray-200">
-        <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-        <span className="text-sm text-gray-500">Loading...</span>
+      <div className="bg-white rounded-none px-3 py-2 flex items-center gap-2 border-2 border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F]">
+        <Loader2 className="h-4 w-4 animate-spin text-[#0A0A0F]" />
+        <span className="text-sm text-[#0A0A0F] font-semibold">Loading...</span>
       </div>
     );
   }
@@ -149,19 +149,19 @@ export function OrganizationSwitcher() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="bg-white hover:bg-gray-50 text-gray-800 rounded-lg px-3 py-2 h-auto flex items-center gap-2 shadow-sm border border-gray-200"
+            className="bg-white hover:bg-[#FFD600] text-[#0A0A0F] rounded-none px-3 py-2 h-auto flex items-center gap-2 border-2 border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
             data-testid="org-switcher-trigger"
           >
             <OrgLogo org={activeOrg} size="sm" />
-            <span className="font-medium text-sm max-w-[150px] truncate">
+            <span className="font-bold text-sm max-w-[150px] truncate uppercase tracking-wide">
               {activeOrg?.name || "Select Organization"}
             </span>
             {organizations.length > 1 && (
-              <ChevronDown className="h-4 w-4 text-gray-500" />
+              <ChevronDown className="h-4 w-4 text-[#0A0A0F]" />
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-64">
+        <DropdownMenuContent align="start" className="w-64 border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F]">
           {organizations.map((userOrg) => (
             <DropdownMenuItem
               key={userOrg.organizationId}
