@@ -411,7 +411,7 @@ export default function Project() {
           </div>
 
           {/* Sidebar */}
-          <div className={`w-full lg:w-1/5 space-y-6 order-1 lg:order-2 ${sidebarOpen ? 'block' : 'hidden lg:block'}`}>
+          <div className={`w-full lg:w-1/4 space-y-6 order-1 lg:order-2 ${sidebarOpen ? 'block' : 'hidden lg:block'}`}>
             {/* Project Members Section */}
             <div className="bauhaus-card p-6">
               {id && <ProjectMembers projectId={id} />}
