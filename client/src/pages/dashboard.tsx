@@ -876,15 +876,15 @@ export default function Dashboard() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            <Star className="h-4 w-4 text-[#FFD600] fill-current" />
                             <div className="flex items-center gap-2">
-                              <Link href={`/board/${item.boardId}`} className="text-blue-600 hover:text-blue-800 font-medium">
+                              <Link href={`/board/${item.boardId}`} className="text-[#1976D2] hover:text-[#1565C0] font-black uppercase tracking-tight">
                                 {board?.name || 'Blueprint'}
                               </Link>
-                              <ExternalLink className="h-3 w-3 text-gray-400" />
+                              <ExternalLink className="h-3 w-3 text-[#0A0A0F]" />
                             </div>
-                            <span className="text-gray-400">•</span>
-                            <span className="text-sm text-gray-600">
+                            <span className="text-[#0A0A0F] font-bold">•</span>
+                            <span className="text-sm text-[#0A0A0F] font-bold uppercase tracking-wider">
                               {project?.name || 'No Project'}
                             </span>
                           </div>
@@ -1101,7 +1101,7 @@ export default function Dashboard() {
                         />
                       </TableHead>
                       <TableHead className="w-[250px]">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 font-black uppercase tracking-wider text-[#0A0A0F]">
                           <span>Blueprint Name</span>
                         </div>
                       </TableHead>
@@ -1136,8 +1136,8 @@ export default function Dashboard() {
                               onCheckedChange={(checked) => handleSelectBlueprint(board.id, checked as boolean)}
                             />
                           </TableCell>
-                          <TableCell className="font-medium">
-                            <Link href={`/board/${board.id}`} className="text-[#302E87] hover:underline">
+                          <TableCell className="font-black uppercase tracking-tight">
+                            <Link href={`/board/${board.id}`} className="text-[#1976D2] hover:text-[#1565C0]">
                               {board.name}
                             </Link>
                           </TableCell>

@@ -33,7 +33,7 @@
 
 /* Bauhaus Card Style */
 .bauhaus-card {
-  @apply bg-white border-4 border-[#0A0A0F] shadow-[8px_8px_0px_0px_#0A0A0F] transition-all duration-200 hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px];
+  @apply bg-white border-4 border-[#0A0A0F] shadow-[8px_8px_0px_0px_#0A0A0F];
 }
 
 @layer base {
