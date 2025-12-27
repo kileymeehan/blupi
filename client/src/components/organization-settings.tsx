@@ -319,7 +319,7 @@ export function OrganizationSettings() {
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
+                className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
                 data-testid="create-org-button"
               >
                 <Plus className="h-5 w-5 mr-2" />
@@ -380,7 +380,7 @@ export function OrganizationSettings() {
             <p className="mb-6 font-medium">You're not a member of any organization yet.</p>
             <Button 
               onClick={() => setCreateDialogOpen(true)}
-              className="bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
+              className="bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
             >
               <Plus className="h-5 w-5 mr-2" />
               Create Your First Organization

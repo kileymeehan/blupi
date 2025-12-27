@@ -445,7 +445,7 @@ export default function TeamManagement() {
           </div>
           <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto">
+              <Button className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto">
                 <UserPlus className="w-5 h-5 mr-2" />
                 Invite Member
               </Button>
