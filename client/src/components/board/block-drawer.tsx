@@ -42,7 +42,8 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
                 className={`${layer.color} border-2 border-[#0A0A0F] rounded-none w-full min-w-[100px] h-[52px] relative flex items-center justify-center
-                  ${snapshot.isDragging ? "shadow-[3px_3px_0px_0px_#0A0A0F]" : "hover:bg-[#FFD600]"}
+                  shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600]
+                  ${snapshot.isDragging ? "shadow-[4px_4px_0px_0px_#0A0A0F]" : ""}
                   transition-all duration-200
                 `}
                 style={{
@@ -84,7 +85,8 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
                 className={`${layer.color} border-2 border-[#0A0A0F] rounded-none w-full h-[48px] relative flex items-center justify-center text-white
-                  ${snapshot.isDragging ? "shadow-[3px_3px_0px_0px_#0A0A0F]" : "hover:bg-[#FFD600] hover:text-[#0A0A0F]"}
+                  shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F]
+                  ${snapshot.isDragging ? "shadow-[4px_4px_0px_0px_#0A0A0F]" : ""}
                   transition-all duration-200
                 `}
                 style={{

@@ -2257,8 +2257,9 @@ export default function BoardGrid({
       <header className="h-20 border-b-4 border-[#1976D2] px-8 flex justify-between items-center bg-[#0A0A0F] shadow-none flex-shrink-0 sticky top-0 left-0 right-0 z-50">
         <div className="flex items-center gap-4 pl-4">
           <Button
+            variant="ghost"
             onClick={handleClose}
-            className="bauhaus-btn-blue h-10 px-4 text-xs"
+            className="h-9 px-3 text-xs text-white hover:text-[#FFD600] hover:bg-white/10"
           >
             <Home className="w-5 h-5 mr-2" />
             HOME
@@ -2266,8 +2267,8 @@ export default function BoardGrid({
 
           {projectData && (
             <>
-              <div className="w-[2px] h-8 bg-[#1976D2] mx-2" />
-              <Button asChild className="bauhaus-btn-blue h-10 px-4 text-xs">
+              <div className="w-px h-6 bg-white/30 mx-2" />
+              <Button asChild variant="ghost" className="h-9 px-3 text-xs text-white hover:text-[#FFD600] hover:bg-white/10">
                 <Link href={`/project/${projectData.id}`}>
                   <div className="flex items-center">
                     <Folder className="w-5 h-5 mr-2" />
@@ -2278,7 +2279,7 @@ export default function BoardGrid({
             </>
           )}
 
-          <div className="w-[2px] h-8 bg-[#1976D2] mx-2" />
+          <div className="w-px h-6 bg-white/30 mx-2" />
 
           <div className="flex items-center gap-2">
             {isEditingName ? (
@@ -2408,9 +2409,9 @@ export default function BoardGrid({
                   variant="ghost"
                   size="sm"
                   className="h-9 w-9 p-0 text-white/90 hover:text-white hover:bg-white/10"
-                  title="Settings"
+                  title="View Options"
                 >
-                  <Settings className="w-5 h-5" />
+                  <Eye className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -2447,6 +2448,15 @@ export default function BoardGrid({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 w-9 p-0 text-white/90 hover:text-white hover:bg-white/10"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
             
             <Button
               variant="ghost"
@@ -3062,7 +3072,7 @@ export default function BoardGrid({
                       id={`phase-${phase.id}`} 
                       className="flex-shrink-0 relative mr-4 sm:mr-6 lg:mr-8">
                       <div className="px-4">
-                        <div className="mb-4 border-[2px] border-gray-700 rounded-lg p-3 bg-white group">
+                        <div className="mb-4 border-4 border-[#0A0A0F] rounded-none p-3 bg-white group shadow-[3px_3px_0px_0px_#0A0A0F]">
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2 flex-1">
                               <button
@@ -3396,6 +3406,7 @@ export default function BoardGrid({
                                                                         onFlag={handleFlagBlock}
                                                                         onUnflag={handleUnflagBlock}
                                                                         isFlagged={flaggedBlocks.has(block.id)}
+                                                                        isDragging={snapshot.isDragging}
                                                                       />
                                                                     </div>
                                                                   )}
@@ -3523,6 +3534,7 @@ export default function BoardGrid({
                                                         onFlag={handleFlagBlock}
                                                         onUnflag={handleUnflagBlock}
                                                         isFlagged={flaggedBlocks.has(block.id)}
+                                                        isDragging={snapshot.isDragging}
                                                       />
                                                     </div>
                                                   )}
