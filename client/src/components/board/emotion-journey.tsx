@@ -129,7 +129,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
         {/* SVG Line */}
         <svg 
           className="absolute inset-0 w-full h-full pointer-events-none z-0"
-          style={{ paddingLeft: '2.5rem' }} // Match ml-10
+          style={{ paddingLeft: '2.5rem' }} 
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
         >
@@ -138,6 +138,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
               d={dots.map((dot, i) => `${i === 0 ? 'M' : 'L'} ${dot.x} ${dot.y}`).join(' ')}
               stroke="#6366f1"
               strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
               fill="none"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 0.4 }}
@@ -150,7 +151,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
         <div className="relative z-10 flex items-start">
           {board.phases.map((phase: Phase, phaseIndex: number) => (
             <div key={phase.id} className="flex flex-shrink-0 mr-4 sm:mr-6 lg:mr-8">
-              <div className="px-4 flex gap-4 md:gap-8">
+              <div className="flex gap-4 md:gap-8 px-4">
                 {phase.columns.map((column: Column, columnIndex: number) => {
                   const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc: number, p: Phase) => acc + p.columns.length, 0) + columnIndex;
                   const emotion = allColumns[globalColumnIndex]?.emotion;
@@ -159,15 +160,16 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                   return (
                     <div 
                       key={column.id} 
-                      className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex flex-col items-center group/col"
+                      className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex flex-col items-center"
                       style={{ minHeight: '140px' }}
                     >
-                      <div className="relative w-full h-[120px]">
+                      <div className="relative w-full h-[120px] flex justify-center">
                         <motion.div
                           data-emotion-dot
-                          className="absolute left-1/2 z-20"
+                          className="absolute z-20"
                           style={{
                             top: `${yPosition}%`,
+                            left: '50%',
                             transform: 'translate(-50%, -50%)'
                           }}
                           initial={{ scale: 0 }}
