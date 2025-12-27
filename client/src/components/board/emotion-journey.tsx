@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Phase, Column, Emotion, Board } from '@shared/schema';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,8 @@ interface EmotionJourneyProps {
 }
 
 export function EmotionJourney({ phases, board, onEmotionChange, className = '', singleColumn = false }: EmotionJourneyProps) {
-  const [animationComplete, setAnimationComplete] = useState(false);
+  const [dots, setDots] = useState<{ x: number, y: number }[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const allColumns = phases.flatMap((phase: Phase, phaseIndex: number) => 
     phase.columns.map((column: Column, columnIndex: number) => ({
@@ -39,7 +40,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
     }))
   );
 
-  const getEmotionPosition = (emotion: Emotion | undefined) => {
+  const getEmotionY = (emotion: Emotion | undefined) => {
     if (!emotion) return 50;
     return 100 - ((emotion.value - 1) / 6) * 100;
   };
@@ -57,249 +58,181 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
     onEmotionChange(phaseIndex, columnIndex, null);
   };
 
+  // Update line coordinates whenever phases or board changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimationComplete(true);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    const updateDots = () => {
+      if (!containerRef.current) return;
+      const dotElements = containerRef.current.querySelectorAll('[data-emotion-dot]');
+      const containerRect = containerRef.current.getBoundingClientRect();
+      
+      const newDots = Array.from(dotElements).map(el => {
+        const rect = el.getBoundingClientRect();
+        return {
+          x: ((rect.left + rect.width / 2) - containerRect.left) / containerRect.width * 100,
+          y: ((rect.top + rect.height / 2) - containerRect.top) / containerRect.height * 100
+        };
+      });
+      setDots(newDots);
+    };
+
+    updateDots();
+    // Observe for layout changes
+    const observer = new ResizeObserver(updateDots);
+    if (containerRef.current) observer.observe(containerRef.current);
+    
+    // Also update after a short delay for animations
+    const timer = setTimeout(updateDots, 100);
+    
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
+  }, [phases, board]);
 
   if (allColumns.length === 0) return null;
 
-  if (singleColumn) {
-    const column = allColumns[0];
-    const emotion = column.emotion;
-    
-    return (
-      <div className={`w-full flex justify-center ${className}`}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 rounded-full border-2 shadow-sm hover:scale-110 transition-transform text-white font-semibold"
-              style={{
-                backgroundColor: emotion?.color || '#e2e8f0',
-                borderColor: emotion?.color || '#cbd5e1',
-                color: emotion ? 'white' : '#64748b'
-              }}
-            >
-              <span className="text-sm">
-                {emotion?.value || '○'}
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="w-44">
-            {Object.entries(EMOTION_SCALE).map(([value, data]) => (
-              <DropdownMenuItem
-                key={value}
-                onClick={() => handleEmotionSelect(column.phaseIndex, column.columnIndex, parseInt(value))}
-                className="flex items-center gap-2"
-              >
-                <div 
-                  className="w-4 h-4 rounded-full" 
-                  style={{ backgroundColor: data.color }}
-                />
-                <span className="text-sm font-medium">{value}</span>
-                <span className="text-xs text-slate-500">{data.label}</span>
-              </DropdownMenuItem>
-            ))}
-            {emotion && (
-              <>
-                <div className="border-t my-1" />
-                <DropdownMenuItem
-                  onClick={() => handleRemoveEmotion(column.phaseIndex, column.columnIndex)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  Remove emotion
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    );
-  }
-
   return (
-    <div className={`w-full bg-gradient-to-b from-slate-50 to-white border border-slate-200 rounded-lg p-4 ${className}`}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-slate-700">Emotional Journey</h3>
-        <span className="text-xs text-slate-500">Click dots to set emotions</span>
+    <div className={`w-full bg-white border border-slate-200 rounded-xl p-6 ${className}`}>
+      <div className="flex items-center justify-between mb-8">
+        <h3 className="text-lg font-semibold text-slate-800">Emotional Journey</h3>
+        <div className="flex items-center gap-6 text-xs text-slate-500">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+            <span>1-3 Negative</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+            <span>4 Neutral</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+            <span>5-7 Positive</span>
+          </div>
+        </div>
       </div>
       
-      <div className="relative">
-        <div className="absolute left-0 top-0 bottom-0 w-8 flex flex-col justify-between text-xs text-slate-400">
+      <div className="relative pl-10" ref={containerRef}>
+        {/* Y-Axis Labels */}
+        <div className="absolute left-0 top-0 bottom-0 w-8 flex flex-col justify-between text-xs font-medium text-slate-400 py-1">
           <span>7</span>
           <span>4</span>
           <span>1</span>
         </div>
         
-        <div className="ml-10 relative" style={{ height: '120px' }}>
-          <div className="absolute inset-0 flex flex-col justify-between">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="w-full h-px bg-slate-200" />
-            ))}
-          </div>
-          
-          <div className="absolute inset-0 flex items-start pointer-events-none">
-            {board.phases.map((phase: Phase, phaseIndex: number) => (
-              <div 
-                key={phase.id} 
-                className="flex-shrink-0 relative mr-4 sm:mr-6 lg:mr-8 pointer-events-auto"
-              >
-                <div className="px-4">
-                  <div className="flex gap-4 md:gap-8">
-                    {phase.columns.map((column: Column, columnIndex: number) => {
-                      const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc: number, p: Phase) => acc + p.columns.length, 0) + columnIndex;
-                      const emotion = allColumns[globalColumnIndex]?.emotion;
-                      const yPosition = getEmotionPosition(emotion);
-                      
-                      return (
-                        <div 
-                          key={column.id} 
-                          className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex justify-center relative group/col"
-                        >
-                          <div className="absolute inset-y-0 left-1/2 w-px bg-slate-100/50 -translate-x-1/2" />
-                          
-                          <motion.div
-                            className="absolute flex flex-col items-center z-10"
-                            style={{
-                              top: `${yPosition}%`,
-                              left: '50%',
-                              transform: 'translateX(-50%) translateY(-50%)'
-                            }}
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ 
-                              delay: globalColumnIndex * 0.1,
-                              duration: 0.3,
-                              type: "spring",
-                              stiffness: 200 
-                            }}
-                          >
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 rounded-full border-2 shadow-sm hover:scale-110 transition-transform text-white font-semibold"
-                                  style={{
-                                    backgroundColor: emotion?.color || '#e2e8f0',
-                                    borderColor: emotion?.color || '#cbd5e1',
-                                    color: emotion ? 'white' : '#64748b'
-                                  }}
-                                >
-                                  <span className="text-sm">
-                                    {emotion?.value || '○'}
-                                  </span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="center" className="w-44">
-                                {Object.entries(EMOTION_SCALE).map(([value, data]) => (
-                                  <DropdownMenuItem
-                                    key={value}
-                                    onClick={() => handleEmotionSelect(phaseIndex, columnIndex, parseInt(value))}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <div 
-                                      className="w-4 h-4 rounded-full" 
-                                      style={{ backgroundColor: data.color }}
-                                    />
-                                    <span className="text-sm font-medium">{value}</span>
-                                    <span className="text-xs text-slate-500">{data.label}</span>
-                                  </DropdownMenuItem>
-                                ))}
-                                {emotion && (
-                                  <>
-                                    <div className="border-t my-1" />
-                                    <DropdownMenuItem
-                                      onClick={() => handleRemoveEmotion(phaseIndex, columnIndex)}
-                                      className="text-red-600 hover:text-red-700"
-                                    >
-                                      Remove emotion
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                            
-                            <span className="text-xs text-slate-500 mt-1 text-center max-w-16 truncate">
-                              {column.name}
-                            </span>
-                          </motion.div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <svg 
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-          >
-            <motion.path
-              d={(() => {
-                const pathCommands: string[] = [];
-                
-                // We need to calculate the actual X position for each column
-                // based on the flex layout widths and gaps.
-                // Since we're in a relative container with 100% width, 
-                // we'll use a ref-based or calculation-based approach.
-                // For now, let's improve the calculation by tracking the exact 
-                // percentages of the container width.
-                
-                let currentX = 0;
-                const phaseGap = 32; // sm:gap-6 lg:gap-8 ≈ 32px
-                const columnGap = 32; // gap-4 md:gap-8 ≈ 32px
-                
-                // This is a complex calculation for an SVG path in a flex container.
-                // A better approach is to render the path using the same flex layout
-                // but for now, let's use the simplified version and fix the centering.
-                
-                allColumns.forEach((column, globalColumnIndex) => {
-                  const emotion = column.emotion;
-                  const y = getEmotionPosition(emotion);
-                  
-                  const totalColumns = allColumns.length;
-                  const columnWidth = 100 / totalColumns;
-                  const x = (globalColumnIndex * columnWidth) + (columnWidth / 2);
-                  
-                  pathCommands.push(`${globalColumnIndex === 0 ? 'M' : 'L'} ${x} ${y}`);
-                });
-                
-                return pathCommands.join(' ');
-              })()}
-              stroke="#6366f1"
-              strokeWidth="1.5"
-              fill="none"
-              strokeDasharray="3,3"
-              opacity="0.7"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 2, ease: "easeInOut" }}
-            />
-          </svg>
-
+        {/* Grid Lines */}
+        <div className="absolute inset-0 ml-10 flex flex-col justify-between pointer-events-none py-1">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="w-full h-px bg-slate-100" />
+          ))}
         </div>
+
+        {/* SVG Line */}
+        <svg 
+          className="absolute inset-0 w-full h-full pointer-events-none z-0"
+          style={{ paddingLeft: '2.5rem' }} // Match ml-10
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          {dots.length > 1 && (
+            <motion.path
+              d={dots.map((dot, i) => `${i === 0 ? 'M' : 'L'} ${dot.x} ${dot.y}`).join(' ')}
+              stroke="#6366f1"
+              strokeWidth="2"
+              fill="none"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.4 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            />
+          )}
+        </svg>
         
-        <div className="flex items-center justify-center gap-6 mt-4 text-xs text-slate-500">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-red-500" />
-            <span>1-3 Negative</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-yellow-500" />
-            <span>4 Neutral</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-green-500" />
-            <span>5-7 Positive</span>
-          </div>
+        {/* Content Layer */}
+        <div className="relative z-10 flex items-start">
+          {board.phases.map((phase: Phase, phaseIndex: number) => (
+            <div key={phase.id} className="flex flex-shrink-0 mr-4 sm:mr-6 lg:mr-8">
+              <div className="px-4 flex gap-4 md:gap-8">
+                {phase.columns.map((column: Column, columnIndex: number) => {
+                  const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc: number, p: Phase) => acc + p.columns.length, 0) + columnIndex;
+                  const emotion = allColumns[globalColumnIndex]?.emotion;
+                  const yPosition = getEmotionY(emotion);
+                  
+                  return (
+                    <div 
+                      key={column.id} 
+                      className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex flex-col items-center group/col"
+                      style={{ minHeight: '140px' }}
+                    >
+                      <div className="relative w-full h-[120px]">
+                        <motion.div
+                          data-emotion-dot
+                          className="absolute left-1/2 z-20"
+                          style={{
+                            top: `${yPosition}%`,
+                            transform: 'translate(-50%, -50%)'
+                          }}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: globalColumnIndex * 0.05 }}
+                        >
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-9 w-9 p-0 rounded-full border-2 shadow-md hover:scale-110 transition-transform text-white font-bold"
+                                style={{
+                                  backgroundColor: emotion?.color || '#f8fafc',
+                                  borderColor: emotion?.color || '#e2e8f0',
+                                  color: emotion ? 'white' : '#94a3b8'
+                                }}
+                              >
+                                {emotion?.value || '○'}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="center" className="w-48">
+                              {Object.entries(EMOTION_SCALE).map(([value, data]) => (
+                                <DropdownMenuItem
+                                  key={value}
+                                  onClick={() => handleEmotionSelect(phaseIndex, columnIndex, parseInt(value))}
+                                  className="flex items-center gap-3 py-2"
+                                >
+                                  <div 
+                                    className="w-5 h-5 rounded-full shadow-sm" 
+                                    style={{ backgroundColor: data.color }}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-semibold">Level {value}</span>
+                                    <span className="text-[10px] text-slate-500 uppercase tracking-wider">{data.label}</span>
+                                  </div>
+                                </DropdownMenuItem>
+                              ))}
+                              {emotion && (
+                                <>
+                                  <div className="border-t my-1" />
+                                  <DropdownMenuItem
+                                    onClick={() => handleRemoveEmotion(phaseIndex, columnIndex)}
+                                    className="text-red-600 hover:bg-red-50 font-medium"
+                                  >
+                                    Clear Score
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </motion.div>
+                      </div>
+                      
+                      <div className="mt-2 px-2 text-center">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[120px]">
+                          {column.name || `Step ${columnIndex + 1}`}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
