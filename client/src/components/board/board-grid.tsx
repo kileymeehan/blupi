@@ -2883,7 +2883,7 @@ export default function BoardGrid({
 
                               <div className="flex gap-8">
                                 {phase.columns.map((column, columnIndex) => (
-                                  <div key={`minimap-${column.id}`} className={`flex-shrink-0 w-[225px] flex flex-col rounded-lg px-2 ${showAlternatingColumns && columnIndex % 2 === 0 ? 'bg-gray-100' : ''}`}>
+                                  <div key={`minimap-${column.id}`} className={`flex-shrink-0 w-[270px] flex flex-col rounded-lg px-2 ${showAlternatingColumns && columnIndex % 2 === 0 ? 'bg-gray-100' : ''}`}>
                                     <div className="flex items-center gap-2 mb-2 mt-4">
                                       <div className="cursor-grab text-gray-600 p-1 -ml-1 rounded">
                                         <GripVertical className="w-4 h-4" />
@@ -3157,7 +3157,7 @@ export default function BoardGrid({
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       data-column-id={column.id}
-                                      className={`flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex flex-col rounded-lg px-2 ${showAlternatingColumns && columnIndex % 2 === 0 ? 'bg-gray-100' : ''}`}
+                                      className={`flex-shrink-0 w-[220px] sm:w-[240px] md:w-[270px] flex flex-col rounded-lg px-2 ${showAlternatingColumns && columnIndex % 2 === 0 ? 'bg-gray-100' : ''}`}
                                       style={{
                                         ...provided.draggableProps.style,
                                         zIndex: snapshot.isDragging ? 9999 : 'auto'
