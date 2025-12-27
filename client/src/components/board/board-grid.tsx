@@ -3336,24 +3336,14 @@ export default function BoardGrid({
                                                                         zIndex: snapshot.isDragging ? 9999 : "auto"
                                                                       }}
                                                                     >
-                                                                      <div className="absolute inset-0 pointer-events-none">
-                                                                        {isModifierKeyPressed && (
-                                                                          <div 
-                                                                            {...provided.dragHandleProps}
-                                                                            className="absolute inset-0 pointer-events-auto cursor-grab active:cursor-grabbing bg-blue-500/10 border-2 border-blue-500 border-dashed rounded-lg"
-                                                                            style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
-                                                                            title="Drag to move or duplicate block between phases"
-                                                                          />
-                                                                        )}
-                                                                        <div 
-                                                                          {...provided.dragHandleProps}
-                                                                          className="absolute top-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing hover:bg-blue-500/20 transition-colors rounded-t-lg"
-                                                                          style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
-                                                                          title="Drag to move block"
-                                                                        >
-                                                                          <div className="h-full flex justify-center items-center opacity-30 group-hover:opacity-100 transition-opacity">
-                                                                            <GripVertical size={14} className="text-gray-600" />
-                                                                          </div>
+                                                                      <div 
+                                                                        {...provided.dragHandleProps}
+                                                                        className="absolute top-0 left-0 right-0 h-6 cursor-grab active:cursor-grabbing hover:bg-gray-900/10 transition-colors rounded-t-lg z-10 flex justify-center items-center"
+                                                                        style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
+                                                                        title="Drag to move block"
+                                                                      >
+                                                                        <div className="opacity-40 group-hover:opacity-100 transition-opacity">
+                                                                          <GripVertical size={16} className="text-gray-700" />
                                                                         </div>
                                                                       </div>
                                                                       <Block
@@ -3473,27 +3463,16 @@ export default function BoardGrid({
                                                         zIndex: snapshot.isDragging ? 9999 : "auto"
                                                       }}
                                                     >
-                                                      <div className="absolute inset-0 pointer-events-none">
-                                                        {isModifierKeyPressed && (
-                                                          <div 
-                                                            {...provided.dragHandleProps}
-                                                            className="absolute inset-0 pointer-events-auto cursor-grab active:cursor-grabbing bg-blue-500/10 border-2 border-blue-500 border-dashed rounded-lg"
-                                                            style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
-                                                            title="Drag to move or duplicate block between phases"
-                                                          />
-                                                        )}
-                                                        <div 
-                                                          {...provided.dragHandleProps}
-                                                          className="absolute top-0 left-0 right-0 h-8 pointer-events-auto cursor-grab active:cursor-grabbing hover:bg-blue-500/20 transition-colors rounded-t-lg"
-                                                          style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
-                                                          title="Drag to move block between phases and columns"
-                                                        >
-                                                          <div className="h-full flex justify-center items-center opacity-30 group-hover:opacity-100 transition-opacity">
-                                                            <GripVertical size={14} className="text-gray-600" />
-                                                          </div>
+                                                      <div 
+                                                        {...provided.dragHandleProps}
+                                                        className="absolute top-0 left-0 right-0 h-6 cursor-grab active:cursor-grabbing hover:bg-gray-900/10 transition-colors rounded-t-lg z-10 flex justify-center items-center"
+                                                        style={{ cursor: snapshot.isDragging ? "grabbing" : "grab" }}
+                                                        title="Drag to move block"
+                                                      >
+                                                        <div className="opacity-40 group-hover:opacity-100 transition-opacity">
+                                                          <GripVertical size={16} className="text-gray-700" />
                                                         </div>
                                                       </div>
-                                                      
                                                       <Block
                                                         block={block}
                                                         boardId={Number(id)}
