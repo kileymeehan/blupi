@@ -304,22 +304,22 @@ export function OrganizationSettings() {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white">
+      <CardHeader className="border-b-4 border-[#0A0A0F] bg-[#0A0A0F] text-white py-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-[#302E87]" />
+            <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-white">
+              <Building2 className="h-5 w-5 text-[#FFD600]" />
               Organization
             </CardTitle>
-            <CardDescription className="mt-1.5">
+            <CardDescription className="mt-1.5 text-gray-300 font-medium">
               Manage your organization settings and switch between workspaces
             </CardDescription>
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="bg-primary hover:bg-primary/90"
+                className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all"
                 data-testid="create-org-button"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -392,10 +392,10 @@ export function OrganizationSettings() {
             {organizations.map((org) => (
               <div
                 key={org.organizationId}
-                className={`p-4 rounded-lg border ${
+                className={`p-4 border-2 rounded-none transition-all ${
                   org.isActive 
-                    ? 'border-[#302E87] bg-[#302E87]/5' 
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-[#0A0A0F] bg-[#FFD600]/10 shadow-[4px_4px_0px_0px_#0A0A0F]' 
+                    : 'border-[#0A0A0F] hover:bg-gray-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]'
                 }`}
                 data-testid={`org-card-${org.organization.slug}`}
               >
@@ -469,10 +469,10 @@ export function OrganizationSettings() {
                     ) : (
                       <>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium truncate">{org.organization.name}</span>
+                          <span className="font-black uppercase tracking-tight text-[#0A0A0F]">{org.organization.name}</span>
                           {org.isActive && (
                             <span 
-                              className="inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-[#302E87] text-white font-medium select-none"
+                              className="inline-flex items-center text-[10px] px-2 py-0.5 border border-[#0A0A0F] rounded-none bg-[#0A0A0F] text-white font-black uppercase tracking-widest select-none"
                               data-testid="active-badge"
                             >
                               Active

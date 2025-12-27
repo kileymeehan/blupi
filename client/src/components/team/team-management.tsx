@@ -424,28 +424,28 @@ export default function TeamManagement() {
   }
 
   return (
-    <Card>
+    <Card className="border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white">
       {activeOrg && (
-        <div className="bg-[#302E87]/5 border-b border-[#302E87]/20 px-6 py-3 flex items-center gap-2 text-sm">
-          <Building2 className="h-4 w-4 text-[#302E87]" />
-          <span className="text-[#302E87] font-medium">{activeOrg.name}</span>
-          <span className="text-gray-500">organization</span>
+        <div className="bg-[#1976D2] border-b-4 border-[#0A0A0F] px-6 py-3 flex items-center gap-2 text-sm text-white">
+          <Building2 className="h-4 w-4 text-[#FFD600]" />
+          <span className="font-black uppercase tracking-widest">{activeOrg.name}</span>
+          <span className="opacity-80 font-bold uppercase tracking-tight text-xs ml-1">organization</span>
         </div>
       )}
-      <CardHeader>
+      <CardHeader className="border-b-4 border-[#0A0A0F] bg-white py-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-[#0A0A0F]">
               <Users className="w-5 h-5" />
               Team Management
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-600 font-medium">
               Invite team members and manage permissions for your organization
             </CardDescription>
           </div>
           <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all">
                 <UserPlus className="w-4 h-4 mr-2" />
                 Invite Member
               </Button>
