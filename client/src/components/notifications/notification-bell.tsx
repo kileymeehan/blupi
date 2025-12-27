@@ -86,7 +86,7 @@ export function NotificationBell({ variant = 'auto' }: { variant?: 'light' | 'da
 
   // Determine icon color based on variant
   const getIconColor = () => {
-    if (variant === 'light') return 'text-gray-700';
+    if (variant === 'light') return 'text-white/90 hover:text-white';
     if (variant === 'dark') return 'text-white';
     // Auto mode: white by default (for dark backgrounds), can be overridden by parent context
     return 'text-white';

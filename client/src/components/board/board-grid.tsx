@@ -2562,7 +2562,7 @@ export default function BoardGrid({
             className={`${isDrawerOpen ? "w-72" : "w-16"} flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-40 h-auto flex flex-col overflow-y-auto`}
             style={{
               backgroundColor: darkMode ? '#1e1e32' : 'white',
-              borderRight: darkMode ? '1px solid #3a3a5c' : '1px solid #d1d5db'
+              borderRight: darkMode ? '2px solid #3a3a5c' : '3px solid #0A0A0F'
             }}
           >
             <div className="flex flex-col flex-grow overflow-hidden relative">
@@ -3144,10 +3144,9 @@ export default function BoardGrid({
                               {/* Add column button - only show when phase is not collapsed */}
                               {!phase.collapsed && (
                                 <Button
-                                  variant="outline"
                                   size="sm"
                                   onClick={() => handleAddColumn(phaseIndex)}
-                                  className="h-7 px-2 border border-gray-100 hide-in-pdf"
+                                  className="h-7 px-2 bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F] font-bold uppercase text-xs tracking-wide hide-in-pdf"
                                 >
                                   <Plus className="w-4 h-4 mr-1" />
                                   Step
@@ -3624,10 +3623,9 @@ export default function BoardGrid({
                   ))}
                   <div className="flex-shrink-0">
                     <Button
-                      variant="outline"
                       size="sm"
                       onClick={handleAddPhase}
-                      className="h-9 px-2 border border-gray-300"
+                      className="h-9 px-3 bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F] font-bold uppercase text-xs tracking-wide"
                     >
                       <Plus className="w-4 h-4 mr-1" />
                       Add Phase

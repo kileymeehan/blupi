@@ -191,8 +191,8 @@ export function BlueprintImportTrigger({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-9 w-9 p-0" title="Import Blueprint">
-          <Download className="h-4 w-4" />
+        <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-white/90 hover:text-white hover:bg-white/10" title="Import Blueprint">
+          <Download className="h-5 w-5" />
         </Button>
       </DialogTrigger>
       <BlueprintImportDialog
