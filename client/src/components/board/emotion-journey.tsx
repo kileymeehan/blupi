@@ -195,7 +195,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                   return (
                     <div 
                       key={column.id} 
-                      className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex flex-col"
+                      className="flex-shrink-0 w-[220px] sm:w-[240px] md:w-[270px] flex flex-col"
                     >
                       <div 
                         className="relative"
