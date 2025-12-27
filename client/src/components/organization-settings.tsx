@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Building2, Check, Loader2, Plus, Pencil, Users, Upload, X } from "lucide-react";
+import { Building2, Check, Loader2, Plus, Pencil, Users, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +58,7 @@ function MemberCount({ organizationId }: { organizationId: string }) {
 
   const count = data?.count ?? 0;
   return (
-    <span className="text-xs text-gray-500 flex items-center gap-1">
+    <span className="text-xs text-gray-500 flex items-center gap-1 font-bold uppercase tracking-wider">
       <Users className="h-3 w-3" />
       {count} {count === 1 ? 'member' : 'members'}
     </span>
@@ -71,46 +71,9 @@ export function OrganizationSettings() {
   const [newOrgName, setNewOrgName] = useState("");
   const [editingOrgId, setEditingOrgId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
-  const [uploadingLogoFor, setUploadingLogoFor] = useState<string | null>(null);
 
   const { data: organizations = [], isLoading: orgsLoading } = useQuery<UserOrganization[]>({
     queryKey: ['/api/organizations'],
-  });
-
-  const uploadLogo = useMutation({
-    mutationFn: async ({ organizationId, file }: { organizationId: string; file: File }) => {
-      const formData = new FormData();
-      formData.append('logo', file);
-      
-      const response = await fetch(`/api/organizations/${organizationId}/logo`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to upload logo');
-      }
-      
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/organizations/active'] });
-      setUploadingLogoFor(null);
-      toast({
-        title: "Logo uploaded",
-        description: "Organization logo has been updated.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to upload logo",
-        variant: "destructive",
-      });
-    },
   });
 
   const removeLogo = useMutation({
@@ -142,26 +105,6 @@ export function OrganizationSettings() {
         variant: "destructive",
       });
     },
-  });
-
-  const handleLogoUpload = (organizationId: string, event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Logo must be less than 2MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      setUploadingLogoFor(organizationId);
-      uploadLogo.mutate({ organizationId, file });
-    }
-  };
-
-  const { data: activeOrg } = useQuery<Organization | null>({
-    queryKey: ['/api/organizations/active'],
   });
 
   const switchOrganization = useMutation({
@@ -265,35 +208,34 @@ export function OrganizationSettings() {
 
   if (orgsLoading) {
     return (
-      <Card>
-        <CardHeader>
+      <Card className="border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white overflow-hidden">
+        <CardHeader className="border-b-4 border-[#0A0A0F] bg-[#0A0A0F] text-white">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-[#4D629B]" />
+              <CardTitle className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-[#FFD600]" />
                 Organization
               </CardTitle>
-              <CardDescription className="mt-1.5">
+              <CardDescription className="text-gray-300 font-medium">
                 Manage your organization settings and switch between workspaces
               </CardDescription>
             </div>
-            <div className="h-9 w-32 bg-gray-200 rounded animate-pulse" />
+            <div className="h-10 w-32 bg-white/20 border-2 border-white/40 animate-pulse rounded-none" />
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Your Organizations</h3>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="p-4 rounded-lg border border-gray-200 space-y-3">
+              <div key={i} className="p-4 border-4 border-[#0A0A0F] bg-gray-50 animate-pulse">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3 flex-1">
-                    <div className="h-12 w-12 bg-gray-200 rounded-lg animate-pulse flex-shrink-0" />
+                    <div className="h-12 w-12 bg-gray-200 border-2 border-[#0A0A0F] rounded-none" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-                      <div className="h-3 w-24 bg-gray-100 rounded animate-pulse" />
+                      <div className="h-4 w-32 bg-gray-200" />
+                      <div className="h-3 w-24 bg-gray-100" />
                     </div>
                   </div>
-                  <div className="h-9 w-20 bg-gray-200 rounded animate-pulse flex-shrink-0" />
+                  <div className="h-8 w-20 bg-gray-200 border-2 border-[#0A0A0F]" />
                 </div>
               </div>
             ))}
@@ -304,68 +246,65 @@ export function OrganizationSettings() {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white overflow-hidden">
+      <CardHeader className="border-b-4 border-[#0A0A0F] bg-[#0A0A0F] text-white">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-[#302E87]" />
+            <CardTitle className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-[#FFD600]" />
               Organization
             </CardTitle>
-            <CardDescription className="mt-1.5">
+            <CardDescription className="text-gray-300 font-medium">
               Manage your organization settings and switch between workspaces
             </CardDescription>
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="bg-primary hover:bg-primary/90"
+                className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all"
                 data-testid="create-org-button"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Organization
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Organization</DialogTitle>
-                <DialogDescription>
+            <DialogContent className="border-2 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F]">
+              <DialogHeader className="border-b-2 border-[#0A0A0F] pb-4">
+                <DialogTitle className="text-[#0A0A0F] font-black uppercase tracking-tight">Create New Organization</DialogTitle>
+                <DialogDescription className="text-gray-600 font-medium">
                   Create a new workspace for your team to collaborate on projects and blueprints.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="org-name">Organization Name</Label>
+                  <Label htmlFor="org-name" className="font-bold uppercase tracking-wide text-xs text-[#0A0A0F]">Organization Name</Label>
                   <Input
                     id="org-name"
                     placeholder="e.g., My Company"
                     value={newOrgName}
                     onChange={(e) => setNewOrgName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newOrgName.trim()) {
-                        handleCreateOrg();
-                      }
-                    }}
+                    className="border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600]"
                     data-testid="org-name-input"
                   />
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="pt-4 border-t-2 border-[#0A0A0F]">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => setCreateDialogOpen(false)}
+                  className="rounded-none border-2 border-transparent hover:border-[#0A0A0F] font-bold uppercase tracking-wide"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleCreateOrg}
                   disabled={!newOrgName.trim() || createOrganization.isPending}
-                  className="bg-[#302E87] hover:bg-[#252371]"
+                  className="bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none font-bold uppercase tracking-wide transition-all"
                   data-testid="submit-create-org"
                 >
-                  {createOrganization.isPending ? (
+                  {createOrganization.isPending && (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : null}
+                  )}
                   Create Organization
                 </Button>
               </DialogFooter>
@@ -373,190 +312,120 @@ export function OrganizationSettings() {
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         {organizations.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-12 border-2 border-dashed border-[#0A0A0F] rounded-none bg-gray-50">
             <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p className="mb-4">You're not a member of any organization yet.</p>
+            <p className="mb-6 font-medium text-gray-600 uppercase tracking-wide">You're not a member of any organization yet.</p>
             <Button 
               onClick={() => setCreateDialogOpen(true)}
-              className="bg-[#302E87] hover:bg-[#252371]"
+              className="bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none font-bold uppercase tracking-wide transition-all"
             >
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Organization
             </Button>
           </div>
         ) : (
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Your Organizations</h3>
-            {organizations.map((org) => (
-              <div
-                key={org.organizationId}
-                className={`p-4 rounded-lg border ${
-                  org.isActive 
-                    ? 'border-[#302E87] bg-[#302E87]/5' 
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                data-testid={`org-card-${org.organization.slug}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="relative group flex-shrink-0">
-                      {org.organization.settings?.logoUrl ? (
-                        <div className="relative">
-                          <img 
-                            src={org.organization.settings.logoUrl}
-                            alt={org.organization.name}
-                            className="h-12 w-12 object-contain rounded-lg border border-gray-200 bg-white"
-                          />
-                          {canEdit(org.role) && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-white border border-gray-200 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => removeLogo.mutate(org.organizationId)}
-                              disabled={removeLogo.isPending}
-                              data-testid={`remove-logo-${org.organization.slug}`}
-                            >
-                              <X className="h-3 w-3 text-gray-500" />
-                            </Button>
-                          )}
-                        </div>
-                      ) : (
-                        <div className={`h-12 w-12 rounded-lg flex items-center justify-center ${org.isActive ? 'bg-[#302E87]' : 'bg-gray-100'}`}>
-                          <Building2 className={`h-6 w-6 ${org.isActive ? 'text-white' : 'text-gray-600'}`} />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      {editingOrgId === org.organizationId ? (
-                      <div className="flex items-center gap-2">
-                        <Input
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          className="h-8 text-sm"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveEdit();
-                            if (e.key === 'Escape') handleCancelEdit();
-                          }}
-                          data-testid="edit-org-name-input"
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleSaveEdit}
-                          disabled={!editName.trim() || renameOrganization.isPending}
-                          className="h-8 px-2"
-                          data-testid="save-org-name"
-                        >
-                          {renameOrganization.isPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Check className="h-4 w-4 text-green-600" />
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleCancelEdit}
-                          className="h-8 px-2"
-                          data-testid="cancel-edit-org"
-                        >
-                          <span className="text-gray-500">Cancel</span>
-                        </Button>
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase tracking-widest text-[#0A0A0F] mb-4">Your Organizations</h3>
+            <div className="grid gap-4">
+              {organizations.map((org) => (
+                <div
+                  key={org.organizationId}
+                  className={`p-4 border-4 transition-all ${
+                    org.isActive 
+                      ? 'border-[#0A0A0F] bg-[#FFD600]/10 shadow-[4px_4px_0px_0px_#0A0A0F]' 
+                      : 'border-[#0A0A0F] bg-white hover:bg-gray-50 shadow-[2px_2px_0px_0px_#0A0A0F]'
+                  }`}
+                  data-testid={`org-card-${org.organization.slug}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="relative group flex-shrink-0">
+                        {org.organization.settings?.logoUrl ? (
+                          <div className="relative border-2 border-[#0A0A0F] rounded-none overflow-hidden bg-white">
+                            <img 
+                              src={org.organization.settings.logoUrl}
+                              alt={org.organization.name}
+                              className="h-12 w-12 object-contain"
+                            />
+                            {canEdit(org.role) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="absolute top-0 right-0 h-5 w-5 p-0 bg-white border-l border-b border-[#0A0A0F] rounded-none opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+                                onClick={() => removeLogo.mutate(org.organizationId)}
+                                disabled={removeLogo.isPending}
+                              >
+                                <X className="h-3 w-3 text-red-600" />
+                              </Button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className={`h-12 w-12 border-2 border-[#0A0A0F] rounded-none flex items-center justify-center ${org.isActive ? 'bg-[#0A0A0F]' : 'bg-gray-100'}`}>
+                            <Building2 className={`h-6 w-6 ${org.isActive ? 'text-white' : 'text-[#0A0A0F]'}`} />
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium truncate">{org.organization.name}</span>
-                          {org.isActive && (
-                            <span 
-                              className="inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-[#302E87] text-white font-medium select-none"
-                              data-testid="active-badge"
-                            >
-                              Active
-                            </span>
-                          )}
-                          {canEdit(org.role) && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
-                              onClick={() => handleStartEdit(org)}
-                              data-testid={`edit-org-${org.organization.slug}`}
-                            >
-                              <Pencil className="h-3 w-3" />
+                      <div className="flex-1 min-w-0">
+                        {editingOrgId === org.organizationId ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="h-8 border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600]"
+                              autoFocus
+                            />
+                            <Button size="sm" onClick={handleSaveEdit} className="h-8 bg-[#0A0A0F] text-white rounded-none border-2 border-[#0A0A0F]">
+                              <Check className="h-4 w-4" />
                             </Button>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 mt-0.5">
-                          <span className="text-sm text-gray-500 capitalize">{org.role}</span>
-                          <MemberCount organizationId={org.organizationId} />
-                        </div>
-                      </>
-                    )}
-                    </div>
-                  </div>
-                  
-                  {editingOrgId !== org.organizationId && (
-                    org.isActive ? (
-                      <div className="flex items-center gap-2 text-[#302E87] flex-shrink-0">
-                        <Check className="h-5 w-5" />
-                        <span className="text-sm font-medium">Current</span>
+                            <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="h-8 rounded-none border-2 border-[#0A0A0F]">
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className="font-black uppercase tracking-tight text-[#0A0A0F]">{org.organization.name}</span>
+                              {org.isActive && (
+                                <Badge className="bg-[#1976D2] text-white rounded-none border-2 border-[#0A0A0F] font-bold text-[10px] uppercase px-1.5 py-0">
+                                  Current
+                                </Badge>
+                              )}
+                              {canEdit(org.role) && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 hover:bg-[#FFD600] rounded-none border border-transparent hover:border-[#0A0A0F]"
+                                  onClick={() => handleStartEdit(org)}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 mt-1 text-xs font-bold uppercase tracking-wide text-gray-500">
+                              <span className="bg-gray-100 px-1.5 py-0.5 border border-gray-300 text-[#0A0A0F]">{org.role}</span>
+                              <MemberCount organizationId={org.organizationId} />
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    ) : (
+                    </div>
+                    {!org.isActive && editingOrgId !== org.organizationId && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => switchOrganization.mutate(org.organizationId)}
                         disabled={switchOrganization.isPending}
-                        data-testid={`switch-org-${org.organization.slug}`}
+                        className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all"
                       >
-                        {switchOrganization.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          'Switch'
-                        )}
+                        Switch
                       </Button>
-                    )
-                  )}
-                </div>
-                
-                {canEdit(org.role) && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        id={`logo-upload-${org.organizationId}`}
-                        onChange={(e) => handleLogoUpload(org.organizationId, e)}
-                      />
-                      <label htmlFor={`logo-upload-${org.organizationId}`}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs"
-                          asChild
-                          disabled={uploadingLogoFor === org.organizationId}
-                        >
-                          <span className="cursor-pointer">
-                            {uploadingLogoFor === org.organizationId ? (
-                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                            ) : (
-                              <Upload className="h-3 w-3 mr-1" />
-                            )}
-                            {org.organization.settings?.logoUrl ? 'Change Logo' : 'Add Logo'}
-                          </span>
-                        </Button>
-                      </label>
-                      <span className="text-xs text-gray-400">Max 2MB (PNG, JPG)</span>
-                    </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </CardContent>

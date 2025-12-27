@@ -3130,7 +3130,7 @@ export default function BoardGrid({
                                 <Button
                                   size="sm"
                                   onClick={() => handleAddColumn(phaseIndex)}
-                                  className="h-8 px-4 bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase text-xs tracking-wide transition-all hide-in-pdf"
+                                  className="h-8 px-4 bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase text-xs tracking-widest transition-all hide-in-pdf"
                                 >
                                   <Plus className="w-4 h-4 mr-1" />
                                   Step
@@ -3609,7 +3609,7 @@ export default function BoardGrid({
                     <Button
                       size="sm"
                       onClick={handleAddPhase}
-                      className="h-8 px-4 bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase text-xs tracking-wide transition-all hide-in-pdf"
+                      className="h-8 px-4 bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase text-xs tracking-widest transition-all hide-in-pdf"
                     >
                       <Plus className="w-4 h-4 mr-1" />
                       Add Phase
