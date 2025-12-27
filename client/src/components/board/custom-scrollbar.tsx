@@ -122,7 +122,7 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
         onClick={handleTrackClick}
       >
         <div
-          className="absolute top-0 h-full cursor-grab hover:brightness-110 transition-all duration-200"
+          className="absolute top-0 h-full cursor-grab hover:brightness-105 transition-all duration-200"
           style={{
             left: `${thumbPosition}px`,
             width: `${thumbWidth}px`,
@@ -130,10 +130,22 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
             backgroundColor: '#FFD600',
             borderRight: '4px solid #0A0A0F',
             borderLeft: '4px solid #0A0A0F',
-            borderRadius: '0px'
+            borderRadius: '0px',
+            backgroundImage: `
+              radial-gradient(circle, #0A0A0F 1px, transparent 1px)
+            `,
+            backgroundSize: '6px 6px',
+            backgroundPosition: 'center center'
           }}
           onMouseDown={handleMouseDown}
-        />
+        >
+          {/* Grip lines for tactile affordance */}
+          <div className="absolute inset-0 flex items-center justify-center gap-1 pointer-events-none">
+            <div className="w-0.5 h-4 bg-[#0A0A0F] opacity-30 rounded-full" />
+            <div className="w-0.5 h-4 bg-[#0A0A0F] opacity-30 rounded-full" />
+            <div className="w-0.5 h-4 bg-[#0A0A0F] opacity-30 rounded-full" />
+          </div>
+        </div>
       </div>
     </div>
   );
