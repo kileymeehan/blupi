@@ -111,10 +111,10 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="font-black uppercase tracking-wide text-[#0A0A0F]">Create New Project</DialogTitle>
-          <DialogDescription className="text-gray-600">
+          <DialogTitle>Create New Project</DialogTitle>
+          <DialogDescription>
             Create a project to organize your blueprints
           </DialogDescription>
         </DialogHeader>
@@ -126,13 +126,12 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold uppercase tracking-wide text-xs">Name</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Enter project name" 
                       {...field} 
                       autoFocus
-                      className="border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600] focus:border-[#0A0A0F]"
                     />
                   </FormControl>
                   <FormMessage />
@@ -145,13 +144,12 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold uppercase tracking-wide text-xs">Description</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Enter project description (optional)" 
                       value={field.value || ''} 
-                      onChange={field.onChange}
-                      className="border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600] focus:border-[#0A0A0F]"
+                      onChange={field.onChange} 
                     />
                   </FormControl>
                   <FormMessage />
@@ -164,10 +162,10 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
               name="color"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold uppercase tracking-wide text-xs">Project Color</FormLabel>
+                  <FormLabel>Project Color</FormLabel>
                   <div className="flex items-center gap-2">
                     <div 
-                      className="w-10 h-10 rounded-none border-2 border-[#0A0A0F] cursor-pointer transition-transform hover:scale-105 shadow-[2px_2px_0px_0px_#0A0A0F]"
+                      className="w-10 h-10 rounded-md border cursor-pointer transition-transform hover:scale-105"
                       style={{ backgroundColor: field.value }}
                       onClick={() => setColorPickerOpen(!colorPickerOpen)}
                     />
@@ -176,8 +174,8 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
                         {projectColors.map((color) => (
                           <div
                             key={color}
-                            className={`w-8 h-8 rounded-none border-2 border-[#0A0A0F] cursor-pointer transition-transform hover:scale-105 ${
-                              field.value === color ? 'ring-2 ring-offset-2 ring-[#FFD600]' : ''
+                            className={`w-8 h-8 rounded-md border cursor-pointer transition-transform hover:scale-105 ${
+                              field.value === color ? 'ring-2 ring-offset-2 ring-primary' : ''
                             }`}
                             style={{ backgroundColor: color }}
                             onClick={() => {
@@ -188,8 +186,8 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
                           />
                         ))}
                         <div
-                          className={`w-8 h-8 rounded-none border-2 border-[#0A0A0F] cursor-pointer transition-transform hover:scale-105 flex items-center justify-center ${
-                            showCustomPicker ? 'ring-2 ring-offset-2 ring-[#FFD600]' : ''
+                          className={`w-8 h-8 rounded-md border cursor-pointer transition-transform hover:scale-105 flex items-center justify-center ${
+                            showCustomPicker ? 'ring-2 ring-offset-2 ring-primary' : ''
                           }`}
                           onClick={() => setShowCustomPicker(!showCustomPicker)}
                         >
@@ -202,7 +200,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
                     <div className="mt-2">
                       <Input 
                         type="color"
-                        className="w-full h-10 p-1 cursor-pointer border-2 border-[#0A0A0F] rounded-none"
+                        className="w-full h-10 p-1 cursor-pointer"
                         value={field.value}
                         onChange={(e) => {
                           field.onChange(e.target.value);
@@ -216,21 +214,16 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
               )}
             />
 
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex justify-end space-x-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={createProject.isPending}
-                className="border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-gray-100 hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all"
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                disabled={createProject.isPending}
-                className="bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all"
-              >
+              <Button type="submit" disabled={createProject.isPending}>
                 {createProject.isPending ? "Creating..." : "Create Project"}
               </Button>
             </div>
