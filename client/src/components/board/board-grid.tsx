@@ -3240,23 +3240,25 @@ export default function BoardGrid({
                                       </div>
 
                                       {/* Image upload for column */}
-                                      <ImageUpload
-                                        currentImage={column.image}
-                                        onImageChange={(image) =>
-                                          handleImageChange(
-                                            phaseIndex,
-                                            columnIndex,
-                                            image,
-                                          )
-                                        }
-                                        requireConfirmation={true}
-                                        boardId={board.id}
-                                        columnId={column.id}
-                                        onStoryboardGenerated={(imageUrl, prompt) => {
-                                          handleStoryboardGenerated(phaseIndex, columnIndex, imageUrl, prompt);
-                                        }}
-                                        storyboardPrompt={column.storyboardPrompt}
-                                      />
+                                      <div className="scale-90 origin-top -mb-4">
+                                        <ImageUpload
+                                          currentImage={column.image}
+                                          onImageChange={(image) =>
+                                            handleImageChange(
+                                              phaseIndex,
+                                              columnIndex,
+                                              image,
+                                            )
+                                          }
+                                          requireConfirmation={true}
+                                          boardId={board.id}
+                                          columnId={column.id}
+                                          onStoryboardGenerated={(imageUrl, prompt) => {
+                                            handleStoryboardGenerated(phaseIndex, columnIndex, imageUrl, prompt);
+                                          }}
+                                          storyboardPrompt={column.storyboardPrompt}
+                                        />
+                                      </div>
 
 
 
