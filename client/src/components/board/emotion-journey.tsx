@@ -27,20 +27,24 @@ interface EmotionJourneyProps {
   board: Board;
   onEmotionChange: (phaseIndex: number, columnIndex: number, emotion: Emotion | null) => void;
   className?: string;
-  singleColumn?: boolean;
+  singlePhaseIndex?: number;
 }
 
-export function EmotionJourney({ phases, board, onEmotionChange, className = '', singleColumn = false }: EmotionJourneyProps) {
+export function EmotionJourney({ phases, board, onEmotionChange, className = '', singlePhaseIndex }: EmotionJourneyProps) {
+  const isSinglePhase = singlePhaseIndex !== undefined;
+  const displayPhases = isSinglePhase ? [phases[singlePhaseIndex]] : phases;
+  const displayBoardPhases = isSinglePhase ? [board.phases[singlePhaseIndex]] : board.phases;
   const [pathD, setPathD] = useState<string>('');
   const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 });
   const [hasInitialized, setHasInitialized] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   
-  const allColumns = phases.flatMap((phase: Phase, phaseIndex: number) => 
+  const allColumns = displayPhases.flatMap((phase: Phase, localPhaseIndex: number) => 
     phase.columns.map((column: Column, columnIndex: number) => ({
       ...column,
-      phaseIndex,
+      phaseIndex: isSinglePhase ? singlePhaseIndex : localPhaseIndex,
+      localPhaseIndex,
       columnIndex,
       emotion: column.emotion
     }))
@@ -178,11 +182,13 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
             )}
           </svg>
           
-          {board.phases.map((phase: Phase, phaseIndex: number) => (
-            <div key={phase.id} className="flex flex-shrink-0 mr-4 sm:mr-6 lg:mr-8">
-              <div className="flex gap-4 md:gap-8 px-4">
+          {displayBoardPhases.map((phase: Phase, localPhaseIndex: number) => {
+            const actualPhaseIndex = isSinglePhase ? singlePhaseIndex : localPhaseIndex;
+            return (
+              <div key={phase.id} className="flex flex-shrink-0 mr-4 sm:mr-6 lg:mr-8 last:mr-0">
+                <div className="flex gap-4 md:gap-8 px-4">
                 {phase.columns.map((column: Column, columnIndex: number) => {
-                  const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc: number, p: Phase) => acc + p.columns.length, 0) + columnIndex;
+                  const globalColumnIndex = displayBoardPhases.slice(0, localPhaseIndex).reduce((acc: number, p: Phase) => acc + p.columns.length, 0) + columnIndex;
                   const emotion = allColumns[globalColumnIndex]?.emotion;
                   const yPixels = getEmotionYPixels(emotion);
                   
@@ -230,7 +236,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                               {Object.entries(EMOTION_SCALE).map(([value, data]) => (
                                 <DropdownMenuItem
                                   key={value}
-                                  onClick={() => handleEmotionSelect(phaseIndex, columnIndex, parseInt(value))}
+                                  onClick={() => handleEmotionSelect(actualPhaseIndex, columnIndex, parseInt(value))}
                                   className="flex items-center gap-3 py-2"
                                 >
                                   <div 
@@ -247,7 +253,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                                 <>
                                   <div className="border-t my-1" />
                                   <DropdownMenuItem
-                                    onClick={() => handleRemoveEmotion(phaseIndex, columnIndex)}
+                                    onClick={() => handleRemoveEmotion(actualPhaseIndex, columnIndex)}
                                     className="text-red-600 hover:bg-red-50 font-medium"
                                   >
                                     Clear Score
@@ -269,10 +275,11 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                       </div>
                     </div>
                   );
-                })}
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
