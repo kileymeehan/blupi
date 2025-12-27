@@ -66,14 +66,14 @@ export function SearchFilter({
             placeholder="Search projects and blueprints..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-4"
+            className="pl-10 pr-4 border-4 border-[#0A0A0F] rounded-none focus-visible:ring-0 focus-visible:border-[#1976D2] font-bold uppercase tracking-wider"
           />
         </div>
 
         {/* Sort Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button className="bauhaus-btn flex items-center gap-2 h-10">
               {sortConfig.direction === 'ascending' ? (
                 <SortAsc className="h-4 w-4" />
               ) : (
@@ -126,11 +126,11 @@ export function SearchFilter({
         {/* Filter Dropdown */}
         <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button className="bauhaus-btn flex items-center gap-2 h-10">
               <Filter className="h-4 w-4" />
               Filter
               {activeFilters.length > 0 && (
-                <Badge variant="secondary" className="ml-1 px-1.5 py-0.5 text-xs">
+                <Badge className="ml-1 px-1.5 py-0.5 text-xs bg-[#FFD600] text-[#0A0A0F] font-black border-2 border-[#0A0A0F] rounded-none">
                   {activeFilters.length}
                 </Badge>
               )}

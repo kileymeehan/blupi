@@ -1120,7 +1120,7 @@ export default function Dashboard() {
                     {displayedBoards.map((board) => {
                       const project = projects.find((p) => p.id === board.projectId);
                       return (
-                        <TableRow key={board.id} className="hover:bg-[#FFD600]/20 border-b-4 border-[#0A0A0F] transition-colors">
+                        <TableRow key={board.id} className="hover:bg-[#FFD600] border-b-4 border-[#0A0A0F] transition-colors group">
                           <TableCell className="border-r-4 border-[#0A0A0F]">
                             <Checkbox
                               checked={selectedBlueprints.has(board.id)}
@@ -1128,7 +1128,7 @@ export default function Dashboard() {
                             />
                           </TableCell>
                           <TableCell className="font-black uppercase tracking-tight border-r-4 border-[#0A0A0F] py-4">
-                            <Link href={`/board/${board.id}`} className="text-[#1976D2] hover:text-[#0A0A0F] block">
+                            <Link href={`/board/${board.id}`} className="text-[#1976D2] group-hover:text-[#0A0A0F] block">
                               {board.name}
                             </Link>
                           </TableCell>
