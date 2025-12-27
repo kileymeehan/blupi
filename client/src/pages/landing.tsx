@@ -45,7 +45,7 @@ export default function LandingPage() {
               </a>
               <Button
                 asChild
-                className="bg-[#E53935] text-white hover:bg-[#C62828] font-bold px-6 py-3 uppercase tracking-wider border-2 border-[#E53935] hover:border-[#C62828] transition-all"
+                className="bauhaus-btn-blue h-12 px-8"
               >
                 <a href={getAppUrl('/auth/register')}>
                   Get Started
@@ -81,7 +81,7 @@ export default function LandingPage() {
                 <Button 
                   asChild
                   size="lg" 
-                  className="bg-[#E53935] text-white hover:bg-[#C62828] font-bold text-lg px-10 py-6 uppercase tracking-wider border-4 border-[#E53935] hover:border-[#C62828] transition-all shadow-2xl"
+                  className="bauhaus-btn-blue text-lg h-16 px-10"
                 >
                   <a href={getAppUrl('/auth/register')}>
                     Start Free
@@ -91,7 +91,7 @@ export default function LandingPage() {
                   asChild
                   size="lg" 
                   variant="outline" 
-                  className="border-4 border-white text-white hover:bg-white hover:text-[#0A0A0F] font-bold uppercase tracking-wider transition-all"
+                  className="bauhaus-btn text-lg h-16 px-10"
                 >
                   <a href={getAppUrl('/auth/login')}>
                     Sign In

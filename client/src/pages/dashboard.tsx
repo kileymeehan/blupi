@@ -840,7 +840,7 @@ export default function Dashboard() {
 
         {/* Starred Items Tab */}
         {activeTab === 'starred' && (
-          <section className="bg-white border-4 border-[#0A0A0F] p-10 shadow-lg">
+          <section className="bauhaus-card p-10">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
                 <Star className="h-6 w-6 text-[#FFD600]" />
@@ -872,7 +872,7 @@ export default function Dashboard() {
                   const project = projects.find(p => p.id === item.board?.projectId);
                   
                   return (
-                    <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div key={item.id} className="bauhaus-card p-4 mb-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
@@ -909,21 +909,13 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center gap-2 ml-4">
                           <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => resolveStarredItemMutation.mutate(item.id)}
-                            disabled={resolveStarredItemMutation.isPending}
-                            className="text-green-600 border-green-600 hover:bg-green-50"
+                            className="bauhaus-btn h-8 px-4 text-xs"
                           >
                             <Check className="h-3 w-3 mr-1" />
                             Done
                           </Button>
                           <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeStarredItemMutation.mutate(item.id)}
-                            disabled={removeStarredItemMutation.isPending}
-                            className="text-red-600 border-red-600 hover:bg-red-50"
+                            className="bauhaus-btn h-8 px-4 text-xs"
                           >
                             <X className="h-3 w-3 mr-1" />
                             Remove
@@ -940,7 +932,7 @@ export default function Dashboard() {
 
         {/* BLUEPRINTS SECTION */}
         {activeTab === 'blueprints' && (
-          <section className="bg-white border-4 border-[#0A0A0F] p-10 shadow-lg">
+          <section className="bauhaus-card p-10">
             {/* Blueprint section header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
@@ -969,10 +961,10 @@ export default function Dashboard() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold uppercase tracking-wider flex items-center gap-1 bg-[#E53935] text-white hover:bg-[#C62828] border-2 border-[#E53935]"
+                      className="bauhaus-btn h-10 px-6"
                       id="add-blueprint-btn"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-4 w-4 mr-2" />
                       Create Blueprint
                     </Button>
                   </DropdownMenuTrigger>
@@ -1098,7 +1090,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
-              <div className="overflow-hidden rounded-md border border-gray-400 mb-8">
+              <div className="bauhaus-card overflow-hidden mb-8">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-100 border-b border-gray-300">
@@ -1137,7 +1129,7 @@ export default function Dashboard() {
                     {displayedBoards.map((board) => {
                       const project = projects.find((p) => p.id === board.projectId);
                       return (
-                        <TableRow key={board.id} className="hover:bg-gray-50">
+                        <TableRow key={board.id} className="hover:bg-[#FFD600]/10">
                           <TableCell>
                             <Checkbox
                               checked={selectedBlueprints.has(board.id)}
@@ -1162,8 +1154,8 @@ export default function Dashboard() {
                             {board.projectId ? (
                               <div className="flex items-center">
                                 <div 
-                                  className="w-3 h-3 rounded-full mr-2" 
-                                  style={{ backgroundColor: project?.color || "#4F46E5" }}
+                                  className="w-3 h-3 border-2 border-[#0A0A0F] mr-2" 
+                                  style={{ backgroundColor: project?.color || "#1976D2" }}
                                 ></div>
                                 <span>{project?.name}</span>
                               </div>
@@ -1276,7 +1268,7 @@ export default function Dashboard() {
 
         {/* PROJECTS SECTION */}
         {activeTab === 'projects' && (
-          <section className="bg-white border-4 border-[#0A0A0F] p-10 shadow-lg">
+          <section className="bauhaus-card p-10">
             {/* Project section header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
@@ -1286,9 +1278,9 @@ export default function Dashboard() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                 <Button
-                  className="h-9 shadow-sm hover:shadow-md transition-shadow text-sm font-bold uppercase tracking-wider flex items-center gap-1 bg-[#1976D2] text-white hover:bg-[#1565C0] border-2 border-[#1976D2]"
+                  className="bauhaus-btn h-10 px-6"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4 mr-2" />
                   Create Project
                 </Button>
               </DropdownMenuTrigger>
@@ -1323,19 +1315,19 @@ export default function Dashboard() {
                 {filteredProjects.map((project) => (
                   <Card
                     key={project.id}
-                    className="relative overflow-hidden border border-gray-400 hover:shadow transition-all duration-200"
+                    className="bauhaus-card relative overflow-hidden"
                   >
                     <div
-                      className="absolute h-1 w-full top-0 left-0"
-                      style={{ backgroundColor: project.color || "#4F46E5" }}
+                      className="absolute h-2 w-full top-0 left-0"
+                      style={{ backgroundColor: project.color || "#1976D2" }}
                     ></div>
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className="w-3 h-3 rounded-none border-2 border-[#0A0A0F]"
                             style={{
-                              backgroundColor: project.color || "#4F46E5",
+                              backgroundColor: project.color || "#1976D2",
                             }}
                           ></div>
                           <CardTitle className="text-lg text-gray-900">{project.name}</CardTitle>

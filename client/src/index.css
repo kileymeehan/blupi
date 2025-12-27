@@ -10,16 +10,30 @@
 :root {
   --bauhaus-bg: #0A0A0F;
   --bauhaus-surface: #FFFFFF;
-  --bauhaus-accent-red: #E53935;
-  --bauhaus-accent-red-hover: #C62828;
-  --bauhaus-accent-yellow: #FFD600;
   --bauhaus-accent-blue: #1976D2;
   --bauhaus-accent-blue-hover: #1565C0;
+  --bauhaus-accent-yellow: #FFD600;
+  --bauhaus-accent-red: #E53935;
+  --bauhaus-accent-red-hover: #C62828;
   --bauhaus-success: #00E676;
   --bauhaus-neutral: #F5F5F5;
   --bauhaus-text-dark: #0A0A0F;
   --bauhaus-text-light: #FFFFFF;
   --bauhaus-text-muted: #6B7280;
+}
+
+/* Bauhaus Button Styles */
+.bauhaus-btn {
+  @apply bg-white text-[#0A0A0F] border-4 border-[#0A0A0F] font-black uppercase tracking-wider transition-all duration-200 shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
+}
+
+.bauhaus-btn-blue {
+  @apply bg-[#1976D2] text-white border-4 border-[#0A0A0F] font-black uppercase tracking-wider transition-all duration-200 shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
+}
+
+/* Bauhaus Card Style */
+.bauhaus-card {
+  @apply bg-white border-4 border-[#0A0A0F] shadow-[8px_8px_0px_0px_#0A0A0F] transition-all duration-200 hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px];
 }
 
 @layer base {
