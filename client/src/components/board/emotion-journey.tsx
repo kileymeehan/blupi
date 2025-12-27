@@ -142,9 +142,9 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
             ))}
           </div>
           
-          <div className="absolute inset-0 flex items-start gap-4 sm:gap-6 lg:gap-8">
+          <div className="absolute inset-0 flex items-start gap-4 sm:gap-6 lg:gap-8 pointer-events-none">
             {board.phases.map((phase: Phase, phaseIndex: number) => (
-              <div key={phase.id} className="flex-shrink-0 relative mr-4 sm:mr-6 lg:mr-8">
+              <div key={phase.id} className="flex-shrink-0 relative mr-4 sm:mr-6 lg:mr-8 pointer-events-auto">
                 <div className="px-4">
                   <div className="flex gap-4 md:gap-8">
                     {phase.columns.map((column: Column, columnIndex: number) => {
@@ -155,10 +155,12 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                       return (
                         <div 
                           key={column.id} 
-                          className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex justify-center relative"
+                          className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex justify-center relative group/col"
                         >
+                          <div className="absolute inset-y-0 left-1/2 w-px bg-slate-100/50 -translate-x-1/2" />
+                          
                           <motion.div
-                            className="absolute flex flex-col items-center"
+                            className="absolute flex flex-col items-center z-10"
                             style={{
                               top: `${yPosition}%`,
                               left: '50%',
@@ -240,6 +242,21 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
             <motion.path
               d={(() => {
                 const pathCommands: string[] = [];
+                
+                // We need to calculate the actual X position for each column
+                // based on the flex layout widths and gaps.
+                // Since we're in a relative container with 100% width, 
+                // we'll use a ref-based or calculation-based approach.
+                // For now, let's improve the calculation by tracking the exact 
+                // percentages of the container width.
+                
+                let currentX = 0;
+                const phaseGap = 32; // sm:gap-6 lg:gap-8 ≈ 32px
+                const columnGap = 32; // gap-4 md:gap-8 ≈ 32px
+                
+                // This is a complex calculation for an SVG path in a flex container.
+                // A better approach is to render the path using the same flex layout
+                // but for now, let's use the simplified version and fix the centering.
                 
                 allColumns.forEach((column, globalColumnIndex) => {
                   const emotion = column.emotion;
