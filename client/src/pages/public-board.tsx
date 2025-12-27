@@ -1,14 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams } from "wouter";
-import { Board } from "@shared/schema";
-import { Loader2, Info } from "lucide-react";
+import { Board, Block as BlockType, Phase } from "@shared/schema";
+import { Loader2, Info, Pencil, Eye } from "lucide-react";
 import Block from "@/components/board/block";
 import { LAYER_TYPES } from "@/components/board/constants";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+interface PublicBoardResponse extends Board {
+  canEdit?: boolean;
+}
 
 export default function PublicBoard() {
   const { id } = useParams<{ id: string }>();
+  const { toast } = useToast();
 
-  const { data: board, isLoading, error } = useQuery<Board>({
+  const { data: board, isLoading, error } = useQuery<PublicBoardResponse>({
     queryKey: ['/api/boards', id, 'public'],
     queryFn: async () => {
       const res = await fetch(`/api/boards/${id}/public`);
@@ -16,11 +23,51 @@ export default function PublicBoard() {
         if (res.status === 429) {
           throw new Error("Too many requests. Please wait a moment before trying again.");
         }
+        if (res.status === 403) {
+          throw new Error("This board is private");
+        }
         throw new Error('Failed to fetch board');
       }
       return res.json();
     },
   });
+
+  const updateBoardMutation = useMutation({
+    mutationFn: async (updates: Partial<Board>) => {
+      const res = await fetch(`/api/boards/${id}/public-edit`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to update board');
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['/api/boards', id, 'public'], data);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error saving changes",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleBlocksChange = (blocks: BlockType[]) => {
+    if (board?.canEdit) {
+      updateBoardMutation.mutate({ blocks });
+    }
+  };
+
+  const handlePhasesChange = (phases: Phase[]) => {
+    if (board?.canEdit) {
+      updateBoardMutation.mutate({ phases });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -46,6 +93,8 @@ export default function PublicBoard() {
     );
   }
 
+  const canEdit = board.canEdit || false;
+
   return (
     <div className="min-h-screen bg-[#F0EEE9]">
       <header className="border-b bg-white shadow-sm">
@@ -53,9 +102,26 @@ export default function PublicBoard() {
           <div className="flex items-center">
             <img src="/Blupi-logomark-blue.png" alt="Blupi" className="h-7" />
           </div>
-          <div className="ml-4">
+          <div className="ml-4 flex items-center">
             <span className="text-base font-bold" style={{fontSize: '1.1rem'}}>{board.name}</span>
-            <span className="text-sm text-muted-foreground ml-2">(Read-only view)</span>
+            <span className={`ml-2 text-sm flex items-center gap-1 px-2 py-1 rounded ${
+              canEdit ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-muted-foreground'
+            }`}>
+              {canEdit ? (
+                <>
+                  <Pencil className="w-3 h-3" />
+                  Edit mode
+                </>
+              ) : (
+                <>
+                  <Eye className="w-3 h-3" />
+                  View only
+                </>
+              )}
+            </span>
+            {updateBoardMutation.isPending && (
+              <span className="ml-2 text-sm text-muted-foreground">Saving...</span>
+            )}
           </div>
         </div>
       </header>
@@ -131,10 +197,16 @@ export default function PublicBoard() {
                                   <Block
                                     block={{
                                       ...block,
-                                      readOnly: true
+                                      readOnly: !canEdit
                                     }}
                                     boardId={parseInt(id!)}
                                     isTemplate={false}
+                                    onChange={canEdit ? (content: string) => {
+                                      const updatedBlocks = board.blocks.map(b =>
+                                        b.id === block.id ? { ...b, content } : b
+                                      );
+                                      handleBlocksChange(updatedBlocks);
+                                    } : undefined}
                                   />
                                 </div>
                               ))}

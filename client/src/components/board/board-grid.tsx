@@ -126,6 +126,7 @@ import { CustomScrollbar } from "./custom-scrollbar";
 import { ProfileModal } from "@/components/profile-modal";
 import { ProfileIcon } from "@/components/profile-icon";
 import { EmotionJourney } from "./emotion-journey";
+import { ShareDialog } from "./share-dialog";
 import type { Emotion } from "@shared/schema";
 
 
@@ -3672,73 +3673,13 @@ export default function BoardGrid({
             )}
 
             {shareLinkOpen && (
-              <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Share Blueprint</DialogTitle>
-                    <DialogDescription>
-                      Choose how you want to share this blueprint
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-6 py-4">
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium">
-                        Team Access (Requires Login)
-                      </h3>
-                      <div className="flex gap-2">
-                        <Input
-                          value={window.location.href}
-                          readOnly
-                          className="w-full"
-                        />
-                        <Button
-                          onClick={() => {
-                            navigator.clipboard.writeText(window.location.href);
-                            useToast({
-                              title: "Link copied",
-                              description:
-                                "Team access link has been copied to clipboard",
-                            });
-                          }}
-                        >
-                          Copy
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium">
-                        Public Access (Read-only, No Login Required)
-                      </h3>
-                      <div className="flex gap-2">
-                        <Input
-                          value={`${window.location.origin}/public/board/${id}`}
-                          readOnly
-                          className="w-full"
-                        />
-                        <Button
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              `${window.location.origin}/public/board/${id}`,
-                            );
-                            useToast({
-                              title: "Link copied",
-                              description:
-                                "Public access link has been copied to clipboard",
-                            });
-                          }}
-                        >
-                          Copy
-                        </Button>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Anyone with this link can view the blueprint in
-                        read-only mode
-                      </p>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <ShareDialog
+                open={shareLinkOpen}
+                onOpenChange={setShareLinkOpen}
+                boardId={id}
+                board={board}
+                onBoardChange={onBoardChange}
+              />
             )}
           </div>
         </DragDropContext>
