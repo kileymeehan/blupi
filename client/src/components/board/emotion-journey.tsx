@@ -164,7 +164,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                             style={{
                               top: `${yPosition}%`,
                               left: '50%',
-                              transform: 'translate(-50%, -50%)'
+                              transform: 'translateX(-50%) translateY(-50%)'
                             }}
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
