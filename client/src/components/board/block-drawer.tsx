@@ -29,7 +29,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
         </h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mb-8">
+      <div className="grid grid-cols-2 gap-3 mb-8">
         {standardBlocks.map((layer, index) => (
           <Draggable
             key={layer.type}
@@ -41,7 +41,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} border-2 border-[#0A0A0F] rounded-none w-[90px] h-[40px] relative flex items-center justify-center
+                className={`${layer.color} border-2 border-[#0A0A0F] rounded-none w-full min-w-[100px] h-[52px] relative flex items-center justify-center
                   ${snapshot.isDragging ? "shadow-none" : "hover:bg-[#FFD600]"}
                   transition-colors duration-200 shadow-[2px_2px_0px_0px_#0A0A0F]
                 `}
@@ -51,9 +51,9 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="font-black text-[10px] uppercase tracking-widest text-[#0A0A0F] text-center flex flex-col items-center justify-center">
+                <div className="font-black text-[9px] uppercase tracking-wide text-[#0A0A0F] text-center flex flex-col items-center justify-center px-1">
                   {renderIcon(layer.icon)}
-                  <span className="mt-1">{layer.label}</span>
+                  <span className="mt-1 leading-tight whitespace-nowrap">{layer.label}</span>
                 </div>
               </div>
             )}
@@ -71,7 +71,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
         </h2>
       </div>
       
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 gap-3">
         {dividerBlocks.map((layer, index) => (
           <Draggable
             key={layer.type}
@@ -83,7 +83,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} border-2 border-[#0A0A0F] rounded-none w-full h-[40px] relative flex items-center justify-center text-white
+                className={`${layer.color} border-2 border-[#0A0A0F] rounded-none w-full h-[48px] relative flex items-center justify-center text-white
                   ${snapshot.isDragging ? "shadow-none" : "hover:bg-[#FFD600] hover:text-[#0A0A0F]"}
                   transition-colors duration-200 shadow-[2px_2px_0px_0px_#0A0A0F]
                 `}
@@ -93,9 +93,9 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="font-black text-[10px] text-white text-center flex items-center justify-center uppercase tracking-widest">
+                <div className="font-black text-[10px] text-white text-center flex items-center justify-center uppercase tracking-wide">
                   {renderIcon(layer.icon)}
-                  <span className="ml-1">{layer.label}</span>
+                  <span className="ml-2">{layer.label}</span>
                 </div>
               </div>
             )}

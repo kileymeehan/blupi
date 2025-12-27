@@ -2384,6 +2384,133 @@ export default function BoardGrid({
               <ExternalLink className="h-4 w-4 mr-2" />
               SHARE
             </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bauhaus-btn h-10 px-4 text-xs">
+                  <Settings className="w-4 h-4 mr-2" />
+                  SETTINGS
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem 
+                  onSelect={() => setGroupBlocksByType(!groupBlocksByType)}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center">
+                    <Layers className="w-4 h-4 mr-2" />
+                    <span>Stacked Mode</span>
+                  </div>
+                  {groupBlocksByType && <Check className="w-4 h-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onSelect={() => setBoardViewMode(boardViewMode === 'normal' ? 'condensed' : 'normal')}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center">
+                    <Minimize2 className="w-4 h-4 mr-2" />
+                    <span>Condensed View</span>
+                  </div>
+                  {boardViewMode === 'condensed' && <Check className="w-4 h-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onSelect={() => setDarkMode(!darkMode)}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center">
+                    {darkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                    <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                  </div>
+                  {darkMode && <Check className="w-4 h-4" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button
+              onClick={() => setAddToProjectOpen(true)}
+              className="bauhaus-btn h-10 w-10 p-0"
+              title="Add to Project"
+            >
+              <FolderPlus className="w-4 h-4" />
+            </Button>
+
+            <BlueprintImportTrigger 
+              onImport={handleImportBlueprint}
+              currentBoardId={board.id}
+            />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bauhaus-btn h-10 w-10 p-0">
+                  <ArrowUpFromLine className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onSelect={() => setInviteOpen(true)}>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Invite Team Members
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setShareLinkOpen(true)}>
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  Generate Share Link
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={handleExportPDF}>
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Export as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="w-[2px] h-8 bg-[#1976D2] mx-2" />
+            
+            <NotificationBell variant="light" />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
+                  <ProfileIcon />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem 
+                  onClick={() => setProfileModalOpen(true)}
+                  className="cursor-pointer"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Profile Settings
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  className="bauhaus-btn h-10 w-10 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Blueprint</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this blueprint? This action
+                    cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteBoard}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </header>
