@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Phase, Column, Emotion } from '@shared/schema';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Phase, Column, Emotion, Board } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-// Emotion scale 1-7 with colors from red (negative) to green (positive)
 const EMOTION_SCALE = {
   1: { color: '#dc2626', label: 'Very Negative' },
   2: { color: '#ef4444', label: 'Negative' },
@@ -31,9 +30,8 @@ interface EmotionJourneyProps {
 export function EmotionJourney({ phases, board, onEmotionChange, className = '', singleColumn = false }: EmotionJourneyProps) {
   const [animationComplete, setAnimationComplete] = useState(false);
   
-  // Get all columns across all phases for the journey
-  const allColumns = phases.flatMap((phase, phaseIndex) => 
-    phase.columns.map((column, columnIndex) => ({
+  const allColumns = phases.flatMap((phase: Phase, phaseIndex: number) => 
+    phase.columns.map((column: Column, columnIndex: number) => ({
       ...column,
       phaseIndex,
       columnIndex,
@@ -41,12 +39,8 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
     }))
   );
 
-  // Remove debug logs for cleaner code
-
-  // Calculate positions for the line graph
   const getEmotionPosition = (emotion: Emotion | undefined) => {
-    if (!emotion) return 50; // Center for unset
-    // Convert value (1-7) to percentage (0-100), inverted so higher values are higher on graph
+    if (!emotion) return 50;
     return 100 - ((emotion.value - 1) / 6) * 100;
   };
 
@@ -63,7 +57,6 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
     onEmotionChange(phaseIndex, columnIndex, null);
   };
 
-  // Animate the line drawing
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimationComplete(true);
@@ -73,7 +66,6 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
 
   if (allColumns.length === 0) return null;
 
-  // Single column mode - just show the emotion dot
   if (singleColumn) {
     const column = allColumns[0];
     const emotion = column.emotion;
@@ -137,30 +129,26 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
       </div>
       
       <div className="relative">
-        {/* Emotion scale indicators */}
         <div className="absolute left-0 top-0 bottom-0 w-8 flex flex-col justify-between text-xs text-slate-400">
           <span>7</span>
           <span>4</span>
           <span>1</span>
         </div>
         
-        {/* Main graph area */}
         <div className="ml-10 relative" style={{ height: '120px' }}>
-          {/* Grid lines */}
           <div className="absolute inset-0 flex flex-col justify-between">
             {[0, 1, 2].map((i) => (
               <div key={i} className="w-full h-px bg-slate-200" />
             ))}
           </div>
           
-          {/* Invisible containers that exactly match the column layout structure */}
           <div className="absolute inset-0 flex items-start gap-4 sm:gap-6 lg:gap-8">
-            {board.phases.map((phase, phaseIndex) => (
+            {board.phases.map((phase: Phase, phaseIndex: number) => (
               <div key={phase.id} className="flex-shrink-0 relative mr-4 sm:mr-6 lg:mr-8">
-                <div>
-                  <div className="flex items-start gap-4 sm:gap-6 lg:gap-8">
-                    {phase.columns.map((column, columnIndex) => {
-                      const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc, p) => acc + p.columns.length, 0) + columnIndex;
+                <div className="px-4">
+                  <div className="flex gap-4 md:gap-8">
+                    {phase.columns.map((column: Column, columnIndex: number) => {
+                      const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc: number, p: Phase) => acc + p.columns.length, 0) + columnIndex;
                       const emotion = allColumns[globalColumnIndex]?.emotion;
                       const yPosition = getEmotionPosition(emotion);
                       
@@ -169,7 +157,6 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                           key={column.id} 
                           className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] flex justify-center relative"
                         >
-                          {/* Emotion dot positioned in the center of this invisible container */}
                           <motion.div
                             className="absolute flex flex-col items-center"
                             style={{
@@ -232,7 +219,6 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                               </DropdownMenuContent>
                             </DropdownMenu>
                             
-                            {/* Column name below the dot */}
                             <span className="text-xs text-slate-500 mt-1 text-center max-w-16 truncate">
                               {column.name}
                             </span>
@@ -246,7 +232,6 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
             ))}
           </div>
           
-          {/* Connecting line - calculate positions based on invisible container centers */}
           <svg 
             className="absolute inset-0 w-full h-full pointer-events-none"
             viewBox="0 0 100 100"
@@ -256,12 +241,10 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
               d={(() => {
                 const pathCommands: string[] = [];
                 
-                // Calculate positions that match the exact dot positions
                 allColumns.forEach((column, globalColumnIndex) => {
                   const emotion = column.emotion;
                   const y = getEmotionPosition(emotion);
                   
-                  // Calculate x position to match the centered dots
                   const totalColumns = allColumns.length;
                   const columnWidth = 100 / totalColumns;
                   const x = (globalColumnIndex * columnWidth) + (columnWidth / 2);
@@ -284,7 +267,6 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
 
         </div>
         
-        {/* Legend */}
         <div className="flex items-center justify-center gap-6 mt-4 text-xs text-slate-500">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-red-500" />
