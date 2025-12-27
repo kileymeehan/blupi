@@ -2557,11 +2557,11 @@ export default function BoardGrid({
       <div className="flex flex-1 overflow-hidden relative pt-0.5">
         <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div
-            className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white dark:bg-[#1e1e32] border-r border-gray-300 dark:border-[#3a3a5c] flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-40 h-auto flex flex-col overflow-y-auto`}
+            className={`${isDrawerOpen ? "w-72" : "w-16"} bg-white dark:bg-slate-900 border-r border-gray-300 dark:border-slate-700 flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-40 h-auto flex flex-col overflow-y-auto`}
           >
             <div className="flex flex-col flex-grow overflow-hidden relative">
               {/* Always present toggle button in line with navigation */}
-              <div className="border-b border-gray-200 dark:border-[#3a3a5c] bg-white dark:bg-[#1e1e32] shadow-sm py-0">
+              <div className="border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm py-0">
                 <div className="h-12 flex items-center justify-end pr-3">
                   <Button
                     variant="ghost"
