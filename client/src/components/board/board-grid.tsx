@@ -3140,18 +3140,6 @@ export default function BoardGrid({
                           </div>
                         </div>
 
-                        {/* Per-phase Emotion Journey - always light mode */}
-                        {showEmotionJourney && !phase.collapsed && phase.columns.length > 0 && (
-                          <div className="mb-4 emotion-journey-light" style={{ colorScheme: 'light' }}>
-                            <EmotionJourney 
-                              phases={board.phases}
-                              board={board}
-                              onEmotionChange={handleEmotionChange}
-                              singlePhaseIndex={phaseIndex}
-                            />
-                          </div>
-                        )}
-
                         {!phase.collapsed && (
                           <Droppable
                             droppableId={`phase-${phaseIndex}`}
@@ -3603,6 +3591,18 @@ export default function BoardGrid({
                           </div>
                         )}
                       </Droppable>
+                      )}
+                      
+                      {/* Per-phase Emotion Journey - always light mode, positioned at bottom */}
+                      {showEmotionJourney && !phase.collapsed && phase.columns.length > 0 && (
+                        <div className="mt-4 emotion-journey-light" style={{ colorScheme: 'light' }}>
+                          <EmotionJourney 
+                            phases={board.phases}
+                            board={board}
+                            onEmotionChange={handleEmotionChange}
+                            singlePhaseIndex={phaseIndex}
+                          />
+                        </div>
                       )}
                       </div>
                     </div>

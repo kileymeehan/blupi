@@ -703,7 +703,7 @@ export default function Dashboard() {
                   variant="ghost"
                   className="relative flex items-center gap-2 h-10 w-10 p-0 text-white hover:bg-white/10"
                 >
-                  <div className="border-2 border-[#FFD600] rounded-full">
+                  <div className="border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F]">
                     <ProfileIcon />
                   </div>
                 </Button>
