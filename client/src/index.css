@@ -39,16 +39,16 @@
 
 .blupi-column-halftone {
   /* 1. Set your base colors */
-  background-color: #f4f4f4; /* The light grey base from your screenshot */
+  background-color: #fcfcfc; /* Even lighter grey base */
   
   /* 2. Create the dot pattern */
-  background-image: radial-gradient(#d1d1d1 15%, transparent 20%);
+  background-image: radial-gradient(#e0e0e0 15%, transparent 20%);
   
   /* 3. Control the size and density */
-  background-size: 12px 12px;
+  background-size: 6px 6px; /* Even more dense (was 8px) */
   
   /* 4. Optional: Add a slight "print offset" for more realism */
-  background-position: 0 0, 6px 6px;
+  background-position: 0 0, 3px 3px;
 }
 
 @layer base {
