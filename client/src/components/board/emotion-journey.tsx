@@ -185,8 +185,8 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
           {displayBoardPhases.map((phase: Phase, localPhaseIndex: number) => {
             const actualPhaseIndex = isSinglePhase ? singlePhaseIndex : localPhaseIndex;
             return (
-              <div key={phase.id} className="flex flex-shrink-0 mr-4 sm:mr-6 lg:mr-8 last:mr-0">
-                <div className="flex gap-4 md:gap-8 px-4">
+              <div key={phase.id} className="flex flex-shrink-0 last:mr-0">
+                <div className="flex gap-4 md:gap-8">
                 {phase.columns.map((column: Column, columnIndex: number) => {
                   const globalColumnIndex = displayBoardPhases.slice(0, localPhaseIndex).reduce((acc: number, p: Phase) => acc + p.columns.length, 0) + columnIndex;
                   const emotion = allColumns[globalColumnIndex]?.emotion;
