@@ -266,10 +266,10 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                       </div>
                       
                       <div 
-                        className="text-center px-1 py-2 border-t border-slate-100 bg-slate-50"
+                        className="text-center px-1 py-2 border-t border-slate-100 bg-white"
                         style={{ height: `${LABEL_HEIGHT}px` }}
                       >
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide truncate">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide truncate">
                           {column.name || `Step ${columnIndex + 1}`}
                         </p>
                       </div>
