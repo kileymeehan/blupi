@@ -3605,7 +3605,7 @@ export default function BoardGrid({
                       </div>
                     </div>
                   ))}
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 pt-3">
                     <Button
                       size="sm"
                       onClick={handleAddPhase}
