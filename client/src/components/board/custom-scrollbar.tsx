@@ -105,7 +105,7 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
   if (!scrollContainer) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-200 border-t-2 border-gray-300 h-5">
+    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white border-t-2 border-[#0A0A0F] h-6">
       <div
         ref={trackRef}
         className="relative h-full w-full cursor-pointer"
@@ -117,8 +117,9 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
             left: `${thumbPosition}px`,
             width: `${thumbWidth}px`,
             cursor: isDragging ? 'grabbing' : 'grab',
-            background: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 50%, #7c3aed 100%)',
-            boxShadow: '0 -2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.1)',
+            backgroundColor: '#FFD600',
+            borderRight: '2px solid #0A0A0F',
+            borderLeft: '2px solid #0A0A0F',
             borderRadius: '0px'
           }}
           onMouseDown={handleMouseDown}
