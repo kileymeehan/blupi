@@ -29,7 +29,7 @@ interface EmotionJourneyProps {
 
 export function EmotionJourney({ phases, board, onEmotionChange, className = '', singleColumn = false }: EmotionJourneyProps) {
   const [pathD, setPathD] = useState<string>('');
-  const [viewBox, setViewBox] = useState<string>('0 0 100 100');
+  const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   
@@ -66,24 +66,21 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
     const dotElements = contentRef.current.querySelectorAll('[data-emotion-dot]');
     if (dotElements.length === 0) return;
     
-    const containerRect = containerRef.current.getBoundingClientRect();
+    const contentRect = contentRef.current.getBoundingClientRect();
     const scrollWidth = contentRef.current.scrollWidth;
-    const height = containerRect.height;
+    const height = contentRef.current.offsetHeight;
     
     const dots: { x: number; y: number }[] = [];
     
     dotElements.forEach((el) => {
       const rect = el.getBoundingClientRect();
-      const contentRect = contentRef.current!.getBoundingClientRect();
-      
       const x = (rect.left - contentRect.left) + (rect.width / 2);
-      const y = (rect.top - containerRect.top) + (rect.height / 2);
-      
+      const y = (rect.top - contentRect.top) + (rect.height / 2);
       dots.push({ x, y });
     });
     
     if (dots.length > 0) {
-      setViewBox(`0 0 ${scrollWidth} ${height}`);
+      setSvgDimensions({ width: scrollWidth, height });
       const path = dots.map((dot, i) => `${i === 0 ? 'M' : 'L'} ${dot.x} ${dot.y}`).join(' ');
       setPathD(path);
     }
@@ -104,7 +101,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
     const timers = [
       setTimeout(updateSparkline, 100),
       setTimeout(updateSparkline, 300),
-      setTimeout(updateSparkline, 500),
+      setTimeout(updateSparkline, 600),
     ];
     
     return () => {
@@ -119,7 +116,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
   if (allColumns.length === 0) return null;
 
   return (
-    <div className={`w-full bg-white border border-slate-200 rounded-xl p-6 ${className}`}>
+    <div className={`w-full bg-white border border-slate-200 rounded-xl p-6 ${className}`} ref={containerRef}>
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-slate-800">Emotional Journey</h3>
         <div className="flex items-center gap-6 text-xs text-slate-500">
@@ -138,25 +135,17 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
         </div>
       </div>
       
-      <div className="relative" ref={containerRef}>
-        <div className="flex items-start pl-10">
-          <div className="absolute left-0 top-0 bottom-0 w-8 flex flex-col justify-between text-xs font-medium text-slate-400 py-2">
-            <span>7</span>
-            <span>4</span>
-            <span>1</span>
-          </div>
-          
-          <div className="absolute left-10 right-0 top-0 bottom-0 flex flex-col justify-between pointer-events-none py-2">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="w-full h-px bg-slate-100" />
-            ))}
-          </div>
-          
+      <div className="relative">
+        <div 
+          ref={contentRef} 
+          className="relative flex items-start" 
+          style={{ minHeight: '140px' }}
+        >
           <svg 
-            className="absolute left-10 top-0 pointer-events-none z-0 overflow-visible"
-            style={{ width: contentRef.current?.scrollWidth || '100%', height: '100%' }}
-            viewBox={viewBox}
-            preserveAspectRatio="none"
+            className="absolute top-0 left-0 pointer-events-none z-0 overflow-visible"
+            width={svgDimensions.width || '100%'}
+            height={svgDimensions.height || '100%'}
+            style={{ minWidth: '100%', minHeight: '100%' }}
           >
             {pathD && (
               <motion.path
@@ -173,89 +162,95 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
             )}
           </svg>
           
-          <div ref={contentRef} className="relative z-10 flex items-start" style={{ minHeight: '140px' }}>
-            {board.phases.map((phase: Phase, phaseIndex: number) => (
-              <div key={phase.id} className="flex flex-shrink-0 mr-4 sm:mr-6 lg:mr-8">
-                <div className="flex gap-4 md:gap-8 px-4">
-                  {phase.columns.map((column: Column, columnIndex: number) => {
-                    const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc: number, p: Phase) => acc + p.columns.length, 0) + columnIndex;
-                    const emotion = allColumns[globalColumnIndex]?.emotion;
-                    const yPosition = getEmotionY(emotion);
-                    
-                    return (
+          {board.phases.map((phase: Phase, phaseIndex: number) => (
+            <div key={phase.id} className="flex flex-shrink-0 mr-4 sm:mr-6 lg:mr-8">
+              <div className="flex gap-4 md:gap-8 px-4">
+                {phase.columns.map((column: Column, columnIndex: number) => {
+                  const globalColumnIndex = board.phases.slice(0, phaseIndex).reduce((acc: number, p: Phase) => acc + p.columns.length, 0) + columnIndex;
+                  const emotion = allColumns[globalColumnIndex]?.emotion;
+                  const yPosition = getEmotionY(emotion);
+                  
+                  return (
+                    <div 
+                      key={column.id} 
+                      className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] relative"
+                      style={{ height: '140px' }}
+                    >
                       <div 
-                        key={column.id} 
-                        className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] relative"
-                        style={{ height: '140px' }}
+                        data-emotion-dot
+                        className="absolute z-20"
+                        style={{
+                          top: `${yPosition}%`,
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)'
+                        }}
                       >
-                        <div 
-                          data-emotion-dot
-                          className="absolute z-20"
-                          style={{
-                            top: `${yPosition}%`,
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)'
-                          }}
-                        >
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-10 w-10 p-0 rounded-full border-2 shadow-md hover:scale-110 transition-transform text-white font-bold text-base"
-                                style={{
-                                  backgroundColor: emotion?.color || '#f8fafc',
-                                  borderColor: emotion?.color || '#e2e8f0',
-                                  color: emotion ? 'white' : '#94a3b8'
-                                }}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-10 w-10 p-0 rounded-full border-2 shadow-md hover:scale-110 transition-transform text-white font-bold text-base"
+                              style={{
+                                backgroundColor: emotion?.color || '#f8fafc',
+                                borderColor: emotion?.color || '#e2e8f0',
+                                color: emotion ? 'white' : '#94a3b8'
+                              }}
+                            >
+                              {emotion?.value || '○'}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="center" className="w-48">
+                            {Object.entries(EMOTION_SCALE).map(([value, data]) => (
+                              <DropdownMenuItem
+                                key={value}
+                                onClick={() => handleEmotionSelect(phaseIndex, columnIndex, parseInt(value))}
+                                className="flex items-center gap-3 py-2"
                               >
-                                {emotion?.value || '○'}
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="center" className="w-48">
-                              {Object.entries(EMOTION_SCALE).map(([value, data]) => (
+                                <div 
+                                  className="w-5 h-5 rounded-full shadow-sm" 
+                                  style={{ backgroundColor: data.color }}
+                                />
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-semibold">Level {value}</span>
+                                  <span className="text-[10px] text-slate-500 uppercase tracking-wider">{data.label}</span>
+                                </div>
+                              </DropdownMenuItem>
+                            ))}
+                            {emotion && (
+                              <>
+                                <div className="border-t my-1" />
                                 <DropdownMenuItem
-                                  key={value}
-                                  onClick={() => handleEmotionSelect(phaseIndex, columnIndex, parseInt(value))}
-                                  className="flex items-center gap-3 py-2"
+                                  onClick={() => handleRemoveEmotion(phaseIndex, columnIndex)}
+                                  className="text-red-600 hover:bg-red-50 font-medium"
                                 >
-                                  <div 
-                                    className="w-5 h-5 rounded-full shadow-sm" 
-                                    style={{ backgroundColor: data.color }}
-                                  />
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-semibold">Level {value}</span>
-                                    <span className="text-[10px] text-slate-500 uppercase tracking-wider">{data.label}</span>
-                                  </div>
+                                  Clear Score
                                 </DropdownMenuItem>
-                              ))}
-                              {emotion && (
-                                <>
-                                  <div className="border-t my-1" />
-                                  <DropdownMenuItem
-                                    onClick={() => handleRemoveEmotion(phaseIndex, columnIndex)}
-                                    className="text-red-600 hover:bg-red-50 font-medium"
-                                  >
-                                    Clear Score
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        
-                        <div className="absolute bottom-0 left-0 right-0 text-center px-1">
-                          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide truncate">
-                            {column.name || `Step ${columnIndex + 1}`}
-                          </p>
-                        </div>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    );
-                  })}
-                </div>
+                      
+                      <div className="absolute bottom-0 left-0 right-0 text-center px-1">
+                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide truncate">
+                          {column.name || `Step ${columnIndex + 1}`}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
+        
+        <div className="flex items-center justify-start gap-1 mt-2 text-[10px] text-slate-400 font-medium">
+          <span>1</span>
+          <div className="flex-1 h-px bg-slate-100 mx-2" />
+          <span>4</span>
+          <div className="flex-1 h-px bg-slate-100 mx-2" />
+          <span>7</span>
         </div>
       </div>
     </div>
