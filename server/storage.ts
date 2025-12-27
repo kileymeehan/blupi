@@ -393,8 +393,6 @@ export class DatabaseStorage {
         userId: insertBoard.userId,
         organizationId: insertBoard.organizationId,
         status: insertBoard.status || 'draft',
-        isPublic: false,
-        publicRole: 'viewer',
         blocks: blocks,
         phases: phases
       }).returning();

@@ -126,7 +126,6 @@ import { CustomScrollbar } from "./custom-scrollbar";
 import { ProfileModal } from "@/components/profile-modal";
 import { ProfileIcon } from "@/components/profile-icon";
 import { EmotionJourney } from "./emotion-journey";
-import { ShareDialog } from "./share-dialog";
 import type { Emotion } from "@shared/schema";
 
 
@@ -3131,7 +3130,7 @@ export default function BoardGrid({
                                 <Button
                                   size="sm"
                                   onClick={() => handleAddColumn(phaseIndex)}
-                                  className="h-8 px-4 bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase text-xs tracking-widest transition-all hide-in-pdf"
+                                  className="h-8 px-4 bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase text-xs tracking-wide transition-all hide-in-pdf"
                                 >
                                   <Plus className="w-4 h-4 mr-1" />
                                   Step
@@ -3610,7 +3609,7 @@ export default function BoardGrid({
                     <Button
                       size="sm"
                       onClick={handleAddPhase}
-                      className="h-8 px-4 bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase text-xs tracking-widest transition-all hide-in-pdf"
+                      className="h-8 px-4 bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase text-xs tracking-wide transition-all hide-in-pdf"
                     >
                       <Plus className="w-4 h-4 mr-1" />
                       Add Phase
@@ -3673,13 +3672,73 @@ export default function BoardGrid({
             )}
 
             {shareLinkOpen && (
-              <ShareDialog
-                open={shareLinkOpen}
-                onOpenChange={setShareLinkOpen}
-                boardId={id}
-                board={board}
-                onBoardChange={onBoardChange}
-              />
+              <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Share Blueprint</DialogTitle>
+                    <DialogDescription>
+                      Choose how you want to share this blueprint
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-6 py-4">
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium">
+                        Team Access (Requires Login)
+                      </h3>
+                      <div className="flex gap-2">
+                        <Input
+                          value={window.location.href}
+                          readOnly
+                          className="w-full"
+                        />
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(window.location.href);
+                            useToast({
+                              title: "Link copied",
+                              description:
+                                "Team access link has been copied to clipboard",
+                            });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium">
+                        Public Access (Read-only, No Login Required)
+                      </h3>
+                      <div className="flex gap-2">
+                        <Input
+                          value={`${window.location.origin}/public/board/${id}`}
+                          readOnly
+                          className="w-full"
+                        />
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(
+                              `${window.location.origin}/public/board/${id}`,
+                            );
+                            useToast({
+                              title: "Link copied",
+                              description:
+                                "Public access link has been copied to clipboard",
+                            });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Anyone with this link can view the blueprint in
+                        read-only mode
+                      </p>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             )}
           </div>
         </DragDropContext>

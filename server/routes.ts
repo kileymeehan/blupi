@@ -2,12 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 // Session type augmentation is in session-types.d.ts
-import { insertBoardSchema, insertProjectSchema, insertUserSchema, boards as boardsTable, type Board } from "@shared/schema";
+import { insertBoardSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { WebSocketServer, WebSocket } from 'ws';
-import { db } from "./db";
-import { eq } from "drizzle-orm";
 
 
 import { getFrictionMetrics, isPendoConfigured, getAuthorizationUrl, exchangeCodeForToken, setOAuthToken } from './utils/pendo';
@@ -1354,106 +1352,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Replace the existing public board route with the corrected path
-  app.get("/api/boards/:id/public", async (req, res) => {
+  app.get("/api/boards/:id/public", requireTenant, async (req, res) => {
     try {
-      console.log(`[HTTP] Fetching public board with ID: ${req.params.id}`);
-      
-      // We search for the board without tenant restriction first to check if it's public
-      const [board] = await db.select().from(boardsTable).where(eq(boardsTable.id, Number(req.params.id)));
-      
+      console.log(`[HTTP] Fetching public board with ID: ${req.params.id}, org: ${req.tenantId}`);
+      const board = await storage.getBoard(Number(req.params.id), req.tenantId);
       if (!board) {
         return res.status(404).json({ error: true, message: "Board not found" });
       }
 
-      // If board is not public, it still requires authentication and tenant check
-      if (!board.isPublic) {
-        // This will be handled by the client redirecting to login if needed
-        // For now, if it's not public, we return 403 or similar
-        return res.status(403).json({ error: true, message: "This board is private" });
-      }
-
-      // Include publicRole in response so frontend knows if editing is allowed
-      // Remove comments for public view
+      // Remove sensitive information for public view
       const publicBoard = {
         ...board,
         blocks: board.blocks.map(block => ({
           ...block,
-          comments: [] // Public users shouldn't see internal comments
-        })),
-        canEdit: board.publicRole === 'editor'
+          comments: []
+        }))
       };
 
-      console.log(`[HTTP] Retrieved public board: ${publicBoard.id}, canEdit: ${publicBoard.canEdit}`);
+      console.log(`[HTTP] Retrieved public board: ${publicBoard.id}`);
       res.json(publicBoard);
     } catch (err) {
       console.error('[HTTP] Error fetching public board:', err);
       res.status(500).json({ error: true, message: "Failed to fetch board" });
-    }
-  });
-
-  app.patch("/api/boards/:id/public", requireTenant, async (req, res) => {
-    try {
-      const { isPublic, publicRole } = req.body;
-      const boardId = Number(req.params.id);
-      
-      const board = await storage.updateBoard(boardId, {
-        isPublic,
-        publicRole: publicRole || 'viewer'
-      }, req.tenantId);
-      
-      res.json(board);
-    } catch (err) {
-      console.error('[HTTP] Error updating public status:', err);
-      res.status(500).json({ error: true, message: "Failed to update public status" });
-    }
-  });
-
-  // Public edit endpoint - allows editing when publicRole is 'editor'
-  app.patch("/api/boards/:id/public-edit", boardUpdateRateLimit, async (req, res) => {
-    try {
-      const boardId = Number(req.params.id);
-      console.log(`[HTTP] Public edit request for board: ${boardId}`);
-      
-      // Get the board without tenant restriction to check public status
-      const [board] = await db.select().from(boardsTable).where(eq(boardsTable.id, boardId));
-      
-      if (!board) {
-        return res.status(404).json({ error: true, message: "Board not found" });
-      }
-      
-      // Check if board is public and has editor role
-      if (!board.isPublic) {
-        return res.status(403).json({ error: true, message: "This board is private" });
-      }
-      
-      if (board.publicRole !== 'editor') {
-        return res.status(403).json({ error: true, message: "This board is read-only for public users" });
-      }
-      
-      // Only allow updating blocks and phases (not sensitive fields)
-      const allowedUpdates: Partial<Board> = {};
-      if (req.body.blocks) allowedUpdates.blocks = req.body.blocks;
-      if (req.body.phases) allowedUpdates.phases = req.body.phases;
-      
-      if (Object.keys(allowedUpdates).length === 0) {
-        return res.status(400).json({ error: true, message: "No valid updates provided" });
-      }
-      
-      // Update without tenant restriction since this is public
-      const [updatedBoard] = await db
-        .update(boardsTable)
-        .set({
-          ...allowedUpdates,
-          updatedAt: new Date()
-        })
-        .where(eq(boardsTable.id, boardId))
-        .returning();
-      
-      console.log(`[HTTP] Successfully updated public board: ${updatedBoard.id}`);
-      res.json({ ...updatedBoard, canEdit: updatedBoard.publicRole === 'editor' });
-    } catch (err) {
-      console.error('[HTTP] Error updating public board:', err);
-      res.status(500).json({ error: true, message: "Failed to update board" });
     }
   });
 

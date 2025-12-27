@@ -79,21 +79,21 @@ export default function CreateBoardDialog({ open, onOpenChange }: CreateBoardDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-2 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F]">
-        <DialogHeader className="border-b-2 border-[#0A0A0F] pb-4">
-          <DialogTitle className="text-[#0A0A0F] font-black uppercase tracking-tight">Create New Blueprint</DialogTitle>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Blueprint</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold uppercase tracking-wide text-xs text-[#0A0A0F]">Name</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter blueprint name" {...field} className="border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600]" />
+                    <Input placeholder="Enter blueprint name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -105,12 +105,11 @@ export default function CreateBoardDialog({ open, onOpenChange }: CreateBoardDia
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold uppercase tracking-wide text-xs text-[#0A0A0F]">Description</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Enter blueprint description"
                       {...field}
-                      className="border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600] min-h-[100px]"
                     />
                   </FormControl>
                   <FormMessage />
@@ -118,7 +117,7 @@ export default function CreateBoardDialog({ open, onOpenChange }: CreateBoardDia
               )}
             />
 
-            <Button type="submit" className="w-full bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-widest transition-all h-12">
+            <Button type="submit" className="w-full">
               Create Blueprint
             </Button>
           </form>

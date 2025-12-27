@@ -1,17 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
 import { 
   Users, 
   UserPlus, 
-  Trash2, 
-  Clock, 
-  Check, 
-  X, 
-  Building2, 
   Mail, 
-  RotateCcw
+  Shield, 
+  Trash2,
+  Check,
+  X,
+  Clock,
+  ChevronDown,
+  RotateCcw,
+  Building2
 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -20,6 +28,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -46,200 +58,362 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-simple-auth";
 
 interface TeamMember {
   id: number;
   email: string;
   role: string;
   status: string;
+  invitedAt: string;
   lastAccessAt?: string;
   user?: {
     username: string;
+    email: string;
   };
+}
+
+interface InviteTeamMemberForm {
+  email: string;
+  role: string;
+  teamName: string;
+  inviterName: string;
 }
 
 interface PendingInvitation {
   id: number;
   email: string;
   role: string;
+  teamName: string;
+  inviterName: string;
   createdAt: string;
+  expiresAt: string;
+  status: string;
 }
 
 interface Organization {
   id: string;
   name: string;
+  slug: string;
 }
 
-export function TeamManagement() {
+export default function TeamManagement() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  const [inviteForm, setInviteForm] = useState({
-    email: "",
-    role: "member"
-  });
-
+  
   const { data: activeOrg } = useQuery<Organization | null>({
     queryKey: ['/api/organizations/active'],
   });
-
-  const { data: teamMembers = [], isLoading } = useQuery<TeamMember[]>({
-    queryKey: ['/api/team/members'],
+  
+  const [inviteForm, setInviteForm] = useState<InviteTeamMemberForm>({
+    email: "",
+    role: "member",
+    teamName: "My Team",
+    inviterName: user?.displayName || user?.email || "Team Admin"
   });
 
-  const { data: pendingInvitations = [] } = useQuery<PendingInvitation[]>({
-    queryKey: ['/api/team/invitations'],
+  useEffect(() => {
+    if (activeOrg?.name) {
+      setInviteForm(prev => ({ ...prev, teamName: activeOrg.name }));
+    }
+  }, [activeOrg?.name]);
+
+  // Use user ID as organization ID to ensure data isolation
+  // Each user has their own team/organization scope
+  const getOrganizationId = () => {
+    if (!user?.uid) return null;
+    
+    // Handle different session types:
+    // - Password login: integer user ID
+    // - Google OAuth: Firebase UID string like "google_123456"
+    if (typeof user.uid === 'number') {
+      return user.uid;
+    }
+    
+    if (typeof user.uid === 'string') {
+      // Try parsing as integer first (for password accounts)
+      const parsed = parseInt(user.uid);
+      if (!isNaN(parsed)) {
+        return parsed;
+      }
+      
+      // For Firebase UIDs like "google_123456", we need to lookup the database user ID
+      // Since we can't do async lookups in the component, we'll need a different approach
+      // For now, log the issue and return null to prevent API calls with NaN
+      console.warn('[Team Management] Cannot resolve organization ID for Firebase UID:', user.uid);
+      return null;
+    }
+    
+    return null;
+  };
+  
+  const organizationId = getOrganizationId();
+
+  const { data: teamMembers = [], isLoading, error: teamMembersError } = useQuery<TeamMember[]>({
+    queryKey: ["/api/teams", organizationId, "members"],
+    queryFn: async () => {
+      const res = await fetch(`/api/teams/${organizationId}/members`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch team members: ${res.status}`);
+      }
+      return res.json();
+    },
+    enabled: !!user && !!organizationId,
+    retry: 2,
+  });
+
+  const { data: pendingInvitations = [], error: pendingInvitationsError } = useQuery<PendingInvitation[]>({
+    queryKey: ["/api/teams", organizationId, "pending-invitations"],
+    queryFn: async () => {
+      const res = await fetch(`/api/teams/${organizationId}/pending-invitations`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch pending invitations: ${res.status}`);
+      }
+      return res.json();
+    },
+    enabled: !!user,
+    retry: 2,
   });
 
   const inviteMutation = useMutation({
-    mutationFn: async (data: typeof inviteForm) => {
-      await apiRequest('POST', '/api/team/invite', data);
+    mutationFn: async (data: InviteTeamMemberForm) => {
+      const response = await fetch(`/api/teams/${organizationId}/invite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to invite team member");
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team/invitations'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "pending-invitations"] });
       setInviteDialogOpen(false);
-      setInviteForm({ email: "", role: "member" });
+      setInviteForm({ 
+        email: "", 
+        role: "member",
+        teamName: "My Team",
+        inviterName: user?.displayName || user?.email || "Team Admin"
+      });
       toast({
-        title: "Invitation sent",
-        description: `An invitation has been sent to ${inviteForm.email}.`,
+        title: "Team member invited",
+        description: "The invitation has been sent successfully.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to send invitation",
+        title: "Failed to invite team member",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
   const updateMemberMutation = useMutation({
-    mutationFn: async ({ memberId, updates }: { memberId: number; updates: any }) => {
-      await apiRequest('PATCH', `/api/team/members/${memberId}`, updates);
+    mutationFn: async ({ memberId, updates }: { memberId: number; updates: Partial<TeamMember> }) => {
+      const response = await fetch(`/api/teams/members/${memberId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to update team member");
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team/members'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "members"] });
       toast({
-        title: "Member updated",
-        description: "Team member status has been updated.",
+        title: "Team member updated",
+        description: "The team member has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update team member",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
 
   const deleteMemberMutation = useMutation({
     mutationFn: async (memberId: number) => {
-      await apiRequest('DELETE', `/api/team/members/${memberId}`);
+      const response = await fetch(`/api/teams/members/${memberId}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to remove team member");
+      }
+      
+      // 204 No Content response doesn't have a body to parse
+      return;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team/members'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "members"] });
       toast({
-        title: "Member removed",
-        description: "Team member has been removed from the organization.",
+        title: "Team member removed",
+        description: "The team member has been removed from the organization.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to remove team member",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
 
   const cancelInvitationMutation = useMutation({
     mutationFn: async (invitationId: number) => {
-      await apiRequest('DELETE', `/api/team/invitations/${invitationId}`);
+      const response = await fetch(`/api/teams/pending-invitations/${invitationId}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to cancel invitation");
+      }
+      
+      // 204 No Content response doesn't have a body to parse
+      return;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team/invitations'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "pending-invitations"] });
       toast({
         title: "Invitation cancelled",
-        description: "The pending invitation has been cancelled.",
+        description: "The invitation has been cancelled successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to cancel invitation",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
 
   const resendInviteMutation = useMutation({
     mutationFn: async (invitationId: number) => {
-      await apiRequest('POST', `/api/team/invitations/${invitationId}/resend`);
+      const response = await fetch(`/api/teams/invitations/${invitationId}/resend`, {
+        method: "POST",
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to resend invitation");
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "pending-invitations"] });
       toast({
         title: "Invitation resent",
-        description: "The invitation has been resent to the recipient.",
+        description: "The invitation has been sent again successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to resend invitation",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
 
   const handleInvite = () => {
-    if (inviteForm.email) {
-      inviteMutation.mutate(inviteForm);
+    if (!inviteForm.email.trim()) {
+      toast({
+        title: "Email required",
+        description: "Please enter an email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    inviteMutation.mutate(inviteForm);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "active":
+        return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">Active</Badge>;
+      case "pending":
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">Invite Pending</Badge>;
+      case "inactive":
+        return <Badge variant="outline" className="bg-gray-100 text-gray-600">Inactive</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   const getRoleBadge = (role: string) => {
-    const colors: Record<string, string> = {
-      owner: "bg-purple-600 text-white border-2 border-[#0A0A0F]",
-      admin: "bg-red-600 text-white border-2 border-[#0A0A0F]",
-      editor: "bg-blue-600 text-white border-2 border-[#0A0A0F]",
-      member: "bg-[#0A0A0F] text-white border-2 border-[#0A0A0F]"
-    };
-    return (
-      <Badge className={`${colors[role] || "bg-gray-500"} rounded-none font-black uppercase tracking-widest text-[10px] px-2 py-0.5`}>
-        {role}
-      </Badge>
-    );
-  };
-
-  const getStatusBadge = (status: string) => {
-    const colors: Record<string, string> = {
-      active: "bg-green-600 text-white border-2 border-[#0A0A0F]",
-      pending: "bg-[#FFD600] text-[#0A0A0F] border-2 border-[#0A0A0F]",
-      inactive: "bg-gray-400 text-white border-2 border-[#0A0A0F]"
-    };
-    return (
-      <Badge className={`${colors[status] || "bg-gray-500"} rounded-none font-black uppercase tracking-widest text-[10px] px-2 py-0.5`}>
-        {status}
-      </Badge>
-    );
+    switch (role) {
+      case "admin":
+        return <Badge variant="default" className="bg-purple-100 text-purple-800 border-purple-200">
+          <Shield className="w-3 h-3 mr-1" />
+          Admin
+        </Badge>;
+      case "editor":
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">Editor</Badge>;
+      case "member":
+        return <Badge variant="outline">Member</Badge>;
+      default:
+        return <Badge variant="outline">{role}</Badge>;
+    }
   };
 
   if (isLoading) {
     return (
-      <Card className="border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white overflow-hidden">
+      <Card>
         {activeOrg && (
-          <div className="bg-[#1976D2] border-b-4 border-[#0A0A0F] px-6 py-3 flex items-center gap-2 text-sm text-white font-bold uppercase tracking-wide">
-            <Building2 className="h-4 w-4" />
-            <span>{activeOrg.name}</span>
-            <span className="opacity-80">workspace</span>
+          <div className="bg-[#302E87]/5 border-b border-[#302E87]/20 px-6 py-3 flex items-center gap-2 text-sm">
+            <Building2 className="h-4 w-4 text-[#302E87]" />
+            <span className="text-[#302E87] font-medium">{activeOrg.name}</span>
+            <span className="text-gray-500">organization</span>
           </div>
         )}
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-black uppercase tracking-tight flex items-center gap-2 text-[#0A0A0F]">
-                <Users className="h-6 w-6" />
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
                 Team Management
               </CardTitle>
-              <CardDescription className="text-gray-600 font-medium">
+              <CardDescription>
                 Invite team members and manage permissions for your organization
               </CardDescription>
             </div>
-            <div className="h-10 w-32 bg-gray-200 border-2 border-[#0A0A0F] animate-pulse rounded-none" />
+            <div className="h-9 w-32 bg-gray-200 rounded animate-pulse" />
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="p-4 border-2 border-[#0A0A0F] flex items-center justify-between bg-gray-50/50">
+              <div key={i} className="p-3 rounded border border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">
-                  <div className="h-10 w-10 bg-gray-200 border-2 border-[#0A0A0F] animate-pulse" />
+                  <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse flex-shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-32 bg-gray-200 animate-pulse" />
-                    <div className="h-3 w-48 bg-gray-100 animate-pulse" />
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-3 w-48 bg-gray-100 rounded animate-pulse" />
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-6 w-16 bg-gray-200 animate-pulse" />
-                  <div className="h-8 w-24 bg-gray-200 border-2 border-[#0A0A0F] animate-pulse" />
+                  <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
                 </div>
               </div>
             ))}
@@ -250,79 +424,76 @@ export function TeamManagement() {
   }
 
   return (
-    <Card className="border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white overflow-hidden">
+    <Card>
       {activeOrg && (
-        <div className="bg-[#1976D2] border-b-4 border-[#0A0A0F] px-6 py-3 flex items-center gap-2 text-sm text-white font-bold uppercase tracking-wide">
-          <Building2 className="h-4 w-4" />
-          <span>{activeOrg.name}</span>
-          <span className="opacity-80">workspace</span>
+        <div className="bg-[#302E87]/5 border-b border-[#302E87]/20 px-6 py-3 flex items-center gap-2 text-sm">
+          <Building2 className="h-4 w-4 text-[#302E87]" />
+          <span className="text-[#302E87] font-medium">{activeOrg.name}</span>
+          <span className="text-gray-500">organization</span>
         </div>
       )}
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-2xl font-black uppercase tracking-tight flex items-center gap-2 text-[#0A0A0F]">
-              <Users className="h-6 w-6" />
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
               Team Management
             </CardTitle>
-            <CardDescription className="text-gray-600 font-medium">
+            <CardDescription>
               Invite team members and manage permissions for your organization
             </CardDescription>
           </div>
           <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all">
-                <UserPlus className="h-4 w-4 mr-2" />
+              <Button>
+                <UserPlus className="w-4 h-4 mr-2" />
                 Invite Member
               </Button>
             </DialogTrigger>
-            <DialogContent className="border-2 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F]">
-              <DialogHeader className="border-b-2 border-[#0A0A0F] pb-4">
-                <DialogTitle className="text-[#0A0A0F] font-black uppercase tracking-tight">Invite Team Member</DialogTitle>
-                <DialogDescription className="text-gray-600">
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite Team Member</DialogTitle>
+                <DialogDescription>
                   Send an invitation to join your team
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="font-bold uppercase tracking-wide text-xs text-[#0A0A0F]">Email Address</Label>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="colleague@company.com"
                     value={inviteForm.email}
                     onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
-                    className="border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600]"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role" className="font-bold uppercase tracking-wide text-xs text-[#0A0A0F]">Role</Label>
+                <div>
+                  <Label htmlFor="role">Role</Label>
                   <Select
                     value={inviteForm.role}
                     onValueChange={(value) => setInviteForm(prev => ({ ...prev, role: value }))}
                   >
-                    <SelectTrigger className="border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#FFD600] font-bold uppercase tracking-wide">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F]">
-                      <SelectItem value="member" className="rounded-none hover:bg-[#FFD600] font-bold uppercase tracking-wide">Member</SelectItem>
-                      <SelectItem value="editor" className="rounded-none hover:bg-[#FFD600] font-bold uppercase tracking-wide">Editor</SelectItem>
-                      <SelectItem value="admin" className="rounded-none hover:bg-[#FFD600] font-bold uppercase tracking-wide">Admin</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="member">Member</SelectItem>
+                      <SelectItem value="editor">Editor</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex justify-end gap-2 pt-4">
+                <div className="flex justify-end gap-2">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     onClick={() => setInviteDialogOpen(false)}
-                    className="rounded-none border-2 border-transparent hover:border-[#0A0A0F] font-bold uppercase tracking-wide"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleInvite}
                     disabled={inviteMutation.isPending}
-                    className="bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none font-bold uppercase tracking-wide transition-all"
                   >
                     {inviteMutation.isPending ? "Sending..." : "Send Invitation"}
                   </Button>
@@ -334,171 +505,194 @@ export function TeamManagement() {
       </CardHeader>
       <CardContent>
         {teamMembers.length === 0 && pendingInvitations.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed border-[#0A0A0F] rounded-none bg-gray-50">
+          <div className="text-center py-8">
             <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-black uppercase tracking-tight text-[#0A0A0F] mb-2">No team members yet</h3>
-            <p className="text-gray-500 mb-6 font-medium">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No team members yet</h3>
+            <p className="text-gray-500 mb-4">
               Start collaborating by inviting your team members
             </p>
           </div>
         ) : (
-          <div className="border-2 border-[#0A0A0F] rounded-none overflow-hidden">
-            <Table>
-              <TableHeader className="bg-gray-100 border-b-2 border-[#0A0A0F]">
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="font-black uppercase tracking-wider text-[#0A0A0F] text-xs">Member</TableHead>
-                  <TableHead className="font-black uppercase tracking-wider text-[#0A0A0F] text-xs">Role</TableHead>
-                  <TableHead className="font-black uppercase tracking-wider text-[#0A0A0F] text-xs">Status</TableHead>
-                  <TableHead className="font-black uppercase tracking-wider text-[#0A0A0F] text-xs">Last Access</TableHead>
-                  <TableHead className="font-black uppercase tracking-wider text-[#0A0A0F] text-xs text-right">Actions</TableHead>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Last Access</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {teamMembers.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                        <Mail className="w-4 h-4 text-gray-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium">
+                          {member.user?.username || member.email}
+                        </div>
+                        <div className="text-sm text-gray-500">{member.email}</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{getRoleBadge(member.role)}</TableCell>
+                  <TableCell>{getStatusBadge(member.status)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <Clock className="w-3 h-3" />
+                      {member.lastAccessAt 
+                        ? new Date(member.lastAccessAt).toLocaleDateString()
+                        : "Never"
+                      }
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      {member.status === "pending" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateMemberMutation.mutate({
+                              memberId: member.id,
+                              updates: { status: "active" }
+                            })}
+                          >
+                            <Check className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateMemberMutation.mutate({
+                              memberId: member.id,
+                              updates: { status: "inactive" }
+                            })}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </>
+                      )}
+                      <Select
+                        value={member.role}
+                        onValueChange={(value) => updateMemberMutation.mutate({
+                          memberId: member.id,
+                          updates: { role: value }
+                        })}
+                      >
+                        <SelectTrigger className="w-24 h-8 text-sm">
+                          <SelectValue />
+                          <ChevronDown className="w-3 h-3" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="member">Member</SelectItem>
+                          <SelectItem value="editor">Editor</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to remove {member.user?.username || member.email} from the team? 
+                              This action cannot be undone and they will lose access to all projects and blueprints.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-red-600 hover:bg-red-700"
+                              onClick={() => deleteMemberMutation.mutate(member.id)}
+                            >
+                              Remove Member
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {teamMembers.map((member) => (
-                  <TableRow key={member.id} className="border-b-2 border-[#0A0A0F] last:border-0 hover:bg-[#FFD600]/10">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#0A0A0F] text-white rounded-none flex items-center justify-center border-2 border-[#0A0A0F]">
-                          <Mail className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-[#0A0A0F] uppercase tracking-tight text-sm">
-                            {member.user?.username || member.email}
-                          </div>
-                          <div className="text-xs text-gray-500 font-medium">{member.email}</div>
-                        </div>
+              ))}
+              {pendingInvitations.map((invitation) => (
+                <TableRow key={`pending-${invitation.id}`}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <Mail className="w-4 h-4 text-yellow-600" />
                       </div>
-                    </TableCell>
-                    <TableCell>{getRoleBadge(member.role)}</TableCell>
-                    <TableCell>{getStatusBadge(member.status)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-xs text-gray-500 font-bold uppercase tracking-wide">
-                        <Clock className="w-3 h-3" />
-                        {member.lastAccessAt 
-                          ? new Date(member.lastAccessAt).toLocaleDateString()
-                          : "Never"
-                        }
+                      <div>
+                        <div className="font-medium">{invitation.email}</div>
+                        <div className="text-sm text-gray-500">Invitation sent</div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Select
-                          value={member.role}
-                          onValueChange={(value) => updateMemberMutation.mutate({
-                            memberId: member.id,
-                            updates: { role: value }
-                          })}
-                        >
-                          <SelectTrigger className="w-24 h-8 text-xs border-2 border-[#0A0A0F] rounded-none font-bold uppercase tracking-wide">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F]">
-                            <SelectItem value="member" className="rounded-none hover:bg-[#FFD600] font-bold uppercase tracking-wide">Member</SelectItem>
-                            <SelectItem value="editor" className="rounded-none hover:bg-[#FFD600] font-bold uppercase tracking-wide">Editor</SelectItem>
-                            <SelectItem value="admin" className="rounded-none hover:bg-[#FFD600] font-bold uppercase tracking-wide">Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0 text-red-600 hover:text-white hover:bg-red-600 rounded-none border-2 border-transparent hover:border-red-600"
+                    </div>
+                  </TableCell>
+                  <TableCell>{getRoleBadge(invitation.role)}</TableCell>
+                  <TableCell>{getStatusBadge("pending")}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <Clock className="w-3 h-3" />
+                      Invited {new Date(invitation.createdAt).toLocaleDateString()}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => resendInviteMutation.mutate(invitation.id)}
+                        disabled={resendInviteMutation.isPending}
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Cancel Invitation</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to cancel the invitation for {invitation.email}? 
+                              They will not be able to join the team using this invitation.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-red-600 hover:bg-red-700"
+                              onClick={() => cancelInvitationMutation.mutate(invitation.id)}
                             >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="border-2 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F]">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="font-black uppercase tracking-tight text-[#0A0A0F]">Remove Team Member</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to remove {member.user?.username || member.email} from the team? 
-                                This action cannot be undone and they will lose access to all projects and blueprints.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-none border-2 border-[#0A0A0F] font-bold uppercase tracking-wide hover:bg-gray-100">Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-red-600 hover:bg-red-700 rounded-none border-2 border-red-600 font-bold uppercase tracking-wide"
-                                onClick={() => deleteMemberMutation.mutate(member.id)}
-                              >
-                                Remove Member
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {pendingInvitations.map((invitation) => (
-                  <TableRow key={`pending-${invitation.id}`} className="border-b-2 border-[#0A0A0F] last:border-0 bg-[#FFD600]/5 hover:bg-[#FFD600]/10">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#FFD600] text-[#0A0A0F] rounded-none flex items-center justify-center border-2 border-[#0A0A0F]">
-                          <Mail className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-[#0A0A0F] uppercase tracking-tight text-sm">{invitation.email}</div>
-                          <div className="text-xs text-gray-500 font-medium">Invitation sent</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getRoleBadge(invitation.role)}</TableCell>
-                    <TableCell>{getStatusBadge("pending")}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-xs text-gray-500 font-bold uppercase tracking-wide">
-                        <Clock className="w-3 h-3" />
-                        Invited {new Date(invitation.createdAt).toLocaleDateString()}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => resendInviteMutation.mutate(invitation.id)}
-                          disabled={resendInviteMutation.isPending}
-                          className="h-8 w-8 p-0 text-[#1976D2] hover:text-white hover:bg-[#1976D2] rounded-none border-2 border-transparent hover:border-[#1976D2]"
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0 text-red-600 hover:text-white hover:bg-red-600 rounded-none border-2 border-transparent hover:border-red-600"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="border-2 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F]">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="font-black uppercase tracking-tight text-[#0A0A0F]">Cancel Invitation</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to cancel the invitation for {invitation.email}? 
-                                They will not be able to join the team using this invitation.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-none border-2 border-[#0A0A0F] font-bold uppercase tracking-wide hover:bg-gray-100">Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-red-600 hover:bg-red-700 rounded-none border-2 border-red-600 font-bold uppercase tracking-wide"
-                                onClick={() => cancelInvitationMutation.mutate(invitation.id)}
-                              >
-                                Cancel Invitation
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                              Cancel Invitation
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </CardContent>
     </Card>
