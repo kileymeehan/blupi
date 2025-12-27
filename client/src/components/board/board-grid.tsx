@@ -2764,7 +2764,8 @@ export default function BoardGrid({
                   </div>
 
                   <div
-                    className={`flex-1 overflow-y-auto bg-slate-100 ${showComments ? "block" : "hidden"}`}
+                    className={`flex-1 overflow-y-auto ${showComments ? "block" : "hidden"}`}
+                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
                   >
                     <CommentsOverview
                       board={board}
@@ -2777,7 +2778,8 @@ export default function BoardGrid({
                     />
                   </div>
                   <div
-                    className={`flex-1 overflow-y-auto bg-slate-100 ${showDepartments ? "block" : "hidden"}`}
+                    className={`flex-1 overflow-y-auto ${showDepartments ? "block" : "hidden"}`}
+                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
                   >
                     <DepartmentFilter
                       blocks={board.blocks}
@@ -2788,7 +2790,8 @@ export default function BoardGrid({
                     />
                   </div>
                   <div
-                    className={`flex-1 overflow-y-auto bg-slate-100 ${showGoogleSheets ? "block" : "hidden"}`}
+                    className={`flex-1 overflow-y-auto ${showGoogleSheets ? "block" : "hidden"}`}
+                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
                   >
                     <SheetDocumentsManager
                       boardId={Number(id)}
@@ -3126,9 +3129,9 @@ export default function BoardGrid({
                           </div>
                         </div>
 
-                        {/* Per-phase Emotion Journey */}
+                        {/* Per-phase Emotion Journey - always light mode */}
                         {showEmotionJourney && !phase.collapsed && phase.columns.length > 0 && (
-                          <div className="mb-4">
+                          <div className="mb-4 emotion-journey-light" style={{ colorScheme: 'light' }}>
                             <EmotionJourney 
                               phases={board.phases}
                               board={board}

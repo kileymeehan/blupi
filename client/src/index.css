@@ -486,3 +486,30 @@
 .dark [role="menuitem"]:hover {
   background-color: #3a3a5c !important;
 }
+
+/* Emotion Journey - always light mode, exempt from dark mode overrides */
+.emotion-journey-light,
+.emotion-journey-light * {
+  color-scheme: light !important;
+}
+
+.dark .emotion-journey-light .bg-white {
+  background-color: white !important;
+}
+
+.dark .emotion-journey-light .bg-gray-50,
+.dark .emotion-journey-light .bg-gray-100 {
+  background-color: #f9fafb !important;
+}
+
+.dark .emotion-journey-light .text-gray-500,
+.dark .emotion-journey-light .text-gray-600,
+.dark .emotion-journey-light .text-gray-700,
+.dark .emotion-journey-light .text-gray-900 {
+  color: inherit !important;
+}
+
+.dark .emotion-journey-light .border-gray-200,
+.dark .emotion-journey-light .border-gray-300 {
+  border-color: #e5e7eb !important;
+}
