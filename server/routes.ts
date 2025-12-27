@@ -1450,7 +1450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .returning();
       
       console.log(`[HTTP] Successfully updated public board: ${updatedBoard.id}`);
-      res.json(updatedBoard);
+      res.json({ ...updatedBoard, canEdit: updatedBoard.publicRole === 'editor' });
     } catch (err) {
       console.error('[HTTP] Error updating public board:', err);
       res.status(500).json({ error: true, message: "Failed to update board" });
