@@ -2353,44 +2353,64 @@ export default function BoardGrid({
 
         <div className="flex items-center gap-3">
           <UsersPresence users={connectedUsers} />
-          <div className="w-[2px] h-8 bg-[#1976D2] mx-3" />
-          <div className="flex items-center gap-3">
+          <div className="w-px h-6 bg-white/30 mx-2" />
+          <div className="flex items-center gap-1">
             <Button
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 setBulkEditMode(!bulkEditMode);
                 setSelectedBlocks(new Set());
               }}
-              className={`${bulkEditMode ? 'bauhaus-btn-blue' : 'bauhaus-btn'} h-10 px-4 text-xs`}
+              className={`h-9 w-9 p-0 ${bulkEditMode ? 'text-[#FFD600]' : 'text-white/90 hover:text-white hover:bg-white/10'}`}
               title={bulkEditMode ? "Exit Bulk Edit" : "Bulk Edit"}
             >
-              <LayoutGrid className="w-4 h-4 mr-2" />
-              BULK EDIT
+              <LayoutGrid className="w-5 h-5" />
             </Button>
             
             <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowEmotionJourney(!showEmotionJourney)}
-              className={`${showEmotionJourney ? 'bauhaus-btn-blue' : 'bauhaus-btn'} h-10 px-4 text-xs`}
+              className={`h-9 w-9 p-0 ${showEmotionJourney ? 'text-[#FFD600]' : 'text-white/90 hover:text-white hover:bg-white/10'}`}
               title="Toggle Emotional Journey"
             >
-              <TrendingUp className="w-4 h-4 mr-2" />
-              JOURNEY
+              <TrendingUp className="w-5 h-5" />
             </Button>
             
-            <Button onClick={() => setPresentationMode(true)} className="bauhaus-btn h-10 px-4 text-xs">
-              <Presentation className="h-4 w-4 mr-2" />
-              PRESENT
+            <div className="w-px h-6 bg-white/30 mx-2" />
+            
+            <Button 
+              variant="ghost"
+              size="sm"
+              onClick={() => setPresentationMode(true)} 
+              className="h-9 w-9 p-0 text-white/90 hover:text-white hover:bg-white/10"
+              title="Presentation Mode"
+            >
+              <Presentation className="w-5 h-5" />
             </Button>
 
-            <Button onClick={() => setShareLinkOpen(true)} className="bauhaus-btn-blue h-10 px-4 text-xs">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              SHARE
+            <Button 
+              variant="ghost"
+              size="sm"
+              onClick={() => setShareLinkOpen(true)} 
+              className="h-9 w-9 p-0 text-white/90 hover:text-white hover:bg-white/10"
+              title="Share"
+            >
+              <ExternalLink className="w-5 h-5" />
             </Button>
+
+            <div className="w-px h-6 bg-white/30 mx-2" />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="bauhaus-btn h-10 px-4 text-xs">
-                  <Settings className="w-4 h-4 mr-2" />
-                  SETTINGS
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 text-white/90 hover:text-white hover:bg-white/10"
+                  title="Settings"
+                >
+                  <Settings className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -2429,11 +2449,13 @@ export default function BoardGrid({
             </DropdownMenu>
             
             <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setAddToProjectOpen(true)}
-              className="bauhaus-btn h-10 w-10 p-0"
+              className="h-9 w-9 p-0 text-white/90 hover:text-white hover:bg-white/10"
               title="Add to Project"
             >
-              <FolderPlus className="w-4 h-4" />
+              <FolderPlus className="w-5 h-5" />
             </Button>
 
             <BlueprintImportTrigger 
@@ -2443,8 +2465,13 @@ export default function BoardGrid({
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="bauhaus-btn h-10 w-10 p-0">
-                  <ArrowUpFromLine className="w-4 h-4" />
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 text-white/90 hover:text-white hover:bg-white/10"
+                  title="Export & Share"
+                >
+                  <ArrowUpFromLine className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -2464,13 +2491,13 @@ export default function BoardGrid({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="w-[2px] h-8 bg-[#1976D2] mx-2" />
+            <div className="w-px h-6 bg-white/30 mx-2" />
             
             <NotificationBell variant="light" />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-white/90 hover:text-white hover:bg-white/10">
                   <ProfileIcon />
                 </Button>
               </DropdownMenuTrigger>
@@ -2488,9 +2515,12 @@ export default function BoardGrid({
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
-                  className="bauhaus-btn h-10 w-10 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                  title="Delete Blueprint"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-5 h-5" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
