@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 interface CustomScrollbarProps {
   scrollContainer: HTMLElement | null;
@@ -8,7 +9,13 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [thumbPosition, setThumbPosition] = useState(0);
   const [thumbWidth, setThumbWidth] = useState(100);
+  const [mounted, setMounted] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   useEffect(() => {
     if (!scrollContainer) return;
@@ -102,10 +109,13 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
     scrollContainer.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
   };
 
-  if (!scrollContainer) return null;
+  if (!scrollContainer || !mounted) return null;
 
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t-4 border-[#0A0A0F] h-8">
+  const scrollbarElement = (
+    <div 
+      className="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-[#0A0A0F] h-8"
+      style={{ zIndex: 99999 }}
+    >
       <div
         ref={trackRef}
         className="relative h-full w-full cursor-pointer"
@@ -127,4 +137,6 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
       </div>
     </div>
   );
+
+  return createPortal(scrollbarElement, document.body);
 }
