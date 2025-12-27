@@ -740,9 +740,9 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
+      <main className="max-w-[1440px] mx-auto px-6 py-8 space-y-8">
         {showWelcome && (
-          <div className="bg-white border-4 border-[#0A0A0F] p-10 shadow-[8px_8px_0px_0px_#0A0A0F] relative welcome-content mb-8">
+          <div className="bg-white border-4 border-[#0A0A0F] p-10 shadow-[8px_8px_0px_0px_#0A0A0F] relative welcome-content mb-10">
             <div className="absolute top-4 right-4">
               <Button 
                 variant="ghost"
@@ -800,7 +800,7 @@ export default function Dashboard() {
         )}
 
         {/* Tab Navigation */}
-        <div className={`border-b-4 border-[#0A0A0F] ${!showWelcome ? 'mt-4' : ''}`} id="sidebar">
+        <div className={`border-b-4 border-[#0A0A0F] ${!showWelcome ? 'mt-6' : ''}`} id="sidebar">
           <nav className="-mb-px flex space-x-0">
             <button
               onClick={() => setActiveTab('projects')}

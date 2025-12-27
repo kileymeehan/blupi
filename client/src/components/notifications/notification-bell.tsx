@@ -125,49 +125,48 @@ export function NotificationBell({ variant = 'auto' }: { variant?: 'light' | 'da
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-medium">Notifications</h3>
+      <PopoverContent className="w-80 p-0 border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F]" align="end">
+        <div className="flex items-center justify-between p-4 border-b-2 border-[#0A0A0F] bg-[#0A0A0F]">
+          <h3 className="font-bold text-white uppercase tracking-wide text-sm">Notifications</h3>
           <Button
-            variant="ghost"
             size="sm"
             onClick={() => markAllAsReadMutation.mutate()}
             disabled={markAllAsReadMutation.isPending || unreadCount === 0}
-            className="text-xs"
+            className="text-xs bg-white text-[#0A0A0F] border border-[#0A0A0F] rounded-none hover:bg-[#FFD600] font-bold uppercase tracking-wide"
           >
             Mark all read
           </Button>
         </div>
         
-        <ScrollArea className="h-96">
+        <ScrollArea className="h-96 bg-white">
           {notifications && notifications.length > 0 ? (
             notifications.map((notification: SimpleNotification) => (
               <div
                 key={notification.id}
-                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-all duration-200 ${
-                  !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                className={`p-4 border-b-2 border-[#0A0A0F] cursor-pointer hover:bg-[#FFD600] transition-all duration-200 ${
+                  !notification.read ? 'bg-[#E3F2FD] border-l-4 border-l-[#1976D2]' : 'bg-white'
                 }`}
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className={`font-medium text-sm ${!notification.read ? 'text-blue-900' : 'text-gray-900'}`}>
+                  <h4 className={`font-bold text-sm uppercase tracking-wide ${!notification.read ? 'text-[#1976D2]' : 'text-[#0A0A0F]'}`}>
                     {notification.title}
                   </h4>
                   {!notification.read && (
-                    <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0 ml-2 mt-1" />
+                    <div className="h-2 w-2 bg-[#1976D2] rounded-none flex-shrink-0 ml-2 mt-1" />
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mb-3 leading-relaxed">{notification.message}</p>
-                <div className="flex items-center text-xs text-gray-400">
+                <p className="text-sm text-[#0A0A0F] mb-3 leading-relaxed">{notification.message}</p>
+                <div className="flex items-center text-xs text-gray-500 font-medium">
                   <Clock className="h-3 w-3 mr-1" />
                   {formatNotificationTime(notification.createdAt)}
                 </div>
               </div>
             ))
           ) : (
-            <div className="p-8 text-center text-gray-500 text-sm">
-              <Bell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-              No notifications
+            <div className="p-8 text-center text-[#0A0A0F] text-sm">
+              <Bell className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+              <span className="font-semibold">No notifications</span>
             </div>
           )}
         </ScrollArea>
