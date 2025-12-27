@@ -134,7 +134,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
   if (allColumns.length === 0) return null;
 
   return (
-    <div className={`w-full bg-slate-50 border-2 border-slate-300 rounded-xl p-6 shadow-sm overflow-hidden light-theme-only ${className}`} ref={containerRef}>
+    <div className={`w-full bg-slate-50 border-2 border-slate-300 rounded-xl p-6 shadow-sm overflow-hidden ${className}`} ref={containerRef}>
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-bold text-slate-900">Emotional Journey</h3>
         <div className="flex items-center gap-6 text-xs font-medium text-slate-600">

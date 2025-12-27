@@ -404,27 +404,19 @@
   color: #e5e5e5 !important;
 }
 
-/* Exclude light-theme-only elements from dark mode */
-.light-theme-only,
-.light-theme-only * {
-  background-color: initial !important;
-  color: initial !important;
-  border-color: initial !important;
-}
-
-.dark .bg-white:not(.light-theme-only *) {
+.dark .bg-white {
   background-color: #1e1e32 !important;
 }
 
-.dark .bg-gray-50:not(.light-theme-only *) {
+.dark .bg-gray-50 {
   background-color: #252542 !important;
 }
 
-.dark .bg-gray-100:not(.light-theme-only *) {
+.dark .bg-gray-100 {
   background-color: #2d2d4a !important;
 }
 
-.dark .bg-gray-200:not(.light-theme-only *) {
+.dark .bg-gray-200 {
   background-color: #3a3a5c !important;
 }
 
