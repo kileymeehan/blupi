@@ -878,13 +878,13 @@ export default function Dashboard() {
                           <div className="flex items-center gap-3 mb-2">
                             <Star className="h-4 w-4 text-[#FFD600] fill-current" />
                             <div className="flex items-center gap-2">
-                              <Link href={`/board/${item.boardId}`} className="text-[#1976D2] hover:text-[#1565C0] font-black uppercase tracking-tight">
+                              <Link href={`/board/${item.boardId}`} className="text-[#1976D2] hover:text-[#0A0A0F] font-black uppercase tracking-widest">
                                 {board?.name || 'Blueprint'}
                               </Link>
                               <ExternalLink className="h-3 w-3 text-[#0A0A0F]" />
                             </div>
-                            <span className="text-[#0A0A0F] font-bold">•</span>
-                            <span className="text-sm text-[#0A0A0F] font-bold uppercase tracking-wider">
+                            <span className="text-[#0A0A0F] font-black">•</span>
+                            <span className="text-sm text-[#0A0A0F] font-black uppercase tracking-widest bg-[#FFD600] px-2">
                               {project?.name || 'No Project'}
                             </span>
                           </div>
@@ -1093,68 +1093,56 @@ export default function Dashboard() {
               <div className="bauhaus-card overflow-hidden mb-8">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-100 border-b border-gray-300">
-                      <TableHead className="w-[50px]">
+                    <TableRow className="bg-[#0A0A0F] border-b-4 border-[#0A0A0F]">
+                      <TableHead className="w-[50px] border-r-4 border-[#0A0A0F]">
                         <Checkbox
+                          className="border-2 border-white bg-white"
                           checked={selectedBlueprints.size === displayedBoards.length && displayedBoards.length > 0}
                           onCheckedChange={handleSelectAllBlueprints}
                         />
                       </TableHead>
-                      <TableHead className="w-[250px]">
-                        <div className="flex items-center gap-1 font-black uppercase tracking-wider text-[#0A0A0F]">
-                          <span>Blueprint Name</span>
-                        </div>
+                      <TableHead className="w-[300px] border-r-4 border-[#0A0A0F] font-black uppercase tracking-widest text-white py-4">
+                        Blueprint Name
                       </TableHead>
-                      <TableHead className="w-[150px]">
-                        <div className="flex items-center gap-1">
-                          <Calendar size={14} />
-                          <span>Created</span>
-                        </div>
+                      <TableHead className="w-[180px] border-r-4 border-[#0A0A0F] font-black uppercase tracking-widest text-white py-4">
+                        Created
                       </TableHead>
-                      <TableHead className="w-[140px]">
-                        <div className="flex items-center gap-1">
-                          <span>Status</span>
-                        </div>
+                      <TableHead className="w-[160px] border-r-4 border-[#0A0A0F] font-black uppercase tracking-widest text-white py-4">
+                        Status
                       </TableHead>
-                      <TableHead className="w-[200px]">
-                        <div className="flex items-center gap-1">
-                          <FolderSymlink size={14} />
-                          <span>Assigned Project</span>
-                        </div>
+                      <TableHead className="w-[250px] font-black uppercase tracking-widest text-white py-4">
+                        Assigned Project
                       </TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-right font-black uppercase tracking-widest text-white py-4">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {displayedBoards.map((board) => {
                       const project = projects.find((p) => p.id === board.projectId);
                       return (
-                        <TableRow key={board.id} className="hover:bg-[#FFD600]/10">
-                          <TableCell>
+                        <TableRow key={board.id} className="hover:bg-[#FFD600]/20 border-b-4 border-[#0A0A0F] transition-colors">
+                          <TableCell className="border-r-4 border-[#0A0A0F]">
                             <Checkbox
                               checked={selectedBlueprints.has(board.id)}
                               onCheckedChange={(checked) => handleSelectBlueprint(board.id, checked as boolean)}
                             />
                           </TableCell>
-                          <TableCell className="font-black uppercase tracking-tight">
-                            <Link href={`/board/${board.id}`} className="text-[#1976D2] hover:text-[#1565C0]">
+                          <TableCell className="font-black uppercase tracking-tight border-r-4 border-[#0A0A0F] py-4">
+                            <Link href={`/board/${board.id}`} className="text-[#1976D2] hover:text-[#0A0A0F] block">
                               {board.name}
                             </Link>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1 text-gray-600">
-                              <Clock size={14} />
-                              <span>{format(new Date(board.createdAt), "MMM d, yyyy")}</span>
-                            </div>
+                          <TableCell className="border-r-4 border-[#0A0A0F] font-bold text-[#0A0A0F] py-4">
+                            {format(new Date(board.createdAt), "MMM d, yyyy")}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="border-r-4 border-[#0A0A0F] py-4">
                             <StatusBadge status={board.status} />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="py-4">
                             {board.projectId ? (
-                              <div className="flex items-center">
+                              <div className="flex items-center font-black uppercase tracking-wider text-[#0A0A0F]">
                                 <div 
-                                  className="w-3 h-3 border-2 border-[#0A0A0F] mr-2" 
+                                  className="w-4 h-4 border-2 border-[#0A0A0F] mr-2" 
                                   style={{ backgroundColor: project?.color || "#1976D2" }}
                                 ></div>
                                 <span>{project?.name}</span>
@@ -1163,14 +1151,14 @@ export default function Dashboard() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 px-2 text-sm text-gray-500 hover:text-[#302E87]"
+                                className="h-8 px-2 text-xs font-black uppercase tracking-widest text-[#6B7280] hover:text-[#0A0A0F]"
                                 onClick={() => {
                                   setSelectedBoardId(String(board.id));
                                   setAddToProjectOpen(true);
                                 }}
                               >
-                                <FolderSymlink size={14} className="mr-1" />
-                                Assign to project
+                                <Plus size={12} className="mr-1" />
+                                Assign
                               </Button>
                             )}
                           </TableCell>
