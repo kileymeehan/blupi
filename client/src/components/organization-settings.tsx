@@ -373,31 +373,28 @@ export function OrganizationSettings() {
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent className="p-6 pt-8">
+      <CardContent>
         {organizations.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-8 text-gray-500">
             <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p className="mb-6 font-medium">You're not a member of any organization yet.</p>
+            <p className="mb-4">You're not a member of any organization yet.</p>
             <Button 
               onClick={() => setCreateDialogOpen(true)}
-              className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-black uppercase tracking-wide transition-all"
+              className="bg-[#302E87] hover:bg-[#252371]"
             >
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Organization
             </Button>
           </div>
         ) : (
-          <div className="space-y-6">
-            <h3 className="text-xs font-black text-[#0A0A0F] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-              <span className="w-8 h-0.5 bg-[#FFD600]"></span>
-              Your Organizations
-            </h3>
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Your Organizations</h3>
             {organizations.map((org) => (
               <div
                 key={org.organizationId}
-                className={`p-6 border-2 rounded-none transition-all ${
+                className={`p-4 border-2 rounded-none transition-all ${
                   org.isActive 
-                    ? 'border-[#0A0A0F] bg-[#FFD600]/5 shadow-[6px_6px_0px_0px_#0A0A0F]' 
+                    ? 'border-[#0A0A0F] bg-[#FFD600]/10 shadow-[4px_4px_0px_0px_#0A0A0F]' 
                     : 'border-[#0A0A0F] hover:bg-gray-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]'
                 }`}
                 data-testid={`org-card-${org.organization.slug}`}
@@ -493,9 +490,8 @@ export function OrganizationSettings() {
                             </Button>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 mt-1.5">
-                          <span className="text-xs font-black uppercase tracking-wider text-[#0A0A0F]/60">{org.role}</span>
-                          <div className="w-1 h-1 rounded-full bg-[#0A0A0F]/20" />
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <span className="text-sm text-gray-500 capitalize">{org.role}</span>
                           <MemberCount organizationId={org.organizationId} />
                         </div>
                       </>
