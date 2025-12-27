@@ -3351,37 +3351,45 @@ export default function BoardGrid({
                                                             setExpandedGroups(newExpanded);
                                                           }}
                                                           className={`
-                                                            relative cursor-pointer rounded-lg border-3 mb-2 p-3
+                                                            relative cursor-pointer rounded-lg border-3 mb-2 p-2 w-full aspect-square
                                                             ${layerType?.color || 'border-gray-400'}
-                                                            hover:shadow-md transition-all bg-white
+                                                            hover:shadow-md transition-all bg-white flex flex-col
                                                           `}
                                                         >
+                                                          {/* Stacked card effect - visible left/top borders */}
                                                           <div 
-                                                            className={`absolute -bottom-1 -right-1 left-1 h-full rounded-lg border-2 ${layerType?.color || 'border-gray-300'} bg-white -z-10`}
+                                                            className={`absolute -bottom-1 -right-1 left-1 top-1 rounded-lg border-2 ${layerType?.color || 'border-gray-300'} bg-white -z-10`}
                                                           />
                                                           {blocksOfType.length > 2 && (
                                                             <div 
-                                                              className={`absolute -bottom-2 -right-2 left-2 h-full rounded-lg border-2 ${layerType?.color || 'border-gray-300'} bg-gray-50 -z-20`}
+                                                              className={`absolute -bottom-2 -right-2 left-2 top-2 rounded-lg border-2 ${layerType?.color || 'border-gray-300'} bg-gray-50 -z-20`}
                                                             />
                                                           )}
-                                                          <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-2">
-                                                              <div className={`w-3 h-3 rounded-full ${layerType?.color?.replace('border-', 'bg-') || 'bg-gray-400'}`} />
-                                                              <span className="text-sm font-medium text-gray-700">
+                                                          
+                                                          <div className="flex items-center justify-between mb-1">
+                                                            <div className="flex items-center gap-1.5 overflow-hidden">
+                                                              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${layerType?.color?.replace('border-', 'bg-') || 'bg-gray-400'}`} />
+                                                              <span className="text-xs font-bold text-gray-900 truncate">
                                                                 {layerType?.label || type}
                                                               </span>
                                                             </div>
-                                                            <div className="flex items-center gap-2">
-                                                              <span className="text-xs bg-gray-100 px-2 py-1 rounded-full font-medium text-gray-600">
-                                                                {blocksOfType.length} blocks
-                                                              </span>
-                                                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                                                            <div className={`
+                                                              flex items-center justify-center shrink-0
+                                                              w-6 h-6 rounded-md border-2 
+                                                              ${layerType?.color || 'border-gray-400'}
+                                                              bg-gray-50 text-[10px] font-black text-gray-900
+                                                            `}>
+                                                              {blocksOfType.length}
                                                             </div>
                                                           </div>
-                                                          <p className="mt-2 text-xs text-gray-500 line-clamp-2">
-                                                            {firstBlock.content?.substring(0, 100) || 'Click to expand'}
-                                                            {(firstBlock.content?.length || 0) > 100 ? '...' : ''}
+                                                          
+                                                          <p className="text-[10px] text-gray-600 line-clamp-3 leading-tight overflow-hidden">
+                                                            {firstBlock.content || 'Click to expand'}
                                                           </p>
+                                                          
+                                                          <div className="mt-auto flex justify-end">
+                                                            <ChevronDown className="w-3 h-3 text-gray-400" />
+                                                          </div>
                                                         </div>
                                                       );
                                                     })}
