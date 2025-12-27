@@ -120,31 +120,50 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
 
   if (allColumns.length === 0) return null;
 
+  const CHART_HEIGHT = 180;
+  const BOTTOM_PADDING = 35;
+
   return (
-    <div className={`w-full bg-white border border-slate-200 rounded-xl p-6 ${className}`} ref={containerRef}>
+    <div className={`w-full bg-slate-50 border-2 border-slate-300 rounded-xl p-6 shadow-sm ${className}`} ref={containerRef}>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-slate-800">Emotional Journey</h3>
-        <div className="flex items-center gap-6 text-xs text-slate-500">
+        <h3 className="text-lg font-bold text-slate-900">Emotional Journey</h3>
+        <div className="flex items-center gap-6 text-xs font-medium text-slate-600">
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+            <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm" />
             <span>1-3 Negative</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500 shadow-sm" />
             <span>4 Neutral</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+            <div className="w-3 h-3 rounded-full bg-green-500 shadow-sm" />
             <span>5-7 Positive</span>
           </div>
         </div>
       </div>
       
-      <div className="relative">
+      <div className="relative bg-white rounded-lg border border-slate-200 p-4">
+        <div className="absolute left-4 top-4 bottom-4 w-6 flex flex-col justify-between text-[10px] font-semibold text-slate-400 z-10" style={{ paddingBottom: `${BOTTOM_PADDING}px` }}>
+          <span>7</span>
+          <span>6</span>
+          <span>5</span>
+          <span>4</span>
+          <span>3</span>
+          <span>2</span>
+          <span>1</span>
+        </div>
+        
+        <div className="absolute left-12 right-4 top-4 flex flex-col justify-between pointer-events-none" style={{ height: `${CHART_HEIGHT - BOTTOM_PADDING}px` }}>
+          {[7, 6, 5, 4, 3, 2, 1].map((level) => (
+            <div key={level} className="w-full h-px bg-slate-100" />
+          ))}
+        </div>
+        
         <div 
           ref={contentRef} 
-          className="relative flex items-start" 
-          style={{ minHeight: '140px' }}
+          className="relative flex items-start ml-8" 
+          style={{ minHeight: `${CHART_HEIGHT}px` }}
         >
           <svg 
             className="absolute top-0 left-0 pointer-events-none z-0 overflow-visible"
@@ -182,7 +201,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                     <div 
                       key={column.id} 
                       className="flex-shrink-0 w-[180px] sm:w-[200px] md:w-[225px] relative"
-                      style={{ height: '140px' }}
+                      style={{ height: `${CHART_HEIGHT}px`, paddingBottom: `${BOTTOM_PADDING}px` }}
                     >
                       <motion.div 
                         data-emotion-dot
@@ -249,8 +268,8 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                         </DropdownMenu>
                       </motion.div>
                       
-                      <div className="absolute bottom-0 left-0 right-0 text-center px-1">
-                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide truncate">
+                      <div className="absolute bottom-1 left-0 right-0 text-center px-1">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide truncate">
                           {column.name || `Step ${columnIndex + 1}`}
                         </p>
                       </div>
@@ -260,14 +279,6 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
               </div>
             </div>
           ))}
-        </div>
-        
-        <div className="flex items-center justify-start gap-1 mt-2 text-[10px] text-slate-400 font-medium">
-          <span>1</span>
-          <div className="flex-1 h-px bg-slate-100 mx-2" />
-          <span>4</span>
-          <div className="flex-1 h-px bg-slate-100 mx-2" />
-          <span>7</span>
         </div>
       </div>
     </div>
