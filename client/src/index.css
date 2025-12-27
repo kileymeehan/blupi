@@ -37,6 +37,20 @@
   @apply bg-white border-4 border-[#0A0A0F] shadow-[8px_8px_0px_0px_#0A0A0F];
 }
 
+.blupi-column-halftone {
+  /* 1. Set your base colors */
+  background-color: #f4f4f4; /* The light grey base from your screenshot */
+  
+  /* 2. Create the dot pattern */
+  background-image: radial-gradient(#d1d1d1 15%, transparent 20%);
+  
+  /* 3. Control the size and density */
+  background-size: 12px 12px;
+  
+  /* 4. Optional: Add a slight "print offset" for more realism */
+  background-position: 0 0, 6px 6px;
+}
+
 @layer base {
   * {
     @apply border-border;
