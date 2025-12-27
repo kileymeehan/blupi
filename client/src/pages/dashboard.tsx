@@ -666,8 +666,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] animate-fade-in">
-      <header className="border-b-4 border-[#1976D2] bg-[#0A0A0F] shadow-lg">
+    <div className="min-h-screen bauhaus-halftone-bg animate-fade-in">
+      <header className="border-b-4 border-[#0A0A0F] bg-[#0A0A0F] shadow-lg">
         <div className="max-w-[1440px] mx-auto flex h-20 items-center px-6">
           <div className="flex-1 flex items-center gap-4">
             <Link href="/" className="flex items-center">

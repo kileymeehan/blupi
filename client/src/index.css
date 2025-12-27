@@ -51,6 +51,35 @@
   background-position: 0 0, 3px 3px;
 }
 
+.bauhaus-halftone-bg {
+  background-color: #F8F9FA;
+  background-image: radial-gradient(#0A0A0F 15%, transparent 16%);
+  background-size: 12px 12px;
+  background-position: 0 0;
+  /* Add subtle rotation/angle effect through repeated linear gradients */
+  background-image: 
+    radial-gradient(#0A0A0F 1px, transparent 0),
+    radial-gradient(#0A0A0F 1px, transparent 0);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+  background-attachment: fixed;
+}
+
+.bauhaus-halftone-bg::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(#0A0A0F 0.8px, transparent 0);
+  background-size: 24px 24px;
+  transform: rotate(15deg);
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: -1;
+}
+
 @layer base {
   * {
     @apply border-border;

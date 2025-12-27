@@ -304,7 +304,8 @@ export function OrganizationSettings() {
   }
 
   return (
-    <Card className="border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white">
+    <div className="min-h-screen bauhaus-halftone-bg p-8">
+      <Card className="max-w-4xl mx-auto border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white">
       <CardHeader className="border-b-4 border-[#0A0A0F] bg-[#0A0A0F] text-white py-8 px-8">
         <div className="flex items-center justify-between">
           <div>

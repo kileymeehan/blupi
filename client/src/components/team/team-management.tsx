@@ -424,7 +424,8 @@ export default function TeamManagement() {
   }
 
   return (
-    <Card className="border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white">
+    <div className="min-h-screen bauhaus-halftone-bg p-8">
+      <Card className="max-w-6xl mx-auto border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white">
       {activeOrg && (
         <div className="bg-[#1976D2] border-b-4 border-[#0A0A0F] px-6 py-3 flex items-center gap-2 text-sm text-white">
           <Building2 className="h-4 w-4 text-[#FFD600]" />
