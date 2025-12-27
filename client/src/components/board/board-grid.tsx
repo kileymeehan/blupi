@@ -4326,6 +4326,7 @@ export default function BoardGrid({
         </div>
       )}
       
+      {/* Custom scrollbar at the bottom */}
       <CustomScrollbar scrollContainer={scrollContainerRef.current} />
     </div>
   );
