@@ -2579,13 +2579,12 @@ export default function BoardGrid({
                     variant="ghost"
                     size="sm"
                     onClick={toggleSidebar}
-                    className="w-7 h-7 rounded-full bg-blue-100 shadow-md hover:bg-blue-200 flex items-center justify-center p-0"
-                    style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}
+                    className="w-7 h-7 rounded-none bg-white border-2 border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] flex items-center justify-center p-0"
                   >
                     {isDrawerOpen ? (
-                      <ChevronLeft className="w-4 h-4" />
+                      <ChevronLeft className="w-4 h-4 text-[#0A0A0F]" />
                     ) : (
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-4 h-4 text-[#0A0A0F]" />
                     )}
                   </Button>
                 </div>
@@ -2595,15 +2594,16 @@ export default function BoardGrid({
                   size="sm"
                   onClick={toggleContext}
                   className={`
-                    w-full h-12 px-4
+                    w-full h-12 px-4 rounded-none
                     flex items-center gap-2
+                    border-b-2 border-[#0A0A0F]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showContext ? "bg-slate-600 text-white font-semibold" : "hover:bg-slate-600 hover:text-white"}
+                    ${showContext ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]"}
                   `}
                 >
                   <Info className="w-5 h-5" />
-                  {isDrawerOpen && <span className="text-sm">Context</span>}
+                  {isDrawerOpen && <span className="text-sm font-semibold uppercase tracking-wide">Context</span>}
                 </Button>
 
                 <Button
@@ -2611,16 +2611,17 @@ export default function BoardGrid({
                   size="sm"
                   onClick={toggleBlocks}
                   className={`
-                    w-full h-12 px-4
+                    w-full h-12 px-4 rounded-none
                     flex items-center gap-2
+                    border-b-2 border-[#0A0A0F]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showBlocks ? "bg-slate-600 text-white font-semibold" : "hover:bg-slate-600 hover:text-white"}
+                    ${showBlocks ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]"}
                   `}
                 >
                   <LayoutGrid className="w-5 h-5" />
                   {isDrawerOpen && (
-                    <span className="text-sm">Available Blocks</span>
+                    <span className="text-sm font-semibold uppercase tracking-wide">Blocks</span>
                   )}
                 </Button>
 
@@ -2629,16 +2630,17 @@ export default function BoardGrid({
                   size="sm"
                   onClick={toggleComments}
                   className={`
-                    w-full h-12 px-4
+                    w-full h-12 px-4 rounded-none
                     flex items-center gap-2
+                    border-b-2 border-[#0A0A0F]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showComments ? "bg-slate-600 text-white font-semibold" : "hover:bg-slate-600 hover:text-white"}
+                    ${showComments ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]"}
                   `}
                 >
                   <MessageSquare className="w-5 h-5" />
                   {isDrawerOpen && (
-                    <span className="text-sm">All Comments</span>
+                    <span className="text-sm font-semibold uppercase tracking-wide">Comments</span>
                   )}
                 </Button>
                 <Button
@@ -2646,16 +2648,17 @@ export default function BoardGrid({
                   size="sm"
                   onClick={toggleDepartments}
                   className={`
-                    w-full h-12 px-4
+                    w-full h-12 px-4 rounded-none
                     flex items-center gap-2
+                    border-b-2 border-[#0A0A0F]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showDepartments ? "bg-slate-600 text-white font-semibold" : "hover:bg-slate-600 hover:text-white"}
+                    ${showDepartments ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]"}
                   `}
                 >
                   <Filter className="w-5 h-5" />
                   {isDrawerOpen && (
-                    <span className="text-sm">Filters</span>
+                    <span className="text-sm font-semibold uppercase tracking-wide">Filters</span>
                   )}
                 </Button>
                 
@@ -2664,16 +2667,17 @@ export default function BoardGrid({
                   size="sm"
                   onClick={toggleGoogleSheets}
                   className={`
-                    w-full h-12 px-4
+                    w-full h-12 px-4 rounded-none
                     flex items-center gap-2
+                    border-b-2 border-[#0A0A0F]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showGoogleSheets ? "bg-slate-600 text-white font-semibold" : "hover:bg-slate-600 hover:text-white"}
+                    ${showGoogleSheets ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]"}
                   `}
                 >
                   <FileSpreadsheet className="w-5 h-5" />
                   {isDrawerOpen && (
-                    <span className="text-sm">Sheets</span>
+                    <span className="text-sm font-semibold uppercase tracking-wide">Sheets</span>
                   )}
                 </Button>
 
@@ -2683,7 +2687,7 @@ export default function BoardGrid({
               {isDrawerOpen && (
                 <div 
                   className="flex-1 flex flex-col max-h-[calc(100vh-8.5rem)] overflow-hidden"
-                  style={{ backgroundColor: darkMode ? '#1e1e32' : '#f1f5f9' }}
+                  style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
                 >
                   <div 
                     className={`flex-1 overflow-y-auto ${showContext ? "block" : "hidden"}`}
@@ -2691,26 +2695,20 @@ export default function BoardGrid({
                   >
                     <div className="p-4 space-y-4">
                       <div>
-                        <label 
-                          className="text-sm font-medium mb-2 block"
-                          style={{ color: darkMode ? '#e5e5e5' : 'inherit' }}
-                        >
+                        <label className="text-xs font-bold uppercase tracking-wide mb-2 block text-[#0A0A0F]">
                           Blueprint Details
                         </label>
                         <Textarea
                           placeholder="Add key details about this blueprint..."
                           value={blueprintDetails}
                           onChange={(e) => setBlueprintDetails(e.target.value)}
-                          className="min-h-[150px] resize-none"
+                          className="min-h-[150px] resize-none border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600] focus:border-[#0A0A0F]"
                         />
                       </div>
 
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <label 
-                            className="text-sm font-medium block"
-                            style={{ color: darkMode ? '#e5e5e5' : 'inherit' }}
-                          >
+                          <label className="text-xs font-bold uppercase tracking-wide block text-[#0A0A0F]">
                             Segments
                           </label>
                           <Textarea
@@ -2722,18 +2720,15 @@ export default function BoardGrid({
                                 segments: e.target.value 
                               });
                             }}
-                            className="min-h-[80px] resize-none"
+                            className="min-h-[80px] resize-none border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600] focus:border-[#0A0A0F]"
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <label 
-                            className="text-sm font-medium block"
-                            style={{ color: darkMode ? '#e5e5e5' : 'inherit' }}
-                          >
+                          <label className="text-xs font-bold uppercase tracking-wide block text-[#0A0A0F]">
                             Other Blueprints
                           </label>
-                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
                             {projectBoards
                               ?.filter(b => b.id !== board.id)
                               .map(blueprint => (
@@ -2742,27 +2737,16 @@ export default function BoardGrid({
                                   href={`/board/${blueprint.id}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="block p-2 text-sm rounded border transition-colors"
-                                  style={{
-                                    backgroundColor: darkMode ? '#2a2a4a' : 'white',
-                                    borderColor: darkMode ? '#3a3a5c' : '#e5e7eb',
-                                    color: darkMode ? '#e5e5e5' : 'inherit'
-                                  }}
+                                  className="block p-2 text-sm bg-white border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] transition-colors"
                                 >
                                   <div className="flex items-center justify-between">
-                                    <span className="truncate">{blueprint.name || 'Untitled Blueprint'}</span>
-                                    <ExternalLink className="w-3 h-3 flex-shrink-0 ml-1" style={{ color: darkMode ? '#9ca3af' : '#9ca3af' }} />
+                                    <span className="truncate font-medium">{blueprint.name || 'Untitled Blueprint'}</span>
+                                    <ExternalLink className="w-3 h-3 flex-shrink-0 ml-1 text-[#0A0A0F]" />
                                   </div>
                                 </a>
                               ))}
                             {(!projectBoards || projectBoards.filter(b => b.id !== board.id).length === 0) && (
-                              <div 
-                                className="text-sm p-2 rounded"
-                                style={{
-                                  backgroundColor: darkMode ? '#2a2a4a' : '#f9fafb',
-                                  color: darkMode ? '#9ca3af' : '#6b7280'
-                                }}
-                              >
+                              <div className="text-sm p-2 bg-gray-50 border-2 border-[#0A0A0F] rounded-none text-gray-500">
                                 No other blueprints in this project
                               </div>
                             )}

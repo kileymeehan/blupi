@@ -219,14 +219,14 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
 
   return (
     <div className={`google-sheets-manager ${className}`}>
-      <h3 className="text-base font-medium mb-3 w-full text-left">Connected Google Sheets</h3>
+      <h3 className="text-xs font-bold uppercase tracking-wide text-[#0A0A0F] mb-3 w-full text-left">Connected Sheets</h3>
       
       <div className="grid grid-cols-2 gap-2 mb-4">
         <Button
           size="sm"
-          variant="outline"
           onClick={loadDocuments}
           disabled={loading}
+          className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase text-xs tracking-wide"
         >
           <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -234,7 +234,7 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
         
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button size="sm">
+            <Button size="sm" className="bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase text-xs tracking-wide">
               <Plus className="h-4 w-4 mr-1" />
               Add Sheet
             </Button>
@@ -307,21 +307,21 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
         </Dialog>
       </div>
       
-      <div className="border rounded-md">
+      <div className="border-2 border-[#0A0A0F] rounded-none">
         {documents.length === 0 ? (
-          <div className="p-6 text-center text-muted-foreground">
+          <div className="p-6 text-center text-[#0A0A0F]">
             {loading ? (
               <div className="flex flex-col items-center space-y-2">
                 <RefreshCw className="h-5 w-5 animate-spin" />
-                <p>Loading sheets...</p>
+                <p className="text-sm">Loading sheets...</p>
               </div>
             ) : (
               <div className="flex flex-col items-center space-y-2">
                 <FileSpreadsheet className="h-8 w-8" />
-                <p>No Google Sheets connected yet</p>
+                <p className="text-sm">No Google Sheets connected yet</p>
                 <Button 
-                  variant="outline" 
                   size="sm"
+                  className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase text-xs tracking-wide"
                   onClick={() => setShowAddDialog(true)}
                 >
                   <Plus className="h-4 w-4 mr-1" />

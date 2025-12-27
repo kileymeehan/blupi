@@ -38,21 +38,21 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
   return (
     <div className="p-4 h-full">
       <div className="flex items-center mb-4">
-        <h2 className="font-semibold text-gray-700">All Comments</h2>
+        <h2 className="text-xs font-bold uppercase tracking-wide text-[#0A0A0F]">All Comments</h2>
       </div>
 
       <ScrollArea className="h-[calc(100vh-12rem)]">
         {blocksWithComments.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center">No comments yet</p>
+          <p className="text-sm text-gray-500 text-center p-3 border-2 border-[#0A0A0F] rounded-none bg-gray-50">No comments yet</p>
         ) : (
           <div className="space-y-4">
             {blocksWithComments.map(block => (
               <div key={block.id} className="space-y-2">
-                <div className="text-sm font-medium text-gray-600">
+                <div className="text-sm font-semibold text-[#0A0A0F]">
                   {block.content.slice(0, 50)}{block.content.length > 50 ? '...' : ''}
                 </div>
                 {block.comments?.map(comment => (
-                  <div key={comment.id} className="bg-white p-2 rounded-md shadow-sm">
+                  <div key={comment.id} className="bg-white p-3 border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F]">
                     <div className="flex justify-between items-start mb-1">
                       <div className="flex items-center gap-2">
                         <Checkbox
@@ -64,20 +64,20 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
                               completed: checked as boolean,
                             });
                           }}
+                          className="border-2 border-[#0A0A0F] rounded-none data-[state=checked]:bg-[#FFD600] data-[state=checked]:text-[#0A0A0F]"
                         />
-                        <span className="text-xs font-medium text-gray-700">{comment.username}</span>
+                        <span className="text-xs font-bold text-[#0A0A0F]">{comment.username}</span>
                       </div>
                       <span className="text-xs text-gray-500">
                         {format(new Date(comment.createdAt), 'MMM d, h:mm a')}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600">{comment.content}</p>
+                    <p className="text-sm text-[#0A0A0F]">{comment.content}</p>
                   </div>
                 ))}
                 <Button 
-                  variant="ghost" 
                   size="sm" 
-                  className="w-full text-xs hover:bg-gray-200 text-gray-600" 
+                  className="w-full text-xs bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide" 
                   onClick={() => onCommentClick(block)}
                 >
                   View All Comments

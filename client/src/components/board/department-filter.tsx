@@ -51,13 +51,12 @@ export function DepartmentFilter({
   return (
     <div className="p-4 h-full">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-gray-700">Filters</h2>
+        <h2 className="text-xs font-bold uppercase tracking-wide text-[#0A0A0F]">Filters</h2>
         {hasActiveFilters && (
           <Button 
-            variant="outline" 
             size="sm" 
             onClick={clearAllFilters}
-            className="text-xs bg-white"
+            className="text-xs bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide"
           >
             Clear All
           </Button>
@@ -65,30 +64,32 @@ export function DepartmentFilter({
       </div>
 
       <Tabs defaultValue="departments" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="departments">Departments</TabsTrigger>
-          <TabsTrigger value="types">Block Types</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-4 bg-white border-2 border-[#0A0A0F] rounded-none p-0 h-auto">
+          <TabsTrigger value="departments" className="rounded-none border-r border-[#0A0A0F] data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F] font-bold uppercase text-xs tracking-wide py-2">Departments</TabsTrigger>
+          <TabsTrigger value="types" className="rounded-none data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F] font-bold uppercase text-xs tracking-wide py-2">Block Types</TabsTrigger>
         </TabsList>
         
         <TabsContent value="departments">
           <ScrollArea className="h-[calc(100vh-16rem)]">
             {departments.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center">No departments tagged yet</p>
+              <p className="text-sm text-gray-500 text-center p-3 border-2 border-[#0A0A0F] rounded-none bg-gray-50">No departments tagged yet</p>
             ) : (
               <div className="space-y-2">
                 {departments.map((department) => (
                   <Button
                     key={department}
-                    variant={department === departmentFilter ? "default" : "outline"}
-                    className="w-full justify-start text-sm"
+                    className={`w-full justify-start text-sm border-2 border-[#0A0A0F] rounded-none font-semibold ${
+                      department === departmentFilter 
+                        ? "bg-[#FFD600] text-[#0A0A0F] shadow-none" 
+                        : "bg-white text-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]"
+                    }`}
                     onClick={() => onFilterByDepartment(department)}
                   >
                     {department}
                   </Button>
                 ))}
                 <Button
-                  variant="outline"
-                  className="w-full justify-start text-sm mt-4"
+                  className="w-full justify-start text-sm mt-4 bg-gray-100 text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-semibold"
                   onClick={() => onFilterByDepartment(undefined)}
                 >
                   Clear Department Filter
@@ -101,7 +102,7 @@ export function DepartmentFilter({
         <TabsContent value="types">
           <ScrollArea className="h-[calc(100vh-16rem)]">
             {blockTypes.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center">No block types found</p>
+              <p className="text-sm text-gray-500 text-center p-3 border-2 border-[#0A0A0F] rounded-none bg-gray-50">No block types found</p>
             ) : (
               <div className="space-y-2">
                 {blockTypes.map((type) => {
@@ -109,8 +110,11 @@ export function DepartmentFilter({
                   return (
                     <Button
                       key={type}
-                      variant={type === typeFilter ? "default" : "outline"}
-                      className={`w-full justify-start text-sm`}
+                      className={`w-full justify-start text-sm border-2 border-[#0A0A0F] rounded-none font-semibold ${
+                        type === typeFilter 
+                          ? "bg-[#FFD600] text-[#0A0A0F] shadow-none" 
+                          : "bg-white text-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]"
+                      }`}
                       onClick={() => onFilterByType(type)}
                     >
                       <div className="flex items-center">
@@ -121,8 +125,7 @@ export function DepartmentFilter({
                   );
                 })}
                 <Button
-                  variant="outline"
-                  className="w-full justify-start text-sm mt-4"
+                  className="w-full justify-start text-sm mt-4 bg-gray-100 text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-semibold"
                   onClick={() => onFilterByType(undefined)}
                 >
                   Clear Type Filter
