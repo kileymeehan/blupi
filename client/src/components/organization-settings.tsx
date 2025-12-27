@@ -305,24 +305,24 @@ export function OrganizationSettings() {
 
   return (
     <Card className="border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white">
-      <CardHeader className="border-b-4 border-[#0A0A0F] bg-[#0A0A0F] text-white py-4">
+      <CardHeader className="border-b-4 border-[#0A0A0F] bg-[#0A0A0F] text-white py-8 px-8">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-white">
-              <Building2 className="h-5 w-5 text-[#FFD600]" />
+            <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-white text-2xl">
+              <Building2 className="h-6 w-6 text-[#FFD600]" />
               Organization
             </CardTitle>
-            <CardDescription className="mt-1.5 text-gray-300 font-medium">
+            <CardDescription className="mt-2 text-gray-300 font-medium text-base">
               Manage your organization settings and switch between workspaces
             </CardDescription>
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all"
+                className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
                 data-testid="create-org-button"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-5 w-5 mr-2" />
                 Create Organization
               </Button>
             </DialogTrigger>
@@ -373,29 +373,29 @@ export function OrganizationSettings() {
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-8">
         {organizations.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p className="mb-4">You're not a member of any organization yet.</p>
+          <div className="text-center py-12 text-gray-500 bg-gray-50 border-2 border-dashed border-gray-200">
+            <Building2 className="h-16 w-12 mx-auto mb-4 text-gray-300" />
+            <p className="mb-6 font-medium">You're not a member of any organization yet.</p>
             <Button 
               onClick={() => setCreateDialogOpen(true)}
-              className="bg-[#302E87] hover:bg-[#252371]"
+              className="bg-[#0A0A0F] text-white border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-5 w-5 mr-2" />
               Create Your First Organization
             </Button>
           </div>
         ) : (
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Your Organizations</h3>
+          <div className="space-y-6">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#0A0A0F]/60 mb-4 ml-1">Your Organizations</h3>
             {organizations.map((org) => (
               <div
                 key={org.organizationId}
-                className={`p-4 border-2 rounded-none transition-all ${
+                className={`p-6 border-2 rounded-none transition-all ${
                   org.isActive 
-                    ? 'border-[#0A0A0F] bg-[#FFD600]/10 shadow-[4px_4px_0px_0px_#0A0A0F]' 
-                    : 'border-[#0A0A0F] hover:bg-gray-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]'
+                    ? 'border-[#0A0A0F] bg-[#FFD600]/5 shadow-[6px_6px_0px_0px_#0A0A0F]' 
+                    : 'border-[#0A0A0F] hover:bg-gray-50 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)]'
                 }`}
                 data-testid={`org-card-${org.organization.slug}`}
               >
@@ -407,24 +407,24 @@ export function OrganizationSettings() {
                           <img 
                             src={org.organization.settings.logoUrl}
                             alt={org.organization.name}
-                            className="h-12 w-12 object-contain rounded-lg border border-gray-200 bg-white"
+                            className="h-16 w-16 object-contain rounded-none border-4 border-[#0A0A0F] bg-white shadow-[3px_3px_0px_0px_#0A0A0F]"
                           />
                           {canEdit(org.role) && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-white border border-gray-200 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute -top-3 -right-3 h-7 w-7 p-0 bg-white border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
                               onClick={() => removeLogo.mutate(org.organizationId)}
                               disabled={removeLogo.isPending}
                               data-testid={`remove-logo-${org.organization.slug}`}
                             >
-                              <X className="h-3 w-3 text-gray-500" />
+                              <X className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
                       ) : (
-                        <div className={`h-12 w-12 rounded-lg flex items-center justify-center ${org.isActive ? 'bg-[#302E87]' : 'bg-gray-100'}`}>
-                          <Building2 className={`h-6 w-6 ${org.isActive ? 'text-white' : 'text-gray-600'}`} />
+                        <div className={`h-16 w-16 rounded-none flex items-center justify-center border-4 border-[#0A0A0F] shadow-[3px_3px_0px_0px_#0A0A0F] ${org.isActive ? 'bg-[#FFD600]' : 'bg-gray-100'}`}>
+                          <Building2 className={`h-8 w-8 ${org.isActive ? 'text-[#0A0A0F]' : 'text-gray-600'}`} />
                         </div>
                       )}
                     </div>

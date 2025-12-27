@@ -432,21 +432,21 @@ export default function TeamManagement() {
           <span className="opacity-80 font-bold uppercase tracking-tight text-xs ml-1">organization</span>
         </div>
       )}
-      <CardHeader className="border-b-4 border-[#0A0A0F] bg-white py-4">
+      <CardHeader className="border-b-4 border-[#0A0A0F] bg-white py-8 px-8">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-[#0A0A0F]">
-              <Users className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-[#0A0A0F] text-2xl">
+              <Users className="w-6 h-6" />
               Team Management
             </CardTitle>
-            <CardDescription className="text-gray-600 font-medium">
+            <CardDescription className="text-gray-600 font-medium text-base mt-2">
               Invite team members and manage permissions for your organization
             </CardDescription>
           </div>
           <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all">
-                <UserPlus className="w-4 h-4 mr-2" />
+              <Button className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto">
+                <UserPlus className="w-5 h-5 mr-2" />
                 Invite Member
               </Button>
             </DialogTrigger>
@@ -503,196 +503,198 @@ export default function TeamManagement() {
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-8">
         {teamMembers.length === 0 && pendingInvitations.length === 0 ? (
-          <div className="text-center py-8">
-            <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No team members yet</h3>
-            <p className="text-gray-500 mb-4">
+          <div className="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-200">
+            <Users className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+            <h3 className="text-xl font-black uppercase tracking-tight text-[#0A0A0F] mb-2">No team members yet</h3>
+            <p className="text-gray-500 mb-6 font-medium">
               Start collaborating by inviting your team members
             </p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Access</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {teamMembers.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                        <Mail className="w-4 h-4 text-gray-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">
-                          {member.user?.username || member.email}
+          <div className="border-4 border-[#0A0A0F] rounded-none overflow-hidden shadow-[6px_6px_0px_0px_#0A0A0F]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Member</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Last Access</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {teamMembers.map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gray-100 border-2 border-[#0A0A0F] rounded-none flex items-center justify-center shadow-[2px_2px_0px_0px_#0A0A0F]">
+                          <Mail className="w-5 h-5 text-[#0A0A0F]" />
                         </div>
-                        <div className="text-sm text-gray-500">{member.email}</div>
+                        <div>
+                          <div className="font-black uppercase tracking-tight text-base text-[#0A0A0F]">
+                            {member.user?.username || member.email}
+                          </div>
+                          <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">{member.email}</div>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getRoleBadge(member.role)}</TableCell>
-                  <TableCell>{getStatusBadge(member.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      {member.lastAccessAt 
-                        ? new Date(member.lastAccessAt).toLocaleDateString()
-                        : "Never"
-                      }
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      {member.status === "pending" && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => updateMemberMutation.mutate({
-                              memberId: member.id,
-                              updates: { status: "active" }
-                            })}
-                          >
-                            <Check className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => updateMemberMutation.mutate({
-                              memberId: member.id,
-                              updates: { status: "inactive" }
-                            })}
-                          >
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </>
-                      )}
-                      <Select
-                        value={member.role}
-                        onValueChange={(value) => updateMemberMutation.mutate({
-                          memberId: member.id,
-                          updates: { role: value }
-                        })}
-                      >
-                        <SelectTrigger className="w-24 h-8 text-sm">
-                          <SelectValue />
-                          <ChevronDown className="w-3 h-3" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="member">Member</SelectItem>
-                          <SelectItem value="editor">Editor</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to remove {member.user?.username || member.email} from the team? 
-                              This action cannot be undone and they will lose access to all projects and blueprints.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-red-600 hover:bg-red-700"
-                              onClick={() => deleteMemberMutation.mutate(member.id)}
+                    </TableCell>
+                    <TableCell>{getRoleBadge(member.role)}</TableCell>
+                    <TableCell>{getStatusBadge(member.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <Clock className="w-3 h-3" />
+                        {member.lastAccessAt 
+                          ? new Date(member.lastAccessAt).toLocaleDateString()
+                          : "Never"
+                        }
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {member.status === "pending" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateMemberMutation.mutate({
+                                memberId: member.id,
+                                updates: { status: "active" }
+                              })}
                             >
-                              Remove Member
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {pendingInvitations.map((invitation) => (
-                <TableRow key={`pending-${invitation.id}`}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                        <Mail className="w-4 h-4 text-yellow-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{invitation.email}</div>
-                        <div className="text-sm text-gray-500">Invitation sent</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getRoleBadge(invitation.role)}</TableCell>
-                  <TableCell>{getStatusBadge("pending")}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      Invited {new Date(invitation.createdAt).toLocaleDateString()}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => resendInviteMutation.mutate(invitation.id)}
-                        disabled={resendInviteMutation.isPending}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Cancel Invitation</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to cancel the invitation for {invitation.email}? 
-                              They will not be able to join the team using this invitation.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-red-600 hover:bg-red-700"
-                              onClick={() => cancelInvitationMutation.mutate(invitation.id)}
+                              <Check className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateMemberMutation.mutate({
+                                memberId: member.id,
+                                updates: { status: "inactive" }
+                              })}
                             >
-                              Cancel Invitation
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </>
+                        )}
+                        <Select
+                          value={member.role}
+                          onValueChange={(value) => updateMemberMutation.mutate({
+                            memberId: member.id,
+                            updates: { role: value }
+                          })}
+                        >
+                          <SelectTrigger className="w-24 h-8 text-sm">
+                            <SelectValue />
+                            <ChevronDown className="w-3 h-3" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="member">Member</SelectItem>
+                            <SelectItem value="editor">Editor</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to remove {member.user?.username || member.email} from the team? 
+                                This action cannot be undone and they will lose access to all projects and blueprints.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-red-600 hover:bg-red-700"
+                                onClick={() => deleteMemberMutation.mutate(member.id)}
+                              >
+                                Remove Member
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {pendingInvitations.map((invitation) => (
+                  <TableRow key={`pending-${invitation.id}`}>
+                    <TableCell>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-yellow-50 border-2 border-[#0A0A0F] rounded-none flex items-center justify-center shadow-[2px_2px_0px_0px_#0A0A0F]">
+                          <Mail className="w-5 h-5 text-yellow-600" />
+                        </div>
+                        <div>
+                          <div className="font-black uppercase tracking-tight text-base text-[#0A0A0F]">{invitation.email}</div>
+                          <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">Invitation sent</div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{getRoleBadge(invitation.role)}</TableCell>
+                    <TableCell>{getStatusBadge("pending")}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <Clock className="w-3 h-3" />
+                        Invited {new Date(invitation.createdAt).toLocaleDateString()}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => resendInviteMutation.mutate(invitation.id)}
+                          disabled={resendInviteMutation.isPending}
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Cancel Invitation</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to cancel the invitation for {invitation.email}? 
+                                They will not be able to join the team using this invitation.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-red-600 hover:bg-red-700"
+                                onClick={() => cancelInvitationMutation.mutate(invitation.id)}
+                              >
+                                Cancel Invitation
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>
