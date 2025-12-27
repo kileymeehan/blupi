@@ -2744,13 +2744,17 @@ export default function BoardGrid({
                     </div>
                   </div>
 
-                  <div className={`flex-1 overflow-y-auto ${showBlocks ? "block" : "hidden"}`}>
+                  <div 
+                    className={`flex-1 overflow-y-auto ${showBlocks ? "block" : "hidden"}`}
+                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
+                  >
                     <Droppable droppableId="drawer" type="BLOCK">
                       {(provided) => (
                         <div
                           ref={provided.innerRef}
                           {...provided.droppableProps}
                           className="p-4"
+                          style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
                         >
                           <BlockDrawer darkMode={darkMode} />
                           {provided.placeholder}
@@ -3343,7 +3347,7 @@ export default function BoardGrid({
                                                                         title="Drag to move block"
                                                                       >
                                                                         <div className="opacity-40 group-hover:opacity-100 transition-opacity">
-                                                                          <GripVertical size={14} className="text-gray-600" />
+                                                                          <GripVertical size={14} className={darkMode ? "text-white" : "text-gray-600"} />
                                                                         </div>
                                                                       </div>
                                                                       <Block
@@ -3470,7 +3474,7 @@ export default function BoardGrid({
                                                         title="Drag to move block"
                                                       >
                                                         <div className="opacity-40 group-hover:opacity-100 transition-opacity">
-                                                          <GripVertical size={14} className="text-gray-600" />
+                                                          <GripVertical size={14} className={darkMode ? "text-white" : "text-gray-600"} />
                                                         </div>
                                                       </div>
                                                       <Block
