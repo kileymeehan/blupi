@@ -113,7 +113,7 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
 
   const scrollbarElement = (
     <div 
-      className="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-[#0A0A0F] h-8"
+      className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[#0A0A0F] h-5"
       style={{ zIndex: 99999 }}
     >
       <div
@@ -128,22 +128,22 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
             width: `${thumbWidth}px`,
             cursor: isDragging ? 'grabbing' : 'grab',
             backgroundColor: '#FFD600',
-            borderRight: '4px solid #0A0A0F',
-            borderLeft: '4px solid #0A0A0F',
+            borderRight: '2px solid #0A0A0F',
+            borderLeft: '2px solid #0A0A0F',
             borderRadius: '0px',
             backgroundImage: `
-              radial-gradient(circle, #0A0A0F 1px, transparent 1px)
+              radial-gradient(circle, rgba(10, 10, 15, 0.15) 0.5px, transparent 0.5px)
             `,
-            backgroundSize: '6px 6px',
+            backgroundSize: '4px 4px',
             backgroundPosition: 'center center'
           }}
           onMouseDown={handleMouseDown}
         >
           {/* Grip lines for tactile affordance */}
-          <div className="absolute inset-0 flex items-center justify-center gap-1 pointer-events-none">
-            <div className="w-0.5 h-4 bg-[#0A0A0F] opacity-30 rounded-full" />
-            <div className="w-0.5 h-4 bg-[#0A0A0F] opacity-30 rounded-full" />
-            <div className="w-0.5 h-4 bg-[#0A0A0F] opacity-30 rounded-full" />
+          <div className="absolute inset-0 flex items-center justify-center gap-0.5 pointer-events-none">
+            <div className="w-px h-2.5 bg-[#0A0A0F] opacity-20 rounded-full" />
+            <div className="w-px h-2.5 bg-[#0A0A0F] opacity-20 rounded-full" />
+            <div className="w-px h-2.5 bg-[#0A0A0F] opacity-20 rounded-full" />
           </div>
         </div>
       </div>
