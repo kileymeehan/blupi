@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Young+Serif:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import 'intro.js/introjs.css';
 
 @tailwind base;
@@ -75,6 +76,10 @@
   /* Hide scrollbar by default */
   scrollbar-width: none;
   -ms-overflow-style: none;
+  /* Geometric, mechanistic font for block text */
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
 .block-content::-webkit-scrollbar {
