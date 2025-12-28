@@ -501,6 +501,18 @@
   box-shadow: 4px 4px 0px 0px #FFD600 !important;
 }
 
+.dark .text-\[9px\] {
+  color: #FFFFFF !important;
+}
+
+.dark .text-\[10px\] {
+  color: #FFFFFF !important;
+}
+
+.dark .text-center.text-\[\#0A0A0F\] {
+  color: #FFFFFF !important;
+}
+
 .dark header.bg-gray-50 {
   background-color: #1e1e32 !important;
   border-color: #3a3a5c !important;

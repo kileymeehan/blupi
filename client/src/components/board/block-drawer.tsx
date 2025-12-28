@@ -15,7 +15,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
   // Dynamic icon rendering function
   const renderIcon = (iconName: string) => {
     const IconComponent = (Icons as any)[iconName] || Icons.Square;
-    return <IconComponent className="w-3.5 h-3.5 mr-0.5" style={{ color: darkMode ? '#e2e8f0' : '#111827' }} />;
+    return <IconComponent className="w-3.5 h-3.5 mr-0.5" style={{ color: darkMode ? '#FFFFFF' : '#111827' }} />;
   };
 
   return (
@@ -52,7 +52,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="font-black text-[9px] uppercase tracking-wide text-[#0A0A0F] text-center flex flex-col items-center justify-center px-1">
+                <div className="font-black text-[9px] uppercase tracking-wide text-[#0A0A0F] dark:text-white text-center flex flex-col items-center justify-center px-1">
                   {renderIcon(layer.icon)}
                   <span className="mt-1 leading-tight whitespace-nowrap">{layer.label}</span>
                 </div>
@@ -95,7 +95,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                   cursor: snapshot.isDragging ? "grabbing" : "grab"
                 }}
               >
-                <div className="font-black text-[10px] text-white text-center flex items-center justify-center uppercase tracking-wide">
+                <div className="font-black text-[10px] text-white dark:text-white text-center flex items-center justify-center uppercase tracking-wide">
                   {renderIcon(layer.icon)}
                   <span className="ml-2">{layer.label}</span>
                 </div>

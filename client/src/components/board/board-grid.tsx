@@ -2788,7 +2788,6 @@ export default function BoardGrid({
                           ref={provided.innerRef}
                           {...provided.droppableProps}
                           className="p-4"
-                          style={{ backgroundColor: darkMode ? '#12121A' : 'white' }}
                         >
                           <BlockDrawer darkMode={darkMode} />
                           {provided.placeholder}
@@ -3197,7 +3196,7 @@ export default function BoardGrid({
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       data-column-id={column.id}
-                                      className={`flex-shrink-0 w-[220px] sm:w-[240px] md:w-[270px] flex flex-col rounded-lg px-2 ${showAlternatingColumns && columnIndex % 2 === 0 ? 'blupi-column-halftone' : ''}`}
+                                      className={`flex-shrink-0 w-[220px] sm:w-[240px] md:w-[270px] flex flex-col rounded-lg px-2 ${showAlternatingColumns && columnIndex % 2 === 0 ? (darkMode ? 'bg-white/5' : 'blupi-column-halftone') : ''}`}
                                       style={{
                                         ...provided.draggableProps.style,
                                         zIndex: snapshot.isDragging ? 9999 : 'auto'
