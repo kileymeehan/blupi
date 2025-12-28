@@ -424,8 +424,9 @@ export default function Block({
           className={`
             w-full relative
             ${getBlockBorderColor(block.type, darkMode)}
-            ${block.type === 'video' ? 'border-4 rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] dark:border-[#333333] dark:shadow-[4px_4px_0px_0px_#333333]' : ''}
-            ${block.type !== 'video' ? 'bg-white dark:bg-[#12121A] border-4 rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] dark:border-[#333333] dark:shadow-[4px_4px_0px_0px_#333333]' : ''}
+            ${block.type === 'video' ? 'border-4 rounded-none shadow-[4px_4px_0px_0px_#0A0A0F]' : ''}
+            ${block.type !== 'video' ? 'bg-white dark:bg-[#12121A] border-4 rounded-none shadow-[4px_4px_0px_0px_#0A0A0F]' : ''}
+            ${darkMode ? 'dark:shadow-[4px_4px_0px_0px_#333333]' : ''}
             ${isCondensed && !isExpanded ? 'min-h-[50px] cursor-pointer hover:bg-[#FFD600] dark:hover:bg-[#FFD600] transition-colors' : 'min-h-[80px] aspect-[4/3]'}
           `}
           onClick={() => {
