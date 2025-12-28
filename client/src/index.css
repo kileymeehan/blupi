@@ -467,7 +467,7 @@
 
 .dark .bauhaus-halftone-bg {
   background-color: #0A0A0F !important;
-  background-image: radial-gradient(rgba(255, 214, 0, 0.1) 1px, transparent 1px) !important;
+  background-image: radial-gradient(rgba(255, 214, 0, 0.15) 1px, transparent 1px) !important;
 }
 
 .dark .bg-white {
