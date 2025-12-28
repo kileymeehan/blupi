@@ -192,7 +192,7 @@ export default function Project() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0EEE9] animate-fade-in">
+    <div className="min-h-screen bauhaus-halftone-bg animate-fade-in">
       <PageHeader
         title={project?.name || 'Loading...'}
         description={project?.description}

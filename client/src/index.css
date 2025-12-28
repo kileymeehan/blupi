@@ -53,30 +53,12 @@
 
 .bauhaus-halftone-bg {
   position: relative;
+  /* Safari-safe: Apply halftone pattern directly as background with rgba for opacity */
   background-color: #F5F5F5;
-  /* Safari: ensure minimum height covers viewport */
-  min-height: 100vh;
-}
-
-.bauhaus-halftone-bg::before {
-  content: "";
-  /* Use fixed positioning with viewport units for consistent Safari coverage */
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-image: radial-gradient(#0A0A0F 1px, transparent 1px);
+  background-image: radial-gradient(rgba(10, 10, 15, 0.08) 1px, transparent 1px);
   background-size: 20px 20px;
-  transform: rotate(15deg);
-  opacity: 0.08;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.bauhaus-halftone-bg > * {
-  position: relative;
-  z-index: 1;
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 @layer base {
