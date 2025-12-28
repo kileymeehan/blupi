@@ -681,7 +681,7 @@ export default function Dashboard() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:text-[#FFD600] hover:bg-white/10 h-10 w-10 transition-colors"
+              className="text-white hover:text-[#0A0A0F] hover:bg-[#FFD600] h-10 w-10 transition-colors border-2 border-white/20 hover:border-[#0A0A0F] shadow-[2px_2px_0px_0px_#FFD600] rounded-none"
               onClick={() => window.location.href = '/settings'}
               data-testid="header-settings-button"
             >
@@ -703,7 +703,7 @@ export default function Dashboard() {
                   variant="ghost"
                   className="relative flex items-center gap-2 h-10 w-10 p-0 text-white hover:bg-white/10"
                 >
-                  <div className="border-2 border-[#FFD600] rounded-full">
+                  <div className="border-2 border-[#FFD600] rounded-none shadow-[2px_2px_0px_0px_#FFD600]">
                     <ProfileIcon />
                   </div>
                 </Button>
@@ -748,7 +748,7 @@ export default function Dashboard() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowWelcome(false)}
-                className="h-8 w-8 p-0 rounded-none border-2 border-[#0A0A0F] hover:bg-[#FFD600]"
+                className="h-8 w-8 p-0 rounded-none border-2 border-[#0A0A0F] hover:bg-[#FFD600] shadow-[2px_2px_0px_0px_#0A0A0F] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
               >
                 <span className="sr-only">Close</span>
                 <X className="h-4 w-4" />
