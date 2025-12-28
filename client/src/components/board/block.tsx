@@ -43,9 +43,16 @@ import { SimpleMetrics } from "../google-sheets/simple-metrics";
 import { VideoBlock } from "./video-block";
 
 // Function to get the border color for each block type
-const getBlockBorderColor = (blockType: string): string => {
+const getBlockBorderColor = (blockType: string, darkMode: boolean = false): string => {
   const layerType = LAYER_TYPES.find(type => type.type === blockType);
-  return layerType?.color || "border-gray-300";
+  if (!layerType) return darkMode ? "border-[#333333]" : "border-[#0A0A0F]";
+  
+  // Use specific border color from constants if available
+  if (layerType.borderColor) {
+    return `border-[${layerType.borderColor}]`;
+  }
+  
+  return darkMode ? "border-[#333333]" : "border-[#0A0A0F]";
 };
 
 interface BlockProps {
@@ -415,8 +422,8 @@ export default function Block({
           className={`
             w-full relative
             ${getBlockBorderColor(block.type)}
-            ${block.type === 'video' ? 'border-4 border-[#0A0A0F] dark:border-[#FFD600] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] dark:shadow-[4px_4px_0px_0px_#FFD600]' : ''}
-            ${block.type !== 'video' ? 'bg-white dark:bg-[#12121A] border-4 border-[#0A0A0F] dark:border-[#FFD600] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] dark:shadow-[4px_4px_0px_0px_#FFD600]' : ''}
+            ${block.type === 'video' ? 'border-4 rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] dark:border-[#333333] dark:shadow-[4px_4px_0px_0px_#333333]' : ''}
+            ${block.type !== 'video' ? 'bg-white dark:bg-[#12121A] border-4 rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] dark:border-[#333333] dark:shadow-[4px_4px_0px_0px_#333333]' : ''}
             ${isCondensed && !isExpanded ? 'min-h-[50px] cursor-pointer hover:bg-[#FFD600] dark:hover:bg-[#FFD600] transition-colors' : 'min-h-[80px] aspect-[4/3]'}
           `}
           onClick={() => {

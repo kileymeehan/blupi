@@ -486,19 +486,19 @@
 .dark .bauhaus-card,
 .dark .bg-white.border-4.border-\[\#0A0A0F\] {
   background-color: #12121A !important;
-  border-color: #FFD600 !important;
+  border-color: #333333 !important;
   color: #FFFFFF !important;
-  box-shadow: 8px 8px 0px 0px #FFD600 !important;
+  box-shadow: 8px 8px 0px 0px #333333 !important;
 }
 
 .dark .border-\[\#0A0A0F\] {
-  border-color: #FFD600 !important;
+  border-color: #333333 !important;
 }
 
 .dark .shadow-\[4px_4px_0px_0px_\#0A0A0F\],
 .dark .shadow-\[8px_8px_0px_0px_\#0A0A0F\],
 .dark .shadow-\[2px_2px_0px_0px_\#0A0A0F\] {
-  box-shadow: 4px 4px 0px 0px #FFD600 !important;
+  box-shadow: 4px 4px 0px 0px #333333 !important;
 }
 
 .dark .text-\[9px\] {

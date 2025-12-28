@@ -15,14 +15,14 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
   // Dynamic icon rendering function
   const renderIcon = (iconName: string) => {
     const IconComponent = (Icons as any)[iconName] || Icons.Square;
-    return <IconComponent className="w-3.5 h-3.5 mr-0.5" style={{ color: darkMode ? '#FFFFFF' : '#111827' }} />;
+    return <IconComponent className="w-4 h-4 mr-0.5" style={{ color: darkMode ? '#FFFFFF' : '#111827' }} />;
   };
 
   return (
     <div className="w-full p-4">
       <div className="flex items-center mb-4">
         <h2 
-          className="font-black uppercase tracking-widest text-xs"
+          className="font-black uppercase tracking-widest text-[10px]"
           style={{ color: darkMode ? '#FFFFFF' : '#0A0A0F' }}
         >
           Content Blocks
@@ -41,10 +41,10 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} border-2 border-[#0A0A0F] rounded-none w-full min-w-[100px] h-[52px] relative flex items-center justify-center
-                  shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600]
-                  ${snapshot.isDragging ? "shadow-[4px_4px_0px_0px_#0A0A0F]" : ""}
-                  transition-all duration-200
+                className={`${layer.color} border-2 rounded-none w-full min-w-[100px] h-[52px] relative flex items-center justify-center
+                  ${darkMode ? 'border-[#333333] shadow-[2px_2px_0px_0px_#333333]' : 'border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F]'}
+                  ${snapshot.isDragging ? (darkMode ? "shadow-[4px_4px_0px_0px_#333333]" : "shadow-[4px_4px_0px_0px_#0A0A0F]") : ""}
+                  transition-all duration-200 hover:bg-[#FFD600]
                 `}
                 style={{
                   ...provided.draggableProps.style,
@@ -65,7 +65,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
       {/* Divider blocks section */}
       <div className="flex items-center mb-4 mt-6 justify-start">
         <h2 
-          className="font-black uppercase tracking-widest text-xs"
+          className="font-black uppercase tracking-widest text-[10px]"
           style={{ color: darkMode ? '#FFFFFF' : '#0A0A0F' }}
         >
           Stage Dividers
@@ -84,10 +84,10 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} border-2 border-[#0A0A0F] rounded-none w-full h-[48px] relative flex items-center justify-center text-white
-                  shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F]
-                  ${snapshot.isDragging ? "shadow-[4px_4px_0px_0px_#0A0A0F]" : ""}
-                  transition-all duration-200
+                className={`${layer.color} border-2 rounded-none w-full h-[48px] relative flex items-center justify-center text-white
+                  ${darkMode ? 'border-[#333333] shadow-[2px_2px_0px_0px_#333333]' : 'border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F]'}
+                  ${snapshot.isDragging ? (darkMode ? "shadow-[4px_4px_0px_0px_#333333]" : "shadow-[4px_4px_0px_0px_#0A0A0F]") : ""}
+                  transition-all duration-200 hover:bg-[#FFD600] hover:text-[#0A0A0F]
                 `}
                 style={{
                   ...provided.draggableProps.style,
