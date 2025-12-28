@@ -2283,20 +2283,40 @@ export default function BoardGrid({
 
           <div className="flex items-center gap-2">
             {isEditingName ? (
-              <Input
-                value={editedBoardName}
-                onChange={(e) => setEditedBoardName(e.target.value)}
-                className="h-10 bg-white text-[#0A0A0F] border-2 border-[#FFD600] rounded-none font-black uppercase tracking-widest focus-visible:ring-0"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleBoardNameSave();
-                  } else if (e.key === 'Escape') {
+              <div className="flex items-center gap-2">
+                <Input
+                  value={editedBoardName}
+                  onChange={(e) => setEditedBoardName(e.target.value)}
+                  className="h-10 bg-white text-[#0A0A0F] border-2 border-[#FFD600] rounded-none font-black uppercase tracking-widest focus-visible:ring-0 w-64"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleBoardNameSave();
+                    } else if (e.key === 'Escape') {
+                      setIsEditingName(false);
+                      setEditedBoardName(board.name);
+                    }
+                  }}
+                />
+                <Button
+                  size="sm"
+                  onClick={handleBoardNameSave}
+                  className="bg-[#FFD600] text-[#0A0A0F] hover:bg-[#FFD600]/80 rounded-none border-2 border-[#0A0A0F] font-bold"
+                >
+                  Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
                     setIsEditingName(false);
                     setEditedBoardName(board.name);
-                  }
-                }}
-              />
+                  }}
+                  className="text-white hover:text-[#FFD600] hover:bg-white/10 rounded-none border-2 border-transparent font-bold"
+                >
+                  Cancel
+                </Button>
+              </div>
             ) : (
               <h1 className="text-xl font-black uppercase tracking-widest text-white cursor-pointer hover:text-[#FFD600] transition-colors" onClick={handleBoardNameEdit}>
                 {board.name}
