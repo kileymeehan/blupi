@@ -280,7 +280,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                       </div>
                       
                       <div 
-                        className="text-center px-1 py-2 border-t border-slate-100 dark:border-[#333333] bg-white dark:bg-[#12121A]"
+                        className="text-center px-1 py-2 border-t border-slate-100 dark:border-[#333333] bg-white dark:bg-transparent"
                         style={{ height: `${LABEL_HEIGHT}px` }}
                       >
                         <p className="text-[10px] font-bold text-slate-500 dark:text-slate-200 uppercase tracking-wide truncate">

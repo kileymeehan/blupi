@@ -2621,10 +2621,10 @@ export default function BoardGrid({
                     border-b-2 border-[#0A0A0F]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showContext ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]"}
+                    ${showContext ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : (darkMode ? "bg-transparent text-white hover:bg-[#FFD600] hover:text-[#0A0A0F]" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]")}
                   `}
                 >
-                  <Info className="w-5 h-5" />
+                  <Info className={`w-5 h-5 ${showContext ? "text-[#0A0A0F]" : (darkMode ? "text-white group-hover:text-[#0A0A0F]" : "text-[#0A0A0F]")}`} />
                   {isDrawerOpen && <span className="text-sm font-semibold uppercase tracking-wide">Context</span>}
                 </Button>
 
@@ -2638,10 +2638,10 @@ export default function BoardGrid({
                     border-b-2 border-[#0A0A0F]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showBlocks ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]"}
+                    ${showBlocks ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : (darkMode ? "bg-transparent text-white hover:bg-[#FFD600] hover:text-[#0A0A0F]" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]")}
                   `}
                 >
-                  <LayoutGrid className="w-5 h-5" />
+                  <LayoutGrid className={`w-5 h-5 ${showBlocks ? "text-[#0A0A0F]" : (darkMode ? "text-white group-hover:text-[#0A0A0F]" : "text-[#0A0A0F]")}`} />
                   {isDrawerOpen && (
                     <span className="text-sm font-semibold uppercase tracking-wide">Blocks</span>
                   )}
@@ -2657,10 +2657,10 @@ export default function BoardGrid({
                     border-b-2 border-[#0A0A0F]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showComments ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]"}
+                    ${showComments ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : (darkMode ? "bg-transparent text-white hover:bg-[#FFD600] hover:text-[#0A0A0F]" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]")}
                   `}
                 >
-                  <MessageSquare className="w-5 h-5" />
+                  <MessageSquare className={`w-5 h-5 ${showComments ? "text-[#0A0A0F]" : (darkMode ? "text-white group-hover:text-[#0A0A0F]" : "text-[#0A0A0F]")}`} />
                   {isDrawerOpen && (
                     <span className="text-sm font-semibold uppercase tracking-wide">Comments</span>
                   )}
@@ -2675,10 +2675,10 @@ export default function BoardGrid({
                     border-b-2 border-[#0A0A0F]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showDepartments ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]"}
+                    ${showDepartments ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : (darkMode ? "bg-transparent text-white hover:bg-[#FFD600] hover:text-[#0A0A0F]" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]")}
                   `}
                 >
-                  <Filter className="w-5 h-5" />
+                  <Filter className={`w-5 h-5 ${showDepartments ? "text-[#0A0A0F]" : (darkMode ? "text-white group-hover:text-[#0A0A0F]" : "text-[#0A0A0F]")}`} />
                   {isDrawerOpen && (
                     <span className="text-sm font-semibold uppercase tracking-wide">Filters</span>
                   )}
@@ -2694,10 +2694,10 @@ export default function BoardGrid({
                     border-b-2 border-[#0A0A0F]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showGoogleSheets ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]"}
+                    ${showGoogleSheets ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : (darkMode ? "bg-transparent text-white hover:bg-[#FFD600] hover:text-[#0A0A0F]" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]")}
                   `}
                 >
-                  <FileSpreadsheet className="w-5 h-5" />
+                  <FileSpreadsheet className={`w-5 h-5 ${showGoogleSheets ? "text-[#0A0A0F]" : (darkMode ? "text-white group-hover:text-[#0A0A0F]" : "text-[#0A0A0F]")}`} />
                   {isDrawerOpen && (
                     <span className="text-sm font-semibold uppercase tracking-wide">Sheets</span>
                   )}
@@ -2717,20 +2717,20 @@ export default function BoardGrid({
                   >
                     <div className="p-4 space-y-4">
                       <div>
-                        <label className="text-xs font-bold uppercase tracking-wide mb-2 block text-[#0A0A0F]">
+                        <label className={`text-xs font-bold uppercase tracking-wide mb-2 block ${darkMode ? "text-white" : "text-[#0A0A0F]"}`}>
                           Blueprint Details
                         </label>
                         <Textarea
                           placeholder="Add key details about this blueprint..."
                           value={blueprintDetails}
                           onChange={(e) => setBlueprintDetails(e.target.value)}
-                          className="min-h-[150px] resize-none border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600] focus:border-[#0A0A0F]"
+                          className={`min-h-[150px] resize-none border-2 rounded-none focus:ring-[#FFD600] ${darkMode ? "bg-[#1e1e32] text-white border-[#3a3a5c] focus:border-[#FFD600]" : "bg-white text-[#0A0A0F] border-[#0A0A0F] focus:border-[#0A0A0F]"}`}
                         />
                       </div>
 
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <label className="text-xs font-bold uppercase tracking-wide block text-[#0A0A0F]">
+                          <label className={`text-xs font-bold uppercase tracking-wide block ${darkMode ? "text-white" : "text-[#0A0A0F]"}`}>
                             Segments
                           </label>
                           <Textarea
@@ -2742,12 +2742,12 @@ export default function BoardGrid({
                                 segments: e.target.value 
                               });
                             }}
-                            className="min-h-[80px] resize-none border-2 border-[#0A0A0F] rounded-none focus:ring-[#FFD600] focus:border-[#0A0A0F]"
+                            className={`min-h-[80px] resize-none border-2 rounded-none focus:ring-[#FFD600] ${darkMode ? "bg-[#1e1e32] text-white border-[#3a3a5c] focus:border-[#FFD600]" : "bg-white text-[#0A0A0F] border-[#0A0A0F] focus:border-[#0A0A0F]"}`}
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <label className="text-xs font-bold uppercase tracking-wide block text-[#0A0A0F]">
+                          <label className={`text-xs font-bold uppercase tracking-wide block ${darkMode ? "text-white" : "text-[#0A0A0F]"}`}>
                             Other Blueprints
                           </label>
                           <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -2759,16 +2759,16 @@ export default function BoardGrid({
                                   href={`/board/${blueprint.id}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="block p-2 text-sm bg-white border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] transition-colors"
+                                  className={`block p-2 text-sm border-2 rounded-none shadow-[2px_2px_0px_0px] transition-colors ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c] text-white shadow-[#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" : "bg-white border-[#0A0A0F] text-[#0A0A0F] shadow-[#0A0A0F] hover:bg-[#FFD600]"}`}
                                 >
                                   <div className="flex items-center justify-between">
                                     <span className="truncate font-medium">{blueprint.name || 'Untitled Blueprint'}</span>
-                                    <ExternalLink className="w-3 h-3 flex-shrink-0 ml-1 text-[#0A0A0F]" />
+                                    <ExternalLink className={`w-3 h-3 flex-shrink-0 ml-1 ${darkMode ? "text-white" : "text-[#0A0A0F]"}`} />
                                   </div>
                                 </a>
                               ))}
                             {(!projectBoards || projectBoards.filter(b => b.id !== board.id).length === 0) && (
-                              <div className="text-sm p-2 bg-gray-50 border-2 border-[#0A0A0F] rounded-none text-gray-500">
+                              <div className={`text-sm p-2 border-2 rounded-none ${darkMode ? "bg-[#1e1e32]/50 border-[#3a3a5c] text-gray-400" : "bg-gray-50 border-[#0A0A0F] text-gray-500"}`}>
                                 No other blueprints in this project
                               </div>
                             )}

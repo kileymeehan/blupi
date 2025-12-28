@@ -45,13 +45,13 @@ import { VideoBlock } from "./video-block";
 // Function to get the border color for each block type
 const getBlockBorderColor = (blockType: string, darkMode: boolean = false): string => {
   const layerType = LAYER_TYPES.find(type => type.type === blockType);
-  if (!layerType) return darkMode ? "border-[#333333]" : "border-[#0A0A0F]";
   
-  // Use specific border color from constants if available
-  // The color field in constants.ts actually contains the border class (e.g., "border-blue-600")
-  if (layerType.color) {
+  // Use specific border color from constants for non-divider blocks
+  if (layerType?.color && !layerType.isDivider) {
     return layerType.color;
   }
+  
+  if (!layerType) return darkMode ? "border-[#333333]" : "border-[#0A0A0F]";
   
   return darkMode ? "border-[#333333]" : "border-[#0A0A0F]";
 };

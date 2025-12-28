@@ -15,7 +15,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
   // Dynamic icon rendering function
   const renderIcon = (iconName: string) => {
     const IconComponent = (Icons as any)[iconName] || Icons.Square;
-    return <IconComponent className="w-4 h-4 mr-0.5" style={{ color: darkMode ? '#FFFFFF' : '#111827' }} />;
+    return <IconComponent className="w-4 h-4 mr-0.5" style={{ color: darkMode ? '#FFFFFF' : '#111827', strokeWidth: darkMode ? 3 : 2 }} />;
   };
 
   return (
