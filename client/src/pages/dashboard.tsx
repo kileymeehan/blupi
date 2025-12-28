@@ -681,7 +681,7 @@ export default function Dashboard() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:text-[#0A0A0F] hover:bg-[#FFD600] h-10 w-10 transition-colors border-2 border-white/20 hover:border-[#0A0A0F] shadow-[2px_2px_0px_0px_#FFD600] rounded-none"
+              className="text-white hover:text-[#FFD600] hover:bg-white/10 h-10 w-10 transition-colors"
               onClick={() => window.location.href = '/settings'}
               data-testid="header-settings-button"
             >
@@ -703,7 +703,7 @@ export default function Dashboard() {
                   variant="ghost"
                   className="relative flex items-center gap-2 h-10 w-10 p-0 text-white hover:bg-white/10"
                 >
-                  <div className="border-2 border-[#FFD600] rounded-none shadow-[2px_2px_0px_0px_#FFD600]">
+                  <div className="border-2 border-[#FFD600] rounded-none">
                     <ProfileIcon />
                   </div>
                 </Button>
