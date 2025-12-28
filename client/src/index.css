@@ -54,16 +54,18 @@
 .bauhaus-halftone-bg {
   position: relative;
   background-color: #F5F5F5;
-  overflow: hidden;
+  /* Safari: ensure minimum height covers viewport */
+  min-height: 100vh;
 }
 
 .bauhaus-halftone-bg::before {
   content: "";
+  /* Use fixed positioning with viewport units for consistent Safari coverage */
   position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background-image: radial-gradient(#0A0A0F 1px, transparent 1px);
   background-size: 20px 20px;
   transform: rotate(15deg);
