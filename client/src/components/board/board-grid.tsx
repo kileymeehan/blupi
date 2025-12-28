@@ -2253,8 +2253,10 @@ export default function BoardGrid({
   };
 
   return (
-    <div className={`flex-1 relative overflow-hidden flex flex-col bauhaus-halftone-bg`}>
-      <header className="h-20 border-b-4 border-[#0A0A0F] px-8 flex justify-between items-center bg-[#0A0A0F] shadow-none flex-shrink-0 sticky top-0 left-0 right-0 z-50">
+    <div className={`flex-1 relative overflow-hidden flex flex-col bauhaus-halftone-bg ${darkMode ? 'dark' : ''}`}>
+      <header className={`h-20 border-b-4 px-8 flex justify-between items-center shadow-none flex-shrink-0 sticky top-0 left-0 right-0 z-50 ${
+        darkMode ? 'bg-black border-[#FFD600]' : 'bg-[#0A0A0F] border-[#0A0A0F]'
+      }`}>
         <div className="flex items-center gap-4 pl-4">
           <Button
             variant="ghost"
@@ -2778,7 +2780,7 @@ export default function BoardGrid({
 
                   <div 
                     className={`flex-1 overflow-y-auto ${showBlocks ? "block" : "hidden"}`}
-                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
+                    style={{ backgroundColor: darkMode ? '#12121A' : 'white' }}
                   >
                     <Droppable droppableId="drawer" type="BLOCK">
                       {(provided) => (
@@ -2786,7 +2788,7 @@ export default function BoardGrid({
                           ref={provided.innerRef}
                           {...provided.droppableProps}
                           className="p-4"
-                          style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
+                          style={{ backgroundColor: darkMode ? '#12121A' : 'white' }}
                         >
                           <BlockDrawer darkMode={darkMode} />
                           {provided.placeholder}
@@ -2797,7 +2799,7 @@ export default function BoardGrid({
 
                   <div
                     className={`flex-1 overflow-y-auto ${showComments ? "block" : "hidden"}`}
-                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
+                    style={{ backgroundColor: darkMode ? '#12121A' : 'white' }}
                   >
                     <CommentsOverview
                       board={board}
@@ -2811,7 +2813,7 @@ export default function BoardGrid({
                   </div>
                   <div
                     className={`flex-1 overflow-y-auto ${showDepartments ? "block" : "hidden"}`}
-                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
+                    style={{ backgroundColor: darkMode ? '#12121A' : 'white' }}
                   >
                     <DepartmentFilter
                       blocks={board.blocks}
@@ -2823,7 +2825,7 @@ export default function BoardGrid({
                   </div>
                   <div
                     className={`flex-1 overflow-y-auto ${showGoogleSheets ? "block" : "hidden"}`}
-                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
+                    style={{ backgroundColor: darkMode ? '#12121A' : 'white' }}
                   >
                     <SheetDocumentsManager
                       boardId={Number(id)}
