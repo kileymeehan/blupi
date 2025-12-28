@@ -166,7 +166,7 @@ export default function Block({
   isFlagged = false,
   isDragging = false,
 }: BlockProps) {
-  const { darkMode } = useDarkMode();
+  const darkMode = document.documentElement.classList.contains('dark');
   const contentRef = useRef<HTMLDivElement>(null);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);

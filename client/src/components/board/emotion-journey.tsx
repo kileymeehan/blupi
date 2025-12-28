@@ -8,7 +8,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useDarkMode } from "@/hooks/use-dark-mode";
 
 const EMOTION_SCALE = {
   1: { color: '#dc2626', label: 'Very Negative' },
@@ -35,7 +34,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Info } from "lucide-react";
 
 export function EmotionJourney({ phases, board, onEmotionChange, className = '', singlePhaseIndex }: EmotionJourneyProps) {
-  const { darkMode } = useDarkMode();
+  const darkMode = document.documentElement.classList.contains('dark');
   const isSinglePhase = singlePhaseIndex !== undefined;
   const displayPhases = isSinglePhase ? [phases[singlePhaseIndex]] : phases;
   const displayBoardPhases = isSinglePhase ? [board.phases[singlePhaseIndex]] : board.phases;
