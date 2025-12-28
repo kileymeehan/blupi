@@ -2604,9 +2604,9 @@ export default function BoardGrid({
                     className={`w-7 h-7 rounded-none bg-white border-2 border-[#0A0A0F] shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none flex items-center justify-center p-0 transition-all ${darkMode ? "border-[#3a3a5c] shadow-[#FFD600]" : ""}`}
                   >
                     {isDrawerOpen ? (
-                      <ChevronLeft className="w-4 h-4 text-[#0A0A0F]" />
+                      <ChevronLeft className="w-4 h-4 text-[#0A0A0F] stroke-[3]" />
                     ) : (
-                      <ChevronRight className="w-4 h-4 text-[#0A0A0F]" />
+                      <ChevronRight className="w-4 h-4 text-[#0A0A0F] stroke-[3]" />
                     )}
                   </Button>
                 </div>
@@ -2832,7 +2832,7 @@ export default function BoardGrid({
                   </div>
                   <div
                     className={`flex-1 overflow-y-auto ${showDepartments ? "block" : "hidden"}`}
-                    style={{ backgroundColor: darkMode ? '#12121A' : 'white' }}
+                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
                   >
                     <DepartmentFilter
                       blocks={board.blocks}
@@ -2840,6 +2840,7 @@ export default function BoardGrid({
                       onFilterByType={setTypeFilter}
                       departmentFilter={departmentFilter}
                       typeFilter={typeFilter}
+                      darkMode={darkMode}
                     />
                   </div>
                   <div

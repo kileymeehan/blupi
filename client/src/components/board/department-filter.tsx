@@ -13,6 +13,7 @@ interface FiltersProps {
   onFilterByType: (type: string | undefined) => void;
   departmentFilter?: Department;
   typeFilter?: string;
+  darkMode?: boolean;
 }
 
 export function DepartmentFilter({ 
@@ -20,7 +21,8 @@ export function DepartmentFilter({
   onFilterByDepartment,
   onFilterByType,
   departmentFilter,
-  typeFilter
+  typeFilter,
+  darkMode = false
 }: FiltersProps) {
   // Get unique departments from blocks
   const departments = Array.from(new Set(blocks
@@ -51,12 +53,16 @@ export function DepartmentFilter({
   return (
     <div className="p-4 h-full">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xs font-bold uppercase tracking-wide text-[#0A0A0F]">Filters</h2>
+        <h2 className={`text-xs font-bold uppercase tracking-wide ${darkMode ? "text-white" : "text-[#0A0A0F]"}`}>Filters</h2>
         {hasActiveFilters && (
           <Button 
             size="sm" 
             onClick={clearAllFilters}
-            className="text-xs bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide"
+            className={`text-xs border-2 rounded-none font-bold uppercase tracking-wide transition-all ${
+              darkMode 
+                ? "bg-[#1e1e32] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" 
+                : "bg-white text-[#0A0A0F] border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none"
+            }`}
           >
             Clear All
           </Button>
@@ -64,24 +70,44 @@ export function DepartmentFilter({
       </div>
 
       <Tabs defaultValue="departments" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4 bg-white border-2 border-[#0A0A0F] rounded-none p-0 h-auto">
-          <TabsTrigger value="departments" className="rounded-none border-r border-[#0A0A0F] data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F] font-bold uppercase text-xs tracking-wide py-2">Departments</TabsTrigger>
-          <TabsTrigger value="types" className="rounded-none data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F] font-bold uppercase text-xs tracking-wide py-2">Block Types</TabsTrigger>
+        <TabsList className={`grid w-full grid-cols-2 mb-4 border-2 rounded-none p-0 h-auto ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c]" : "bg-white border-[#0A0A0F]"}`}>
+          <TabsTrigger 
+            value="departments" 
+            className={`rounded-none font-bold uppercase text-xs tracking-wide py-2 ${
+              darkMode 
+                ? "border-r border-[#3a3a5c] text-white data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F]" 
+                : "border-r border-[#0A0A0F] data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F]"
+            }`}
+          >
+            Departments
+          </TabsTrigger>
+          <TabsTrigger 
+            value="types" 
+            className={`rounded-none font-bold uppercase text-xs tracking-wide py-2 ${
+              darkMode 
+                ? "text-white data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F]" 
+                : "data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F]"
+            }`}
+          >
+            Block Types
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="departments">
           <ScrollArea className="h-[calc(100vh-16rem)]">
             {departments.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center p-3 border-2 border-[#0A0A0F] rounded-none bg-gray-50">No departments tagged yet</p>
+              <p className={`text-sm text-center p-3 border-2 rounded-none ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c] text-gray-400" : "bg-gray-50 border-[#0A0A0F] text-gray-500"}`}>No departments tagged yet</p>
             ) : (
               <div className="space-y-2">
                 {departments.map((department) => (
                   <Button
                     key={department}
-                    className={`w-full justify-start text-sm border-2 border-[#0A0A0F] rounded-none font-semibold ${
+                    className={`w-full justify-start text-sm border-2 rounded-none font-semibold transition-all ${
                       department === departmentFilter 
                         ? "bg-[#FFD600] text-[#0A0A0F] shadow-none" 
-                        : "bg-white text-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]"
+                        : (darkMode 
+                            ? "bg-[#1e1e32] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" 
+                            : "bg-white text-[#0A0A0F] border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none")
                     }`}
                     onClick={() => onFilterByDepartment(department)}
                   >
@@ -89,7 +115,11 @@ export function DepartmentFilter({
                   </Button>
                 ))}
                 <Button
-                  className="w-full justify-start text-sm mt-4 bg-gray-100 text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-semibold"
+                  className={`w-full justify-start text-sm mt-4 border-2 rounded-none font-semibold transition-all ${
+                    darkMode 
+                      ? "bg-[#1e1e32] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" 
+                      : "bg-gray-100 text-[#0A0A0F] border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none"
+                  }`}
                   onClick={() => onFilterByDepartment(undefined)}
                 >
                   Clear Department Filter
@@ -102,7 +132,7 @@ export function DepartmentFilter({
         <TabsContent value="types">
           <ScrollArea className="h-[calc(100vh-16rem)]">
             {blockTypes.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center p-3 border-2 border-[#0A0A0F] rounded-none bg-gray-50">No block types found</p>
+              <p className={`text-sm text-center p-3 border-2 rounded-none ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c] text-gray-400" : "bg-gray-50 border-[#0A0A0F] text-gray-500"}`}>No block types found</p>
             ) : (
               <div className="space-y-2">
                 {blockTypes.map((type) => {
@@ -110,10 +140,12 @@ export function DepartmentFilter({
                   return (
                     <Button
                       key={type}
-                      className={`w-full justify-start text-sm border-2 border-[#0A0A0F] rounded-none font-semibold ${
+                      className={`w-full justify-start text-sm border-2 rounded-none font-semibold transition-all ${
                         type === typeFilter 
                           ? "bg-[#FFD600] text-[#0A0A0F] shadow-none" 
-                          : "bg-white text-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]"
+                          : (darkMode 
+                              ? "bg-[#1e1e32] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" 
+                              : "bg-white text-[#0A0A0F] border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none")
                       }`}
                       onClick={() => onFilterByType(type)}
                     >
@@ -125,7 +157,11 @@ export function DepartmentFilter({
                   );
                 })}
                 <Button
-                  className="w-full justify-start text-sm mt-4 bg-gray-100 text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-semibold"
+                  className={`w-full justify-start text-sm mt-4 border-2 rounded-none font-semibold transition-all ${
+                    darkMode 
+                      ? "bg-[#1e1e32] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" 
+                      : "bg-gray-100 text-[#0A0A0F] border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none"
+                  }`}
                   onClick={() => onFilterByType(undefined)}
                 >
                   Clear Type Filter
