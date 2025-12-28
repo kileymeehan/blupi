@@ -2601,7 +2601,7 @@ export default function BoardGrid({
                     variant="ghost"
                     size="sm"
                     onClick={toggleSidebar}
-                    className="w-7 h-7 rounded-none bg-white border-2 border-[#0A0A0F] shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none flex items-center justify-center p-0 transition-all"
+                    className={`w-7 h-7 rounded-none bg-white border-2 border-[#0A0A0F] shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none flex items-center justify-center p-0 transition-all ${darkMode ? "border-[#3a3a5c] shadow-[#FFD600]" : ""}`}
                   >
                     {isDrawerOpen ? (
                       <ChevronLeft className="w-4 h-4 text-[#0A0A0F]" />
@@ -2744,6 +2744,26 @@ export default function BoardGrid({
                             }}
                             className={`min-h-[80px] resize-none border-2 rounded-none focus:ring-[#FFD600] ${darkMode ? "bg-[#1e1e32] text-white border-[#3a3a5c] focus:border-[#FFD600]" : "bg-white text-[#0A0A0F] border-[#0A0A0F] focus:border-[#0A0A0F]"}`}
                           />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className={`text-xs font-bold uppercase tracking-wide block ${darkMode ? "text-white" : "text-[#0A0A0F]"}`}>
+                            Emotional Journey Labels
+                          </label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              placeholder="Low Label (e.g. Low)"
+                              value={board.emotionLowLabel || ''}
+                              onChange={(e) => onBoardUpdate({ emotionLowLabel: e.target.value })}
+                              className={`border-2 rounded-none focus:ring-[#FFD600] ${darkMode ? "bg-[#1e1e32] text-white border-[#3a3a5c] focus:border-[#FFD600]" : "bg-white text-[#0A0A0F] border-[#0A0A0F] focus:border-[#0A0A0F]"}`}
+                            />
+                            <Input
+                              placeholder="High Label (e.g. High)"
+                              value={board.emotionHighLabel || ''}
+                              onChange={(e) => onBoardUpdate({ emotionHighLabel: e.target.value })}
+                              className={`border-2 rounded-none focus:ring-[#FFD600] ${darkMode ? "bg-[#1e1e32] text-white border-[#3a3a5c] focus:border-[#FFD600]" : "bg-white text-[#0A0A0F] border-[#0A0A0F] focus:border-[#0A0A0F]"}`}
+                            />
+                          </div>
                         </div>
 
                         <div className="space-y-2">
