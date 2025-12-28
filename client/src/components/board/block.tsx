@@ -837,10 +837,10 @@ export default function Block({
                 <div
                   className={`
                   absolute bottom-1 right-2
-                  text-xs text-gray-700
+                  text-xs
                   flex items-center justify-center
-                  bg-white/80 rounded-full p-1
-                  shadow-sm
+                  rounded-full p-1
+                  ${darkMode ? "text-white" : "text-gray-700 bg-white/80 shadow-sm"}
                   ${!block.readOnly ? "cursor-pointer hover:bg-gray-100" : ""}
                   transition-colors duration-150
                   ${isCondensed && !isExpanded ? 'scale-125' : ''}
