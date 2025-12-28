@@ -491,7 +491,7 @@
   box-shadow: 8px 8px 0px 0px #FFD600 !important;
 }
 
-.dark .border-[#0A0A0F] {
+.dark .border-\[\#0A0A0F\] {
   border-color: #FFD600 !important;
 }
 
