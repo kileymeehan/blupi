@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useDarkMode } from "@/hooks/use-dark-mode";
 
 const EMOTION_SCALE = {
   1: { color: '#dc2626', label: 'Very Negative' },
@@ -34,6 +35,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Info } from "lucide-react";
 
 export function EmotionJourney({ phases, board, onEmotionChange, className = '', singlePhaseIndex }: EmotionJourneyProps) {
+  const { darkMode } = useDarkMode();
   const isSinglePhase = singlePhaseIndex !== undefined;
   const displayPhases = isSinglePhase ? [phases[singlePhaseIndex]] : phases;
   const displayBoardPhases = isSinglePhase ? [board.phases[singlePhaseIndex]] : board.phases;
@@ -282,7 +284,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                         className="text-center px-1 py-2 border-t border-slate-100 dark:border-[#333333] bg-white dark:bg-[#12121A]"
                         style={{ height: `${LABEL_HEIGHT}px` }}
                       >
-                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wide truncate">
+                        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-200 uppercase tracking-wide truncate">
                           {column.name || `Step ${columnIndex + 1}`}
                         </p>
                       </div>
