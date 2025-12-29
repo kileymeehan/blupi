@@ -3971,8 +3971,8 @@ export default function BoardGrid({
                   disabled={currentStepIndex === 0}
                   className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] disabled:opacity-30 disabled:border-gray-800' 
-                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] disabled:opacity-30 disabled:border-gray-200'
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] disabled:opacity-30 disabled:text-gray-600' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] disabled:opacity-30 disabled:text-gray-300'
                   }`}
                 >
                   <SkipBack className="w-4 h-4" />
@@ -3984,8 +3984,8 @@ export default function BoardGrid({
                   disabled={currentStepIndex === allSteps.length - 1}
                   className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] disabled:opacity-30 disabled:border-gray-800' 
-                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] disabled:opacity-30 disabled:border-gray-200'
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] disabled:opacity-30 disabled:text-gray-600' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] disabled:opacity-30 disabled:text-gray-300'
                   }`}
                 >
                   <SkipForward className="w-4 h-4" />
