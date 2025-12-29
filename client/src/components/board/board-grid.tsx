@@ -4007,15 +4007,15 @@ export default function BoardGrid({
                       <FileDown className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <PopoverContent className={`w-56 p-0 rounded-none border-2 shadow-[4px_4px_0px_0px] ${
-                    presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333] text-white' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F] text-[#0A0A0F]'
+                  <PopoverContent className={`w-80 p-0 rounded-none border-2 shadow-[4px_4px_0px_0px] ${
+                    presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
                   }`} align="end">
                     <div className="flex flex-col p-1">
-                      <button onClick={exportPresentationToPDF} className="flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest hover:bg-[#FFD600] hover:text-[#0A0A0F] transition-colors text-left">
+                      <button onClick={exportPresentationToPDF} className={`flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest hover:bg-[#FFD600] hover:text-[#0A0A0F] transition-colors text-left ${presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'}`}>
                         <FileType className="h-4 w-4" />
                         Export to PDF
                       </button>
-                      <button onClick={exportPresentationToSlides} className="flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest hover:bg-[#FFD600] hover:text-[#0A0A0F] transition-colors text-left">
+                      <button onClick={exportPresentationToSlides} className={`flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest hover:bg-[#FFD600] hover:text-[#0A0A0F] transition-colors text-left ${presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'}`}>
                         <Presentation className="h-4 w-4" />
                         Export to Slides
                       </button>
@@ -4154,28 +4154,28 @@ export default function BoardGrid({
                               </div>
                             </div>
                             
-                            <div className="flex-1">
-                              {block.content && (
-                                <div className={`text-lg font-bold leading-tight whitespace-pre-wrap ${
-                                  presentationDarkMode ? 'text-gray-200' : 'text-[#0A0A0F]'
-                                }`}>
-                                  {block.content}
-                                </div>
-                              )}
-                              
-                              {/* Non-image attachments */}
-                              {Array.isArray(block.attachments) && block.attachments.filter(att => att.type !== 'image').length > 0 && (
-                                <div className="mt-4 space-y-2">
-                                  {block.attachments.filter(att => att.type !== 'image').map((attachment, attIndex) => (
-                                    <div key={attIndex} className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#FFD600]">
-                                      {attachment.type === 'video' && <Play className="w-4 h-4 fill-current" />}
-                                      {attachment.type === 'link' && <ExternalLink className="w-4 h-4" />}
-                                      <span>{attachment.type} attachment</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
+                              <div className="flex-1">
+                                {block.content && (
+                                  <div className={`text-lg font-bold leading-tight whitespace-pre-wrap ${
+                                    presentationDarkMode ? 'text-gray-200' : 'text-[#0A0A0F]'
+                                  }`}>
+                                    {block.content}
+                                  </div>
+                                ) || <div className="text-sm italic opacity-50">Empty block</div>}
+                                
+                                {/* Non-image attachments */}
+                                {Array.isArray(block.attachments) && block.attachments.filter(att => att.type !== 'image').length > 0 && (
+                                  <div className="mt-4 space-y-2">
+                                    {block.attachments.filter(att => att.type !== 'image').map((attachment, attIndex) => (
+                                      <div key={attIndex} className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#FFD600]">
+                                        {attachment.type === 'video' && <Play className="w-4 h-4 fill-current" />}
+                                        {attachment.type === 'link' && <ExternalLink className="w-4 h-4" />}
+                                        <span>{attachment.type} attachment</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
 
                             {/* Image attachments as grid */}
                             {Array.isArray(block.attachments) && block.attachments.filter(att => att.type === 'image').length > 0 && (
