@@ -2463,10 +2463,9 @@ export default function BoardGrid({
                   className="flex items-center justify-between"
                 >
                   <div className="flex items-center">
-                    {darkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-                    <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                    {!darkMode ? <Moon className="w-4 h-4 mr-2" /> : <Sun className="w-4 h-4 mr-2" />}
+                    <span>{!darkMode ? 'Dark Mode' : 'Light Mode'}</span>
                   </div>
-                  {darkMode && <Check className="w-4 h-4" />}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
