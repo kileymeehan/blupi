@@ -4050,7 +4050,7 @@ export default function BoardGrid({
             </div>
             
             {/* Step Content */}
-            <div className="flex-1 flex overflow-hidden bauhaus-halftone-bg">
+            <div className={`flex-1 flex overflow-hidden bauhaus-halftone-bg ${presentationDarkMode ? 'dark' : ''}`}>
               {/* No steps fallback */}
               {!currentStep && (
                 <div className="flex-1 flex items-center justify-center">
@@ -4073,7 +4073,7 @@ export default function BoardGrid({
               }`}>
                 {/* Step Image - Primary image from column, fallback to first block image */}
                 <div className={`rounded-none border-4 shadow-[8px_8px_0px_0px] transition-all ${presentationViewMode === 'large' ? 'h-[75vh] w-full max-w-5xl mx-auto' : 'h-96'} flex items-center justify-center mb-10 ${
-                  presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
+                  presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
                 }`}>
                   {currentStep.columnImage ? (
                     <img 
@@ -4127,7 +4127,7 @@ export default function BoardGrid({
                         <div 
                           key={block.id} 
                           className={`border-4 rounded-none p-6 shadow-[4px_4px_0px_0px] transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px] ${
-                            presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
+                            presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
                           }`}
                           style={{ 
                             borderLeftWidth: '12px',
@@ -4225,10 +4225,10 @@ export default function BoardGrid({
           
           {/* Right Sidebar - Notes and Add Block */}
           <div className={`${presentationViewMode === 'large' ? 'w-80' : 'w-80'} border-l-2 flex flex-col ${
-            presentationDarkMode ? 'bg-[#12121A] border-[#333333]' : 'bg-gray-50 border-[#0A0A0F]'
+            presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333]' : 'bg-gray-50 border-[#0A0A0F]'
           }`}>
             <div className={`p-4 border-b-2 ${
-              presentationDarkMode ? 'bg-[#12121A] border-[#333333]' : 'bg-white border-[#0A0A0F]'
+              presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333]' : 'bg-white border-[#0A0A0F]'
             }`}>
               <h3 className={`font-black uppercase tracking-widest text-xs ${
                 presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
@@ -4307,9 +4307,9 @@ export default function BoardGrid({
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className={`w-[280px] p-0 rounded-none border-2 shadow-[4px_4px_0px_0px] ${
-                          presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
+                          presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
                         }`}>
-                          <Command className={presentationDarkMode ? 'bg-gray-800' : ''}>
+                          <Command className={presentationDarkMode ? 'bg-[#0A0A0F]' : ''}>
                             <CommandInput placeholder="Search block types..." className={
                               presentationDarkMode ? 'text-gray-200 placeholder-gray-400' : ''
                             } />
@@ -4328,7 +4328,7 @@ export default function BoardGrid({
                                         setBlockTypeDropdownOpen(false);
                                       }}
                                       className={`flex items-center gap-2 ${
-                                        presentationDarkMode ? 'text-gray-200 hover:bg-gray-700' : ''
+                                        presentationDarkMode ? 'text-gray-200 hover:bg-[#1e1e32]' : ''
                                       }`}
                                     >
                                       <IconComponent className="w-4 h-4" />
