@@ -3836,7 +3836,7 @@ export default function BoardGrid({
       />
       
       {/* Presentation Mode */}
-      {presentationMode && currentStep && (
+      {presentationMode && (
         <div className={`fixed inset-0 z-50 flex animate-in slide-in-from-top-full duration-500 ease-out presentation-mode ${
           presentationDarkMode ? 'bg-[#0A0A0F]' : 'bg-white'
         }`}>
@@ -3851,11 +3851,13 @@ export default function BoardGrid({
                 <h1 className={`text-xl font-black uppercase tracking-wider truncate ${
                   presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
                 }`} title={board.name}>{board.name}</h1>
-                <div className={`text-xs font-bold uppercase tracking-widest truncate ${
-                  presentationDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }`} title={`${currentStep.phaseName} → ${currentStep.columnName}`}>
-                  {currentStep.phaseName} &gt; {currentStep.columnName}
-                </div>
+                {currentStep && (
+                  <div className={`text-xs font-bold uppercase tracking-widest truncate ${
+                    presentationDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`} title={`${currentStep.phaseName} → ${currentStep.columnName}`}>
+                    {currentStep.phaseName} &gt; {currentStep.columnName}
+                  </div>
+                )}
               </div>
               
               {/* Right side - Step selector and navigation controls */}
@@ -4056,7 +4058,23 @@ export default function BoardGrid({
             
             {/* Step Content */}
             <div className="flex-1 flex overflow-hidden bauhaus-halftone-bg">
+              {/* No steps fallback */}
+              {!currentStep && (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className={`text-center p-12 border-4 border-dashed rounded-none ${
+                    presentationDarkMode ? 'border-[#333333] text-gray-400' : 'border-gray-300 text-gray-500'
+                  }`}>
+                    <Fullscreen className={`w-20 h-20 mx-auto mb-6 ${
+                      presentationDarkMode ? 'text-[#333333]' : 'text-gray-300'
+                    }`} />
+                    <h2 className="font-black uppercase tracking-widest text-xl mb-2">No Steps Available</h2>
+                    <p className="font-bold uppercase tracking-widest text-xs">Add phases and columns to your board to start presenting</p>
+                  </div>
+                </div>
+              )}
+              
               {/* Left Side - Step Image/Visual */}
+              {currentStep && (
               <div className={`${presentationViewMode === 'large' ? 'flex-1' : 'flex-1'} overflow-y-auto overflow-x-hidden ${presentationViewMode === 'large' ? 'pr-6' : 'pr-8'} p-8 presentation-scrollbar ${
                 presentationDarkMode ? 'dark' : ''
               }`}>
@@ -4208,6 +4226,7 @@ export default function BoardGrid({
                   </div>
                 </div>
               </div>
+              )}
             </div>
           </div>
           
