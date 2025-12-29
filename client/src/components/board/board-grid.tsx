@@ -3861,17 +3861,17 @@ export default function BoardGrid({
               </div>
               
               {/* Right side - Step selector and navigation controls */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
                 {/* Step Counter with Border - Smaller size */}
-                <div className={`border-2 rounded-none px-2 py-1 shadow-[2px_2px_0px_0px] transition-all ${
-                  presentationDarkMode ? 'border-[#333333] bg-[#12121A] shadow-[#333333]' : 'border-[#0A0A0F] bg-white shadow-[#0A0A0F]'
+                <div className={`border-2 rounded-none px-2 py-1 transition-all ${
+                  presentationDarkMode ? 'border-[#333333] bg-[#12121A]' : 'border-[#0A0A0F] bg-white'
                 }`}>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className={`text-xs font-black uppercase tracking-widest px-2 py-1 h-auto w-full justify-between rounded-none ${
+                      className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 h-auto w-full justify-between rounded-none ${
                         presentationDarkMode ? 'text-white hover:text-[#0A0A0F] hover:bg-[#FFD600]' : 'text-[#0A0A0F] hover:bg-[#FFD600]'
                       }`}
                     >
@@ -3934,10 +3934,10 @@ export default function BoardGrid({
                   onClick={() => setPresentationViewMode(presentationViewMode === 'compact' ? 'large' : 'compact')}
                   variant="ghost"
                   size="sm"
-                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none' 
-                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none'
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F]' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600]'
                   }`}
                   title={presentationViewMode === 'compact' ? "Switch to Large View" : "Switch to Compact View"}
                 >
@@ -3951,10 +3951,10 @@ export default function BoardGrid({
                   onClick={() => setPresentationDarkMode(!presentationDarkMode)}
                   variant="ghost"
                   size="sm"
-                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none' 
-                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none'
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F]' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600]'
                   }`}
                   title={presentationDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
                 >
@@ -3969,10 +3969,10 @@ export default function BoardGrid({
                   size="sm"
                   onClick={prevStep}
                   disabled={currentStepIndex === 0}
-                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none disabled:opacity-30 disabled:shadow-none' 
-                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none disabled:opacity-30 disabled:shadow-none'
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] disabled:opacity-30 disabled:border-gray-800' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] disabled:opacity-30 disabled:border-gray-200'
                   }`}
                 >
                   <SkipBack className="w-4 h-4" />
@@ -3982,27 +3982,29 @@ export default function BoardGrid({
                   size="sm"
                   onClick={nextStep}
                   disabled={currentStepIndex === allSteps.length - 1}
-                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none disabled:opacity-30 disabled:shadow-none' 
-                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none disabled:opacity-30 disabled:shadow-none'
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] disabled:opacity-30 disabled:border-gray-800' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] disabled:opacity-30 disabled:border-gray-200'
                   }`}
                 >
                   <SkipForward className="w-4 h-4" />
                 </Button>
-                <div className={`w-px h-6 mx-2 ${
+                
+                <div className={`w-px h-6 mx-1 ${
                   presentationDarkMode ? 'bg-[#333333]' : 'bg-[#0A0A0F]'
                 }`} />
+
                 {/* Export Controls */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                      className={`h-9 w-9 p-0 rounded-none border-2 transition-all ${
                         presentationDarkMode 
-                          ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none' 
-                          : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none'
+                          ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F]' 
+                          : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600]'
                       }`}
                       title="Export Presentation"
                     >
@@ -4026,27 +4028,28 @@ export default function BoardGrid({
                   variant="ghost"
                   size="sm"
                   onClick={exportNotesToText}
-                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none' 
-                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none'
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F]' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600]'
                   }`}
                   title="Export Notes as Text"
                 >
                   <FileType className="w-4 h-4" />
                 </Button>
 
-                <div className={`w-px h-6 mx-2 ${
+                <div className={`w-px h-6 mx-1 ${
                   presentationDarkMode ? 'bg-[#333333]' : 'bg-[#0A0A0F]'
                 }`} />
+
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={exitPresentationMode}
-                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] text-white hover:bg-red-500 hover:text-white hover:border-red-500 shadow-[#333333] hover:shadow-none' 
-                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-red-500 hover:text-white hover:border-red-500 shadow-[#0A0A0F] hover:shadow-none'
+                      ? 'border-[#333333] text-white hover:bg-red-500 hover:text-white hover:border-red-500' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-red-500 hover:text-white hover:border-red-500'
                   }`}
                 >
                   <X className="w-4 h-4" />
