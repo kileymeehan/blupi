@@ -764,9 +764,6 @@ export default function Dashboard() {
                 />
               </div>
               <div className="flex-1">
-                <div className="inline-block bg-[#1976D2] text-white px-4 py-1 font-bold uppercase tracking-widest text-xs mb-4">
-                  Dashboard
-                </div>
                 <h1 className="text-5xl mb-3 font-black text-[#0A0A0F] uppercase tracking-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                   Blueprinting Reimagined
                 </h1>
