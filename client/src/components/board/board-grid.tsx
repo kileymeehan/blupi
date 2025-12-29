@@ -3837,7 +3837,7 @@ export default function BoardGrid({
       
       {/* Presentation Mode */}
       {presentationMode && (
-        <div className={`fixed inset-0 z-50 flex animate-in slide-in-from-top-full duration-500 ease-out presentation-mode ${
+        <div className={`fixed inset-0 z-50 flex presentation-mode ${
           presentationDarkMode ? 'bg-[#0A0A0F]' : 'bg-white'
         }`}>
           {/* Main Presentation Area */}
@@ -4009,20 +4009,18 @@ export default function BoardGrid({
                       <FileDown className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <PopoverContent className={`w-80 p-0 rounded-none border-2 shadow-[4px_4px_0px_0px] ${
+                  <DropdownMenuContent className={`w-56 p-0 rounded-none border-2 shadow-[4px_4px_0px_0px] ${
                     presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
                   }`} align="end">
-                    <div className="flex flex-col p-1">
-                      <button onClick={exportPresentationToPDF} className={`flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest hover:bg-[#FFD600] hover:text-[#0A0A0F] transition-colors text-left ${presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'}`}>
-                        <FileType className="h-4 w-4" />
-                        Export to PDF
-                      </button>
-                      <button onClick={exportPresentationToSlides} className={`flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest hover:bg-[#FFD600] hover:text-[#0A0A0F] transition-colors text-left ${presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'}`}>
-                        <Presentation className="h-4 w-4" />
-                        Export to Slides
-                      </button>
-                    </div>
-                  </PopoverContent>
+                    <DropdownMenuItem onClick={exportPresentationToPDF} className={`flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest cursor-pointer rounded-none ${presentationDarkMode ? 'text-white focus:bg-[#FFD600] focus:text-[#0A0A0F]' : 'text-[#0A0A0F] focus:bg-[#FFD600] focus:text-[#0A0A0F]'}`}>
+                      <FileType className="h-4 w-4" />
+                      Export to PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={exportPresentationToSlides} className={`flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest cursor-pointer rounded-none ${presentationDarkMode ? 'text-white focus:bg-[#FFD600] focus:text-[#0A0A0F]' : 'text-[#0A0A0F] focus:bg-[#FFD600] focus:text-[#0A0A0F]'}`}>
+                      <Presentation className="h-4 w-4" />
+                      Export to Slides
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
                   variant="ghost"
