@@ -3838,53 +3838,53 @@ export default function BoardGrid({
       {/* Presentation Mode */}
       {presentationMode && currentStep && (
         <div className={`fixed inset-0 z-50 flex animate-in slide-in-from-top-full duration-500 ease-out presentation-mode ${
-          presentationDarkMode ? 'bg-gray-900' : 'bg-white'
+          presentationDarkMode ? 'bg-[#0A0A0F]' : 'bg-white'
         }`}>
           {/* Main Presentation Area */}
           <div className="flex-1 flex flex-col">
             {/* Presentation Header */}
-            <div className={`flex items-center justify-between p-4 border-b ${
-              presentationDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
+            <div className={`flex items-center justify-between p-4 border-b-2 ${
+              presentationDarkMode ? 'bg-[#12121A] border-[#333333]' : 'bg-gray-50 border-[#0A0A0F]'
             }`}>
               {/* Left side - Board name and path */}
               <div className="flex items-center gap-4 max-w-md">
-                <h1 className={`text-xl font-bold truncate ${
-                  presentationDarkMode ? 'text-white' : 'text-gray-900'
+                <h1 className={`text-xl font-black uppercase tracking-wider truncate ${
+                  presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
                 }`} title={board.name}>{board.name}</h1>
-                <div className={`text-sm truncate ${
-                  presentationDarkMode ? 'text-gray-300' : 'text-gray-600'
+                <div className={`text-xs font-bold uppercase tracking-widest truncate ${
+                  presentationDarkMode ? 'text-gray-400' : 'text-gray-600'
                 }`} title={`${currentStep.phaseName} → ${currentStep.columnName}`}>
-                  {currentStep.phaseName} → {currentStep.columnName}
+                  {currentStep.phaseName} &gt; {currentStep.columnName}
                 </div>
               </div>
               
               {/* Right side - Step selector and navigation controls */}
               <div className="flex items-center gap-3">
                 {/* Step Counter with Border - Smaller size */}
-                <div className={`border rounded-md px-2 py-1 ${
-                  presentationDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50'
+                <div className={`border-2 rounded-none px-2 py-1 shadow-[2px_2px_0px_0px] transition-all ${
+                  presentationDarkMode ? 'border-[#333333] bg-[#12121A] shadow-[#333333]' : 'border-[#0A0A0F] bg-white shadow-[#0A0A0F]'
                 }`}>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className={`text-xs font-medium px-2 py-1 h-auto w-full justify-between rounded-md ${
-                        presentationDarkMode ? 'text-white hover:text-white hover:bg-gray-600' : 'text-gray-900 hover:text-gray-900 hover:bg-gray-100'
+                      className={`text-xs font-black uppercase tracking-widest px-2 py-1 h-auto w-full justify-between rounded-none ${
+                        presentationDarkMode ? 'text-white hover:text-[#0A0A0F] hover:bg-[#FFD600]' : 'text-[#0A0A0F] hover:bg-[#FFD600]'
                       }`}
                     >
                       Step {currentStepIndex + 1} of {allSteps.length}
                       <ChevronDown className="w-3 h-3 ml-1" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className={`w-80 p-0 ${
-                    presentationDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'
+                  <PopoverContent className={`w-80 p-0 rounded-none border-2 shadow-[4px_4px_0px_0px] ${
+                    presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
                   }`} align="start">
-                    <div className={`p-3 border-b ${
-                      presentationDarkMode ? 'border-gray-600' : 'border-gray-200'
+                    <div className={`p-3 border-b-2 ${
+                      presentationDarkMode ? 'border-[#333333]' : 'border-[#0A0A0F]'
                     }`}>
-                      <h4 className={`font-medium ${
-                        presentationDarkMode ? 'text-gray-200' : 'text-gray-900'
+                      <h4 className={`font-black uppercase tracking-widest text-xs ${
+                        presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
                       }`}>Select Step</h4>
                     </div>
                     <ScrollArea className="h-80">
@@ -3893,28 +3893,28 @@ export default function BoardGrid({
                           <button
                             key={index}
                             onClick={() => setCurrentStepIndex(index)}
-                            className={`w-full text-left p-3 rounded-md hover:bg-gray-100 ${
-                              presentationDarkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-50 text-gray-900'
+                            className={`w-full text-left p-3 rounded-none border-2 border-transparent hover:border-[#FFD600] transition-all ${
+                              presentationDarkMode ? 'text-gray-300 hover:bg-[#1e1e32]' : 'text-[#0A0A0F] hover:bg-gray-50'
                             } ${
                               index === currentStepIndex ? 
-                                (presentationDarkMode ? 'bg-gray-700' : 'bg-gray-100') : ''
+                                (presentationDarkMode ? 'bg-[#1e1e32] border-[#FFD600]' : 'bg-gray-100 border-[#0A0A0F]') : ''
                             }`}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex-1 min-w-0">
-                                <div className={`text-sm font-medium truncate ${
-                                  presentationDarkMode ? 'text-gray-200' : 'text-gray-900'
+                                <div className={`text-sm font-bold truncate ${
+                                  presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
                                 }`}>
                                   {step.columnName}
                                 </div>
-                                <div className={`text-xs ${
-                                  presentationDarkMode ? 'text-gray-400' : 'text-gray-500'
+                                <div className={`text-[10px] font-bold uppercase tracking-tighter ${
+                                  presentationDarkMode ? 'text-gray-500' : 'text-gray-500'
                                 }`}>
                                   {step.blocks.length} block{step.blocks.length !== 1 ? 's' : ''}
                                 </div>
                               </div>
-                              <div className={`text-xs font-medium ml-2 ${
-                                presentationDarkMode ? 'text-gray-400' : 'text-gray-500'
+                              <div className={`text-xs font-black ml-2 ${
+                                presentationDarkMode ? 'text-[#FFD600]' : 'text-[#0A0A0F]'
                               }`}>
                                 {index + 1}
                               </div>
@@ -3932,8 +3932,10 @@ export default function BoardGrid({
                   onClick={() => setPresentationViewMode(presentationViewMode === 'compact' ? 'large' : 'compact')}
                   variant="ghost"
                   size="sm"
-                  className={`h-9 w-9 p-0 ${
-                    presentationDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : ''
+                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                    presentationDarkMode 
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none'
                   }`}
                   title={presentationViewMode === 'compact' ? "Switch to Large View" : "Switch to Compact View"}
                 >
@@ -3947,8 +3949,10 @@ export default function BoardGrid({
                   onClick={() => setPresentationDarkMode(!presentationDarkMode)}
                   variant="ghost"
                   size="sm"
-                  className={`h-9 w-9 p-0 ${
-                    presentationDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : ''
+                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                    presentationDarkMode 
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none'
                   }`}
                   title={presentationDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
                 >
@@ -3963,8 +3967,10 @@ export default function BoardGrid({
                   size="sm"
                   onClick={prevStep}
                   disabled={currentStepIndex === 0}
-                  className={`h-9 w-9 p-0 ${
-                    presentationDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : ''
+                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                    presentationDarkMode 
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none disabled:opacity-30 disabled:shadow-none' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none disabled:opacity-30 disabled:shadow-none'
                   }`}
                 >
                   <SkipBack className="w-4 h-4" />
@@ -3974,14 +3980,16 @@ export default function BoardGrid({
                   size="sm"
                   onClick={nextStep}
                   disabled={currentStepIndex === allSteps.length - 1}
-                  className={`h-9 w-9 p-0 ${
-                    presentationDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : ''
+                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                    presentationDarkMode 
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none disabled:opacity-30 disabled:shadow-none' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none disabled:opacity-30 disabled:shadow-none'
                   }`}
                 >
                   <SkipForward className="w-4 h-4" />
                 </Button>
                 <div className={`w-px h-6 mx-2 ${
-                  presentationDarkMode ? 'bg-gray-600' : 'bg-gray-200'
+                  presentationDarkMode ? 'bg-[#333333]' : 'bg-[#0A0A0F]'
                 }`} />
                 {/* Export Controls */}
                 <DropdownMenu>
@@ -3989,31 +3997,39 @@ export default function BoardGrid({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={`h-9 w-9 p-0 ${
-                        presentationDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : ''
+                      className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                        presentationDarkMode 
+                          ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none' 
+                          : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none'
                       }`}
                       title="Export Presentation"
                     >
                       <FileDown className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={exportPresentationToPDF}>
-                      <FileType className="mr-2 h-4 w-4" />
-                      Export to PDF
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={exportPresentationToSlides}>
-                      <Presentation className="mr-2 h-4 w-4" />
-                      Export to Google Slides
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
+                  <PopoverContent className={`w-56 p-0 rounded-none border-2 shadow-[4px_4px_0px_0px] ${
+                    presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333] text-white' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F] text-[#0A0A0F]'
+                  }`} align="end">
+                    <div className="flex flex-col p-1">
+                      <button onClick={exportPresentationToPDF} className="flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest hover:bg-[#FFD600] hover:text-[#0A0A0F] transition-colors text-left">
+                        <FileType className="h-4 w-4" />
+                        Export to PDF
+                      </button>
+                      <button onClick={exportPresentationToSlides} className="flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest hover:bg-[#FFD600] hover:text-[#0A0A0F] transition-colors text-left">
+                        <Presentation className="h-4 w-4" />
+                        Export to Slides
+                      </button>
+                    </div>
+                  </PopoverContent>
                 </DropdownMenu>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={exportNotesToText}
-                  className={`h-9 w-9 p-0 ${
-                    presentationDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : ''
+                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                    presentationDarkMode 
+                      ? 'border-[#333333] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[#0A0A0F] shadow-[#333333] hover:shadow-none' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-[#FFD600] shadow-[#0A0A0F] hover:shadow-none'
                   }`}
                   title="Export Notes as Text"
                 >
@@ -4021,14 +4037,16 @@ export default function BoardGrid({
                 </Button>
 
                 <div className={`w-px h-6 mx-2 ${
-                  presentationDarkMode ? 'bg-gray-600' : 'bg-gray-200'
+                  presentationDarkMode ? 'bg-[#333333]' : 'bg-[#0A0A0F]'
                 }`} />
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={exitPresentationMode}
-                  className={`h-9 w-9 p-0 ${
-                    presentationDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : ''
+                  className={`h-9 w-9 p-0 rounded-none border-2 shadow-[2px_2px_0px_0px] transition-all ${
+                    presentationDarkMode 
+                      ? 'border-[#333333] text-white hover:bg-red-500 hover:text-white hover:border-red-500 shadow-[#333333] hover:shadow-none' 
+                      : 'border-[#0A0A0F] text-[#0A0A0F] hover:bg-red-500 hover:text-white hover:border-red-500 shadow-[#0A0A0F] hover:shadow-none'
                   }`}
                 >
                   <X className="w-4 h-4" />
@@ -4037,20 +4055,20 @@ export default function BoardGrid({
             </div>
             
             {/* Step Content */}
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex overflow-hidden bauhaus-halftone-bg">
               {/* Left Side - Step Image/Visual */}
               <div className={`${presentationViewMode === 'large' ? 'flex-1' : 'flex-1'} overflow-y-auto overflow-x-hidden ${presentationViewMode === 'large' ? 'pr-6' : 'pr-8'} p-8 presentation-scrollbar ${
                 presentationDarkMode ? 'dark' : ''
               }`}>
                 {/* Step Image - Primary image from column, fallback to first block image */}
-                <div className={`rounded-lg ${presentationViewMode === 'large' ? 'h-[75vh] w-full max-w-5xl mx-auto' : 'h-96'} flex items-center justify-center mb-6 ${
-                  presentationDarkMode ? 'bg-gray-800' : 'bg-gray-100'
+                <div className={`rounded-none border-4 shadow-[8px_8px_0px_0px] transition-all ${presentationViewMode === 'large' ? 'h-[75vh] w-full max-w-5xl mx-auto' : 'h-96'} flex items-center justify-center mb-10 ${
+                  presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
                 }`}>
                   {currentStep.columnImage ? (
                     <img 
                       src={currentStep.columnImage}
                       alt="Step visual"
-                      className={`${presentationViewMode === 'large' ? 'max-w-full max-h-full object-contain' : 'max-w-full max-h-full object-contain'} rounded`}
+                      className={`${presentationViewMode === 'large' ? 'max-w-full max-h-full object-contain' : 'max-w-full max-h-full object-contain'} rounded-none`}
                     />
                   ) : (() => {
                     const imageBlock = currentStep.blocks.find(block => 
@@ -4062,125 +4080,129 @@ export default function BoardGrid({
                       <img 
                         src={imageAttachment.url}
                         alt="Step visual"
-                        className="max-w-full max-h-full object-contain rounded"
+                        className="max-w-full max-h-full object-contain rounded-none"
                       />
                     ) : (
                       <div className={`text-center ${
                         presentationDarkMode ? 'text-gray-400' : 'text-gray-500'
                       }`}>
                         <Fullscreen className={`w-16 h-16 mx-auto mb-4 ${
-                          presentationDarkMode ? 'text-gray-600' : 'text-gray-300'
+                          presentationDarkMode ? 'text-[#333333]' : 'text-gray-300'
                         }`} />
-                        <p>No visual content for this step</p>
+                        <p className="font-black uppercase tracking-widest text-xs">No visual content</p>
                       </div>
                     );
                   })()}
                 </div>
                 
                 {/* Step Details */}
-                <div className="space-y-4">
-                  <h2 className={`text-2xl font-bold ${
-                    presentationDarkMode ? 'text-white' : 'text-gray-900'
-                  } truncate`} title={currentStep.columnName}>
-                    {currentStep.columnName}
-                  </h2>
+                <div className="space-y-6 max-w-5xl mx-auto">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-3 bg-[#FFD600]" />
+                    <h2 className={`text-4xl font-black uppercase tracking-tighter ${
+                      presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
+                    } truncate`} title={currentStep.columnName}>
+                      {currentStep.columnName}
+                    </h2>
+                  </div>
                   
                   {/* Blocks Content */}
-                  <div className="space-y-6 pb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
                     {currentStep.blocks.map((block, index) => {
                       const IconComponent = (Icons as any)[getIconForBlockType(block.type)] || Icons.Square;
-                      const departmentInfo = block.department ? getDepartmentInfo(block.department) : null;
+                      const layerType = LAYER_TYPES.find(l => l.type === block.type);
                       
                       return (
                         <div 
                           key={block.id} 
-                          className={`border rounded-lg p-4 shadow-sm ${
-                            presentationDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                          className={`border-4 rounded-none p-6 shadow-[4px_4px_0px_0px] transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px] ${
+                            presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
                           }`}
                           style={{ 
-                            borderLeftWidth: '5px',
-                            borderLeftColor: departmentInfo?.color || '#6B7280'
+                            borderLeftWidth: '12px',
+                            borderLeftColor: (layerType?.color && !layerType.isDivider) ? 
+                              (layerType.color.includes('blue-600') ? '#2563eb' : 
+                               layerType.color.includes('indigo-500') ? '#6366f1' :
+                               layerType.color.includes('cyan-500') ? '#06b6d4' :
+                               layerType.color.includes('green-500') ? '#22c55e' :
+                               layerType.color.includes('pink-500') ? '#ec4899' :
+                               layerType.color.includes('red-500') ? '#ef4444' :
+                               layerType.color.includes('orange-500') ? '#f97316' :
+                               layerType.color.includes('purple-500') ? '#a855f7' :
+                               layerType.color.includes('violet-500') ? '#8b5cf6' :
+                               layerType.color.includes('yellow-500') ? '#eab308' :
+                               layerType.color.includes('emerald-500') ? '#10b981' :
+                               layerType.color.includes('fuchsia-500') ? '#d946ef' :
+                               layerType.color.includes('teal-500') ? '#14b8a6' :
+                               layerType.color.includes('amber-500') ? '#f59e0b' :
+                               layerType.color.includes('rose-500') ? '#f43f5e' : '#6B7280') : '#6B7280'
                           }}
                         >
-                          <div className="flex items-start gap-3">
-                            {/* Block Icon */}
-                            <div className={`w-8 h-8 rounded flex items-center justify-center flex-shrink-0 ${
-                              presentationDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              {block.emoji ? (
-                                <span className="text-lg">{block.emoji}</span>
-                              ) : (
-                                <IconComponent className="w-5 h-5" />
-                              )}
-                            </div>
-                            
-                            {/* Block Content */}
-                            <div className="flex-1">
-                              <div className={`font-medium mb-1 ${
-                                presentationDarkMode ? 'text-gray-200' : 'text-gray-900'
+                          <div className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                              <div className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 ${
+                                presentationDarkMode ? 'bg-[#333333] text-white' : 'bg-[#0A0A0F] text-white'
                               }`}>
-                                {departmentInfo?.name || block.customDepartment || block.type}
+                                {layerType?.label || block.type}
                               </div>
-                              
-                              <div className="flex gap-4">
-                                <div className="flex-1">
-                                  {block.content && (
-                                    <div className={`whitespace-pre-wrap ${
-                                      presentationDarkMode ? 'text-gray-300' : 'text-gray-700'
-                                    }`}>
-                                      {block.content}
-                                    </div>
-                                  )}
-                                  
-                                  {/* Non-image attachments */}
-                                  {Array.isArray(block.attachments) && block.attachments.filter(att => att.type !== 'image').length > 0 && (
-                                    <div className="mt-3 space-y-2">
-                                      {block.attachments.filter(att => att.type !== 'image').map((attachment, attIndex) => (
-                                        <div key={attIndex} className="flex items-center gap-2 text-sm text-blue-600">
-                                          {attachment.type === 'video' && (
-                                            <>
-                                              <Play className="w-4 h-4" />
-                                              <span>Video attachment</span>
-                                            </>
-                                          )}
-                                          {attachment.type === 'link' && (
-                                            <>
-                                              <ExternalLink className="w-4 h-4" />
-                                              <span>Link attachment</span>
-                                            </>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                                
-                                {/* Image attachments as thumbnails */}
-                                {Array.isArray(block.attachments) && block.attachments.filter(att => att.type === 'image').length > 0 && (
-                                  <div className="flex flex-col gap-2">
-                                    {block.attachments
-                                      .filter(att => att.type === 'image')
-                                      .map((attachment, attIndex) => (
-                                        <div key={attIndex} className="w-24 h-24 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                                          <img 
-                                            src={attachment.url}
-                                            alt={attachment.title || "Block attachment"}
-                                            className="w-full h-full object-cover"
-                                          />
-                                        </div>
-                                      ))}
-                                  </div>
+                              <div className={presentationDarkMode ? "text-white" : "text-[#0A0A0F]"}>
+                                {block.emoji ? (
+                                  <span className="text-2xl">{block.emoji}</span>
+                                ) : (
+                                  <IconComponent className="w-6 h-6 stroke-[2.5]" />
                                 )}
                               </div>
                             </div>
+                            
+                            <div className="flex-1">
+                              {block.content && (
+                                <div className={`text-lg font-bold leading-tight whitespace-pre-wrap ${
+                                  presentationDarkMode ? 'text-gray-200' : 'text-[#0A0A0F]'
+                                }`}>
+                                  {block.content}
+                                </div>
+                              )}
+                              
+                              {/* Non-image attachments */}
+                              {Array.isArray(block.attachments) && block.attachments.filter(att => att.type !== 'image').length > 0 && (
+                                <div className="mt-4 space-y-2">
+                                  {block.attachments.filter(att => att.type !== 'image').map((attachment, attIndex) => (
+                                    <div key={attIndex} className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#FFD600]">
+                                      {attachment.type === 'video' && <Play className="w-4 h-4 fill-current" />}
+                                      {attachment.type === 'link' && <ExternalLink className="w-4 h-4" />}
+                                      <span>{attachment.type} attachment</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Image attachments as grid */}
+                            {Array.isArray(block.attachments) && block.attachments.filter(att => att.type === 'image').length > 0 && (
+                              <div className="grid grid-cols-2 gap-2 mt-2">
+                                {block.attachments
+                                  .filter(att => att.type === 'image')
+                                  .map((attachment, attIndex) => (
+                                    <div key={attIndex} className={`aspect-square rounded-none border-2 overflow-hidden ${
+                                      presentationDarkMode ? 'border-[#333333]' : 'border-[#0A0A0F]'
+                                    }`}>
+                                      <img 
+                                        src={attachment.url}
+                                        alt={attachment.title || "Block attachment"}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
                     })}
                     
                     {currentStep.blocks.length === 0 && (
-                      <div className="text-center text-gray-500 py-8">
-                        <p>No content in this step</p>
+                      <div className="col-span-full text-center py-12 border-4 border-dashed rounded-none border-gray-300">
+                        <p className="font-black uppercase tracking-widest text-gray-400">No content in this step</p>
                       </div>
                     )}
                   </div>
@@ -4190,14 +4212,14 @@ export default function BoardGrid({
           </div>
           
           {/* Right Sidebar - Notes and Add Block */}
-          <div className={`${presentationViewMode === 'large' ? 'w-80' : 'w-80'} border-l flex flex-col ${
-            presentationDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-gray-50 border-gray-200'
+          <div className={`${presentationViewMode === 'large' ? 'w-80' : 'w-80'} border-l-2 flex flex-col ${
+            presentationDarkMode ? 'bg-[#12121A] border-[#333333]' : 'bg-gray-50 border-[#0A0A0F]'
           }`}>
-            <div className={`p-4 border-b ${
-              presentationDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'
+            <div className={`p-4 border-b-2 ${
+              presentationDarkMode ? 'bg-[#12121A] border-[#333333]' : 'bg-white border-[#0A0A0F]'
             }`}>
-              <h3 className={`font-semibold ${
-                presentationDarkMode ? 'text-gray-200' : 'text-gray-900'
+              <h3 className={`font-black uppercase tracking-widest text-xs ${
+                presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
               }`}>Presentation Notes</h3>
             </div>
             <div className={`flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 presentation-scrollbar ${
@@ -4207,38 +4229,38 @@ export default function BoardGrid({
                 value={presentationNotes}
                 onChange={(e) => setPresentationNotes(e.target.value)}
                 placeholder="Add your notes for this presentation..."
-                className={`w-full h-48 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                  presentationDarkMode ? 'text-gray-200 placeholder-gray-400' : 'text-gray-900 placeholder-gray-500'
+                className={`w-full h-48 resize-none border-2 rounded-none p-3 font-bold ${
+                  presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] text-white placeholder-gray-600 focus:border-[#FFD600]' : 'bg-white border-[#0A0A0F] text-[#0A0A0F] placeholder-gray-400 focus:border-[#FFD600]'
                 }`}
               />
               
               {/* Add New Block Section */}
-              <div className={`border-t pt-4 ${
-                presentationDarkMode ? 'border-gray-600' : 'border-gray-200'
+              <div className={`border-t-2 pt-6 mt-4 ${
+                presentationDarkMode ? 'border-[#333333]' : 'border-[#0A0A0F]'
               }`}>
-                <h4 className={`font-medium mb-3 ${
-                  presentationDarkMode ? 'text-gray-200' : 'text-gray-900'
-                }`}>Add Block to Current Step</h4>
+                <h4 className={`font-black uppercase tracking-widest text-[10px] mb-4 ${
+                  presentationDarkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>Add Block to Step</h4>
                 
                 {!addBlockPopoverOpen ? (
                   <Button
                     onClick={() => setAddBlockPopoverOpen(true)}
-                    className={`w-full ${
+                    className={`w-full font-black uppercase tracking-widest text-xs rounded-none border-4 shadow-[4px_4px_0px_0px] transition-all hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] ${
                       presentationDarkMode 
-                        ? 'border-gray-600 text-gray-200 hover:bg-gray-700 hover:text-white' 
-                        : ''
+                        ? 'bg-white text-[#0A0A0F] border-[#333333] shadow-[#333333] hover:bg-[#FFD600]' 
+                        : 'bg-white text-[#0A0A0F] border-[#0A0A0F] shadow-[#0A0A0F] hover:bg-[#FFD600]'
                     }`}
                     variant="outline"
                   >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="w-4 h-4 mr-2 stroke-[3]" />
                     Add New Block
                   </Button>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {/* Block Type Selection with Searchable Dropdown */}
                     <div>
-                      <label className={`text-sm font-medium block mb-2 ${
-                        presentationDarkMode ? 'text-gray-200' : 'text-gray-900'
+                      <label className={`text-[10px] font-black uppercase tracking-widest block mb-2 ${
+                        presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
                       }`}>Block Type</label>
                       <Popover open={blockTypeDropdownOpen} onOpenChange={setBlockTypeDropdownOpen}>
                         <PopoverTrigger asChild>
@@ -4246,10 +4268,10 @@ export default function BoardGrid({
                             variant="outline"
                             role="combobox"
                             aria-expanded={blockTypeDropdownOpen}
-                            className={`w-full justify-between ${
+                            className={`w-full justify-between rounded-none border-2 font-bold ${
                               presentationDarkMode 
-                                ? 'border-gray-600 text-gray-200 hover:bg-gray-700 hover:text-white' 
-                                : ''
+                                ? 'bg-[#0A0A0F] border-[#333333] text-white hover:bg-[#1e1e32]' 
+                                : 'bg-white border-[#0A0A0F] text-[#0A0A0F] hover:bg-gray-50'
                             }`}
                           >
                             {selectedBlockType ? (
@@ -4272,8 +4294,8 @@ export default function BoardGrid({
                             <Icons.ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className={`w-[280px] p-0 ${
-                          presentationDarkMode ? 'bg-gray-800 border-gray-600' : ''
+                        <PopoverContent className={`w-[280px] p-0 rounded-none border-2 shadow-[4px_4px_0px_0px] ${
+                          presentationDarkMode ? 'bg-[#12121A] border-[#333333] shadow-[#333333]' : 'bg-white border-[#0A0A0F] shadow-[#0A0A0F]'
                         }`}>
                           <Command className={presentationDarkMode ? 'bg-gray-800' : ''}>
                             <CommandInput placeholder="Search block types..." className={
