@@ -53,6 +53,16 @@
   background-position: 0 0, 3px 3px;
 }
 
+.bauhaus-halftone-bg.show-dark {
+  background-color: #0A0A0F !important;
+  background-image: radial-gradient(rgba(255, 214, 0, 0.15) 1px, transparent 1px) !important;
+}
+
+.bauhaus-halftone-bg.show-light {
+  background-color: #F5F5F5 !important;
+  background-image: radial-gradient(rgba(10, 10, 15, 0.08) 1px, transparent 1px) !important;
+}
+
 .bauhaus-halftone-bg {
   position: relative;
   /* Safari-safe: Apply halftone pattern directly as background with rgba for opacity */
@@ -466,6 +476,11 @@
 }
 
 .dark .bauhaus-halftone-bg {
+  background-color: #0A0A0F !important;
+  background-image: radial-gradient(rgba(255, 214, 0, 0.15) 1px, transparent 1px) !important;
+}
+
+.dark.bauhaus-halftone-bg {
   background-color: #0A0A0F !important;
   background-image: radial-gradient(rgba(255, 214, 0, 0.15) 1px, transparent 1px) !important;
 }

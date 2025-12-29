@@ -4050,7 +4050,7 @@ export default function BoardGrid({
             </div>
             
             {/* Step Content */}
-            <div className={`flex-1 flex overflow-hidden bauhaus-halftone-bg ${presentationDarkMode ? 'dark' : ''}`}>
+            <div className={`flex-1 flex overflow-hidden bauhaus-halftone-bg dark ${presentationDarkMode ? 'show-dark' : 'show-light'}`}>
               {/* No steps fallback */}
               {!currentStep && (
                 <div className="flex-1 flex items-center justify-center">
