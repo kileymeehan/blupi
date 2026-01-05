@@ -81,8 +81,24 @@ export default function BoardPage() {
 
       return res.json();
     },
+    onMutate: async (updates) => {
+      // Cancel any outgoing refetches to prevent overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: ['/api/boards', id] });
+      
+      // Snapshot the previous value for rollback
+      const previousBoard = queryClient.getQueryData(['/api/boards', id]);
+      
+      // Optimistically update the cache immediately
+      queryClient.setQueryData(['/api/boards', id], (old: Board | undefined) => {
+        if (!old) return old;
+        return { ...old, ...updates, updatedAt: new Date().toISOString() };
+      });
+      
+      // Return context with snapshot for rollback
+      return { previousBoard };
+    },
     onSuccess: (data) => {
-      // Immediate local update for responsiveness
+      // Update with server response data (authoritative)
       queryClient.setQueryData(['/api/boards', id], data);
       
       // Broadcast changes immediately via WebSocket
@@ -91,12 +107,13 @@ export default function BoardPage() {
         board: data,
         timestamp: Date.now()
       });
-      
-      // Invalidate cache to ensure fresh data on next fetch
-      queryClient.invalidateQueries({ queryKey: ['/api/boards', id] });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
       console.error('Board update error:', error);
+      // Rollback to previous state on error
+      if (context?.previousBoard) {
+        queryClient.setQueryData(['/api/boards', id], context.previousBoard);
+      }
       toast({
         title: "Error saving changes",
         description: error.message,
