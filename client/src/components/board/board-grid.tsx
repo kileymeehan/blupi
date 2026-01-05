@@ -199,6 +199,32 @@ export default function BoardGrid({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [showAlternatingColumns, setShowAlternatingColumns] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  
+  // Local blocks state for instant UI updates during drag operations
+  const [localBlocks, setLocalBlocks] = useState<BlockType[]>(board.blocks);
+  const pendingUpdateRef = useRef<BlockType[] | null>(null);
+  const isDragActiveRef = useRef(false);
+  
+  // Sync localBlocks with board.blocks from props
+  // During active drag, queue updates to apply after drag completes
+  useEffect(() => {
+    if (isDragActiveRef.current) {
+      // Queue the update for after drag completes
+      pendingUpdateRef.current = board.blocks;
+    } else {
+      // Apply immediately when not dragging
+      setLocalBlocks(board.blocks);
+      pendingUpdateRef.current = null;
+    }
+  }, [board.blocks]);
+  
+  // Apply any queued updates when drag ends
+  const applyPendingUpdate = useCallback(() => {
+    if (pendingUpdateRef.current) {
+      setLocalBlocks(pendingUpdateRef.current);
+      pendingUpdateRef.current = null;
+    }
+  }, []);
 
   // Apply dark mode to document
   useEffect(() => {
@@ -363,7 +389,7 @@ export default function BoardGrid({
     
     board.phases.forEach((phase, phaseIndex) => {
       phase.columns.forEach((column, columnIndex) => {
-        const columnBlocks = board.blocks.filter(
+        const columnBlocks = localBlocks.filter(
           block => block.phaseIndex === phaseIndex && block.columnIndex === columnIndex
         );
         
@@ -379,7 +405,7 @@ export default function BoardGrid({
     });
     
     return steps;
-  }, [board.phases, board.blocks]);
+  }, [board.phases, localBlocks]);
   
   const currentStep = allSteps[currentStepIndex];
 
@@ -625,6 +651,9 @@ export default function BoardGrid({
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) {
       setIsDragActive(false);
+      isDragActiveRef.current = false;
+      // Apply any remote updates that arrived during cancelled drag
+      applyPendingUpdate();
       return;
     }
     
@@ -633,13 +662,16 @@ export default function BoardGrid({
       clearTimeout(dragTimeoutRef.current);
     }
     
-    // Set drag active to prevent conflicting updates
-    setIsDragActive(true);
+    // Get the most up-to-date blocks - prefer pending updates if they exist
+    // This reconciles any remote changes that arrived during the drag
+    const currentBlocks = pendingUpdateRef.current || localBlocks;
     
     // Clear drag state after operation completes
     dragTimeoutRef.current = setTimeout(() => {
       setIsDragActive(false);
-    }, 100);
+      isDragActiveRef.current = false;
+      pendingUpdateRef.current = null;
+    }, 300);
 
     const { source, destination, type } = result;
     
@@ -655,7 +687,7 @@ export default function BoardGrid({
       const [movedColumn] = sourcePhase.columns.splice(source.index, 1);
       destPhase.columns.splice(destination.index, 0, movedColumn);
 
-      const blocks = structuredClone(board.blocks);
+      const blocks = structuredClone(currentBlocks);
       blocks.forEach((block) => {
         if (
           block.phaseIndex === sourcePhaseIndex &&
@@ -679,6 +711,8 @@ export default function BoardGrid({
         }
       });
 
+      // Update local state immediately for instant UI feedback
+      setLocalBlocks(blocks);
       onPhasesChange(newPhases);
       onBlocksChange(blocks);
       return;
@@ -686,11 +720,12 @@ export default function BoardGrid({
     
     // Handle BLOCK type drags
     if (type === "BLOCK") {
-      let blocks = structuredClone(board.blocks);
+      let blocks = structuredClone(currentBlocks);
       
       // Handle dropping block in drawer (delete)
       if (destination.droppableId === "drawer") {
         blocks = blocks.filter((b) => b.id !== result.draggableId);
+        setLocalBlocks(blocks);
         onBlocksChange(blocks);
         return;
       }
@@ -752,6 +787,7 @@ export default function BoardGrid({
           blocks.splice(insertIndex, 0, newBlock);
         }
 
+        setLocalBlocks(blocks);
         onBlocksChange(blocks);
         return;
       }
@@ -795,6 +831,7 @@ export default function BoardGrid({
           blocks.splice(insertIndex, 0, duplicatedBlock);
         }
       
+        setLocalBlocks(blocks);
         onBlocksChange(blocks);
         return;
       }
@@ -836,6 +873,8 @@ export default function BoardGrid({
         blocks.splice(insertIndex, 0, blockToMove);
       }
     
+      // Update local state immediately for instant UI feedback
+      setLocalBlocks(blocks);
       onBlocksChange(blocks);
       return;
     }
@@ -2199,6 +2238,10 @@ export default function BoardGrid({
 
   // Add a function to handle the drag start event for potential duplication
   const handleDragStart = (initial: any) => {
+    // Set drag active to prevent prop sync from overwriting local state during drag
+    setIsDragActive(true);
+    isDragActiveRef.current = true;
+    
     // We only need to show a visual indicator if modifier is pressed
     if (isModifierKeyPressed) {
       // Could add some visual indication here that we're in duplicate mode
@@ -2834,7 +2877,7 @@ export default function BoardGrid({
                     style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
                   >
                     <DepartmentFilter
-                      blocks={board.blocks}
+                      blocks={localBlocks}
                       onFilterByDepartment={setDepartmentFilter}
                       onFilterByType={setTypeFilter}
                       departmentFilter={departmentFilter}
@@ -2976,7 +3019,7 @@ export default function BoardGrid({
                                     )}
 
                                     <div className="space-y-4 min-h-[100px] p-4 rounded-lg border-1 border-gray-300 flex-1">
-                                      {board.blocks
+                                      {localBlocks
                                         .filter(b => b.phaseIndex === phaseIndex && b.columnIndex === columnIndex)
                                         .map((block, index) => {
                                           const blockType = LAYER_TYPES.find(l => l.type === block.type);
@@ -3324,7 +3367,7 @@ export default function BoardGrid({
                                             onMouseLeave={() => setHoveredColumn(null)}
                                           >
                                             {(() => {
-                                              const columnBlocks = board.blocks
+                                              const columnBlocks = localBlocks
                                                 .filter(
                                                   (b) =>
                                                     (!departmentFilter ||
