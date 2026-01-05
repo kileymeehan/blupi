@@ -24,6 +24,7 @@ import LandingPage from "@/pages/landing";
 import PendoConnectedPage from "@/pages/pendo-connected";
 import InvitePage from "@/pages/invite-page";
 import SettingsPage from "@/pages/settings";
+import FeedbackButton from "@/components/feedback-button";
 
 console.log('[APP] App component imported successfully');
 
@@ -111,6 +112,7 @@ function App() {
           <AutoRefreshHandler />
           <Router />
           <Toaster />
+          <FeedbackButton />
         </AuthProvider>
       </QueryClientProvider>
     );

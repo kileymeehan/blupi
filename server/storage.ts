@@ -2,7 +2,7 @@ import {
   projects, boards as boardsTable, 
   users, projectMembers, sheetDocuments, projectSheetDocuments,
   boardPermissions, teamMembers, pendingInvitations, notifications, flaggedBlocks,
-  organizations, userOrganizations,
+  organizations, userOrganizations, betaCodes, userFeedback,
   type Board, type InsertBoard, 
   type User, type InsertUser, 
   type Project, type InsertProject,
@@ -15,7 +15,9 @@ import {
   type Notification, type InsertNotification,
   type FlaggedBlock, type InsertFlaggedBlock,
   type Organization, type InsertOrganization,
-  type UserOrganization, type InsertUserOrganization
+  type UserOrganization, type InsertUserOrganization,
+  type BetaCode, type InsertBetaCode,
+  type UserFeedback, type InsertUserFeedback
 } from "@shared/schema";
 import { db, sql as neonSql, pool } from "./db";
 import { eq, desc, or, and, inArray, count, sql } from "drizzle-orm";
@@ -1574,6 +1576,267 @@ export class DatabaseStorage {
     } catch (error) {
       console.error('[Storage] Error getting user role in organization:', error);
       throw error;
+    }
+  }
+
+  // Beta Code methods
+  async validateBetaCode(code: string): Promise<BetaCode | null> {
+    try {
+      const [betaCode] = await db
+        .select()
+        .from(betaCodes)
+        .where(
+          and(
+            eq(betaCodes.code, code.toUpperCase()),
+            eq(betaCodes.active, true)
+          )
+        );
+      
+      if (!betaCode) return null;
+      
+      // Check if expired
+      if (betaCode.expiresAt && new Date() > new Date(betaCode.expiresAt)) {
+        return null;
+      }
+      
+      // Check if max uses exceeded
+      if (betaCode.maxUses && betaCode.usedCount >= betaCode.maxUses) {
+        return null;
+      }
+      
+      return betaCode;
+    } catch (error) {
+      console.error('[Storage] Error validating beta code:', error);
+      throw error;
+    }
+  }
+
+  async useBetaCode(code: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(betaCodes)
+        .set({ usedCount: sql`${betaCodes.usedCount} + 1` })
+        .where(eq(betaCodes.code, code.toUpperCase()))
+        .returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error('[Storage] Error using beta code:', error);
+      throw error;
+    }
+  }
+
+  async createBetaCode(data: InsertBetaCode): Promise<BetaCode> {
+    try {
+      const [newCode] = await db
+        .insert(betaCodes)
+        .values({
+          ...data,
+          code: data.code.toUpperCase()
+        })
+        .returning();
+      return newCode;
+    } catch (error) {
+      console.error('[Storage] Error creating beta code:', error);
+      throw error;
+    }
+  }
+
+  async getBetaCodes(): Promise<BetaCode[]> {
+    try {
+      return await db
+        .select()
+        .from(betaCodes)
+        .orderBy(desc(betaCodes.createdAt));
+    } catch (error) {
+      console.error('[Storage] Error getting beta codes:', error);
+      throw error;
+    }
+  }
+
+  async deactivateBetaCode(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .update(betaCodes)
+        .set({ active: false })
+        .where(eq(betaCodes.id, id))
+        .returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error('[Storage] Error deactivating beta code:', error);
+      throw error;
+    }
+  }
+
+  // User Feedback methods
+  async createFeedback(data: InsertUserFeedback): Promise<UserFeedback> {
+    try {
+      const [feedback] = await db
+        .insert(userFeedback)
+        .values(data)
+        .returning();
+      return feedback;
+    } catch (error) {
+      console.error('[Storage] Error creating feedback:', error);
+      throw error;
+    }
+  }
+
+  async getFeedback(status?: string): Promise<UserFeedback[]> {
+    try {
+      let query = db.select().from(userFeedback);
+      
+      if (status) {
+        query = query.where(eq(userFeedback.status, status)) as typeof query;
+      }
+      
+      return await query.orderBy(desc(userFeedback.createdAt));
+    } catch (error) {
+      console.error('[Storage] Error getting feedback:', error);
+      throw error;
+    }
+  }
+
+  async updateFeedbackStatus(id: number, status: string): Promise<UserFeedback | null> {
+    try {
+      const [updated] = await db
+        .update(userFeedback)
+        .set({ status })
+        .where(eq(userFeedback.id, id))
+        .returning();
+      return updated || null;
+    } catch (error) {
+      console.error('[Storage] Error updating feedback status:', error);
+      throw error;
+    }
+  }
+
+  async createOnboardingBoard(userId: number, organizationId?: string): Promise<Board> {
+    const onboardingBlocks = [
+      {
+        id: 'onboard-1',
+        type: 'touchpoint' as const,
+        content: 'Welcome to Blupi! This is a touchpoint block - use it to mark customer interactions',
+        phaseIndex: 0,
+        columnIndex: 0,
+        comments: [],
+        attachments: [],
+        emoji: '👋'
+      },
+      {
+        id: 'onboard-2',
+        type: 'email' as const,
+        content: 'Onboarding email sent to new customer with product guide',
+        phaseIndex: 0,
+        columnIndex: 0,
+        comments: [],
+        attachments: [],
+        emoji: '📧'
+      },
+      {
+        id: 'onboard-3',
+        type: 'process' as const,
+        content: 'Internal team reviews customer profile and assigns account manager',
+        phaseIndex: 0,
+        columnIndex: 1,
+        comments: [],
+        attachments: [],
+        emoji: '⚙️'
+      },
+      {
+        id: 'onboard-4',
+        type: 'friction' as const,
+        content: 'Customer may experience confusion during initial setup - consider adding tooltips',
+        phaseIndex: 0,
+        columnIndex: 1,
+        comments: [],
+        attachments: [],
+        emoji: '⚠️'
+      },
+      {
+        id: 'onboard-5',
+        type: 'insight' as const,
+        content: 'Users who complete onboarding within 24 hours have 3x higher retention',
+        phaseIndex: 1,
+        columnIndex: 0,
+        comments: [],
+        attachments: [],
+        emoji: '💡'
+      },
+      {
+        id: 'onboard-6',
+        type: 'metrics' as const,
+        content: 'Track: Time to First Value, Activation Rate, Support Tickets',
+        phaseIndex: 1,
+        columnIndex: 0,
+        comments: [],
+        attachments: [],
+        emoji: '📊'
+      },
+      {
+        id: 'onboard-7',
+        type: 'question' as const,
+        content: 'How can we reduce the time from signup to first successful action?',
+        phaseIndex: 1,
+        columnIndex: 1,
+        comments: [],
+        attachments: [],
+        emoji: '❓'
+      },
+      {
+        id: 'onboard-8',
+        type: 'note' as const,
+        content: 'Tip: Drag blocks between columns, use the toolbar to add new block types, and try presentation mode!',
+        phaseIndex: 1,
+        columnIndex: 1,
+        comments: [],
+        attachments: [],
+        emoji: '📝'
+      }
+    ];
+
+    const onboardingPhases = [
+      {
+        name: 'Discovery',
+        columns: [
+          { name: 'First Contact' },
+          { name: 'Initial Assessment' }
+        ]
+      },
+      {
+        name: 'Engagement',
+        columns: [
+          { name: 'Analysis' },
+          { name: 'Next Steps' }
+        ]
+      }
+    ];
+
+    try {
+      console.log('[Storage] Creating onboarding board for user:', userId);
+      const board = await this.createBoard({
+        name: '🎯 Welcome to Blupi - Sample Blueprint',
+        description: 'This sample blueprint shows you how to use Blupi to map customer journeys, processes, and insights. Feel free to edit or delete this board!',
+        userId,
+        organizationId,
+        status: 'draft',
+        blocks: onboardingBlocks,
+        phases: onboardingPhases
+      });
+      console.log('[Storage] Created onboarding board:', board.id);
+      return board;
+    } catch (error) {
+      console.error('[Storage] Error creating onboarding board:', error);
+      throw error;
+    }
+  }
+
+  async userHasBoards(userId: number, organizationId?: string): Promise<boolean> {
+    try {
+      const boards = await this.getBoardsForUser(userId, organizationId);
+      return boards.length > 0;
+    } catch (error) {
+      console.error('[Storage] Error checking if user has boards:', error);
+      return false;
     }
   }
 }

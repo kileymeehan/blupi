@@ -309,6 +309,37 @@ export default function Dashboard() {
     },
   });
 
+  const createSampleBoardMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/onboarding/create-sample-board', {});
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.created) {
+        toast({
+          title: "Sample Blueprint Created!",
+          description: "We've created a sample blueprint to help you get started. Check it out!",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/boards"] });
+        if (data.board?.id) {
+          navigate(`/board/${data.board.id}`);
+        }
+      } else {
+        toast({
+          title: "Already have blueprints",
+          description: "You already have blueprints. Start exploring!",
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create sample blueprint. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (!projectToDelete) {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
@@ -1222,8 +1253,41 @@ export default function Dashboard() {
                     })}
                     {recentBoards.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center py-6 text-gray-500">
-                          No blueprints found. Create your first blueprint to get started.
+                        <TableCell colSpan={4} className="text-center py-12">
+                          <div className="flex flex-col items-center gap-4">
+                            <div className="text-gray-500 text-lg">
+                              No blueprints yet. Ready to get started?
+                            </div>
+                            <div className="flex gap-3">
+                              <Button
+                                onClick={() => createSampleBoardMutation.mutate()}
+                                disabled={createSampleBoardMutation.isPending}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                data-testid="button-create-sample"
+                              >
+                                {createSampleBoardMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Creating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    Try a Sample Blueprint
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => setCreateBlueprintOpen(true)}
+                                className="border-2 border-gray-900"
+                                data-testid="button-create-first-blueprint"
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Create Your Own
+                              </Button>
+                            </div>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )}

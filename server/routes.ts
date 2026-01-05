@@ -4155,6 +4155,251 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Onboarding Board Route - Create sample board for new users
+  app.post('/api/onboarding/create-sample-board', requireTenant, async (req, res) => {
+    try {
+      const userId = await getSessionUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Check if user already has boards
+      const hasBoards = await storage.userHasBoards(userId, req.tenantId);
+      if (hasBoards) {
+        return res.json({ created: false, message: 'User already has boards' });
+      }
+
+      // Create the onboarding board
+      const board = await storage.createOnboardingBoard(userId, req.tenantId);
+      res.json({ created: true, board });
+    } catch (error) {
+      console.error('[HTTP] Error creating onboarding board:', error);
+      res.status(500).json({ error: 'Failed to create sample board' });
+    }
+  });
+
+  // Beta Code Routes - rate limited to prevent abuse
+  // Note: These are intentionally unauthenticated as they're used during signup
+  app.post('/api/beta/validate', generalRateLimit, async (req, res) => {
+    try {
+      const { code } = req.body;
+      
+      if (!code || typeof code !== 'string' || code.length > 50) {
+        return res.status(400).json({ valid: false, message: 'Valid beta code is required' });
+      }
+
+      const betaCode = await storage.validateBetaCode(code.trim());
+      
+      if (betaCode) {
+        res.json({ valid: true, code: betaCode.code });
+      } else {
+        res.json({ valid: false, message: 'Invalid or expired beta code' });
+      }
+    } catch (error) {
+      console.error('[HTTP] Error validating beta code:', error);
+      res.status(500).json({ valid: false, message: 'Failed to validate beta code' });
+    }
+  });
+
+  app.post('/api/beta/use', generalRateLimit, async (req, res) => {
+    try {
+      const { code } = req.body;
+      
+      if (!code || typeof code !== 'string' || code.length > 50) {
+        return res.status(400).json({ success: false, message: 'Valid beta code is required' });
+      }
+
+      // Validate and use in a single operation
+      const betaCode = await storage.validateBetaCode(code.trim());
+      if (!betaCode) {
+        return res.status(400).json({ success: false, message: 'Invalid or expired beta code' });
+      }
+
+      // Mark the code as used
+      const success = await storage.useBetaCode(code.trim());
+      if (!success) {
+        return res.status(400).json({ success: false, message: 'Failed to use beta code' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('[HTTP] Error using beta code:', error);
+      res.status(500).json({ success: false, message: 'Failed to use beta code' });
+    }
+  });
+
+  // Admin routes for beta code management - requires authentication and admin role
+  app.get('/api/admin/beta-codes', async (req, res) => {
+    try {
+      const userId = await getSessionUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Check if user is admin (user id 1 or has admin role)
+      const user = await storage.getUser(userId);
+      if (!user || userId !== 1) {
+        console.log(`[HTTP] SECURITY: Non-admin user ${userId} attempted to access beta codes`);
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const codes = await storage.getBetaCodes();
+      res.json(codes);
+    } catch (error) {
+      console.error('[HTTP] Error getting beta codes:', error);
+      res.status(500).json({ error: 'Failed to get beta codes' });
+    }
+  });
+
+  app.post('/api/admin/beta-codes', async (req, res) => {
+    try {
+      const userId = await getSessionUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || userId !== 1) {
+        console.log(`[HTTP] SECURITY: Non-admin user ${userId} attempted to create beta code`);
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { code, description, maxUses, expiresAt } = req.body;
+      
+      if (!code || typeof code !== 'string' || code.length < 4 || code.length > 50) {
+        return res.status(400).json({ error: 'Code must be 4-50 characters' });
+      }
+
+      // Check for duplicate codes
+      const existing = await storage.validateBetaCode(code);
+      if (existing) {
+        return res.status(409).json({ error: 'Beta code already exists' });
+      }
+
+      const newCode = await storage.createBetaCode({
+        code: code.trim(),
+        description: description?.substring(0, 200),
+        maxUses: Math.max(1, Math.min(maxUses || 1, 10000)),
+        expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+        createdBy: userId,
+        active: true
+      });
+
+      res.json(newCode);
+    } catch (error) {
+      console.error('[HTTP] Error creating beta code:', error);
+      res.status(500).json({ error: 'Failed to create beta code' });
+    }
+  });
+
+  app.delete('/api/admin/beta-codes/:id', async (req, res) => {
+    try {
+      const userId = await getSessionUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || userId !== 1) {
+        console.log(`[HTTP] SECURITY: Non-admin user ${userId} attempted to delete beta code`);
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid code ID' });
+      }
+
+      await storage.deactivateBetaCode(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('[HTTP] Error deactivating beta code:', error);
+      res.status(500).json({ error: 'Failed to deactivate beta code' });
+    }
+  });
+
+  // User Feedback Routes - rate limited, allows anonymous feedback
+  app.post('/api/feedback', generalRateLimit, async (req, res) => {
+    try {
+      const userId = await getSessionUserId(req);
+      const { type, content, pageUrl } = req.body;
+      
+      // Validate input
+      const validTypes = ['bug', 'feature', 'general', 'praise'];
+      if (!type || !validTypes.includes(type)) {
+        return res.status(400).json({ error: 'Valid feedback type is required (bug, feature, general, or praise)' });
+      }
+      
+      if (!content || typeof content !== 'string' || content.length < 10) {
+        return res.status(400).json({ error: 'Feedback content must be at least 10 characters' });
+      }
+      
+      if (content.length > 5000) {
+        return res.status(400).json({ error: 'Feedback content must be under 5000 characters' });
+      }
+
+      const feedback = await storage.createFeedback({
+        userId: userId || undefined,
+        type,
+        content: content.trim(),
+        pageUrl: pageUrl?.substring(0, 500),
+        userAgent: req.headers['user-agent']?.substring(0, 500),
+        status: 'new'
+      });
+
+      console.log(`[HTTP] Feedback submitted: type=${type}, userId=${userId || 'anonymous'}, id=${feedback.id}`);
+      res.json({ success: true, id: feedback.id });
+    } catch (error) {
+      console.error('[HTTP] Error creating feedback:', error);
+      res.status(500).json({ error: 'Failed to submit feedback' });
+    }
+  });
+
+  app.get('/api/admin/feedback', async (req, res) => {
+    try {
+      const userId = await getSessionUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      if (userId !== 1) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const status = req.query.status as string | undefined;
+      const feedback = await storage.getFeedback(status);
+      res.json(feedback);
+    } catch (error) {
+      console.error('[HTTP] Error getting feedback:', error);
+      res.status(500).json({ error: 'Failed to get feedback' });
+    }
+  });
+
+  app.patch('/api/admin/feedback/:id/status', async (req, res) => {
+    try {
+      const userId = await getSessionUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      if (userId !== 1) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { status } = req.body;
+      const updated = await storage.updateFeedbackStatus(parseInt(req.params.id), status);
+      
+      if (updated) {
+        res.json(updated);
+      } else {
+        res.status(404).json({ error: 'Feedback not found' });
+      }
+    } catch (error) {
+      console.error('[HTTP] Error updating feedback status:', error);
+      res.status(500).json({ error: 'Failed to update feedback status' });
+    }
+  });
+
   return httpServer;
 }
 

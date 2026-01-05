@@ -519,3 +519,55 @@ export const insertBoardSchema = createInsertSchema(boards)
 export type InsertBoard = z.infer<typeof insertBoardSchema>;
 export type Board = typeof boards.$inferSelect;
 
+// Beta access codes for controlled beta signup
+export const betaCodes = pgTable("beta_codes", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  description: text("description"), // Optional description like "Marketing team batch"
+  maxUses: integer("max_uses").default(1), // How many times this code can be used
+  usedCount: integer("used_count").default(0).notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  active: boolean("active").notNull().default(true)
+});
+
+export const betaCodesRelations = relations(betaCodes, ({ one }) => ({
+  creator: one(users, {
+    fields: [betaCodes.createdBy],
+    references: [users.id],
+  })
+}));
+
+export const insertBetaCodeSchema = createInsertSchema(betaCodes)
+  .omit({ id: true, usedCount: true, createdAt: true });
+
+export type InsertBetaCode = z.infer<typeof insertBetaCodeSchema>;
+export type BetaCode = typeof betaCodes.$inferSelect;
+
+// User feedback from beta testers
+export const userFeedback = pgTable("user_feedback", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  type: text("type").notNull(), // 'bug', 'feature', 'general', 'praise'
+  content: text("content").notNull(),
+  pageUrl: text("page_url"), // URL where feedback was submitted
+  userAgent: text("user_agent"), // Browser info
+  screenshot: text("screenshot"), // Base64 encoded screenshot if provided
+  status: text("status").notNull().default('new'), // 'new', 'reviewed', 'resolved'
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const userFeedbackRelations = relations(userFeedback, ({ one }) => ({
+  user: one(users, {
+    fields: [userFeedback.userId],
+    references: [users.id],
+  })
+}));
+
+export const insertUserFeedbackSchema = createInsertSchema(userFeedback)
+  .omit({ id: true, createdAt: true });
+
+export type InsertUserFeedback = z.infer<typeof insertUserFeedbackSchema>;
+export type UserFeedback = typeof userFeedback.$inferSelect;
+
