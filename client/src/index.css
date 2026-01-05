@@ -279,105 +279,123 @@
   background: rgba(48, 46, 135, 0.8);
 }
 
-/* Intro.js custom styling - Clean, modern design with branding */
+/* Intro.js custom styling - Bauhaus-inspired bold geometric design */
 .introjs-tooltip {
-  background: white !important;
-  color: #1f2937 !important;
-  border-radius: 12px !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-  border: 1px solid #e5e7eb !important;
-  max-width: 340px !important;
-  min-width: 280px !important;
+  background: #FFFFFF !important;
+  color: #0A0A0F !important;
+  border-radius: 0 !important;
+  box-shadow: 6px 6px 0 #0A0A0F !important;
+  border: 3px solid #0A0A0F !important;
+  max-width: 360px !important;
+  min-width: 300px !important;
   padding: 0 !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif !important;
   overflow: visible !important;
   position: relative !important;
 }
 
-/* Add blowfish decoration */
+/* Bauhaus geometric accent - yellow corner triangle */
 .introjs-tooltip::before {
   content: '';
   position: absolute;
-  top: -20px;
-  right: 20px;
-  width: 40px;
-  height: 40px;
-  background: url('/blupi-pufferfish-new.png') no-repeat center;
-  background-size: contain;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 24px solid #FFD600;
+  border-bottom: 24px solid transparent;
+  z-index: 10;
+}
+
+/* Red circle accent */
+.introjs-tooltip::after {
+  content: '';
+  position: absolute;
+  top: -12px;
+  right: 24px;
+  width: 24px;
+  height: 24px;
+  background: #E53935;
+  border-radius: 50%;
+  border: 2px solid #0A0A0F;
   z-index: 10;
 }
 
 .introjs-tooltiptext {
-  font-family: inherit !important;
-  font-size: 13px !important;
-  line-height: 1.5 !important;
-  color: #4b5563 !important;
-  padding: 20px 20px 12px 20px !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  color: #212121 !important;
+  padding: 28px 24px 16px 24px !important;
   margin: 0 !important;
   font-weight: 400 !important;
 }
 
-/* Style headings with Youth Serif font - same as "Blueprinting reimagined" */
+/* Style headings with Young Serif font - Bauhaus bold treatment */
 .introjs-tooltiptext strong,
 .introjs-tooltiptext b {
-  font-family: "Youth Serif", serif !important;
-  font-size: 24px !important;
+  font-family: "Young Serif", serif !important;
+  font-size: 22px !important;
   font-weight: 700 !important;
-  color: #302E87 !important;
+  color: #0A0A0F !important;
   display: block !important;
-  margin-bottom: 10px !important;
+  margin-bottom: 12px !important;
   -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
   text-rendering: optimizeLegibility !important;
-  letter-spacing: -0.02em !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
 }
 
 .introjs-tooltipbuttons {
-  padding: 0 20px 16px 20px !important;
+  padding: 0 24px 20px 24px !important;
   text-align: center !important;
-  border-top: 1px solid #f3f4f6 !important;
-  margin-top: 8px !important;
-  padding-top: 12px !important;
+  border-top: 2px solid #0A0A0F !important;
+  margin-top: 12px !important;
+  padding-top: 16px !important;
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
   flex-wrap: nowrap !important;
   position: relative !important;
+  background: #F5F5F5 !important;
 }
 
-/* Custom arrow styling - sharper triangle */
+/* Custom arrow styling - sharp geometric */
 .introjs-arrow {
   width: 0 !important;
   height: 0 !important;
-  border: 8px solid transparent !important;
+  border: 10px solid transparent !important;
 }
 
 .introjs-arrow.top {
-  border-bottom-color: white !important;
+  border-bottom-color: #0A0A0F !important;
   border-top: none !important;
-  border-left-color: transparent !important;
-  border-right-color: transparent !important;
+  margin-bottom: -3px !important;
+}
+
+.introjs-arrow.top::after {
+  content: '' !important;
+  position: absolute !important;
+  border: 10px solid transparent !important;
+  border-bottom-color: #FFFFFF !important;
+  border-top: none !important;
+  top: 3px !important;
+  left: -10px !important;
 }
 
 .introjs-arrow.bottom {
-  border-top-color: white !important;
+  border-top-color: #0A0A0F !important;
   border-bottom: none !important;
-  border-left-color: transparent !important;
-  border-right-color: transparent !important;
 }
 
 .introjs-arrow.left {
-  border-right-color: white !important;
+  border-right-color: #0A0A0F !important;
   border-left: none !important;
-  border-top-color: transparent !important;
-  border-bottom-color: transparent !important;
 }
 
 .introjs-arrow.right {
-  border-left-color: white !important;
+  border-left-color: #0A0A0F !important;
   border-right: none !important;
-  border-top-color: transparent !important;
-  border-bottom-color: transparent !important;
 }
 
 /* Button container layout */
@@ -398,71 +416,110 @@
   margin-left: auto !important;
 }
 
-/* Button styling - outlined white boxes with dark text */
+/* Button styling - Bauhaus bold geometric */
 .introjs-button {
-  background: rgba(255, 255, 255, 0.9) !important;
-  color: #1f2937 !important;
-  border: 1px solid rgba(255, 255, 255, 0.8) !important;
-  border-radius: 8px !important;
-  font-weight: 500 !important;
-  font-size: 12px !important;
-  padding: 8px 16px !important;
-  transition: all 0.15s ease !important;
+  background: #FFFFFF !important;
+  color: #0A0A0F !important;
+  border: 2px solid #0A0A0F !important;
+  border-radius: 0 !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  padding: 10px 18px !important;
+  transition: all 0.1s ease !important;
   cursor: pointer !important;
-  font-family: inherit !important;
+  font-family: 'Montserrat', sans-serif !important;
   flex-shrink: 0 !important;
-  backdrop-filter: blur(4px) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
   -webkit-font-smoothing: antialiased !important;
-  text-rendering: optimizeLegibility !important;
 }
 
 .introjs-button:hover {
-  background: rgba(255, 255, 255, 1) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  border-color: rgba(255, 255, 255, 1) !important;
+  background: #0A0A0F !important;
+  color: #FFFFFF !important;
+  transform: translate(-2px, -2px) !important;
+  box-shadow: 4px 4px 0 #E53935 !important;
+}
+
+/* Primary next button - Bauhaus Red */
+.introjs-nextbutton {
+  background: #E53935 !important;
+  color: #FFFFFF !important;
+  border: 2px solid #0A0A0F !important;
+}
+
+.introjs-nextbutton:hover {
+  background: #0A0A0F !important;
+  color: #FFFFFF !important;
+  box-shadow: 4px 4px 0 #FFD600 !important;
+}
+
+/* Done button same as next */
+.introjs-donebutton {
+  background: #E53935 !important;
+  color: #FFFFFF !important;
+  border: 2px solid #0A0A0F !important;
+}
+
+.introjs-donebutton:hover {
+  background: #0A0A0F !important;
+  color: #FFFFFF !important;
+  box-shadow: 4px 4px 0 #FFD600 !important;
 }
 
 .introjs-skipbutton {
-  background: rgba(255, 255, 255, 0.7) !important;
+  background: transparent !important;
   color: #6b7280 !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  font-size: 11px !important;
-  padding: 6px 12px !important;
+  border: none !important;
+  font-size: 10px !important;
+  padding: 8px 12px !important;
   white-space: nowrap !important;
-  border-radius: 6px !important;
   flex-shrink: 0 !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-font-smoothing: antialiased !important;
-  text-rendering: optimizeLegibility !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
 }
 
 .introjs-skipbutton:hover {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(255, 255, 255, 0.8) !important;
-  color: #374151 !important;
+  background: transparent !important;
+  color: #0A0A0F !important;
+  text-decoration: underline !important;
 }
 
 .introjs-overlay {
-  background: rgba(0, 0, 0, 0.4) !important;
+  background: rgba(10, 10, 15, 0.6) !important;
 }
 
 .introjs-helperLayer {
-  border-radius: 8px !important;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4), 0 0 20px rgba(79, 70, 229, 0.3) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 0 9999px rgba(10, 10, 15, 0.6), 0 0 0 4px #FFD600 !important;
 }
 
+/* Progress bar - Bauhaus style */
 .introjs-progressbar {
-  background: #e5e7eb !important;
-  height: 3px !important;
-  border-radius: 3px !important;
-  margin: 0 20px 16px 20px !important;
+  background: #E5E7EB !important;
+  height: 4px !important;
+  border-radius: 0 !important;
+  margin: 0 24px 16px 24px !important;
 }
 
 .introjs-progressbar .introjs-progress {
-  background: #4f46e5 !important;
+  background: #E53935 !important;
   height: 100% !important;
-  border-radius: 3px !important;
+  border-radius: 0 !important;
+}
+
+/* Step numbers - geometric circle */
+.introjs-helperNumberLayer {
+  background: #FFD600 !important;
+  color: #0A0A0F !important;
+  border: 2px solid #0A0A0F !important;
+  border-radius: 0 !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 700 !important;
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 24px !important;
+  text-align: center !important;
 }
 
 /* Dark Mode Styles for Board */
