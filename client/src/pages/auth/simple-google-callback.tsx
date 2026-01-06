@@ -46,6 +46,7 @@ export default function SimpleGoogleCallbackPage() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include', // Required to accept session cookie from server
           body: JSON.stringify({ code }),
         });
 
