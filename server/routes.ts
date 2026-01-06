@@ -3638,12 +3638,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!user) {
         console.log('[HTTP] Creating new user for Firebase auth:', email);
+        // Generate a secure random password for OAuth users (they'll never use it)
+        const randomPassword = nanoid(32);
         user = await storage.createUser({
           email,
           username: displayName || email.split('@')[0],
+          password: randomPassword,
           firebaseUid: uid
         });
         console.log('[HTTP] Created new user with ID:', user.id);
+        
+        // Create a default organization for new users with unique slug
+        const baseName = displayName ? `${displayName}'s Workspace` : `${email.split('@')[0]}'s Workspace`;
+        const baseSlug = baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        // Add unique suffix to prevent slug collisions
+        const uniqueSlug = `${baseSlug}-${nanoid(6)}`;
+        console.log('[HTTP] Creating default organization for new user:', baseName);
+        const org = await storage.createOrganization({ name: baseName, slug: uniqueSlug });
+        await storage.addUserToOrganization(user.id, org.id, 'owner');
+        await storage.setActiveOrganization(user.id, org.id);
+        console.log('[HTTP] Created default organization:', org.id, 'for user:', user.id);
       } else if (!user.firebaseUid) {
         console.log('[HTTP] Updating existing user with Firebase UID:', email);
         await storage.updateUser(user.id, { firebaseUid: uid });
