@@ -1531,7 +1531,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!clientId) {
       return res.status(500).json({ error: "Google OAuth not configured" });
     }
-    const redirectUri = `${req.protocol}://${req.get('host')}/auth/google-callback`;
+    // Use x-forwarded-proto header for proper HTTPS detection behind proxy
+    const protocol = req.get('x-forwarded-proto') || req.protocol;
+    const host = req.get('host');
+    const redirectUri = `${protocol}://${host}/auth/google-callback`;
+    console.log('[HTTP] OAuth redirect_uri:', redirectUri);
     const scope = "openid email profile";
     
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
@@ -1563,6 +1567,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[HTTP] Processing Google OAuth callback with code');
       
+      // Use x-forwarded-proto header for proper HTTPS detection behind proxy
+      const protocol = req.get('x-forwarded-proto') || req.protocol;
+      const host = req.get('host');
+      const redirectUri = `${protocol}://${host}/auth/google-callback`;
+      console.log('[HTTP] Token exchange redirect_uri:', redirectUri);
+      
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: {
@@ -1572,7 +1582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           code: code as string,
           client_id: process.env.GOOGLE_CLIENT_ID || "",
           client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
-          redirect_uri: `${req.protocol}://${req.get('host')}/auth/google-callback`,
+          redirect_uri: redirectUri,
           grant_type: 'authorization_code',
         }),
       });
@@ -1665,6 +1675,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[HTTP] Exchanging Google OAuth code for tokens');
       
+      // Use x-forwarded-proto header for proper HTTPS detection behind proxy
+      const protocol = req.get('x-forwarded-proto') || req.protocol;
+      const host = req.get('host');
+      const redirectUri = `${protocol}://${host}/auth/google-callback`;
+      console.log('[HTTP] Token exchange redirect_uri:', redirectUri);
+      
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: {
@@ -1674,7 +1690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           code,
           client_id: process.env.GOOGLE_CLIENT_ID || "",
           client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
-          redirect_uri: `${req.protocol}://${req.get('host')}/auth/google-callback`,
+          redirect_uri: redirectUri,
           grant_type: 'authorization_code',
         }),
       });
