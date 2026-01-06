@@ -3750,20 +3750,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } else {
-      console.log('[HTTP] No userId in session - creating temporary session for database connectivity issues');
-      // Create temporary session when database is unavailable
-      (req.session as any).userId = 'google_107499317668241415655';
-      (req.session as any).email = 'user@example.com';
-      (req.session as any).displayName = 'Demo User';
-      
-      res.json({
-        user: {
-          uid: 8, // Temporary user ID
-          email: 'user@example.com',
-          displayName: 'Demo User'
-        },
-        temporary: true
-      });
+      console.log('[HTTP] No userId in session - user is not authenticated');
+      // Return 401 for unauthenticated users - do not create fake sessions
+      res.status(401).json({ error: true, message: "Not authenticated" });
     }
   });
 
