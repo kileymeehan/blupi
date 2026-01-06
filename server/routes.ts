@@ -1720,13 +1720,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const tokenParts = tokens.id_token.split('.');
           const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
           
-          // Create session with user data
-          const userId = `google_${payload.sub}`;
-          (req.session as any).userId = userId;
-          (req.session as any).email = payload.email;
-          (req.session as any).displayName = payload.name || payload.email?.split('@')[0];
+          const email = payload.email;
+          const displayName = payload.name || email?.split('@')[0];
+          const googleUid = `google_${payload.sub}`;
           
-          console.log('[HTTP] Session data set for Google user:', payload.email, 'userId:', userId);
+          console.log('[HTTP] Processing Google OAuth exchange for:', email);
+          
+          // Check if user exists, create if not (same logic as GET callback)
+          let user = await storage.getUserByEmail(email);
+          
+          if (!user) {
+            console.log('[HTTP] Creating new user for Google OAuth:', email);
+            // Generate a secure random password for OAuth users (they'll never use it)
+            const randomPassword = nanoid(32);
+            user = await storage.createUser({
+              email,
+              username: displayName,
+              password: randomPassword,
+              firebaseUid: googleUid
+            });
+            console.log('[HTTP] Created new user with ID:', user.id);
+            
+            // Create a default organization for new users with unique slug
+            const baseName = displayName ? `${displayName}'s Workspace` : `${email.split('@')[0]}'s Workspace`;
+            const baseSlug = baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            // Add unique suffix to prevent slug collisions
+            const uniqueSlug = `${baseSlug}-${nanoid(6)}`;
+            console.log('[HTTP] Creating default organization for new user:', baseName);
+            const org = await storage.createOrganization({ name: baseName, slug: uniqueSlug });
+            await storage.addUserToOrganization(user.id, org.id, 'owner');
+            await storage.setActiveOrganization(user.id, org.id);
+            console.log('[HTTP] Created default organization:', org.id, 'for user:', user.id);
+          } else if (!user.firebaseUid) {
+            // Link existing user to Google account
+            console.log('[HTTP] Linking existing user to Google account:', email);
+            await storage.updateUser(user.id, { firebaseUid: googleUid });
+            user.firebaseUid = googleUid;
+          }
+          
+          // Create session with user data
+          (req.session as any).userId = googleUid;
+          (req.session as any).email = email;
+          (req.session as any).displayName = displayName;
+          
+          console.log('[HTTP] Session data set for Google user:', email, 'DB user ID:', user.id);
           
           // Explicitly save session to ensure it's persisted before response
           req.session.save((saveErr) => {
@@ -1735,14 +1772,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return res.status(500).json({ error: "Failed to save session" });
             }
             
-            console.log('[HTTP] Session saved successfully for:', payload.email, 'sessionId:', req.sessionID);
+            console.log('[HTTP] Session saved successfully for:', email, 'sessionId:', req.sessionID);
             
             res.json({
               success: true,
               user: {
-                uid: userId,
-                email: payload.email,
-                displayName: payload.name || payload.email?.split('@')[0]
+                uid: user!.id,
+                email: email,
+                displayName: displayName
               }
             });
           });
