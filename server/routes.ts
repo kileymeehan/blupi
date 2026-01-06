@@ -1646,10 +1646,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (req.session as any).email = email;
           (req.session as any).displayName = displayName;
           
-          console.log('[HTTP] Session created for Google user:', email, 'DB user ID:', user.id);
+          console.log('[HTTP] Session data set for Google user:', email, 'DB user ID:', user.id);
           
-          // Redirect to dashboard on successful login
-          res.redirect('/');
+          // Explicitly save session to ensure it's persisted before redirect
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error('[HTTP] Failed to save session:', saveErr);
+              return res.redirect('/auth/login?error=session_save_failed');
+            }
+            
+            console.log('[HTTP] Session saved successfully, redirecting. sessionId:', req.sessionID);
+            // Redirect to dashboard on successful login
+            res.redirect('/');
+          });
         } catch (decodeError) {
           console.error('[HTTP] Failed to decode ID token:', decodeError);
           res.redirect('/auth/login?error=token_decode_failed');
@@ -1717,15 +1726,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (req.session as any).email = payload.email;
           (req.session as any).displayName = payload.name || payload.email?.split('@')[0];
           
-          console.log('[HTTP] Session created for Google user:', payload.email);
+          console.log('[HTTP] Session data set for Google user:', payload.email, 'userId:', userId);
           
-          res.json({
-            success: true,
-            user: {
-              uid: userId,
-              email: payload.email,
-              displayName: payload.name || payload.email?.split('@')[0]
+          // Explicitly save session to ensure it's persisted before response
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error('[HTTP] Failed to save session:', saveErr);
+              return res.status(500).json({ error: "Failed to save session" });
             }
+            
+            console.log('[HTTP] Session saved successfully for:', payload.email, 'sessionId:', req.sessionID);
+            
+            res.json({
+              success: true,
+              user: {
+                uid: userId,
+                email: payload.email,
+                displayName: payload.name || payload.email?.split('@')[0]
+              }
+            });
           });
         } catch (decodeError) {
           console.error('[HTTP] Failed to decode ID token:', decodeError);

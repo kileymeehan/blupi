@@ -239,16 +239,26 @@ async function initializeServer() {
     log('[INFO] Body parsing middleware initialized with 5MB limit');
 
     try {
+      // Detect if we're behind HTTPS (Replit proxy sets x-forwarded-proto)
+      const isProduction = process.env.NODE_ENV === 'production';
+      const isReplitDeployment = !!process.env.REPLIT_DEPLOYMENT;
+      
+      // Use secure cookies and sameSite: 'none' for HTTPS environments
+      // This is required for OAuth callbacks which are cross-origin redirects
+      const useSecureCookies = isProduction || isReplitDeployment;
+      
+      log(`[INFO] Session config: production=${isProduction}, replitDeployment=${isReplitDeployment}, secureCookies=${useSecureCookies}`);
+      
       // Session configuration
       app.use(session({
         secret: process.env.SESSION_SECRET || 'dev_secret_key',
         resave: false,
         saveUninitialized: false,
         cookie: {
-          secure: process.env.NODE_ENV === 'production',
+          secure: useSecureCookies, // True for HTTPS environments
           maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
           httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
-          sameSite: 'lax' // Provides some CSRF protection
+          sameSite: useSecureCookies ? 'none' : 'lax' // 'none' required for OAuth cross-origin redirects
         },
         store: storage.sessionStore
       }));
