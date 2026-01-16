@@ -1,0 +1,54 @@
+Here is a structured prompt you can paste directly into your Replit Agent or chat. It summarizes the diagnosis and provides the specific code changes required to fix the SSL/Proxy cookie issue.
+
+Prompt for Replit:
+
+I have diagnosed the issue with the Google OAuth loop. The problem is that the session cookie is being rejected by the browser or dropped by Express because of how Replit handles SSL termination.
+
+Since Replit terminates SSL at the load balancer, the request reaches the server as HTTP. Because we have cookie: { secure: true }, Express or the Browser is refusing to set the cookie unless trust proxy is configured correctly and SameSite is compatible with the redirection flow.
+
+Please apply the following fixes to server/index.ts and the frontend to resolve the 401 Session error:
+
+1. Update Server Session Configuration (server/index.ts) Change the session configuration to use SameSite: 'lax' (instead of 'none') and ensure the proxy is fully trusted.
+
+Why: Since the frontend (blupi.io) and backend (blupi.io/api) are on the same domain, we do NOT need SameSite: 'none'. switching to 'lax' is much more reliable and solves most browser blocking issues.
+
+Fix:
+
+TypeScript
+
+// Ensure this is set BEFORE session middleware
+app.set('trust proxy', true); // Use 'true' to trust all hops behind Replit's proxy
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'secret',
+  resave: false,
+  saveUninitialized: false,
+  store: sessionStore,
+  cookie: {
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    httpOnly: true,
+    // Only set secure if in production. 
+    // With 'trust proxy' set to true, this should correctly detect HTTPS on Replit.
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax', // CRITICAL CHANGE: Change from 'none' to 'lax'
+  }
+}));
+2. Verify Frontend Fetch Logic Ensure that the GET /api/auth/session call (not just the login call) includes credentials.
+
+Fix: In the user query hook (likely client/src/lib/user-auth.tsx or similar), ensure:
+
+TypeScript
+
+const res = await fetch("/api/auth/session", {
+  credentials: "include", // This MUST be present to send the cookie back
+});
+3. Add Debugging Logs (Temporary) Add these logs inside the POST /api/auth/google/exchange route just before the response is sent, so we can verify the protocol detection:
+
+TypeScript
+
+console.log('--- DEBUG SESSION ---');
+console.log('Req Protocol:', req.protocol);
+console.log('Req Secure:', req.secure);
+console.log('Session ID:', req.sessionID);
+console.log('---------------------');
+Please implement these changes and restart the server.
