@@ -36,7 +36,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Check for existing session
     const checkSession = async () => {
       try {
-        const response = await fetch('/api/auth/session');
+        const response = await fetch('/api/auth/session', {
+          credentials: 'include', // CRITICAL: Must be present to send session cookie
+        });
         if (response.ok) {
           const userData = await response.json();
           if (userData.user) {

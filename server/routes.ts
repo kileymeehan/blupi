@@ -1774,6 +1774,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             console.log('[HTTP] Session saved successfully for:', email, 'sessionId:', req.sessionID);
             
+            // DEBUG: Log protocol detection for troubleshooting cookie issues
+            console.log('--- DEBUG SESSION ---');
+            console.log('Req Protocol:', req.protocol);
+            console.log('Req Secure:', req.secure);
+            console.log('Session ID:', req.sessionID);
+            console.log('X-Forwarded-Proto:', req.get('x-forwarded-proto'));
+            console.log('Host:', req.get('host'));
+            console.log('---------------------');
+            
             res.json({
               success: true,
               user: {

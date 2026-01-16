@@ -15,8 +15,8 @@ async function initializeServer() {
   try {
     const app = express();
     
-    // Trust proxy - required for rate limiting when behind a proxy
-    app.set('trust proxy', 1);
+    // Trust proxy - required for rate limiting and secure cookie detection behind Replit's proxy
+    app.set('trust proxy', true);
     
     log('[INFO] Created Express application');
 
@@ -243,20 +243,20 @@ async function initializeServer() {
       const isProduction = process.env.NODE_ENV === 'production';
       const isReplitDeployment = !!process.env.REPLIT_DEPLOYMENT;
       
-      // Use secure cookies and sameSite: 'none' for HTTPS environments
-      // This is required for OAuth callbacks which are cross-origin redirects
+      // Use secure cookies for HTTPS environments (production or Replit deployment)
+      // Replit deployments are always served over HTTPS
       const useSecureCookies = isProduction || isReplitDeployment;
       
       log(`[INFO] Session config: production=${isProduction}, replitDeployment=${isReplitDeployment}, secureCookies=${useSecureCookies}`);
       
-      // IMPORTANT: Do NOT set cookie.domain - let Express automatically scope to request host
-      // This ensures cookies work correctly with custom domains (e.g., blupi.io)
-      // Setting domain explicitly would break custom domains that aren't in REPLIT_DOMAINS
+      // IMPORTANT: Use sameSite: 'lax' since frontend and backend are on the same domain
+      // This is more reliable than 'none' and avoids browser blocking issues
+      // Do NOT set cookie.domain - let Express automatically scope to request host
       const cookieConfig: session.CookieOptions = {
-        secure: useSecureCookies, // True for HTTPS environments
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+        secure: useSecureCookies, // True for HTTPS environments (production or Replit deployment)
+        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
         httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
-        sameSite: useSecureCookies ? 'none' : 'lax' // 'none' required for OAuth cross-origin redirects
+        sameSite: 'lax' // CRITICAL: Use 'lax' for same-domain apps, more reliable than 'none'
       };
       
       // Session configuration
