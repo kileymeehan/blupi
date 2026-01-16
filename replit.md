@@ -196,12 +196,55 @@ Check `/api/health` endpoint for current feature status.
 - **Production**: my.blupi.io → production deployment
 - **Staging**: staging.blupi.io → staging deployment via CNAME to [username].repl.co
 
+## Data Integrity & Backup (January 2025)
+
+### Transaction Safety
+- **Atomic user creation**: `createUserWithOrganization()` creates user + organization + membership in a single transaction
+- **Atomic organization switching**: `setActiveOrganization()` uses transactions to prevent partial state
+- **Database transactions**: Critical multi-step operations are wrapped in transactions to prevent partial data writes
+
+### Row-Level Security (RLS)
+RLS is enabled on all critical tables for defense-in-depth data isolation:
+- **projects**: Users can only access owned or member projects
+- **boards**: Access based on ownership, permissions, or project membership
+- **notifications**: Users can only access their own notifications
+- **team_members**: Organization-scoped access
+- **pending_invitations**: Invitation creator access
+- **flagged_blocks**: User-specific access
+
+To verify RLS status:
+```sql
+SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public';
+```
+
+### Database Constraints
+- **Foreign key cascades**: Deleting projects cascades to project_members; deleting boards cascades to comments and permissions
+- **Unique indexes**: Prevent duplicate memberships (user_org_unique, project_member_unique, board_permission_unique)
+- **Referential integrity**: All foreign keys ensure data consistency
+
+### Backup & Recovery
+**Replit PostgreSQL (Neon) provides automatic backups:**
+- Point-in-time recovery available through Neon console
+- Database checkpoints are created automatically
+- Production and development databases are separate
+
+**Recovery procedures:**
+1. **Application rollback**: Use Replit's checkpoint system (View Checkpoints button) to restore code + database to previous state
+2. **Database-only recovery**: Access Neon console through Replit Database tab for point-in-time recovery
+3. **Data export**: Use `pg_dump` for manual backups: `pg_dump $DATABASE_URL > backup.sql`
+
+**Best practices:**
+- Test changes in staging before production
+- Use database transactions for multi-step operations
+- Monitor `/api/health` endpoint for system status
+
 ## Security and Performance
 - **CSP Headers**: Properly configured for production image serving
 - **Rate Limiting**: Environment-aware rate limiting configuration
 - **Authentication**: Secure Firebase authentication with OAuth
 - **Error Monitoring**: Comprehensive logging and error tracking
 - **Session Management**: Secure session handling with PostgreSQL store
+- **Row-Level Security**: Database-level data isolation policies enabled
 
 ## Development Workflow
 1. **Local Development**: Test features locally

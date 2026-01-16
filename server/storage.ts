@@ -540,6 +540,53 @@ export class DatabaseStorage {
     }
   }
 
+  async createUserWithOrganization(
+    insertUser: InsertUser, 
+    orgName: string, 
+    orgSlug: string
+  ): Promise<{ user: User; organization: Organization }> {
+    try {
+      return await db.transaction(async (tx) => {
+        const [user] = await tx.insert(users).values({
+          ...insertUser,
+          createdAt: new Date()
+        }).returning();
+        
+        const [org] = await tx.insert(organizations).values({
+          name: orgName,
+          slug: orgSlug
+        }).returning();
+        
+        await tx.insert(userOrganizations).values({
+          userId: user.id,
+          organizationId: org.id,
+          role: 'owner',
+          isActive: true
+        });
+        
+        console.log('[Storage] Created user with organization atomically:', user.id, org.id);
+        return { user, organization: org };
+      });
+    } catch (error) {
+      console.error('[Storage] Error creating user with organization:', error);
+      throw error;
+    }
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set(updates)
+        .where(eq(users.id, id))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('[Storage] Error updating user:', error);
+      throw error;
+    }
+  }
+
   // Project member methods
   async getProjectMembers(projectId: number): Promise<ProjectMember[]> {
     try {
@@ -1480,20 +1527,22 @@ export class DatabaseStorage {
 
   async setActiveOrganization(userId: number, organizationId: string): Promise<boolean> {
     try {
-      await db
-        .update(userOrganizations)
-        .set({ isActive: false })
-        .where(eq(userOrganizations.userId, userId));
+      await db.transaction(async (tx) => {
+        await tx
+          .update(userOrganizations)
+          .set({ isActive: false })
+          .where(eq(userOrganizations.userId, userId));
 
-      await db
-        .update(userOrganizations)
-        .set({ isActive: true })
-        .where(
-          and(
-            eq(userOrganizations.userId, userId),
-            eq(userOrganizations.organizationId, organizationId)
-          )
-        );
+        await tx
+          .update(userOrganizations)
+          .set({ isActive: true })
+          .where(
+            and(
+              eq(userOrganizations.userId, userId),
+              eq(userOrganizations.organizationId, organizationId)
+            )
+          );
+      });
       return true;
     } catch (error) {
       console.error('[Storage] Error setting active organization:', error);

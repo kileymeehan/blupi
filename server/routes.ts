@@ -1616,24 +1616,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('[HTTP] Creating new user for Google OAuth:', email);
             // Generate a secure random password for OAuth users (they'll never use it)
             const randomPassword = nanoid(32);
-            user = await storage.createUser({
-              email,
-              username: displayName,
-              password: randomPassword,
-              firebaseUid: googleUid
-            });
-            console.log('[HTTP] Created new user with ID:', user.id);
             
-            // Create a default organization for new users with unique slug
+            // Create user + organization atomically in a transaction
             const baseName = displayName ? `${displayName}'s Workspace` : `${email.split('@')[0]}'s Workspace`;
             const baseSlug = baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            // Add unique suffix to prevent slug collisions
             const uniqueSlug = `${baseSlug}-${nanoid(6)}`;
-            console.log('[HTTP] Creating default organization for new user:', baseName);
-            const org = await storage.createOrganization({ name: baseName, slug: uniqueSlug });
-            await storage.addUserToOrganization(user.id, org.id, 'owner');
-            await storage.setActiveOrganization(user.id, org.id);
-            console.log('[HTTP] Created default organization:', org.id, 'for user:', user.id);
+            
+            const result = await storage.createUserWithOrganization(
+              {
+                email,
+                username: displayName,
+                password: randomPassword,
+                firebaseUid: googleUid
+              },
+              baseName,
+              uniqueSlug
+            );
+            user = result.user;
+            console.log('[HTTP] Created new user with organization atomically:', user.id, result.organization.id);
           } else if (!user.firebaseUid) {
             // Link existing user to Google account
             console.log('[HTTP] Linking existing user to Google account:', email);
@@ -1733,24 +1733,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('[HTTP] Creating new user for Google OAuth:', email);
             // Generate a secure random password for OAuth users (they'll never use it)
             const randomPassword = nanoid(32);
-            user = await storage.createUser({
-              email,
-              username: displayName,
-              password: randomPassword,
-              firebaseUid: googleUid
-            });
-            console.log('[HTTP] Created new user with ID:', user.id);
             
-            // Create a default organization for new users with unique slug
+            // Create user + organization atomically in a transaction
             const baseName = displayName ? `${displayName}'s Workspace` : `${email.split('@')[0]}'s Workspace`;
             const baseSlug = baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            // Add unique suffix to prevent slug collisions
             const uniqueSlug = `${baseSlug}-${nanoid(6)}`;
-            console.log('[HTTP] Creating default organization for new user:', baseName);
-            const org = await storage.createOrganization({ name: baseName, slug: uniqueSlug });
-            await storage.addUserToOrganization(user.id, org.id, 'owner');
-            await storage.setActiveOrganization(user.id, org.id);
-            console.log('[HTTP] Created default organization:', org.id, 'for user:', user.id);
+            
+            const result = await storage.createUserWithOrganization(
+              {
+                email,
+                username: displayName,
+                password: randomPassword,
+                firebaseUid: googleUid
+              },
+              baseName,
+              uniqueSlug
+            );
+            user = result.user;
+            console.log('[HTTP] Created new user with organization atomically:', user.id, result.organization.id);
           } else if (!user.firebaseUid) {
             // Link existing user to Google account
             console.log('[HTTP] Linking existing user to Google account:', email);

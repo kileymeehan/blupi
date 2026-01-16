@@ -9,6 +9,7 @@ import { setupAuth } from "./auth";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { errorMonitoringMiddleware, getHealthStatus } from "./monitoring";
+import { verifyRLSEnabled } from "./rls";
 import path from "path";
 
 async function initializeServer() {
@@ -211,7 +212,8 @@ async function initializeServer() {
       limit: 1000, // Increased limit to prevent login issues
       standardHeaders: 'draft-7', // Use RFC 6585 standard headers
       legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-      message: 'Too many requests from this IP, please try again after 15 minutes'
+      message: 'Too many requests from this IP, please try again after 15 minutes',
+      validate: { trustProxy: false } // Suppress warning - we're behind Replit's trusted proxy
     });
     
     // Apply general rate limiting to all requests
@@ -223,7 +225,8 @@ async function initializeServer() {
       limit: 10, // Limit each IP to 10 login/register attempts per hour
       standardHeaders: 'draft-7',
       legacyHeaders: false,
-      message: 'Too many authentication attempts from this IP, please try again after an hour'
+      message: 'Too many authentication attempts from this IP, please try again after an hour',
+      validate: { trustProxy: false } // Suppress warning - we're behind Replit's trusted proxy
     });
     
     // Apply stricter rate limiting to authentication endpoints
@@ -356,8 +359,16 @@ async function initializeServer() {
       const host = '0.0.0.0'; // Bind to all network interfaces
 
       log('[INFO] Attempting to start server on port', port.toString());
-      server.listen(port, host, () => {
+      server.listen(port, host, async () => {
         log(`[INFO] Server running at http://${host}:${port}`);
+        
+        // Check RLS status at startup
+        const rlsEnabled = await verifyRLSEnabled();
+        if (rlsEnabled) {
+          log('[INFO] Row-Level Security (RLS) is enabled on all critical tables');
+        } else {
+          log('[WARN] Row-Level Security (RLS) is not fully enabled - run RLS migration for enhanced data isolation');
+        }
       });
 
       server.on('error', (error: any) => {

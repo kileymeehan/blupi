@@ -28,23 +28,36 @@ export async function withRLSOptional<T>(
 
 export async function verifyRLSEnabled(): Promise<boolean> {
   try {
+    const rlsTables = [
+      'projects', 'boards', 'notifications', 
+      'team_members', 'pending_invitations', 'flagged_blocks'
+    ];
+    
     const result = await pool.query(`
       SELECT tablename, rowsecurity 
       FROM pg_tables 
       WHERE schemaname = 'public' 
-      AND tablename IN ('projects', 'boards', 'notifications')
-    `);
+      AND tablename IN (${rlsTables.map((_, i) => `$${i + 1}`).join(', ')})
+    `, rlsTables);
     
     const tables = result.rows;
     const allEnabled = tables.every((t: { rowsecurity: boolean }) => t.rowsecurity);
     
     if (!allEnabled) {
-      console.warn('[RLS] Some tables do not have RLS enabled:', 
-        tables.filter((t: { rowsecurity: boolean }) => !t.rowsecurity).map((t: { tablename: string }) => t.tablename)
-      );
+      const disabledTables = tables
+        .filter((t: { rowsecurity: boolean }) => !t.rowsecurity)
+        .map((t: { tablename: string }) => t.tablename);
+      console.warn('[RLS] Some tables do not have RLS enabled:', disabledTables);
     }
     
-    return allEnabled;
+    // Check if all expected tables are present
+    const foundTables = tables.map((t: { tablename: string }) => t.tablename);
+    const missingTables = rlsTables.filter(t => !foundTables.includes(t));
+    if (missingTables.length > 0) {
+      console.warn('[RLS] Some expected tables are missing from database:', missingTables);
+    }
+    
+    return allEnabled && missingTables.length === 0;
   } catch (error) {
     console.error('[RLS] Error checking RLS status:', error);
     return false;
