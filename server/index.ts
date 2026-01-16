@@ -247,27 +247,17 @@ async function initializeServer() {
       // This is required for OAuth callbacks which are cross-origin redirects
       const useSecureCookies = isProduction || isReplitDeployment;
       
-      // Get the deployment domain from REPLIT_DOMAINS for proper cookie scoping
-      // REPLIT_DOMAINS contains comma-separated list of domains for the deployment
-      const replitDomains = process.env.REPLIT_DOMAINS;
-      const cookieDomain = replitDomains ? replitDomains.split(',')[0] : undefined;
+      log(`[INFO] Session config: production=${isProduction}, replitDeployment=${isReplitDeployment}, secureCookies=${useSecureCookies}`);
       
-      log(`[INFO] Session config: production=${isProduction}, replitDeployment=${isReplitDeployment}, secureCookies=${useSecureCookies}, cookieDomain=${cookieDomain || 'auto'}`);
-      
-      // Build cookie config - only set domain for deployed environments
+      // IMPORTANT: Do NOT set cookie.domain - let Express automatically scope to request host
+      // This ensures cookies work correctly with custom domains (e.g., blupi.io)
+      // Setting domain explicitly would break custom domains that aren't in REPLIT_DOMAINS
       const cookieConfig: session.CookieOptions = {
         secure: useSecureCookies, // True for HTTPS environments
         maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
         httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
         sameSite: useSecureCookies ? 'none' : 'lax' // 'none' required for OAuth cross-origin redirects
       };
-      
-      // Only set domain for deployed environments to ensure cookie is scoped correctly
-      // Don't set domain in development (let it default to request host)
-      if (cookieDomain && isReplitDeployment) {
-        cookieConfig.domain = cookieDomain;
-        log(`[INFO] Cookie domain explicitly set to: ${cookieDomain}`);
-      }
       
       // Session configuration
       app.use(session({
