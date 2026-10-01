@@ -58,7 +58,7 @@ export async function sendProjectInvitation({
   try {
     await mailService.send(msg);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('SendGrid email error:', error);
     if (error.response) {
       console.error('SendGrid error response:', error.response.body);

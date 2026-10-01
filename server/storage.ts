@@ -15,7 +15,8 @@ import {
   type Notification, type InsertNotification,
   type FlaggedBlock, type InsertFlaggedBlock,
   type Organization, type InsertOrganization,
-  type UserOrganization, type InsertUserOrganization
+  type UserOrganization, type InsertUserOrganization,
+  type Block, type Phase, type OrganizationSettings
 } from "@shared/schema";
 import { db, sql as neonSql, pool } from "./db";
 import { eq, desc, or, and, inArray, count, sql } from "drizzle-orm";
@@ -383,9 +384,9 @@ export class DatabaseStorage {
       // projectId is now optional, so we don't check for it
       
       // Preserve blocks and phases if provided
-      const blocks = insertBoard.blocks || [];
-      const phases = insertBoard.phases || [];
-      
+      const blocks = (insertBoard.blocks || []) as Block[];
+      const phases = (insertBoard.phases || []) as Phase[];
+
       const [board] = await db.insert(boardsTable).values({
         name: insertBoard.name,
         description: insertBoard.description || '',
@@ -524,6 +525,20 @@ export class DatabaseStorage {
       return user;
     } catch (error) {
       console.error('[Storage] Error creating user:', error);
+      throw error;
+    }
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set(updates)
+        .where(eq(users.id, id))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('[Storage] Error updating user:', error);
       throw error;
     }
   }
@@ -784,8 +799,7 @@ export class DatabaseStorage {
         .update(pendingInvitations)
         .set({
           token: newToken,
-          expiresAt: newExpiresAt,
-          updatedAt: new Date()
+          expiresAt: newExpiresAt
         })
         .where(eq(pendingInvitations.id, invitationId))
         .returning();
@@ -1056,7 +1070,7 @@ export class DatabaseStorage {
       
       const rows = await neonSql(query, values);
       return rows[0];
-    } catch (error) {
+    } catch (error: any) {
       console.error('[Storage] Error creating notification:', error);
       console.error('[Storage] Error name:', error.name);
       console.error('[Storage] Error message:', error.message);
@@ -1100,7 +1114,7 @@ export class DatabaseStorage {
       }
       
       return results;
-    } catch (error) {
+    } catch (error: any) {
       console.error('[Storage] Error getting user notifications:', error);
       console.error('[Storage] Error details:', error.message);
       throw error;
@@ -1400,7 +1414,10 @@ export class DatabaseStorage {
 
   async createOrganization(data: InsertOrganization): Promise<Organization> {
     try {
-      const [org] = await db.insert(organizations).values(data).returning();
+      const [org] = await db.insert(organizations).values({
+        ...data,
+        settings: data.settings as OrganizationSettings | undefined
+      }).returning();
       return org;
     } catch (error) {
       console.error('[Storage] Error creating organization:', error);
@@ -1412,7 +1429,11 @@ export class DatabaseStorage {
     try {
       const [org] = await db
         .update(organizations)
-        .set({ ...data, updatedAt: new Date() })
+        .set({
+          ...data,
+          settings: data.settings as OrganizationSettings | undefined,
+          updatedAt: new Date()
+        })
         .where(eq(organizations.id, id))
         .returning();
       return org;

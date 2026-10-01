@@ -114,7 +114,7 @@ function App() {
         </AuthProvider>
       </QueryClientProvider>
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('[APP] Error in App component:', error);
     return <div style={{padding: '20px', color: 'red'}}>
       <h1>Application Error</h1>

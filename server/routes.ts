@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 // Session type augmentation is in session-types.d.ts
@@ -779,7 +779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get userId from session for board creation
-      const userId = req.session?.passport?.user;
+      const userId = req.session?.userId;
       if (!userId) {
         return res.status(401).json({ error: true, message: "Authentication required" });
       }
@@ -1799,7 +1799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/boards/import-csv", requireTenant, async (req, res) => {
     try {
       // Check authentication
-      const userId = req.session?.passport?.user;
+      const userId = req.session?.userId;
       if (!userId) {
         return res.status(401).json({ error: true, message: "Authentication required" });
       }
@@ -2361,7 +2361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const boardId = parseInt(req.params.id);
       // Simple comment implementation for now
-      const comments = [];  // TODO: Implement board comments
+      const comments: unknown[] = [];  // TODO: Implement board comments
       res.json(comments);
     } catch (error) {
       console.error('Error fetching board comments:', error);
@@ -3640,6 +3640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.createUser({
           email,
           username: displayName || email.split('@')[0],
+          password: '', // Firebase handles auth; no local password
           firebaseUid: uid
         });
         console.log('[HTTP] Created new user with ID:', user.id);

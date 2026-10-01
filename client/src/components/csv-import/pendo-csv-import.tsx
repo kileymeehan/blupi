@@ -709,7 +709,7 @@ export function PendoCSVImport({ onClose }: PendoCSVImportProps) {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Data Orientation</Label>
-            <RadioGroup value={orientation} onValueChange={setOrientation}>
+            <RadioGroup value={orientation} onValueChange={(value) => setOrientation(value as 'rows' | 'columns')}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="columns" id="columns" />
                 <Label htmlFor="columns">Steps as columns</Label>

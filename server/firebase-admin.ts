@@ -10,3 +10,15 @@ if (!admin.apps.length) {
 export const adminApp = admin.app();
 export const auth = admin.auth();
 export const db = admin.firestore();
+
+export async function createFirebaseUser(
+  email: string,
+  password: string,
+  displayName: string
+): Promise<admin.auth.UserRecord> {
+  return auth.createUser({ email, password, displayName });
+}
+
+export async function deleteFirebaseUser(uid: string): Promise<void> {
+  await auth.deleteUser(uid);
+}
