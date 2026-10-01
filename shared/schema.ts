@@ -194,7 +194,7 @@ export type BoardPermission = typeof boardPermissions.$inferSelect;
 // Will be migrated to UUID reference in future migration
 export const teamMembers = pgTable("team_members", {
   id: serial("id").primaryKey(),
-  organizationId: integer("organization_id").notNull(),
+  organizationId: integer("organization_id"), // legacy, nullable — new rows use organizationUuid
   organizationUuid: uuid("organization_uuid").references(() => organizations.id),
   userId: integer("user_id").references(() => users.id).notNull(),
   invitedBy: integer("invited_by").references(() => users.id).notNull(),
@@ -229,7 +229,7 @@ export const pendingInvitations = pgTable("pending_invitations", {
   id: serial("id").primaryKey(),
   token: text("token").notNull().unique(),
   email: text("email").notNull(),
-  organizationId: integer("organization_id").notNull(),
+  organizationId: integer("organization_id"), // legacy, nullable — new rows use organizationUuid
   organizationUuid: uuid("organization_uuid").references(() => organizations.id),
   invitedBy: integer("invited_by").references(() => users.id).notNull(),
   role: text("role").notNull().default('member'),

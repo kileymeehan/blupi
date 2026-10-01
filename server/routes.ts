@@ -1978,7 +1978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingUser) {
         // User exists, create direct team member invitation
         const member = await storage.inviteTeamMember({
-          organizationId,
+          organizationUuid: organizationId,
           userId: existingUser.id,
           email,
           role,
@@ -2008,7 +2008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const pendingInvitation = await storage.createPendingInvitation({
           token,
           email,
-          organizationId,
+          organizationUuid: organizationId,
           invitedBy: 1, // Default to admin user
           role,
           teamName,
@@ -2547,6 +2547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Step 3: Create team membership
         await storage.inviteTeamMember({
           organizationId: invitation.organizationId,
+          organizationUuid: invitation.organizationUuid,
           userId: newUser.id,
           email: invitation.email,
           role: invitation.role,

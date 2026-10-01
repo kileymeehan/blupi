@@ -2747,26 +2747,6 @@ export default function BoardGrid({
 
                         <div className="space-y-2">
                           <label className={`text-xs font-bold uppercase tracking-wide block ${darkMode ? "text-white" : "text-[#0A0A0F]"}`}>
-                            Emotional Journey Labels
-                          </label>
-                          <div className="grid grid-cols-2 gap-2">
-                            <Input
-                              placeholder="Low Label (e.g. Low)"
-                              value={board.emotionLowLabel || ''}
-                              onChange={(e) => onBoardUpdate({ emotionLowLabel: e.target.value })}
-                              className={`border-2 rounded-none focus:ring-[#FFD600] ${darkMode ? "bg-[#1e1e32] text-white border-[#3a3a5c] focus:border-[#FFD600]" : "bg-white text-[#0A0A0F] border-[#0A0A0F] focus:border-[#0A0A0F]"}`}
-                            />
-                            <Input
-                              placeholder="High Label (e.g. High)"
-                              value={board.emotionHighLabel || ''}
-                              onChange={(e) => onBoardUpdate({ emotionHighLabel: e.target.value })}
-                              className={`border-2 rounded-none focus:ring-[#FFD600] ${darkMode ? "bg-[#1e1e32] text-white border-[#3a3a5c] focus:border-[#FFD600]" : "bg-white text-[#0A0A0F] border-[#0A0A0F] focus:border-[#0A0A0F]"}`}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className={`text-xs font-bold uppercase tracking-wide block ${darkMode ? "text-white" : "text-[#0A0A0F]"}`}>
                             Other Blueprints
                           </label>
                           <div className="space-y-2 max-h-48 overflow-y-auto">
