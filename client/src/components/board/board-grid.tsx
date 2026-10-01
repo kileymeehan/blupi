@@ -526,10 +526,10 @@ export default function BoardGrid({
       }
       
       // Space key for horizontal scroll mode - exclude input fields and contentEditable elements
-      if (e.code === 'Space' && 
-          !(e.target instanceof HTMLInputElement) && 
+      if (e.code === 'Space' &&
+          !(e.target instanceof HTMLInputElement) &&
           !(e.target instanceof HTMLTextAreaElement) &&
-          !(e.target as HTMLElement)?.contentEditable === 'true') {
+          !((e.target as HTMLElement)?.contentEditable === 'true')) {
         e.preventDefault();
         setSpacePressed(true);
       }
@@ -846,12 +846,12 @@ export default function BoardGrid({
 
   const handleBlockChange = (blockId: string, content: string, newType?: string) => {
     const blocks = structuredClone(board.blocks).map((block) =>
-      block.id === blockId 
-        ? { 
-            ...block, 
+      block.id === blockId
+        ? {
+            ...block,
             content: content,
-            ...(newType ? { type: newType } : {})
-          } 
+            ...(newType ? { type: newType as BlockType['type'] } : {})
+          }
         : block,
     );
     onBlocksChange(blocks);
@@ -1187,7 +1187,7 @@ export default function BoardGrid({
   const handleStoryboardGenerated = (
     phaseIndex: number,
     columnIndex: number,
-    imageUrl: string,
+    imageUrl: string | null,
     prompt: string,
   ) => {
     console.log('[BOARD GRID] === STORYBOARD CALLBACK RECEIVED ===');
@@ -1202,7 +1202,7 @@ export default function BoardGrid({
     
     // Clear regular image and set storyboard data
     newPhases[phaseIndex].columns[columnIndex].image = undefined;
-    newPhases[phaseIndex].columns[columnIndex].storyboardImageUrl = imageUrl;
+    newPhases[phaseIndex].columns[columnIndex].storyboardImageUrl = imageUrl ?? undefined;
     newPhases[phaseIndex].columns[columnIndex].storyboardPrompt = prompt;
     
     console.log('[BOARD GRID] Target column after update:', newPhases[phaseIndex].columns[columnIndex]);
@@ -1332,7 +1332,7 @@ export default function BoardGrid({
       if (!res.ok) throw new Error("Failed to delete blueprint");
       setLocation("/");
     } catch (error) {
-      useToast({
+      toast({
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to delete blueprint",
@@ -3670,23 +3670,14 @@ export default function BoardGrid({
                 open={commentDialogOpen}
                 onOpenChange={setCommentDialogOpen}
                 block={selectedBlock}
-                boardId={id}
-                onCommentAdd={(comment) => {
-                  if (!onBlocksChange) return;
-                  const blocks = board.blocks.map((b) =>
-                    b.id === selectedBlock.id
-                      ? { ...b, comments: [...(b.comments || []), comment] }
-                      : b,
-                  );
-                  onBlocksChange(blocks);
-                }}
+                boardId={Number(id)}
               />
             )}
 
             <AddToProjectDialog
               open={addToProjectOpen}
               onOpenChange={setAddToProjectOpen}
-              boardId={id}
+              boardId={Number(id)}
             />
 
             {inviteOpen && (
@@ -3737,7 +3728,7 @@ export default function BoardGrid({
                         <Button
                           onClick={() => {
                             navigator.clipboard.writeText(window.location.href);
-                            useToast({
+                            toast({
                               title: "Link copied",
                               description:
                                 "Team access link has been copied to clipboard",
@@ -3764,7 +3755,7 @@ export default function BoardGrid({
                             navigator.clipboard.writeText(
                               `${window.location.origin}/public/board/${id}`,
                             );
-                            useToast({
+                            toast({
                               title: "Link copied",
                               description:
                                 "Public access link has been copied to clipboard",

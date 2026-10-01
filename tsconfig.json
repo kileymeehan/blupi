@@ -1,12 +1,6 @@
 {
   "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
-  "exclude": [
-    "node_modules", "build", "dist", "**/*.test.ts",
-    "client/src/components/notifications/notifications.tsx",
-    "client/src/components/google-sheets/backup",
-    "client/src/components/google-sheets/sheets-metrics.tsx",
-    "client/src/components/google-sheets/sheets-connection-basic.tsx"
-  ],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
