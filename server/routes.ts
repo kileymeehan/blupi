@@ -12,7 +12,6 @@ import { getFrictionMetrics, isPendoConfigured, getAuthorizationUrl, exchangeCod
 import { parseSheetId, fetchSheetData, getSheetNames, convertSheetDataToCsv, fetchSheetCell } from './utils/google-sheets-fixed';
 import { GoogleSlidesService } from './utils/google-slides';
 import { sendTeamInviteEmail } from './email-service';
-import { notificationService } from './notification-service';
 import { simpleNotificationService } from './simple-notification-service';
 import { getHealthStatus } from './monitoring';
 import multer from 'multer';

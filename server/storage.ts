@@ -505,16 +505,6 @@ export class DatabaseStorage {
     }
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    try {
-      const [user] = await db.select().from(users).where(eq(users.email, email));
-      return user;
-    } catch (error) {
-      console.error('[Storage] Error getting user by email:', error);
-      throw error;
-    }
-  }
-
   async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
     try {
       const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
@@ -534,19 +524,6 @@ export class DatabaseStorage {
       return user;
     } catch (error) {
       console.error('[Storage] Error creating user:', error);
-      throw error;
-    }
-  }
-
-  // Project member methods
-  async getProjectMembers(projectId: number): Promise<ProjectMember[]> {
-    try {
-      return await db
-        .select()
-        .from(projectMembers)
-        .where(eq(projectMembers.projectId, projectId));
-    } catch (error) {
-      console.error('[Storage] Error getting project members:', error);
       throw error;
     }
   }
@@ -1167,7 +1144,7 @@ export class DatabaseStorage {
     }
   }
 
-  async deleteNotification(notificationId: number): Promise<void> {
+  async deleteNotification(notificationId: string): Promise<void> {
     try {
       console.log('[Storage] Deleting notification:', notificationId);
       await db
