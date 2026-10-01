@@ -1,37 +1,35 @@
-import { neon, Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle as drizzleHttp } from 'drizzle-orm/neon-http';
-import { drizzle as drizzleServerless } from 'drizzle-orm/neon-serverless';
+import pg from 'pg';
+const { Pool } = pg;
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
-import ws from 'ws';
 
-// Validate DATABASE_URL environment variable
 if (!process.env.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL environment variable is not set. Make sure to provision a database and set the DATABASE_URL."
   );
 }
 
-// Configure Neon for server-side WebSocket support (required for Pool)
-neonConfig.webSocketConstructor = ws;
-neonConfig.fetchConnectionCache = true;
+// node-postgres checks a dedicated client out of the pool for the duration of
+// db.transaction(), so SET LOCAL (used by withRLS in server/rls.ts) persists
+// across the queries inside that callback — same transaction guarantee the
+// Neon serverless Pool driver provided, without the Neon-specific websocket
+// dependency.
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
+});
 
-// Create connection pool for transaction support (needed for RLS and sessions)
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle(pool, { schema });
 
-// Create drizzle instance with pool for transaction support
-const db = drizzleServerless(pool, { schema });
+// Thin wrapper so storage.ts can do: sql(query, params) → rows[]
+export const sql = async (query: string, params?: unknown[]) => {
+  const result = await pool.query(query, params);
+  return result.rows;
+};
 
-// Also export the HTTP-based sql for simple queries
-const sql = neon(process.env.DATABASE_URL);
-
-export { sql, pool, db };
-
-// Simple connection test without blocking startup
 async function testConnection() {
   try {
-    const client = await pool.connect();
-    await client.query('SELECT 1 as test');
-    client.release();
+    await pool.query('SELECT 1 as test');
     console.log('[DB] Database connection pool established successfully');
     console.log('[DB] Transaction support enabled for RLS');
     return true;
@@ -42,7 +40,8 @@ async function testConnection() {
   }
 }
 
-// Test connection on startup but don't block
 testConnection().catch(err => {
   console.error('[DB] Startup connection test failed:', err.message);
 });
+
+export { db };

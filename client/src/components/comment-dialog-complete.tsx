@@ -7,8 +7,8 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
-import { Comment, Block } from "@shared/schema";
+import { useAuth } from "@/hooks/use-simple-auth";
+import { LegacyComment, Block } from "@shared/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { Trash2 } from "lucide-react";
@@ -91,7 +91,7 @@ export function CommentDialog({ open, onOpenChange, block, boardId }: CommentDia
           <ScrollArea className="h-48 border rounded p-2">
             {block.comments?.length ? (
               <div className="space-y-2">
-                {block.comments.map((comment: Comment) => (
+                {block.comments.map((comment: LegacyComment) => (
                   <div key={comment.id} className="p-2 border rounded">
                     <div className="flex justify-between items-start">
                       <div>

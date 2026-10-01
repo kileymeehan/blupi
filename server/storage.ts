@@ -1077,8 +1077,8 @@ export class DatabaseStorage {
         RETURNING *
       `;
       
-      const result = await neonSql(query, values);
-      return result[0];
+      const rows = await neonSql(query, values);
+      return rows[0];
     } catch (error) {
       console.error('[Storage] Error creating notification:', error);
       console.error('[Storage] Error name:', error.name);

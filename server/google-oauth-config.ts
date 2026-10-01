@@ -7,7 +7,6 @@ export const googleOAuthConfig = {
   tokenUri: "https://oauth2.googleapis.com/token",
   authProviderX509CertUrl: "https://www.googleapis.com/oauth2/v1/certs",
   redirectUris: [
-    "https://458f237e-8b36-4d99-a573-b4e09d6d4e2e-00-1i97kvg55t2vv.worf.replit.dev/auth/google-callback",
     "https://my.blupi.io/auth/google-callback",
     "https://www.blupi.io/auth/google-callback",
     "https://blupi.io/auth/google-callback",
