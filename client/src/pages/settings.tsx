@@ -10,9 +10,9 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bauhaus-halftone-bg">
-      <header className="border-b-4 border-[#1976D2] bg-[#0A0A0F] shadow-lg">
+      <header className="border-b-2 border-[#1976D2] bg-[#0A0A0F] shadow-lg">
         <div className="max-w-[1440px] mx-auto flex h-20 items-center px-6">
-          <Button asChild className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all">
+          <Button asChild className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all">
             <Link href="/">
               <ChevronLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
@@ -33,7 +33,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Sub-navigation */}
-        <div className="mb-8 border-b-4 border-[#0A0A0F]">
+        <div className="mb-8 border-b-2 border-[color:var(--card-border)]">
           <div className="flex gap-0">
             <button
               onClick={() => setActiveTab('team')}
@@ -68,7 +68,7 @@ export default function SettingsPage() {
 
         {/* Other Settings Tab */}
         {activeTab === 'other' && (
-          <div className="text-center py-12 bg-white border-4 border-[#0A0A0F] shadow-[8px_8px_0px_0px_#0A0A0F]">
+          <div className="text-center py-12 bg-white border-2 border-[color:var(--card-border)] shadow-[4px_4px_0px_0px_var(--card-shadow)]">
             <p className="text-gray-600 font-semibold">Coming soon</p>
           </div>
         )}

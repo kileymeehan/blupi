@@ -112,7 +112,7 @@ export function OrganizationSwitcher() {
 
   if (orgsLoading) {
     return (
-      <div className="bg-white rounded-none px-3 py-2 flex items-center gap-2 border-2 border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F]">
+      <div className="bg-white rounded-none px-3 py-2 flex items-center gap-2 border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]">
         <Loader2 className="h-4 w-4 animate-spin text-[#0A0A0F]" />
         <span className="text-sm text-[#0A0A0F] font-semibold">Loading...</span>
       </div>
@@ -149,7 +149,7 @@ export function OrganizationSwitcher() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="bg-white hover:bg-[#FFD600] text-[#0A0A0F] rounded-none px-3 py-2 h-auto flex items-center gap-2 border-2 border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+            className="bg-white hover:bg-[#FFD600] text-[#0A0A0F] rounded-none px-3 py-2 h-auto flex items-center gap-2 border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
             data-testid="org-switcher-trigger"
           >
             <OrgLogo org={activeOrg} size="sm" />
@@ -161,7 +161,7 @@ export function OrganizationSwitcher() {
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-64 border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F]">
+        <DropdownMenuContent align="start" className="w-64 border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)]">
           {organizations.map((userOrg) => (
             <DropdownMenuItem
               key={userOrg.organizationId}

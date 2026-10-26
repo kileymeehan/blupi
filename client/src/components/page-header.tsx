@@ -58,7 +58,7 @@ export function PageHeader({
   };
 
   return (
-    <div className="bg-[#0A0A0F] border-b-4 border-[#1976D2]">
+    <div className="bg-[#0A0A0F] border-b-2 border-[#1976D2]">
       <div className="max-w-[1440px] mx-auto px-8 py-3">
         <div className="flex items-center gap-6">
           <Button asChild className="bauhaus-btn-blue h-9 px-4 text-xs">

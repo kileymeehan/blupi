@@ -21,20 +21,29 @@
   --bauhaus-text-dark: #0A0A0F;
   --bauhaus-text-light: #FFFFFF;
   --bauhaus-text-muted: #6B7280;
+
+  /* Card outlines and offset shadows. Tune the app's overall contrast here. */
+  --card-border: #475569;
+  --card-shadow: #94A3B8;
+}
+
+.dark {
+  --card-border: #333333;
+  --card-shadow: #333333;
 }
 
 /* Bauhaus Button Styles */
 .bauhaus-btn {
-  @apply bg-white text-[#0A0A0F] border-4 border-[#0A0A0F] font-black uppercase tracking-wider transition-all duration-200 shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
+  @apply bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] font-black uppercase tracking-wider transition-all duration-200 shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
 }
 
 .bauhaus-btn-blue {
-  @apply bg-[#1976D2] text-white border-4 border-[#0A0A0F] font-black uppercase tracking-wider transition-all duration-200 shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
+  @apply bg-[#1976D2] text-white border-2 border-[color:var(--card-border)] font-black uppercase tracking-wider transition-all duration-200 shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
 }
 
 /* Bauhaus Card Style */
 .bauhaus-card {
-  @apply bg-white border-4 border-[#0A0A0F] shadow-[8px_8px_0px_0px_#0A0A0F];
+  @apply bg-white border-2 border-[color:var(--card-border)] shadow-[4px_4px_0px_0px_var(--card-shadow)];
 }
 
 .blupi-column-halftone {
@@ -566,21 +575,10 @@
   color: #FFFFFF !important;
 }
 
-.dark .bauhaus-card,
-.dark .bg-white.border-4.border-\[\#0A0A0F\] {
+.dark .bauhaus-card {
   background-color: #12121A !important;
   border-color: #333333 !important;
   color: #FFFFFF !important;
-  box-shadow: 8px 8px 0px 0px #333333 !important;
-}
-
-.dark .border-\[\#0A0A0F\] {
-  border-color: #333333 !important;
-}
-
-.dark .shadow-\[4px_4px_0px_0px_\#0A0A0F\],
-.dark .shadow-\[8px_8px_0px_0px_\#0A0A0F\],
-.dark .shadow-\[2px_2px_0px_0px_\#0A0A0F\] {
   box-shadow: 4px 4px 0px 0px #333333 !important;
 }
 

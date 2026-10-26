@@ -66,7 +66,7 @@ export function SearchFilter({
             placeholder="Search projects and blueprints..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-4 border-4 border-[#0A0A0F] rounded-none focus-visible:ring-0 focus-visible:border-[#1976D2] font-bold uppercase tracking-wider"
+            className="pl-10 pr-4 border-2 border-[color:var(--card-border)] rounded-none focus-visible:ring-0 focus-visible:border-[#1976D2] font-bold uppercase tracking-wider"
           />
         </div>
 
@@ -130,7 +130,7 @@ export function SearchFilter({
               <Filter className="h-4 w-4" />
               Filter
               {activeFilters.length > 0 && (
-                <Badge className="ml-1 px-1.5 py-0.5 text-xs bg-[#FFD600] text-[#0A0A0F] font-black border-2 border-[#0A0A0F] rounded-none">
+                <Badge className="ml-1 px-1.5 py-0.5 text-xs bg-[#FFD600] text-[#0A0A0F] font-black border-2 border-[color:var(--card-border)] rounded-none">
                   {activeFilters.length}
                 </Badge>
               )}

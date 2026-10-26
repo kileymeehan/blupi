@@ -667,7 +667,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bauhaus-halftone-bg animate-fade-in">
-      <header className="border-b-4 border-[#0A0A0F] bg-[#0A0A0F] shadow-lg">
+      <header className="border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F] shadow-lg">
         <div className="max-w-[1440px] mx-auto flex h-20 items-center px-6">
           <div className="flex-1 flex items-center gap-4">
             <Link href="/" className="flex items-center">
@@ -742,13 +742,13 @@ export default function Dashboard() {
 
       <main className="max-w-[1440px] mx-auto px-6 py-8 space-y-8">
         {showWelcome && (
-          <div className="bg-white border-4 border-[#0A0A0F] p-10 shadow-[8px_8px_0px_0px_#0A0A0F] relative welcome-content mb-10">
+          <div className="bg-white border-2 border-[color:var(--card-border)] p-10 shadow-[4px_4px_0px_0px_var(--card-shadow)] relative welcome-content mb-10">
             <div className="absolute top-4 right-4">
               <Button 
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowWelcome(false)}
-                className="h-8 w-8 p-0 rounded-none border-2 border-[#0A0A0F] hover:bg-[#FFD600] shadow-[2px_2px_0px_0px_#0A0A0F] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+                className="h-8 w-8 p-0 rounded-none border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
               >
                 <span className="sr-only">Close</span>
                 <X className="h-4 w-4" />
@@ -774,7 +774,7 @@ export default function Dashboard() {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     size="sm"
-                    className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
+                    className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
                     onClick={() => setCreateBlueprintOpen(true)}
                   >
                     <FileText className="mr-2 h-4 w-4" />
@@ -784,7 +784,7 @@ export default function Dashboard() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
+                    className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
                     onClick={() => setImportDialogOpen(true)}
                   >
                     <Upload className="mr-2 h-4 w-4" />
@@ -797,7 +797,7 @@ export default function Dashboard() {
         )}
 
         {/* Tab Navigation */}
-        <div className={`border-b-4 border-[#0A0A0F] ${!showWelcome ? 'mt-6' : ''}`} id="sidebar">
+        <div className={`border-b-2 border-[color:var(--card-border)] ${!showWelcome ? 'mt-6' : ''}`} id="sidebar">
           <nav className="-mb-px flex space-x-0">
             <button
               onClick={() => setActiveTab('projects')}
@@ -1090,21 +1090,21 @@ export default function Dashboard() {
               <div className="bauhaus-card overflow-hidden mb-8">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-[#0A0A0F] border-b-4 border-[#0A0A0F]">
-                      <TableHead className="w-[50px] border-r-4 border-[#0A0A0F]">
+                    <TableRow className="bg-[#0A0A0F] border-b-2 border-[color:var(--card-border)]">
+                      <TableHead className="w-[50px] border-r-2 border-[color:var(--card-border)]">
                         <Checkbox
                           className="border-2 border-white bg-white"
                           checked={selectedBlueprints.size === displayedBoards.length && displayedBoards.length > 0}
                           onCheckedChange={handleSelectAllBlueprints}
                         />
                       </TableHead>
-                      <TableHead className="w-[300px] border-r-4 border-[#0A0A0F] font-black uppercase tracking-widest text-white py-4">
+                      <TableHead className="w-[300px] border-r-2 border-[color:var(--card-border)] font-black uppercase tracking-widest text-white py-4">
                         Blueprint Name
                       </TableHead>
-                      <TableHead className="w-[180px] border-r-4 border-[#0A0A0F] font-black uppercase tracking-widest text-white py-4">
+                      <TableHead className="w-[180px] border-r-2 border-[color:var(--card-border)] font-black uppercase tracking-widest text-white py-4">
                         Created
                       </TableHead>
-                      <TableHead className="w-[160px] border-r-4 border-[#0A0A0F] font-black uppercase tracking-widest text-white py-4">
+                      <TableHead className="w-[160px] border-r-2 border-[color:var(--card-border)] font-black uppercase tracking-widest text-white py-4">
                         Status
                       </TableHead>
                       <TableHead className="w-[250px] font-black uppercase tracking-widest text-white py-4">
@@ -1117,29 +1117,29 @@ export default function Dashboard() {
                     {displayedBoards.map((board) => {
                       const project = projects.find((p) => p.id === board.projectId);
                       return (
-                        <TableRow key={board.id} className="hover:bg-[#FFD600] border-b-4 border-[#0A0A0F] transition-colors group">
-                          <TableCell className="border-r-4 border-[#0A0A0F]">
+                        <TableRow key={board.id} className="hover:bg-[#FFD600] border-b-2 border-[color:var(--card-border)] transition-colors group">
+                          <TableCell className="border-r-2 border-[color:var(--card-border)]">
                             <Checkbox
                               checked={selectedBlueprints.has(board.id)}
                               onCheckedChange={(checked) => handleSelectBlueprint(board.id, checked as boolean)}
                             />
                           </TableCell>
-                          <TableCell className="font-black uppercase tracking-tight border-r-4 border-[#0A0A0F] py-4">
+                          <TableCell className="font-black uppercase tracking-tight border-r-2 border-[color:var(--card-border)] py-4">
                             <Link href={`/board/${board.id}`} className="text-[#1976D2] group-hover:text-[#0A0A0F] block">
                               {board.name}
                             </Link>
                           </TableCell>
-                          <TableCell className="border-r-4 border-[#0A0A0F] font-bold text-[#0A0A0F] py-4">
+                          <TableCell className="border-r-2 border-[color:var(--card-border)] font-bold text-[#0A0A0F] py-4">
                             {format(new Date(board.createdAt), "MMM d, yyyy")}
                           </TableCell>
-                          <TableCell className="border-r-4 border-[#0A0A0F] py-4">
+                          <TableCell className="border-r-2 border-[color:var(--card-border)] py-4">
                             <StatusBadge status={board.status} />
                           </TableCell>
                           <TableCell className="py-4">
                             {board.projectId ? (
                               <div className="flex items-center font-black uppercase tracking-wider text-[#0A0A0F]">
                                 <div 
-                                  className="w-4 h-4 border-2 border-[#0A0A0F] mr-2" 
+                                  className="w-4 h-4 border-2 border-[color:var(--card-border)] mr-2" 
                                   style={{ backgroundColor: project?.color || "#1976D2" }}
                                 ></div>
                                 <span>{project?.name}</span>
@@ -1310,7 +1310,7 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div
-                            className="w-3 h-3 rounded-none border-2 border-[#0A0A0F]"
+                            className="w-3 h-3 rounded-none border-2 border-[color:var(--card-border)]"
                             style={{
                               backgroundColor: project.color || "#1976D2",
                             }}
@@ -1372,7 +1372,7 @@ export default function Dashboard() {
                         }
                       />
                       <div className="flex items-center space-x-3">
-                        <Button asChild size="sm" className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all">
+                        <Button asChild size="sm" className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all">
                           <Link href={`/project/${project.id}`}>
                             View
                           </Link>

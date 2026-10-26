@@ -88,7 +88,7 @@ export function ProfileIcon() {
   };
 
   // Determine avatar style
-  const borderStyle = "border-2 border-[#0A0A0F]";
+  const borderStyle = "border-2 border-[color:var(--card-border)]";
 
   // Render Google avatar or emoji avatar
   if (useGoogleAvatar && user?.photoURL && !AVATAR_OPTIONS.includes(user.photoURL)) {

@@ -424,15 +424,15 @@ export default function TeamManagement() {
   }
 
   return (
-      <Card className="max-w-6xl mx-auto border-4 border-[#0A0A0F] rounded-none shadow-[8px_8px_0px_0px_#0A0A0F] bg-white">
+      <Card className="max-w-6xl mx-auto border-2 border-[color:var(--card-border)] rounded-none shadow-[4px_4px_0px_0px_var(--card-shadow)] bg-white">
       {activeOrg && (
-        <div className="bg-[#1976D2] border-b-4 border-[#0A0A0F] px-6 py-3 flex items-center gap-2 text-sm text-white">
+        <div className="bg-[#1976D2] border-b-2 border-[color:var(--card-border)] px-6 py-3 flex items-center gap-2 text-sm text-white">
           <Building2 className="h-4 w-4 text-[#FFD600]" />
           <span className="font-black uppercase tracking-widest">{activeOrg.name}</span>
           <span className="opacity-80 font-bold uppercase tracking-tight text-xs ml-1">organization</span>
         </div>
       )}
-      <CardHeader className="border-b-4 border-[#0A0A0F] bg-white py-8 px-8">
+      <CardHeader className="border-b-2 border-[color:var(--card-border)] bg-white py-8 px-8">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-[#0A0A0F] text-2xl">
@@ -445,7 +445,7 @@ export default function TeamManagement() {
           </div>
           <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[4px_4px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto">
+              <Button className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto">
                 <UserPlus className="w-5 h-5 mr-2" />
                 Invite Member
               </Button>
@@ -513,7 +513,7 @@ export default function TeamManagement() {
             </p>
           </div>
         ) : (
-          <div className="border-4 border-[#0A0A0F] rounded-none overflow-hidden shadow-[6px_6px_0px_0px_#0A0A0F]">
+          <div className="border-2 border-[color:var(--card-border)] rounded-none overflow-hidden shadow-[3px_3px_0px_0px_var(--card-shadow)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -529,7 +529,7 @@ export default function TeamManagement() {
                   <TableRow key={member.id}>
                     <TableCell>
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gray-100 border-2 border-[#0A0A0F] rounded-none flex items-center justify-center shadow-[2px_2px_0px_0px_#0A0A0F]">
+                        <div className="w-12 h-12 bg-gray-100 border-2 border-[color:var(--card-border)] rounded-none flex items-center justify-center shadow-[2px_2px_0px_0px_var(--card-shadow)]">
                           <Mail className="w-5 h-5 text-[#0A0A0F]" />
                         </div>
                         <div>
@@ -631,7 +631,7 @@ export default function TeamManagement() {
                   <TableRow key={`pending-${invitation.id}`}>
                     <TableCell>
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-yellow-50 border-2 border-[#0A0A0F] rounded-none flex items-center justify-center shadow-[2px_2px_0px_0px_#0A0A0F]">
+                        <div className="w-12 h-12 bg-yellow-50 border-2 border-[color:var(--card-border)] rounded-none flex items-center justify-center shadow-[2px_2px_0px_0px_var(--card-shadow)]">
                           <Mail className="w-5 h-5 text-yellow-600" />
                         </div>
                         <div>

@@ -61,7 +61,7 @@ export function DepartmentFilter({
             className={`text-xs border-2 rounded-none font-bold uppercase tracking-wide transition-all ${
               darkMode 
                 ? "bg-[#1e1e32] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" 
-                : "bg-white text-[#0A0A0F] border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none"
+                : "bg-white text-[#0A0A0F] border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none"
             }`}
           >
             Clear All
@@ -70,13 +70,13 @@ export function DepartmentFilter({
       </div>
 
       <Tabs defaultValue="departments" className="w-full">
-        <TabsList className={`grid w-full grid-cols-2 mb-4 border-2 rounded-none p-0 h-auto ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c]" : "bg-white border-[#0A0A0F]"}`}>
+        <TabsList className={`grid w-full grid-cols-2 mb-4 border-2 rounded-none p-0 h-auto ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c]" : "bg-white border-[color:var(--card-border)]"}`}>
           <TabsTrigger 
             value="departments" 
             className={`rounded-none font-bold uppercase text-xs tracking-wide py-2 ${
               darkMode 
                 ? "border-r border-[#3a3a5c] text-white data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F]" 
-                : "border-r border-[#0A0A0F] data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F]"
+                : "border-r border-[color:var(--card-border)] data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F]"
             }`}
           >
             Departments
@@ -96,7 +96,7 @@ export function DepartmentFilter({
         <TabsContent value="departments">
           <ScrollArea className="h-[calc(100vh-16rem)]">
             {departments.length === 0 ? (
-              <p className={`text-sm text-center p-3 border-2 rounded-none ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c] text-gray-400" : "bg-gray-50 border-[#0A0A0F] text-gray-500"}`}>No departments tagged yet</p>
+              <p className={`text-sm text-center p-3 border-2 rounded-none ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c] text-gray-400" : "bg-gray-50 border-[color:var(--card-border)] text-gray-500"}`}>No departments tagged yet</p>
             ) : (
               <div className="space-y-2">
                 {departments.map((department) => (
@@ -107,7 +107,7 @@ export function DepartmentFilter({
                         ? "bg-[#FFD600] text-[#0A0A0F] shadow-none" 
                         : (darkMode 
                             ? "bg-[#1e1e32] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" 
-                            : "bg-white text-[#0A0A0F] border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none")
+                            : "bg-white text-[#0A0A0F] border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none")
                     }`}
                     onClick={() => onFilterByDepartment(department)}
                   >
@@ -118,7 +118,7 @@ export function DepartmentFilter({
                   className={`w-full justify-start text-sm mt-4 border-2 rounded-none font-semibold transition-all ${
                     darkMode 
                       ? "bg-[#1e1e32] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" 
-                      : "bg-gray-100 text-[#0A0A0F] border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none"
+                      : "bg-gray-100 text-[#0A0A0F] border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none"
                   }`}
                   onClick={() => onFilterByDepartment(undefined)}
                 >
@@ -132,7 +132,7 @@ export function DepartmentFilter({
         <TabsContent value="types">
           <ScrollArea className="h-[calc(100vh-16rem)]">
             {blockTypes.length === 0 ? (
-              <p className={`text-sm text-center p-3 border-2 rounded-none ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c] text-gray-400" : "bg-gray-50 border-[#0A0A0F] text-gray-500"}`}>No block types found</p>
+              <p className={`text-sm text-center p-3 border-2 rounded-none ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c] text-gray-400" : "bg-gray-50 border-[color:var(--card-border)] text-gray-500"}`}>No block types found</p>
             ) : (
               <div className="space-y-2">
                 {blockTypes.map((type) => {
@@ -145,7 +145,7 @@ export function DepartmentFilter({
                           ? "bg-[#FFD600] text-[#0A0A0F] shadow-none" 
                           : (darkMode 
                               ? "bg-[#1e1e32] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" 
-                              : "bg-white text-[#0A0A0F] border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none")
+                              : "bg-white text-[#0A0A0F] border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none")
                       }`}
                       onClick={() => onFilterByType(type)}
                     >
@@ -160,7 +160,7 @@ export function DepartmentFilter({
                   className={`w-full justify-start text-sm mt-4 border-2 rounded-none font-semibold transition-all ${
                     darkMode 
                       ? "bg-[#1e1e32] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" 
-                      : "bg-gray-100 text-[#0A0A0F] border-[#0A0A0F] shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none"
+                      : "bg-gray-100 text-[#0A0A0F] border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none"
                   }`}
                   onClick={() => onFilterByType(undefined)}
                 >

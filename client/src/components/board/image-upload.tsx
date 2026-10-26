@@ -371,7 +371,7 @@ export default function ImageUpload({
           <img
             src={currentImage}
             alt="Uploaded"
-            className="w-full h-40 object-cover rounded-none border-2 border-[#0A0A0F] cursor-pointer shadow-[3px_3px_0px_0px_#0A0A0F]"
+            className="w-full h-40 object-cover rounded-none border-2 border-[color:var(--card-border)] cursor-pointer shadow-[2px_2px_0px_0px_var(--card-shadow)]"
             onClick={() => setShowImageModal(true)}
           />
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all rounded-none flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -380,7 +380,7 @@ export default function ImageUpload({
                 size="sm"
                 variant="secondary"
                 onClick={() => setShowImageModal(true)}
-                className="bg-white hover:bg-[#FFD600] text-[#0A0A0F] h-8 px-2 text-xs min-w-0 font-bold border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F]"
+                className="bg-white hover:bg-[#FFD600] text-[#0A0A0F] h-8 px-2 text-xs min-w-0 font-bold border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)]"
               >
                 <ZoomIn className="w-4 h-4" />
               </Button>
@@ -388,7 +388,7 @@ export default function ImageUpload({
                 size="sm"
                 variant="secondary"
                 onClick={handleReplace}
-                className="bg-white hover:bg-[#FFD600] text-[#0A0A0F] h-8 px-2 text-xs min-w-0 font-bold border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F]"
+                className="bg-white hover:bg-[#FFD600] text-[#0A0A0F] h-8 px-2 text-xs min-w-0 font-bold border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)]"
               >
                 <Upload className="w-4 h-4" />
               </Button>
@@ -396,7 +396,7 @@ export default function ImageUpload({
                 size="sm"
                 variant="destructive"
                 onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700 text-white h-8 px-2 text-xs min-w-0 font-bold border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F]"
+                className="bg-red-600 hover:bg-red-700 text-white h-8 px-2 text-xs min-w-0 font-bold border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)]"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -430,7 +430,7 @@ export default function ImageUpload({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div
-              className={`mb-6 h-40 border-2 rounded-none flex flex-col items-center justify-center transition-colors cursor-pointer relative overflow-hidden w-full self-start border-dashed border-[#0A0A0F] bg-gray-50 text-gray-600 hover:bg-[#FFD600] hover:text-[#0A0A0F] font-bold`}
+              className={`mb-6 h-40 border-2 rounded-none flex flex-col items-center justify-center transition-colors cursor-pointer relative overflow-hidden w-full self-start border-dashed border-[color:var(--card-border)] bg-gray-50 text-gray-600 hover:bg-[#FFD600] hover:text-[#0A0A0F] font-bold`}
             >
               {imageUploadContent}
             </div>
@@ -459,8 +459,8 @@ export default function ImageUpload({
         onClick={handleClick}
         className={`mb-6 h-40 border-2 rounded-none flex flex-col items-center justify-center transition-colors cursor-pointer relative overflow-hidden w-full self-start group ${
           currentImage 
-            ? "border-solid border-[#0A0A0F] shadow-[3px_3px_0px_0px_#0A0A0F]" 
-            : "border-dashed border-[#0A0A0F] bg-gray-50 text-gray-600 hover:bg-[#FFD600] hover:text-[#0A0A0F] font-bold"
+            ? "border-solid border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]" 
+            : "border-dashed border-[color:var(--card-border)] bg-gray-50 text-gray-600 hover:bg-[#FFD600] hover:text-[#0A0A0F] font-bold"
         }`}
       >
         {imageUploadContent}

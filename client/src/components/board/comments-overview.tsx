@@ -43,7 +43,7 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
 
       <ScrollArea className="h-[calc(100vh-12rem)]">
         {blocksWithComments.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center p-3 border-2 border-[#0A0A0F] rounded-none bg-gray-50">No comments yet</p>
+          <p className="text-sm text-gray-500 text-center p-3 border-2 border-[color:var(--card-border)] rounded-none bg-gray-50">No comments yet</p>
         ) : (
           <div className="space-y-4">
             {blocksWithComments.map(block => (
@@ -52,7 +52,7 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
                   {block.content.slice(0, 50)}{block.content.length > 50 ? '...' : ''}
                 </div>
                 {block.comments?.map(comment => (
-                  <div key={comment.id} className="bg-white p-3 border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F]">
+                  <div key={comment.id} className="bg-white p-3 border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)]">
                     <div className="flex justify-between items-start mb-1">
                       <div className="flex items-center gap-2">
                         <Checkbox
@@ -64,7 +64,7 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
                               completed: checked as boolean,
                             });
                           }}
-                          className="border-2 border-[#0A0A0F] rounded-none data-[state=checked]:bg-[#FFD600] data-[state=checked]:text-[#0A0A0F]"
+                          className="border-2 border-[color:var(--card-border)] rounded-none data-[state=checked]:bg-[#FFD600] data-[state=checked]:text-[#0A0A0F]"
                         />
                         <span className="text-xs font-bold text-[#0A0A0F]">{comment.username}</span>
                       </div>
@@ -77,7 +77,7 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
                 ))}
                 <Button 
                   size="sm" 
-                  className="w-full text-xs bg-white text-[#0A0A0F] border-2 border-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_#0A0A0F] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide" 
+                  className="w-full text-xs bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide" 
                   onClick={() => onCommentClick(block)}
                 >
                   View All Comments

@@ -26,7 +26,7 @@ export default function LandingPage() {
       )}
       
       {/* Navigation Header - High Contrast */}
-      <nav className="bg-[#0A0A0F] border-b-4 border-[#E53935]">
+      <nav className="bg-[#0A0A0F] border-b-2 border-[#E53935]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center">
@@ -133,7 +133,7 @@ export default function LandingPage() {
 
           <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {/* Feature 1 */}
-            <div className="bg-white border-4 border-[#0A0A0F] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
+            <div className="bg-white border-2 border-[color:var(--card-border)] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
               <div className="h-16 w-16 bg-[#FFD600] flex items-center justify-center text-3xl mb-6">
                 ✨
               </div>
@@ -144,7 +144,7 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-white border-4 border-[#0A0A0F] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
+            <div className="bg-white border-2 border-[color:var(--card-border)] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
               <div className="h-16 w-16 bg-[#E53935] flex items-center justify-center text-3xl mb-6">
                 🤝
               </div>
@@ -155,7 +155,7 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-white border-4 border-[#0A0A0F] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
+            <div className="bg-white border-2 border-[color:var(--card-border)] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
               <div className="h-16 w-16 bg-[#1976D2] flex items-center justify-center text-3xl mb-6">
                 🎯
               </div>
@@ -182,7 +182,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-[#0A0A0F] border-4 border-[#FFD600] p-8 text-center relative">
+            <div className="bg-[#0A0A0F] border-2 border-[#FFD600] p-8 text-center relative">
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-[#FFD600] text-[#0A0A0F] flex items-center justify-center text-2xl font-black">
                 1
               </div>
@@ -190,7 +190,7 @@ export default function LandingPage() {
               <p className="text-gray-400">Start with a blank canvas or choose from our template library</p>
             </div>
             
-            <div className="bg-[#0A0A0F] border-4 border-[#E53935] p-8 text-center relative">
+            <div className="bg-[#0A0A0F] border-2 border-[#E53935] p-8 text-center relative">
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-[#E53935] text-white flex items-center justify-center text-2xl font-black">
                 2
               </div>
@@ -198,7 +198,7 @@ export default function LandingPage() {
               <p className="text-gray-400">Collaborate in real-time with your entire team to build journey maps</p>
             </div>
             
-            <div className="bg-[#0A0A0F] border-4 border-[#1976D2] p-8 text-center relative">
+            <div className="bg-[#0A0A0F] border-2 border-[#1976D2] p-8 text-center relative">
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-[#1976D2] text-white flex items-center justify-center text-2xl font-black">
                 3
               </div>
@@ -226,7 +226,7 @@ export default function LandingPage() {
           </div>
 
           <div className="max-w-lg mx-auto">
-            <div className="bg-white border-4 border-[#0A0A0F] p-8 text-center relative">
+            <div className="bg-white border-2 border-[color:var(--card-border)] p-8 text-center relative">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#FFD600] text-[#0A0A0F] px-6 py-2 font-bold uppercase tracking-widest text-sm">
                 Limited Time
               </div>
@@ -292,7 +292,7 @@ export default function LandingPage() {
               <Button 
                 asChild
                 size="lg" 
-                className="bg-[#0A0A0F] text-white hover:bg-[#1a1a1f] font-bold uppercase tracking-wider shadow-xl px-10 py-6 text-lg border-4 border-[#0A0A0F]"
+                className="bg-[#0A0A0F] text-white hover:bg-[#1a1a1f] font-bold uppercase tracking-wider shadow-xl px-10 py-6 text-lg border-2 border-[color:var(--card-border)]"
               >
                 <a href={getAppUrl('/auth/register')}>
                   Start Mapping Now
@@ -304,7 +304,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#0A0A0F] text-white border-t-4 border-[#E53935]">
+      <footer className="bg-[#0A0A0F] text-white border-t-2 border-[#E53935]">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1">
