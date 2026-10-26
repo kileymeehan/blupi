@@ -41,7 +41,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} border-2 rounded-none w-full min-w-[100px] h-[52px] relative flex items-center justify-center
+                className={`${layer.color} border-2 rounded w-full min-w-[100px] h-[52px] relative flex items-center justify-center
                   ${darkMode ? 'border-[#333333] shadow-[2px_2px_0px_0px_#333333]' : 'border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]'}
                   ${snapshot.isDragging ? (darkMode ? "shadow-[2px_2px_0px_0px_#333333]" : "shadow-[2px_2px_0px_0px_var(--card-shadow)]") : ""}
                   transition-all duration-200 hover:bg-[#FFD600]
@@ -84,7 +84,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 ref={provided.innerRef}
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
-                className={`${layer.color} border-2 rounded-none w-full h-[48px] relative flex items-center justify-center text-white
+                className={`${layer.color} border-2 rounded w-full h-[48px] relative flex items-center justify-center text-white
                   ${darkMode ? 'border-[#333333] shadow-[2px_2px_0px_0px_#333333]' : 'border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]'}
                   ${snapshot.isDragging ? (darkMode ? "shadow-[2px_2px_0px_0px_#333333]" : "shadow-[2px_2px_0px_0px_var(--card-shadow)]") : ""}
                   transition-all duration-200 hover:bg-[#FFD600] hover:text-[#0A0A0F]

@@ -34,16 +34,16 @@
 
 /* Bauhaus Button Styles */
 .bauhaus-btn {
-  @apply bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] font-black uppercase tracking-wider transition-all duration-200 shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
+  @apply bg-white text-[#0A0A0F] rounded border-2 border-[color:var(--card-border)] font-black uppercase tracking-wider transition-all duration-200 shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
 }
 
 .bauhaus-btn-blue {
-  @apply bg-[#1976D2] text-white border-2 border-[color:var(--card-border)] font-black uppercase tracking-wider transition-all duration-200 shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
+  @apply bg-[#1976D2] text-white rounded border-2 border-[color:var(--card-border)] font-black uppercase tracking-wider transition-all duration-200 shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
 }
 
 /* Bauhaus Card Style */
 .bauhaus-card {
-  @apply bg-white border-2 border-[color:var(--card-border)] shadow-[4px_4px_0px_0px_var(--card-shadow)];
+  @apply bg-white rounded border-2 border-[color:var(--card-border)] shadow-[4px_4px_0px_0px_var(--card-shadow)];
 }
 
 .blupi-column-halftone {
@@ -103,7 +103,7 @@
     --border: 200 81% 80%;
     --input: 200 81% 80%;
     --ring: 241 49% 36%;
-    --radius: 0.5rem;
+    --radius: 6px;
     --chart-1: 241 49% 36%;
     --chart-2: 3 80% 75%;
     --chart-3: 200 81% 60%;
@@ -358,7 +358,7 @@
 .introjs-tooltip {
   background: white !important;
   color: #1f2937 !important;
-  border-radius: 12px !important;
+  border-radius: var(--radius) !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
   border: 1px solid #e5e7eb !important;
   max-width: 340px !important;
@@ -478,7 +478,7 @@
   background: rgba(255, 255, 255, 0.9) !important;
   color: #1f2937 !important;
   border: 1px solid rgba(255, 255, 255, 0.8) !important;
-  border-radius: 8px !important;
+  border-radius: var(--radius) !important;
   font-weight: 500 !important;
   font-size: 12px !important;
   padding: 8px 16px !important;
@@ -505,7 +505,7 @@
   font-size: 11px !important;
   padding: 6px 12px !important;
   white-space: nowrap !important;
-  border-radius: 6px !important;
+  border-radius: var(--radius) !important;
   flex-shrink: 0 !important;
   backdrop-filter: blur(4px) !important;
   -webkit-font-smoothing: antialiased !important;
@@ -523,7 +523,7 @@
 }
 
 .introjs-helperLayer {
-  border-radius: 8px !important;
+  border-radius: var(--radius) !important;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4), 0 0 20px rgba(79, 70, 229, 0.3) !important;
 }
 
@@ -537,7 +537,7 @@
 .introjs-progressbar .introjs-progress {
   background: #4f46e5 !important;
   height: 100% !important;
-  border-radius: 3px !important;
+  border-radius: var(--radius) !important;
 }
 
 /* Dark Mode Styles for Board */

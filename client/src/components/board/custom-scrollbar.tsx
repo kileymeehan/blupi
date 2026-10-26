@@ -113,7 +113,7 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
 
   const scrollbarElement = (
     <div 
-      className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[color:var(--card-border)] h-5"
+      className="rounded fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[color:var(--card-border)] h-5"
       style={{ zIndex: 99999 }}
     >
       <div

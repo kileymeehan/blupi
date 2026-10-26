@@ -74,7 +74,7 @@ export function PageHeader({
                 <Input
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  className="text-lg font-black uppercase tracking-widest h-9 bg-white text-[#0A0A0F] border-2 border-[#FFD600] rounded-none focus-visible:ring-0"
+                  className="text-lg font-black uppercase tracking-widest h-9 bg-white text-[#0A0A0F] border-2 border-[#FFD600] rounded focus-visible:ring-0"
                   autoFocus
                 />
               ) : (

@@ -9,15 +9,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[#0A0A0F] text-white border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase font-black tracking-widest",
-        "primary-cta": "bg-[#5FA873] hover:bg-[#FFD600] hover:text-[#0A0A0F] text-white font-black uppercase tracking-widest rounded-none border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all",
+        default: "bg-[#0A0A0F] text-white border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase font-black tracking-widest",
+        "primary-cta": "bg-[#5FA873] hover:bg-[#FFD600] hover:text-[#0A0A0F] text-white font-black uppercase tracking-widest rounded border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-none border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]",
         outline:
-          "border-2 border-[color:var(--card-border)] bg-background hover:bg-[#FFD600] hover:text-[#0A0A0F] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase font-black tracking-widest",
+          "border-2 border-[color:var(--card-border)] bg-background hover:bg-[#FFD600] hover:text-[#0A0A0F] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase font-black tracking-widest",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-none border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]",
-        ghost: "hover:bg-[#FFD600] hover:text-[#0A0A0F] rounded-none transition-colors uppercase font-black tracking-widest",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]",
+        ghost: "hover:bg-[#FFD600] hover:text-[#0A0A0F] rounded transition-colors uppercase font-black tracking-widest",
         link: "text-primary underline-offset-4 hover:underline uppercase tracking-widest font-black",
       },
       size: {

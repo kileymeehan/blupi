@@ -304,8 +304,8 @@ export function OrganizationSettings() {
   }
 
   return (
-      <Card className="max-w-6xl mx-auto border-2 border-[color:var(--card-border)] rounded-none shadow-[4px_4px_0px_0px_var(--card-shadow)] bg-white">
-      <CardHeader className="border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F] text-white py-8 px-8">
+      <Card className="max-w-6xl mx-auto border-2 border-[color:var(--card-border)] rounded shadow-[4px_4px_0px_0px_var(--card-shadow)] bg-white">
+      <CardHeader className="rounded border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F] text-white py-8 px-8">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-white text-2xl">
@@ -319,7 +319,7 @@ export function OrganizationSettings() {
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
+                className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
                 data-testid="create-org-button"
               >
                 <Plus className="h-5 w-5 mr-2" />
@@ -380,7 +380,7 @@ export function OrganizationSettings() {
             <p className="mb-6 font-medium">You're not a member of any organization yet.</p>
             <Button 
               onClick={() => setCreateDialogOpen(true)}
-              className="bg-[#0A0A0F] text-white border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
+              className="bg-[#0A0A0F] text-white border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
             >
               <Plus className="h-5 w-5 mr-2" />
               Create Your First Organization
@@ -392,7 +392,7 @@ export function OrganizationSettings() {
             {organizations.map((org) => (
               <div
                 key={org.organizationId}
-                className={`p-6 border-2 rounded-none transition-all ${
+                className={`p-6 border-2 rounded transition-all ${
                   org.isActive 
                     ? 'border-[color:var(--card-border)] bg-[#FFD600]/5 shadow-[3px_3px_0px_0px_var(--card-shadow)]' 
                     : 'border-[color:var(--card-border)] hover:bg-gray-50 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]'
@@ -407,13 +407,13 @@ export function OrganizationSettings() {
                           <img 
                             src={org.organization.settings.logoUrl}
                             alt={org.organization.name}
-                            className="h-16 w-16 object-contain rounded-none border-2 border-[color:var(--card-border)] bg-white shadow-[2px_2px_0px_0px_var(--card-shadow)]"
+                            className="h-16 w-16 object-contain rounded border-2 border-[color:var(--card-border)] bg-white shadow-[2px_2px_0px_0px_var(--card-shadow)]"
                           />
                           {canEdit(org.role) && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="absolute -top-3 -right-3 h-7 w-7 p-0 bg-white border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
+                              className="absolute -top-3 -right-3 h-7 w-7 p-0 bg-white border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
                               onClick={() => removeLogo.mutate(org.organizationId)}
                               disabled={removeLogo.isPending}
                               data-testid={`remove-logo-${org.organization.slug}`}
@@ -423,7 +423,7 @@ export function OrganizationSettings() {
                           )}
                         </div>
                       ) : (
-                        <div className={`h-16 w-16 rounded-none flex items-center justify-center border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] ${org.isActive ? 'bg-[#FFD600]' : 'bg-gray-100'}`}>
+                        <div className={`h-16 w-16 rounded flex items-center justify-center border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] ${org.isActive ? 'bg-[#FFD600]' : 'bg-gray-100'}`}>
                           <Building2 className={`h-8 w-8 ${org.isActive ? 'text-[#0A0A0F]' : 'text-gray-600'}`} />
                         </div>
                       )}
@@ -472,7 +472,7 @@ export function OrganizationSettings() {
                           <span className="font-black uppercase tracking-tight text-[#0A0A0F]">{org.organization.name}</span>
                           {org.isActive && (
                             <span 
-                              className="inline-flex items-center text-[10px] px-2 py-0.5 border border-[color:var(--card-border)] rounded-none bg-[#0A0A0F] text-white font-black uppercase tracking-widest select-none"
+                              className="inline-flex items-center text-[10px] px-2 py-0.5 border border-[color:var(--card-border)] rounded bg-[#0A0A0F] text-white font-black uppercase tracking-widest select-none"
                               data-testid="active-badge"
                             >
                               Active

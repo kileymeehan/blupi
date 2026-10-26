@@ -133,7 +133,7 @@ export default function LandingPage() {
 
           <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {/* Feature 1 */}
-            <div className="bg-white border-2 border-[color:var(--card-border)] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
+            <div className="rounded bg-white border-2 border-[color:var(--card-border)] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
               <div className="h-16 w-16 bg-[#FFD600] flex items-center justify-center text-3xl mb-6">
                 ✨
               </div>
@@ -144,7 +144,7 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-white border-2 border-[color:var(--card-border)] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
+            <div className="rounded bg-white border-2 border-[color:var(--card-border)] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
               <div className="h-16 w-16 bg-[#E53935] flex items-center justify-center text-3xl mb-6">
                 🤝
               </div>
@@ -155,7 +155,7 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-white border-2 border-[color:var(--card-border)] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
+            <div className="rounded bg-white border-2 border-[color:var(--card-border)] p-8 hover:shadow-2xl transition-all hover:-translate-y-2">
               <div className="h-16 w-16 bg-[#1976D2] flex items-center justify-center text-3xl mb-6">
                 🎯
               </div>
@@ -226,7 +226,7 @@ export default function LandingPage() {
           </div>
 
           <div className="max-w-lg mx-auto">
-            <div className="bg-white border-2 border-[color:var(--card-border)] p-8 text-center relative">
+            <div className="rounded bg-white border-2 border-[color:var(--card-border)] p-8 text-center relative">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#FFD600] text-[#0A0A0F] px-6 py-2 font-bold uppercase tracking-widest text-sm">
                 Limited Time
               </div>
@@ -292,7 +292,7 @@ export default function LandingPage() {
               <Button 
                 asChild
                 size="lg" 
-                className="bg-[#0A0A0F] text-white hover:bg-[#1a1a1f] font-bold uppercase tracking-wider shadow-xl px-10 py-6 text-lg border-2 border-[color:var(--card-border)]"
+                className="rounded bg-[#0A0A0F] text-white hover:bg-[#1a1a1f] font-bold uppercase tracking-wider shadow-xl px-10 py-6 text-lg border-2 border-[color:var(--card-border)]"
               >
                 <a href={getAppUrl('/auth/register')}>
                   Start Mapping Now

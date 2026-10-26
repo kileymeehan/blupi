@@ -331,10 +331,10 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
         ) : (
           <div className="space-y-3">
             {projectMembers.map((member) => (
-              <div key={member.id} className="flex items-center justify-between p-3 bg-white border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] transition-colors group">
+              <div key={member.id} className="rounded flex items-center justify-between p-3 bg-white border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] transition-colors group">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <Avatar className="w-8 h-8 border-2 border-[color:var(--card-border)] rounded-none">
-                    <AvatarFallback className="text-xs font-black rounded-none">
+                  <Avatar className="w-8 h-8 border-2 border-[color:var(--card-border)] rounded">
+                    <AvatarFallback className="text-xs font-black rounded">
                       {(member.user?.username || member.user?.email || 'U').charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -354,10 +354,10 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
                       role 
                     })}
                   >
-                    <SelectTrigger className="w-20 h-7 text-[10px] font-black uppercase border-2 border-[color:var(--card-border)] rounded-none">
+                    <SelectTrigger className="w-20 h-7 text-[10px] font-black uppercase border-2 border-[color:var(--card-border)] rounded">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="border-2 border-[color:var(--card-border)] rounded-none">
+                    <SelectContent className="border-2 border-[color:var(--card-border)] rounded">
                       <SelectItem value="member" className="font-bold text-xs">Member</SelectItem>
                       <SelectItem value="editor" className="font-bold text-xs">Editor</SelectItem>
                       <SelectItem value="admin" className="font-bold text-xs">Admin</SelectItem>
@@ -365,7 +365,7 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
                   </Select>
                   
                   <Button
-                    className="w-7 h-7 p-0 bg-white border-2 border-[color:var(--card-border)] text-[#E53935] hover:bg-[#E53935] hover:text-white rounded-none"
+                    className="w-7 h-7 p-0 bg-white border-2 border-[color:var(--card-border)] text-[#E53935] hover:bg-[#E53935] hover:text-white rounded"
                     onClick={() => removeMemberMutation.mutate(member.userId)}
                     disabled={removeMemberMutation.isPending}
                   >

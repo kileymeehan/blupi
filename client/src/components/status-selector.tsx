@@ -37,7 +37,7 @@ export function StatusSelector({ value, onChange, type, disabled = false }: Stat
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger className="w-[180px] border-2 border-[color:var(--card-border)] rounded-none bg-white shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none transition-all">
+      <SelectTrigger className="w-[180px] border-2 border-[color:var(--card-border)] rounded bg-white shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none transition-all">
         <SelectValue placeholder="Status">
           {value && (
             <span className="px-1 py-1 text-xs font-black uppercase tracking-widest text-[#0A0A0F] whitespace-nowrap">
@@ -46,12 +46,12 @@ export function StatusSelector({ value, onChange, type, disabled = false }: Stat
           )}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent className="border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)]">
+      <SelectContent className="border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)]">
         {statuses.map((status) => (
           <SelectItem 
             key={status} 
             value={status}
-            className="flex items-center space-x-2 rounded-none hover:bg-[#FFD600] cursor-pointer"
+            className="flex items-center space-x-2 rounded hover:bg-[#FFD600] cursor-pointer"
           >
             <span className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-[#0A0A0F]">
               {status}

@@ -256,7 +256,7 @@ export default function Project() {
                 placeholder="Describe your project goals, scope, and objectives..."
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
-                className="min-h-[120px] resize-none border-2 border-[color:var(--card-border)] rounded-none focus-visible:ring-0 focus-visible:border-[#1976D2] font-bold"
+                className="min-h-[120px] resize-none border-2 border-[color:var(--card-border)] rounded focus-visible:ring-0 focus-visible:border-[#1976D2] font-bold"
               />
             </section>
 
@@ -274,10 +274,10 @@ export default function Project() {
             <>
               <div className="space-y-4">
                 {activeBoards.map((board) => (
-                  <div key={board.id} className="flex items-center justify-between p-4 bg-white border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] transition-colors group">
+                  <div key={board.id} className="rounded flex items-center justify-between p-4 bg-white border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] transition-colors group">
                     <div className="flex items-center gap-4 flex-1">
                       <div
-                        className="w-4 h-4 border-2 border-[color:var(--card-border)] flex-shrink-0"
+                        className="rounded w-4 h-4 border-2 border-[color:var(--card-border)] flex-shrink-0"
                         style={{ backgroundColor: project?.color || '#1976D2' }}
                       />
                       <div className="flex-1 min-w-0">
@@ -304,7 +304,7 @@ export default function Project() {
                             <MoreVertical className="h-4 w-4 text-[#0A0A0F]" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="border-2 border-[color:var(--card-border)] rounded-none">
+                        <DropdownMenuContent align="end" className="border-2 border-[color:var(--card-border)] rounded">
                           <DropdownMenuItem onClick={() => setArchiveBlueprintId(board.id)} className="font-bold uppercase text-xs">
                             <Archive className="mr-2 h-4 w-4" />
                             Archive
@@ -427,7 +427,7 @@ export default function Project() {
               {/* Document list */}
               <div className="space-y-2 mb-4">
                 {documents.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 bg-white border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] transition-colors group">
+                  <div key={doc.id} className="rounded flex items-center justify-between p-3 bg-white border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] transition-colors group">
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-black uppercase tracking-widest text-[#0A0A0F] truncate">{doc.title}</div>
                       <div className="text-[10px] font-bold uppercase tracking-tighter text-[#6B7280] group-hover:text-[#0A0A0F]">
@@ -438,7 +438,7 @@ export default function Project() {
                       href={doc.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ml-2 p-2 hover:bg-black/10 rounded-none"
+                      className="ml-2 p-2 hover:bg-black/10 rounded"
                     >
                       <ExternalLink className="h-4 w-4 text-[#0A0A0F]" />
                     </a>
@@ -466,13 +466,13 @@ export default function Project() {
                     placeholder="Title"
                     value={newDocumentTitle}
                     onChange={(e) => setNewDocumentTitle(e.target.value)}
-                    className="border-2 border-[color:var(--card-border)] rounded-none focus-visible:ring-0 font-black uppercase text-xs"
+                    className="border-2 border-[color:var(--card-border)] rounded focus-visible:ring-0 font-black uppercase text-xs"
                   />
                   <Input
                     placeholder="URL"
                     value={newDocumentUrl}
                     onChange={(e) => setNewDocumentUrl(e.target.value)}
-                    className="border-2 border-[color:var(--card-border)] rounded-none focus-visible:ring-0 font-black text-xs"
+                    className="border-2 border-[color:var(--card-border)] rounded focus-visible:ring-0 font-black text-xs"
                   />
                   <div className="flex gap-2">
                     <Button

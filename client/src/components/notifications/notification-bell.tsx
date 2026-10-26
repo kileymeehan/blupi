@@ -125,14 +125,14 @@ export function NotificationBell({ variant = 'auto' }: { variant?: 'light' | 'da
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)]" align="end">
-        <div className="flex items-center justify-between p-4 border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F]">
+      <PopoverContent className="w-80 p-0 border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)]" align="end">
+        <div className="rounded flex items-center justify-between p-4 border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F]">
           <h3 className="font-bold text-white uppercase tracking-wide text-sm">Notifications</h3>
           <Button
             size="sm"
             onClick={() => markAllAsReadMutation.mutate()}
             disabled={markAllAsReadMutation.isPending || unreadCount === 0}
-            className="text-xs bg-white text-[#0A0A0F] border border-[color:var(--card-border)] rounded-none hover:bg-[#FFD600] font-bold uppercase tracking-wide"
+            className="text-xs bg-white text-[#0A0A0F] border border-[color:var(--card-border)] rounded hover:bg-[#FFD600] font-bold uppercase tracking-wide"
           >
             Mark all read
           </Button>
@@ -143,7 +143,7 @@ export function NotificationBell({ variant = 'auto' }: { variant?: 'light' | 'da
             notifications.map((notification: SimpleNotification) => (
               <div
                 key={notification.id}
-                className={`p-4 border-b-2 border-[color:var(--card-border)] cursor-pointer hover:bg-[#FFD600] transition-all duration-200 ${
+                className={`rounded p-4 border-b-2 border-[color:var(--card-border)] cursor-pointer hover:bg-[#FFD600] transition-all duration-200 ${
                   !notification.read ? 'bg-[#E3F2FD] border-l-2 border-l-[#1976D2]' : 'bg-white'
                 }`}
                 onClick={() => handleNotificationClick(notification)}
@@ -153,7 +153,7 @@ export function NotificationBell({ variant = 'auto' }: { variant?: 'light' | 'da
                     {notification.title}
                   </h4>
                   {!notification.read && (
-                    <div className="h-2 w-2 bg-[#1976D2] rounded-none flex-shrink-0 ml-2 mt-1" />
+                    <div className="h-2 w-2 bg-[#1976D2] rounded flex-shrink-0 ml-2 mt-1" />
                   )}
                 </div>
                 <p className="text-sm text-[#0A0A0F] mb-3 leading-relaxed">{notification.message}</p>

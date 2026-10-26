@@ -226,7 +226,7 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
           size="sm"
           onClick={loadDocuments}
           disabled={loading}
-          className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase text-xs tracking-wide"
+          className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase text-xs tracking-wide"
         >
           <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -234,7 +234,7 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
         
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-[#0A0A0F] text-white border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase text-xs tracking-wide">
+            <Button size="sm" className="bg-[#0A0A0F] text-white border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase text-xs tracking-wide">
               <Plus className="h-4 w-4 mr-1" />
               Add Sheet
             </Button>
@@ -307,7 +307,7 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
         </Dialog>
       </div>
       
-      <div className="border-2 border-[color:var(--card-border)] rounded-none">
+      <div className="border-2 border-[color:var(--card-border)] rounded">
         {documents.length === 0 ? (
           <div className="p-6 text-center text-[#0A0A0F]">
             {loading ? (
@@ -321,7 +321,7 @@ export function SheetDocumentsManager({ boardId, className = '' }: SheetDocument
                 <p className="text-sm">No Google Sheets connected yet</p>
                 <Button 
                   size="sm"
-                  className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded-none shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase text-xs tracking-wide"
+                  className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase text-xs tracking-wide"
                   onClick={() => setShowAddDialog(true)}
                 >
                   <Plus className="h-4 w-4 mr-1" />
