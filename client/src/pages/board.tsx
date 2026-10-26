@@ -1,5 +1,5 @@
 import { useParams } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import BoardGrid from "@/components/board/board-grid";
 import type { Board, Block, Phase } from "@shared/schema";
@@ -8,7 +8,7 @@ import { queryClient } from "@/lib/queryClient";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { Loader2 } from "lucide-react";
 import { withErrorBoundary } from "@/components/error-boundary";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 
 export default function BoardPage() {
   const { id } = useParams();
@@ -26,6 +26,18 @@ export default function BoardPage() {
     }
   }, [lastMessage, id]);
 
+  // Pending background saves (see saveBoard below)
+  // The board as last edited locally, shown until the server confirms it.
+  // Kept in React state (not just the query cache) because the drag library
+  // re-renders synchronously on drop, while cache updates notify a tick later,
+  // which would show the old card order for one frame.
+  const [optimisticBoard, setOptimisticBoard] = useState<Board | null>(null);
+  const optimisticRef = useRef<Board | null>(null);
+  const saveQueue = useRef<{ inFlight: boolean; queued: Partial<Board> | null }>({
+    inFlight: false,
+    queued: null,
+  });
+
   const { data: board, isLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
     queryFn: async () => {
@@ -39,7 +51,8 @@ export default function BoardPage() {
       const board = await res.json();
       return board;
     },
-    refetchInterval: 60000, // Reduced from 5s to 60s
+    // Don't poll while a save is pending, or a stale fetch could undo a local change
+    refetchInterval: () => (saveQueue.current.inFlight || saveQueue.current.queued ? false : 60000),
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes("Too many requests")) {
         return false;
@@ -60,50 +73,59 @@ export default function BoardPage() {
     enabled: !!board?.projectId,
   });
 
-  const updateBoardMutation = useMutation({
-    mutationFn: async (updates: Partial<Board>) => {
-      // Ensure dates are properly serialized
-      const sanitizedUpdates = {
+  // Changes are applied to the cached board immediately (so drag-and-drop
+  // settles in place with no snap-back), then saved in the background.
+  // Saves run one at a time; edits made while one is in flight are merged
+  // into the next request, so rapid changes can't reach the server out of order.
+  const boardKey = ['/api/boards', id];
+
+  const flushSaves = useCallback(async () => {
+    const q = saveQueue.current;
+    if (q.inFlight || !q.queued) return;
+    const updates = q.queued;
+    q.queued = null;
+    q.inFlight = true;
+    try {
+      const res = await apiRequest("PATCH", `/api/boards/${id}`, {
         ...updates,
-        updatedAt: new Date().toISOString()
-      };
-
-      const res = await apiRequest(
-        "PATCH",
-        `/api/boards/${id}`,
-        sanitizedUpdates
-      );
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to update board');
-      }
-
-      return res.json();
-    },
-    onSuccess: (data) => {
-      // Immediate local update for responsiveness
-      queryClient.setQueryData(['/api/boards', id], data);
-      
-      // Broadcast changes immediately via WebSocket
-      sendMessage({
-        type: 'board_update',
-        board: data,
-        timestamp: Date.now()
+        updatedAt: new Date().toISOString(),
       });
-      
-      // Invalidate cache to ensure fresh data on next fetch
-      queryClient.invalidateQueries({ queryKey: ['/api/boards', id] });
-    },
-    onError: (error: Error) => {
+      const saved = await res.json();
+      // Only adopt the server's copy if nothing newer is waiting to be sent
+      if (!q.queued) {
+        queryClient.setQueryData(boardKey, saved);
+        optimisticRef.current = null;
+        setOptimisticBoard(null);
+      }
+      sendMessage({ type: 'board_update', board: saved, timestamp: Date.now() });
+    } catch (error) {
       console.error('Board update error:', error);
+      q.queued = null;
+      optimisticRef.current = null;
+      setOptimisticBoard(null);
+      queryClient.invalidateQueries({ queryKey: boardKey });
       toast({
         title: "Error saving changes",
-        description: error.message,
-        variant: "destructive"
+        description: error instanceof Error ? error.message : "Your last change couldn't be saved.",
+        variant: "destructive",
       });
+    } finally {
+      q.inFlight = false;
+      if (q.queued) flushSaves();
     }
-  });
+  }, [id, sendMessage, toast]);
+
+  const saveBoard = useCallback((updates: Partial<Board>) => {
+    const base = optimisticRef.current ?? queryClient.getQueryData<Board>(boardKey);
+    if (!base) return;
+    const next = { ...base, ...updates };
+    optimisticRef.current = next;
+    setOptimisticBoard(next);
+    queryClient.cancelQueries({ queryKey: boardKey });
+    queryClient.setQueryData<Board>(boardKey, next);
+    saveQueue.current.queued = { ...saveQueue.current.queued, ...updates };
+    flushSaves();
+  }, [flushSaves]);
 
   // Debug logging to help identify the issue
   console.log('Board page render:', { id, isLoading, board: !!board, error });
@@ -143,17 +165,9 @@ export default function BoardPage() {
     );
   }
 
-  const handleBlocksChange = (blocks: Block[]) => {
-    updateBoardMutation.mutate({ blocks });
-  };
-
-  const handlePhasesChange = (phases: Phase[]) => {
-    updateBoardMutation.mutate({ phases });
-  };
-
-  const handleBoardChange = (updates: Partial<Board>) => {
-    updateBoardMutation.mutate(updates);
-  };
+  const handleBlocksChange = (blocks: Block[]) => saveBoard({ blocks });
+  const handlePhasesChange = (phases: Phase[]) => saveBoard({ phases });
+  const handleBoardChange = (updates: Partial<Board>) => saveBoard(updates);
 
   try {
     console.log('Rendering BoardGrid with:', { 
@@ -168,7 +182,7 @@ export default function BoardPage() {
     return (
       <BoardGrid
         id={id!}
-        board={board}
+        board={optimisticBoard ?? board}
         onBlocksChange={handleBlocksChange}
         onPhasesChange={handlePhasesChange}
         onBoardChange={handleBoardChange}

@@ -483,8 +483,6 @@ export default function BoardGrid({
   }, [presentationMode, currentStepIndex, allSteps.length]);
   
   // Drag state protection to prevent DOM conflicts
-  const [isDragActive, setIsDragActive] = useState(false);
-  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Undo functionality
   const [undoHistory, setUndoHistory] = useState<{action: string, blocks: BlockType[]}[]>([]);
@@ -623,23 +621,7 @@ export default function BoardGrid({
   }
 
   const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) {
-      setIsDragActive(false);
-      return;
-    }
-    
-    // Clear any pending drag timeout
-    if (dragTimeoutRef.current) {
-      clearTimeout(dragTimeoutRef.current);
-    }
-    
-    // Set drag active to prevent conflicting updates
-    setIsDragActive(true);
-    
-    // Clear drag state after operation completes
-    dragTimeoutRef.current = setTimeout(() => {
-      setIsDragActive(false);
-    }, 100);
+    if (!result.destination) return;
 
     const { source, destination, type } = result;
     
@@ -648,7 +630,8 @@ export default function BoardGrid({
       const sourcePhaseIndex = Number(source.droppableId.split("-")[1]);
       const destPhaseIndex = Number(destination.droppableId.split("-")[1]);
 
-      const newPhases = Array.from(board.phases);
+      // Deep copy: splicing columns must not mutate the cached board
+      const newPhases = structuredClone(board.phases);
       const sourcePhase = newPhases[sourcePhaseIndex];
       const destPhase = newPhases[destPhaseIndex];
 
@@ -679,8 +662,7 @@ export default function BoardGrid({
         }
       });
 
-      onPhasesChange(newPhases);
-      onBlocksChange(blocks);
+      onBoardChange({ ...board, phases: newPhases, blocks });
       return;
     }
     
@@ -3292,7 +3274,7 @@ export default function BoardGrid({
                                             ref={provided.innerRef}
                                             {...provided.droppableProps}
                                             className={`
-                                              space-y-4 min-h-[260px] p-2 rounded-lg border-1 border-gray-300 flex-1 relative
+                                              min-h-[260px] p-2 rounded-lg border-1 border-gray-300 flex-1 relative
                                               ${
                                                 snapshot.isDraggingOver
                                                   ? "border-primary/50 bg-primary/5"
@@ -3346,7 +3328,7 @@ export default function BoardGrid({
                                                                   newExpanded.delete(groupKey);
                                                                   setExpandedGroups(newExpanded);
                                                                 }}
-                                                                className={`w-full mb-2 p-2 text-xs font-medium rounded-lg border-2 border-dashed ${layerType?.color || 'border-gray-400'} bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2 transition-colors`}
+                                                                className={`w-full mb-4 p-2 text-xs font-medium rounded-lg border-2 border-dashed ${layerType?.color || 'border-gray-400'} bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2 transition-colors`}
                                                               >
                                                                 <ChevronUp className="w-3 h-3" />
                                                                 Collapse {blocksOfType.length} {layerType?.label || type} blocks
@@ -3367,7 +3349,7 @@ export default function BoardGrid({
                                                                       {...provided.draggableProps}
                                                                       className={`
                                                                         ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
-                                                                        group relative rounded-lg border-3 border-gray-500 mb-2 pl-6 pr-2 py-2
+                                                                        group relative rounded-lg border-3 border-gray-500 mb-4 pl-6 pr-2 py-2
                                                                         transition-shadow duration-200
                                                                         ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                                         ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
@@ -3434,7 +3416,7 @@ export default function BoardGrid({
                                                             setExpandedGroups(newExpanded);
                                                           }}
                                                           className={`
-                                                            relative cursor-pointer rounded-lg border-3 mb-2 p-2 w-full aspect-square
+                                                            relative cursor-pointer rounded-lg border-3 mb-4 p-2 w-full aspect-square
                                                             ${layerType?.color || 'border-gray-400'}
                                                             hover:shadow-md transition-all bg-white flex flex-col
                                                             shadow-[0_0_0_1px_rgba(0,0,0,0.1)]
@@ -3495,7 +3477,7 @@ export default function BoardGrid({
                                                       {...provided.draggableProps}
                                                       className={`
                                                         ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
-                                                        group relative rounded-lg border-3 border-gray-500 mb-2 pl-6 pr-2 py-2
+                                                        group relative rounded-lg border-3 border-gray-500 mb-4 pl-6 pr-2 py-2
                                                         transition-shadow duration-200
                                                         ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                         ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
