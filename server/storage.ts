@@ -34,11 +34,12 @@ export class DatabaseStorage {
     }
 
     // Use PostgreSQL-backed session store for persistence and scalability
-    // Uses existing 'session' table - do not auto-create to avoid conflicts
+    // Creates the 'session' table on first boot (CREATE TABLE IF NOT EXISTS),
+    // since it isn't part of the Drizzle schema and a fresh database won't have it
     this.sessionStore = new PgSessionStore({
       pool: pool as any,
       tableName: 'session',
-      createTableIfMissing: false,
+      createTableIfMissing: true,
       pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
       errorLog: (error: Error) => {
         console.error('[Session Store] PostgreSQL session error:', error.message);
@@ -506,12 +507,12 @@ export class DatabaseStorage {
     }
   }
 
-  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
     try {
-      const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
+      const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
       return user;
     } catch (error) {
-      console.error('[Storage] Error getting user by Firebase UID:', error);
+      console.error('[Storage] Error getting user by Google ID:', error);
       throw error;
     }
   }
@@ -827,12 +828,22 @@ export class DatabaseStorage {
     }
   }
 
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.username, username));
+      return user;
+    } catch (error) {
+      console.error('[Storage] Error getting user by username:', error);
+      throw error;
+    }
+  }
+
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
       const [user] = await db
         .select()
         .from(users)
-        .where(eq(users.email, email));
+        .where(sql`lower(${users.email}) = lower(${email})`);
       return user;
     } catch (error) {
       console.error('[Storage] Error getting user by email:', error);

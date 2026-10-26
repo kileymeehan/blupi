@@ -14,8 +14,17 @@ import { ComingSoonBadge } from "@/components/ui/coming-soon-badge";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(1, "Please enter your password"),
 });
+
+// Errors the server sends back via /auth/login?error=... after Google sign-in
+const GOOGLE_ERROR_MESSAGES: Record<string, string> = {
+  google_cancelled: "Google sign-in was cancelled.",
+  google_email_unverified: "Your Google account's email isn't verified.",
+  google_not_configured: "Google sign-in isn't set up yet.",
+  google_state_mismatch: "Google sign-in expired. Please try again.",
+  google_failed: "Google sign-in failed. Please try again.",
+};
 
 type LoginForm = z.infer<typeof loginSchema>;
 
@@ -23,7 +32,10 @@ export default function LoginPage() {
   console.log('LoginPage component rendering');
   const [_, setLocation] = useLocation();
   const { signInWithEmail, signInWithGoogle, user } = useAuth();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() => {
+    const code = new URLSearchParams(window.location.search).get("error");
+    return code ? GOOGLE_ERROR_MESSAGES[code] ?? GOOGLE_ERROR_MESSAGES.google_failed : null;
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -172,14 +184,6 @@ export default function LoginPage() {
             >
               <SiGoogle className="w-4 h-4" />
               Sign in with Google
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="w-full border-[#A1D9F5] text-[#302E87]"
-              onClick={() => setLocation(`/auth/magic-link`)}
-            >
-              Sign in with Magic Link
             </Button>
             
             <Button 

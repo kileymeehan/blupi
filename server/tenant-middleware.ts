@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from './db';
-import { userOrganizations, users } from '@shared/schema';
+import { userOrganizations } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 declare global {
@@ -18,10 +18,6 @@ async function resolveUserIdFromSession(sessionUserId: string | number): Promise
   }
   
   if (typeof sessionUserId === 'string') {
-    if (sessionUserId.startsWith('google_') || sessionUserId.startsWith('user_')) {
-      const [user] = await db.select().from(users).where(eq(users.firebaseUid, sessionUserId)).limit(1);
-      return user?.id || null;
-    }
     const parsed = parseInt(sessionUserId, 10);
     if (!isNaN(parsed)) {
       return parsed;

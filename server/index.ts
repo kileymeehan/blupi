@@ -1,7 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import passport from "passport";
 import session from "express-session";
 import { storage } from "./storage";
 import { createServer } from "http";
@@ -257,11 +256,6 @@ async function initializeServer() {
       log('[ERROR] Failed to initialize session middleware:', String(err));
       throw err;
     }
-
-    // Initialize passport
-    app.use(passport.initialize());
-    app.use(passport.session());
-    log('[INFO] Passport initialized');
 
     // Setup authentication routes
     setupAuth(app);

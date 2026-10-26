@@ -1,258 +1,279 @@
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import type { User } from "@shared/schema";
-import { insertUserSchema } from "@shared/schema";
-import type { Express, Request, Response, NextFunction } from "express";
-import { ZodError } from "zod";
-import { isDevelopment } from "../config/environment";
+import type { Express, Request, Response } from "express";
+
+// Email/password and Google sign-in. A signed-in session stores the database
+// user ID as a string in req.session.userId, which the rest of the API reads.
 
 const scryptAsync = promisify(scrypt);
 
-async function hashPassword(password: string) {
+export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
 }
 
-async function comparePasswords(supplied: string, stored: string) {
+async function verifyPassword(supplied: string, stored: string) {
+  // Google-only accounts have no password
+  if (!stored) return false;
   const [hashed, salt] = stored.split(".");
+  if (!hashed || !salt) return false;
   const hashedBuf = Buffer.from(hashed, "hex");
   const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  return hashedBuf.length === suppliedBuf.length && timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
-declare global {
-  namespace Express {
-    interface User {
-      id: number;
-      email: string;
-      username: string;
-      password: string;
-      createdAt: Date;
-    }
+const MIN_PASSWORD_LENGTH = 8;
+
+function normalizeEmail(email: unknown) {
+  return typeof email === "string" ? email.trim().toLowerCase() : "";
+}
+
+function displayNameFor(user: User) {
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+  return fullName || user.username || user.email.split("@")[0];
+}
+
+// Shape the client's useAuth() hook expects
+function toClientUser(user: User) {
+  return {
+    uid: user.id,
+    email: user.email,
+    displayName: displayNameFor(user),
+    photoURL: user.profileImageUrl || null,
+  };
+}
+
+// Regenerate the session on sign-in so a pre-login session ID can't be reused
+function startSession(req: Request, user: User): Promise<void> {
+  return new Promise((resolve, reject) => {
+    req.session.regenerate((err) => {
+      if (err) return reject(err);
+      req.session.userId = String(user.id);
+      req.session.email = user.email;
+      req.session.displayName = displayNameFor(user);
+      req.session.save((saveErr) => (saveErr ? reject(saveErr) : resolve()));
+    });
+  });
+}
+
+// Usernames must be unique; derive one from the email and add a suffix if taken
+async function uniqueUsername(email: string) {
+  const base = email.split("@")[0].replace(/[^a-zA-Z0-9._-]/g, "") || "user";
+  let candidate = base;
+  for (let i = 0; i < 5; i++) {
+    if (!(await storage.getUserByUsername(candidate))) return candidate;
+    candidate = `${base}${randomBytes(2).toString("hex")}`;
   }
+  return `${base}${randomBytes(4).toString("hex")}`;
+}
+
+// Projects and boards live inside an organization, so every new account gets
+// its own workspace to start in
+async function createPersonalWorkspace(user: User) {
+  const name = `${displayNameFor(user)}'s Workspace`;
+  const slug = `${user.username.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${randomBytes(3).toString("hex")}`;
+  const org = await storage.createOrganization({ name, slug });
+  await storage.addUserToOrganization(user.id, org.id, "owner");
+  await storage.setActiveOrganization(user.id, org.id);
+}
+
+function googleRedirectUri(req: Request) {
+  return process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get("host")}/auth/google-callback`;
 }
 
 export function setupAuth(app: Express) {
-  // Add session check middleware
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (!req.session) {
-      console.error('[Auth] No session found');
-      return next(new Error('No session found'));
+  app.get("/api/auth/session", async (req: Request, res: Response) => {
+    const userId = parseInt(req.session?.userId ?? "", 10);
+    if (isNaN(userId)) {
+      return res.status(401).json({ error: true, message: "Not authenticated" });
     }
-    next();
-  });
-
-  passport.use(
-    new LocalStrategy(
-      {
-        usernameField: "email",
-        passwordField: "password",
-      },
-      async (email, password, done) => {
-        try {
-          console.log('[Auth] Attempting login for:', email);
-          const user = await storage.getUserByEmail(email);
-          if (!user || !(await comparePasswords(password, user.password))) {
-            console.log('[Auth] Invalid credentials for:', email);
-            return done(null, false, { message: "Invalid email or password" });
-          }
-          console.log('[Auth] Login successful for:', email);
-          return done(null, user);
-        } catch (err) {
-          console.error('[Auth] Login error:', err);
-          return done(err);
-        }
-      }
-    )
-  );
-
-  passport.serializeUser((user, done) => {
-    console.log('[Auth] Serializing user:', user.id);
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id: number, done) => {
     try {
-      console.log('[Auth] Deserializing user:', id);
-      const user = await storage.getUser(id);
+      const user = await storage.getUser(userId);
       if (!user) {
-        console.error('[Auth] User not found during deserialization:', id);
-        return done(null, false);
+        req.session.destroy(() => {});
+        return res.status(401).json({ error: true, message: "Not authenticated" });
       }
-      done(null, user);
+      res.json({ user: toClientUser(user) });
     } catch (err) {
-      console.error('[Auth] Deserialization error:', err);
-      done(err);
+      console.error("[Auth] Session check failed:", err);
+      res.status(500).json({ error: true, message: "Could not check session" });
     }
   });
 
-  // Update the auth check endpoint to handle Firebase tokens and anonymous users
-  app.get("/api/auth/check", (req: Request, res: Response) => {
-    console.log('[Auth] Checking auth status');
-    if (!req.session) {
-      console.error('[Auth] No session found during auth check');
-      return res.status(401).json({ 
-        error: true,
-        message: "No session found" 
-      });
-    }
-
-    // Support for development bypass mode and anonymous/guest users from Firebase
-    const isGuestUser = req.headers['x-guest-user'] === 'true';
-    const isDevBypass = req.headers['x-dev-bypass'] === 'true' && isDevelopment();
-    
-    if (!req.user && !isGuestUser && !isDevBypass) {
-      console.log('[Auth] No user found during auth check');
-      return res.status(401).json({ 
-        error: true,
-        message: "Not authenticated" 
-      });
-    }
-
-    if (isDevBypass && isDevelopment()) {
-      console.log('[Auth] Development bypass mode activated');
-      return res.json({
-        authenticated: true,
-        user: {
-          id: 999, // Dev bypass uses a special ID
-          email: 'dev@example.com',
-          username: 'Development User'
-        },
-        isDev: true
-      });
-    }
-    
-    if (isGuestUser) {
-      console.log('[Auth] Guest user authenticated');
-      return res.json({
-        authenticated: true,
-        user: {
-          id: 0, // Guest users use a special ID
-          email: 'guest@example.com',
-          username: 'Guest User'
-        },
-        isGuest: true
-      });
-    }
-
-    if (req.user) {
-      console.log('[Auth] User authenticated:', req.user.id);
-      res.json({ 
-        authenticated: true,
-        user: {
-          id: req.user.id,
-          email: req.user.email,
-          username: req.user.username
-        },
-        isGuest: false
-      });
-    } else {
-      console.log('[Auth] No authenticated user found');
-      return res.status(401).json({ 
-        error: true,
-        message: "Not authenticated" 
-      });
-    }
-  });
-
-  app.post("/api/auth/logout", (req: Request, res: Response) => {
-    console.log('[Auth] Logging out user');
-    req.logout((err) => {
-      if (err) {
-        console.error('[Auth] Logout error:', err);
-        return res.status(500).json({ error: true, message: "Logout failed" });
-      }
-      req.session.destroy((err) => {
-        if (err) {
-          console.error('[Auth] Session destruction error:', err);
-          return res.status(500).json({ error: true, message: "Session destruction failed" });
-        }
-        res.json({ message: "Logged out successfully" });
-      });
-    });
-  });
-
-  app.post("/api/register", async (req: Request, res: Response, next: NextFunction) => {
+  app.post("/api/auth/signup", async (req: Request, res: Response) => {
     try {
-      const parseResult = insertUserSchema.safeParse(req.body);
+      const email = normalizeEmail(req.body?.email);
+      const password = typeof req.body?.password === "string" ? req.body.password : "";
 
-      if (!parseResult.success) {
-        return res.status(400).json({ 
-          error: true,
-          message: parseResult.error.errors[0].message 
-        });
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: true, message: "Please enter a valid email address" });
       }
-
-      // Check if user exists
-      const existingUser = await storage.getUserByEmail(parseResult.data.email);
-      if (existingUser) {
-        return res.status(400).json({ 
-          error: true,
-          message: "Email already registered" 
-        });
-      }
-
-      // Create new user
-      const hashedPassword = await hashPassword(parseResult.data.password);
-      const user = await storage.createUser({
-        ...parseResult.data,
-        password: hashedPassword,
-      });
-
-      // Log user in
-      req.login(user, (err) => {
-        if (err) return next(err);
-        return res.json(user);
-      });
-    } catch (err) {
-      if (err instanceof ZodError) {
+      if (password.length < MIN_PASSWORD_LENGTH) {
         return res.status(400).json({
           error: true,
-          message: err.errors[0].message
+          message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
         });
       }
-      next(err);
+
+      const existing = await storage.getUserByEmail(email);
+      if (existing) {
+        const message = existing.password
+          ? "An account with this email already exists. Please sign in instead."
+          : "This email is already registered with Google. Please use “Sign in with Google”.";
+        return res.status(400).json({ error: true, message });
+      }
+
+      const user = await storage.createUser({
+        email,
+        username: await uniqueUsername(email),
+        password: await hashPassword(password),
+      });
+      await createPersonalWorkspace(user);
+
+      await startSession(req, user);
+      res.json({ success: true, user: toClientUser(user) });
+    } catch (err) {
+      console.error("[Auth] Sign up failed:", err);
+      res.status(500).json({ error: true, message: "Sign up failed. Please try again." });
     }
   });
 
-  app.post("/api/login", (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate("local", (err: Error | null, user: User | false, info?: { message: string }) => {
-      if (err) return next(err);
-      if (!user) {
-        return res.status(401).json({ 
+  app.post("/api/auth/signin", async (req: Request, res: Response) => {
+    try {
+      const email = normalizeEmail(req.body?.email);
+      const password = typeof req.body?.password === "string" ? req.body.password : "";
+      if (!email || !password) {
+        return res.status(400).json({ error: true, message: "Email and password are required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (user && !user.password && user.googleId) {
+        return res.status(401).json({
           error: true,
-          message: info?.message || "Invalid credentials" 
+          message: "This account uses Google sign-in. Please use “Sign in with Google”.",
         });
       }
-      req.login(user, (err) => {
-        if (err) return next(err);
-        return res.json(user);
-      });
-    })(req, res, next);
+      if (!user || !(await verifyPassword(password, user.password))) {
+        return res.status(401).json({ error: true, message: "Invalid email or password" });
+      }
+
+      await startSession(req, user);
+      res.json({ success: true, user: toClientUser(user) });
+    } catch (err) {
+      console.error("[Auth] Sign in failed:", err);
+      res.status(500).json({ error: true, message: "Sign in failed. Please try again." });
+    }
   });
 
-  app.post("/api/logout", (req: Request, res: Response) => {
-    req.logout((err) => {
-      if (err) return res.status(500).json({ error: true, message: "Logout failed" });
-      req.session.destroy((err) => {
-        if (err) return res.status(500).json({ error: true, message: "Session destruction failed" });
-        res.json({ message: "Logged out successfully" });
-      });
+  app.post("/api/auth/signout", (req: Request, res: Response) => {
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid");
+      res.json({ success: true });
     });
   });
 
-  app.get("/api/user", (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.status(401).json({ 
-        error: true,
-        message: "Not authenticated" 
-      });
+  // Google sign-in: redirect to Google, which sends the user back to /auth/google-callback
+  app.get("/api/auth/google", (req: Request, res: Response) => {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId || !process.env.GOOGLE_CLIENT_SECRET) {
+      console.error("[Auth] GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET not set");
+      return res.redirect("/auth/login?error=google_not_configured");
     }
-    res.json(req.user);
+
+    // Random state ties the callback to this browser session (CSRF protection)
+    const state = randomBytes(16).toString("hex");
+    req.session.oauthState = state;
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: googleRedirectUri(req),
+      response_type: "code",
+      scope: "openid email profile",
+      state,
+      prompt: "select_account",
+    });
+    req.session.save(() => {
+      res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+    });
   });
+
+  app.get("/auth/google-callback", async (req: Request, res: Response) => {
+    const fail = (reason: string) => res.redirect(`/auth/login?error=${reason}`);
+    try {
+      const { code, state, error } = req.query;
+      const expectedState = req.session.oauthState;
+      delete req.session.oauthState;
+
+      if (error) return fail("google_cancelled");
+      if (typeof code !== "string") return fail("google_failed");
+      if (!expectedState || state !== expectedState) return fail("google_state_mismatch");
+
+      const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code,
+          client_id: process.env.GOOGLE_CLIENT_ID || "",
+          client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
+          redirect_uri: googleRedirectUri(req),
+          grant_type: "authorization_code",
+        }),
+      });
+      if (!tokenResponse.ok) {
+        console.error("[Auth] Google token exchange failed:", await tokenResponse.text());
+        return fail("google_failed");
+      }
+
+      const tokens = await tokenResponse.json();
+      if (!tokens.id_token) return fail("google_failed");
+
+      // The ID token came straight from Google's token endpoint over TLS using our
+      // client secret, so per the OpenID Connect spec we check its claims rather
+      // than its signature.
+      const claims = JSON.parse(Buffer.from(tokens.id_token.split(".")[1], "base64url").toString());
+      const validIssuer = claims.iss === "https://accounts.google.com" || claims.iss === "accounts.google.com";
+      if (!validIssuer || claims.aud !== process.env.GOOGLE_CLIENT_ID || claims.exp * 1000 < Date.now()) {
+        console.error("[Auth] Google ID token failed validation");
+        return fail("google_failed");
+      }
+      if (!claims.email || claims.email_verified !== true) return fail("google_email_unverified");
+
+      const googleId: string = claims.sub;
+      const email = normalizeEmail(claims.email);
+
+      let user = await storage.getUserByGoogleId(googleId);
+      if (!user) {
+        const existing = await storage.getUserByEmail(email);
+        if (existing) {
+          // Same verified email as an email/password account: link them
+          user = await storage.updateUser(existing.id, {
+            googleId,
+            profileImageUrl: existing.profileImageUrl || claims.picture || null,
+          });
+        } else {
+          user = await storage.createUser({
+            email,
+            username: await uniqueUsername(email),
+            password: "",
+            firstName: claims.given_name || null,
+            lastName: claims.family_name || null,
+            profileImageUrl: claims.picture || null,
+            googleId,
+          });
+          await createPersonalWorkspace(user);
+        }
+      }
+
+      await startSession(req, user);
+      res.redirect("/");
+    } catch (err) {
+      console.error("[Auth] Google callback failed:", err);
+      fail("google_failed");
+    }
+  });
+
   return app;
 }

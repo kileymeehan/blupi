@@ -81,7 +81,7 @@ export const monitoring = new SimpleMonitoring();
 // Express middleware for automatic error capture
 export function errorMonitoringMiddleware(err: Error, req: Request, res: Response, next: NextFunction) {
   // Extract user ID from session if available
-  const userId = req.user?.id?.toString();
+  const userId = req.session?.userId?.toString();
   
   monitoring.logError(err, req, userId);
   next(err);

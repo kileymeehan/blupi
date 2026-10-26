@@ -61,7 +61,7 @@ export const users = pgTable("users", {
   firstName: text("first_name"),
   lastName: text("last_name"),
   profileImageUrl: text("profile_image_url"),
-  firebaseUid: text("firebase_uid").unique(),
+  googleId: text("google_id").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 

@@ -3,4 +3,15 @@ dist
 .DS_Store
 server/public
 vite.config.ts.*
-*.tar.gzattached_assets/*.json
+*.tar.gz
+attached_assets/*.json
+logos
+
+# Secrets
+.env
+.env.*
+!.env.example
+cookies.txt
+
+# User uploads (persisted on a Railway volume in production)
+uploads/

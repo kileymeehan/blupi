@@ -9,12 +9,6 @@ export interface EnvironmentConfig {
   database: {
     url: string;
   };
-  firebase: {
-    apiKey: string;
-    authDomain: string;
-    projectId: string;
-    appId: string;
-  };
   features: {
     debugMode: boolean;
     stagingBanner: boolean;
@@ -55,12 +49,6 @@ const configurations: Record<string, EnvironmentConfig> = {
     database: {
       url: process.env.DATABASE_URL || '',
     },
-    firebase: {
-      apiKey: process.env.VITE_FIREBASE_API_KEY || '',
-      authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID || '',
-      appId: process.env.VITE_FIREBASE_APP_ID || '',
-    },
     features: {
       debugMode: true,
       stagingBanner: false,
@@ -81,12 +69,6 @@ const configurations: Record<string, EnvironmentConfig> = {
     database: {
       url: process.env.DATABASE_URL || '',
     },
-    firebase: {
-      apiKey: process.env.VITE_FIREBASE_API_KEY || '',
-      authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID || '',
-      appId: process.env.VITE_FIREBASE_APP_ID || '',
-    },
     features: {
       debugMode: process.env.DEBUG_MODE === 'true',
       stagingBanner: process.env.STAGING_BANNER_ENABLED !== 'false',
@@ -106,12 +88,6 @@ const configurations: Record<string, EnvironmentConfig> = {
     isProduction: true,
     database: {
       url: process.env.DATABASE_URL || '',
-    },
-    firebase: {
-      apiKey: process.env.VITE_FIREBASE_API_KEY || '',
-      authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID || '',
-      appId: process.env.VITE_FIREBASE_APP_ID || '',
     },
     features: {
       debugMode: false,
@@ -142,20 +118,8 @@ export const validateEnvironment = (): string[] => {
     errors.push('DATABASE_URL is required');
   }
   
-  if (!config.firebase.apiKey) {
-    errors.push('VITE_FIREBASE_API_KEY is required');
-  }
-  
-  if (!config.firebase.authDomain) {
-    errors.push('VITE_FIREBASE_AUTH_DOMAIN is required');
-  }
-  
-  if (!config.firebase.projectId) {
-    errors.push('VITE_FIREBASE_PROJECT_ID is required');
-  }
-  
-  if (!config.firebase.appId) {
-    errors.push('VITE_FIREBASE_APP_ID is required');
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    errors.push('GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are required for Google sign-in');
   }
   
   return errors;

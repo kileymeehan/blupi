@@ -1,6 +1,7 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { hashPassword } from "./auth";
 // Session type augmentation is in session-types.d.ts
 import { insertBoardSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 import { ZodError } from "zod";
@@ -47,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply tenant middleware to all API requests (must be before route definitions)
   app.use(tenantMiddleware);
 
-  // Helper to resolve Firebase UID to database user ID
+  // Helper to resolve the session's user ID to a database user ID
   async function resolveUserId(sessionUserId: string | number): Promise<number | null> {
     console.log('[resolveUserId] Input:', sessionUserId, 'Type:', typeof sessionUserId);
     if (typeof sessionUserId === 'number') {
@@ -55,12 +56,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return sessionUserId;
     }
     if (typeof sessionUserId === 'string') {
-      if (sessionUserId.startsWith('google_') || sessionUserId.startsWith('user_')) {
-        console.log('[resolveUserId] Looking up Firebase UID:', sessionUserId);
-        const user = await storage.getUserByFirebaseUid(sessionUserId);
-        console.log('[resolveUserId] Found user:', user?.id || 'null');
-        return user?.id || null;
-      }
       const parsed = parseInt(sessionUserId, 10);
       if (!isNaN(parsed)) {
         console.log('[resolveUserId] Parsed string to number:', parsed);
@@ -484,91 +479,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Firebase configuration endpoint for client
-  app.get("/api/firebase-config", (req, res) => {
-    try {
-      const hostname = req.headers.host || 'unknown';
-      const userAgent = req.headers['user-agent'] || 'unknown';
-      const isProduction = hostname.includes('my.blupi.io') || hostname.includes('blupi.io');
-      
-      // Log detailed request information
-      console.log('[HTTP] Firebase config request from:', {
-        hostname,
-        isProduction,
-        userAgent: userAgent.substring(0, 50) + '...',
-        ip: req.ip,
-        timestamp: new Date().toISOString()
-      });
-
-      // Firebase configuration from environment variables with fallbacks
-      // Use my.blupi.io as authDomain for production to fix session persistence
-      const authDomain = isProduction ? "my.blupi.io" : (process.env.FIREBASE_AUTH_DOMAIN || "blupi-458414.firebaseapp.com");
-      
-      // Validate required environment variables
-      if (!process.env.FIREBASE_API_KEY) {
-        console.error('[HTTP] FIREBASE_API_KEY environment variable is required');
-        return res.status(500).json({ error: "Firebase configuration incomplete" });
-      }
-
-      const config = {
-        apiKey: process.env.FIREBASE_API_KEY,
-        authDomain: authDomain, 
-        projectId: process.env.FIREBASE_PROJECT_ID || "blupi-458414",
-        storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "blupi-458414.appspot.com",
-        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "229356339230",
-        appId: process.env.FIREBASE_APP_ID || "1:229356339230:web:1a57771b64980839faee0f",
-      };
-
-      console.log('[HTTP] Serving hardcoded Firebase config:', {
-        apiKeyStart: config.apiKey.substring(0, 10) + '...',
-        projectId: config.projectId,
-        appIdStart: config.appId.substring(0, 20) + '...',
-        hostname
-      });
-
-      // Set headers to prevent caching
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      
-      res.json(config);
-    } catch (error) {
-      console.error("Error providing Firebase config:", error);
-      res.status(500).json({ error: "Failed to provide Firebase configuration" });
-    }
-  });
-
-  // Firebase diagnostics endpoint
-  app.get("/api/firebase-diagnostics", (req, res) => {
-    try {
-      const diagnostics = {
-        environment: {
-          VITE_FIREBASE_API_KEY: process.env.VITE_FIREBASE_API_KEY ? 'Present (' + process.env.VITE_FIREBASE_API_KEY.substring(0, 10) + '...)' : 'Missing',
-          VITE_FIREBASE_PROJECT_ID: process.env.VITE_FIREBASE_PROJECT_ID || 'Missing',
-          VITE_FIREBASE_APP_ID: process.env.VITE_FIREBASE_APP_ID ? 'Present (' + process.env.VITE_FIREBASE_APP_ID.substring(0, 20) + '...)' : 'Missing',
-          VITE_FIREBASE_AUTH_DOMAIN: process.env.VITE_FIREBASE_AUTH_DOMAIN || 'Missing'
-        },
-        expected: {
-          VITE_FIREBASE_PROJECT_ID: 'blupi-458414',
-          VITE_FIREBASE_APP_ID: '1:229356339230:web:1a57771b64980839faee0f...',
-          VITE_FIREBASE_AUTH_DOMAIN: 'blupi-458414.firebaseapp.com'
-        },
-        validation: {
-          correctProject: (process.env.VITE_FIREBASE_PROJECT_ID || 'blupi-458414') === 'blupi-458414',
-          correctAppId: (process.env.VITE_FIREBASE_APP_ID || '1:229356339230:web:1a57771b64980839faee0f') === '1:229356339230:web:1a57771b64980839faee0f',
-          hasApiKey: !!process.env.VITE_FIREBASE_API_KEY
-        },
-        hostname: req.headers.host,
-        timestamp: new Date().toISOString()
-      };
-
-      console.log('[HTTP] Firebase diagnostics requested from:', req.headers.host);
-      res.json(diagnostics);
-    } catch (error) {
-      console.error("Error providing Firebase diagnostics:", error);
-      res.status(500).json({ error: "Failed to provide Firebase diagnostics" });
-    }
-  });
 
   // Setup multer for file uploads BEFORE other middleware
   const upload = multer({
@@ -923,24 +833,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let userIdNum = parseInt(userId);
       console.log('[BOARDS API] Parsed userIdNum:', userIdNum, 'isNaN:', isNaN(userIdNum));
       
-      // Handle Google OAuth user IDs - look up the actual user ID by Firebase UID
-      if (isNaN(userIdNum) && typeof userId === 'string' && userId.startsWith('google_')) {
-        console.log('[BOARDS API] Google OAuth user detected, looking up user by Firebase UID:', userId);
-        try {
-          const user = await storage.getUserByFirebaseUid(userId);
-          if (user) {
-            userIdNum = user.id;
-            console.log('[BOARDS API] Found user by Firebase UID - user ID:', userIdNum);
-          } else {
-            console.log('[BOARDS API] No user found for Firebase UID:', userId);
-            return res.json([]);
-          }
-        } catch (lookupError) {
-          console.error('[BOARDS API] Error looking up user by Firebase UID:', lookupError);
-          return res.json([]);
-        }
-      }
-      
       // SECURITY FIX: Return empty array for new users instead of all data
       if (isNaN(userIdNum)) {
         console.log('[BOARDS API] SECURITY: userId is NaN, returning empty boards for new user');
@@ -976,24 +868,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[HTTP] DEBUG - userId from session:', userId, 'type:', typeof userId);
       let userIdNum = parseInt(userId);
       console.log('[HTTP] DEBUG - parsed userIdNum:', userIdNum, 'isNaN:', isNaN(userIdNum));
-      
-      // Handle Google OAuth user IDs - look up the actual user ID by Firebase UID
-      if (isNaN(userIdNum) && typeof userId === 'string' && userId.startsWith('google_')) {
-        console.log('[HTTP] Google OAuth user detected, looking up user by Firebase UID:', userId);
-        try {
-          const user = await storage.getUserByFirebaseUid(userId);
-          if (user) {
-            userIdNum = user.id;
-            console.log('[HTTP] Found user by Firebase UID - user ID:', userIdNum);
-          } else {
-            console.log('[HTTP] No user found for Firebase UID:', userId);
-            return res.json([]);
-          }
-        } catch (lookupError) {
-          console.error('[HTTP] Error looking up user by Firebase UID:', lookupError);
-          return res.json([]);
-        }
-      }
       
       // SECURITY FIX: Return empty array for new users instead of all data
       if (isNaN(userIdNum)) {
@@ -1042,30 +916,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let userIdNum = parseInt(userId);
       console.log('[HTTP] DEBUG - Project creation - parsed userIdNum:', userIdNum, 'isNaN:', isNaN(userIdNum));
-      
-      // Handle Google OAuth user IDs for project creation
-      if (isNaN(userIdNum) && typeof userId === 'string' && userId.startsWith('google_')) {
-        console.log('[HTTP] Google OAuth user detected for project creation, looking up user by Firebase UID:', userId);
-        try {
-          const user = await storage.getUserByFirebaseUid(userId);
-          if (user) {
-            userIdNum = user.id;
-            console.log('[HTTP] Found user by Firebase UID for project creation - user ID:', userIdNum);
-          } else {
-            console.log('[HTTP] No user found for Firebase UID during project creation:', userId);
-            return res.status(400).json({ 
-              error: true, 
-              message: "User account not properly configured. Please contact support." 
-            });
-          }
-        } catch (lookupError) {
-          console.error('[HTTP] Error looking up user by Firebase UID during project creation:', lookupError);
-          return res.status(500).json({ 
-            error: true, 
-            message: "Authentication error. Please try again." 
-          });
-        }
-      }
       
       if (isNaN(userIdNum)) {
         console.log('[HTTP] SECURITY: Cannot create project - userId is not a valid number. User has old session format:', userId);
@@ -1243,30 +1093,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[HTTP] DEBUG - Board creation - userId from session:', userId, 'type:', typeof userId);
       let userIdNum = parseInt(userId);
       console.log('[HTTP] DEBUG - Board creation - parsed userIdNum:', userIdNum, 'isNaN:', isNaN(userIdNum));
-      
-      // Handle Firebase UID sessions - look up the actual user ID by Firebase UID
-      if (isNaN(userIdNum) && typeof userId === 'string') {
-        console.log('[HTTP] Firebase UID detected for board creation, looking up user by Firebase UID:', userId);
-        try {
-          const user = await storage.getUserByFirebaseUid(userId);
-          if (user) {
-            userIdNum = user.id;
-            console.log('[HTTP] Found user by Firebase UID for board creation - user ID:', userIdNum);
-          } else {
-            console.log('[HTTP] No user found for Firebase UID during board creation:', userId);
-            return res.status(401).json({ 
-              error: true, 
-              message: "User not found. Please sign in again." 
-            });
-          }
-        } catch (lookupError) {
-          console.error('[HTTP] Error looking up user by Firebase UID during board creation:', lookupError);
-          return res.status(500).json({ 
-            error: true, 
-            message: "Authentication error. Please try again." 
-          });
-        }
-      }
       
       // SECURITY FIX: Block creation for invalid userIds after Firebase lookup
       if (isNaN(userIdNum)) {
@@ -1523,170 +1349,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Google OAuth initiation endpoint
-  app.get("/api/auth/google", (req, res) => {
-    console.log('[HTTP] Starting Google OAuth flow');
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    if (!clientId) {
-      return res.status(500).json({ error: "Google OAuth not configured" });
-    }
-    const redirectUri = `${req.protocol}://${req.get('host')}/auth/google-callback`;
-    const scope = "openid email profile";
-    
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${encodeURIComponent(clientId)}&` +
-      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-      `response_type=code&` +
-      `scope=${encodeURIComponent(scope)}&` +
-      `access_type=offline&` +
-      `prompt=consent`;
-    
-    console.log('[HTTP] Redirecting to Google OAuth URL');
-    res.redirect(authUrl);
-  });
-
-  // Google OAuth callback GET endpoint (for Google redirects)
-  app.get("/auth/google-callback", async (req, res) => {
-    try {
-      const { code, error } = req.query;
-      
-      if (error) {
-        console.error('[HTTP] Google OAuth error:', error);
-        return res.redirect('/auth/login?error=oauth_failed');
-      }
-      
-      if (!code) {
-        console.error('[HTTP] No authorization code received');
-        return res.redirect('/auth/login?error=no_code');
-      }
-      
-      console.log('[HTTP] Processing Google OAuth callback with code');
-      
-      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          code: code as string,
-          client_id: process.env.GOOGLE_CLIENT_ID || "",
-          client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
-          redirect_uri: `${req.protocol}://${req.get('host')}/auth/google-callback`,
-          grant_type: 'authorization_code',
-        }),
-      });
-      
-      if (!tokenResponse.ok) {
-        const errorText = await tokenResponse.text();
-        console.error('[HTTP] Token exchange failed:', errorText);
-        return res.redirect('/auth/login?error=token_exchange_failed');
-      }
-      
-      const tokens = await tokenResponse.json();
-      console.log('[HTTP] Successfully exchanged code for tokens');
-      
-      // Decode the ID token to get user information
-      if (tokens.id_token) {
-        try {
-          // Extract user info from ID token (simplified JWT decode)
-          const tokenParts = tokens.id_token.split('.');
-          const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
-          
-          // Create session with user data
-          const userId = `google_${payload.sub}`;
-          (req.session as any).userId = userId;
-          (req.session as any).email = payload.email;
-          (req.session as any).displayName = payload.name || payload.email?.split('@')[0];
-          
-          console.log('[HTTP] Session created for Google user:', payload.email);
-          
-          // Redirect to dashboard on successful login
-          res.redirect('/');
-        } catch (decodeError) {
-          console.error('[HTTP] Failed to decode ID token:', decodeError);
-          res.redirect('/auth/login?error=token_decode_failed');
-        }
-      } else {
-        console.error('[HTTP] No ID token received');
-        res.redirect('/auth/login?error=no_id_token');
-      }
-    } catch (error) {
-      console.error('[HTTP] Google OAuth callback error:', error);
-      res.redirect('/auth/login?error=callback_failed');
-    }
-  });
-
-  // Google OAuth callback endpoint
-  app.post("/api/auth/google/exchange", async (req, res) => {
-    try {
-      const { code } = req.body;
-      
-      if (!code) {
-        return res.status(400).json({ error: "Authorization code is required" });
-      }
-      
-      console.log('[HTTP] Exchanging Google OAuth code for tokens');
-      
-      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          code,
-          client_id: process.env.GOOGLE_CLIENT_ID || "",
-          client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
-          redirect_uri: `${req.protocol}://${req.get('host')}/auth/google-callback`,
-          grant_type: 'authorization_code',
-        }),
-      });
-      
-      if (!tokenResponse.ok) {
-        const errorText = await tokenResponse.text();
-        console.error('[HTTP] Token exchange failed:', errorText);
-        return res.status(400).json({ error: "Failed to exchange code for tokens" });
-      }
-      
-      const tokens = await tokenResponse.json();
-      console.log('[HTTP] Successfully exchanged code for tokens');
-      
-      // Decode the ID token to get user information
-      if (tokens.id_token) {
-        try {
-          // Extract user info from ID token (simplified JWT decode)
-          const tokenParts = tokens.id_token.split('.');
-          const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
-          
-          // Create session with user data
-          const userId = `google_${payload.sub}`;
-          (req.session as any).userId = userId;
-          (req.session as any).email = payload.email;
-          (req.session as any).displayName = payload.name || payload.email?.split('@')[0];
-          
-          console.log('[HTTP] Session created for Google user:', payload.email);
-          
-          res.json({
-            success: true,
-            user: {
-              uid: userId,
-              email: payload.email,
-              displayName: payload.name || payload.email?.split('@')[0]
-            }
-          });
-        } catch (decodeError) {
-          console.error('[HTTP] Failed to decode ID token:', decodeError);
-          res.status(500).json({ error: "Failed to process authentication" });
-        }
-      } else {
-        console.error('[HTTP] No ID token received from Google');
-        res.status(400).json({ error: "No ID token received" });
-      }
-    } catch (error) {
-      console.error('[HTTP] OAuth exchange error:', error);
-      res.status(500).json({ error: "Internal server error during token exchange" });
-    }
-  });
-  
   // Google Sheets Integration API endpoints
   app.post("/api/google-sheets/validate", async (req, res) => {
     try {
@@ -2295,8 +1957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      console.log('[NOTIFICATION COUNT] Looking up user by Firebase UID:', req.session.userId);
-      const user = await storage.getUserByFirebaseUid(req.session.userId);
+      const user = await storage.getUser(parseInt(req.session.userId));
       console.log('[NOTIFICATION COUNT] Found user:', user ? `ID: ${user.id}` : 'null');
       
       if (!user) {
@@ -2322,7 +1983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const notificationId = req.params.id; // Keep as string since IDs are UUIDs
-      const user = await storage.getUserByFirebaseUid(req.session.userId);
+      const user = await storage.getUser(parseInt(req.session.userId));
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -2379,18 +2040,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { content, blockId, mentions = [] } = req.body;
 
       // Get user ID from session
-      let userIdNum: number;
-      if (typeof req.session.userId === 'string' && req.session.userId.startsWith('google_')) {
-        const user = await storage.getUserByFirebaseUid(req.session.userId);
-        if (!user) {
-          return res.status(404).json({ error: 'User not found' });
-        }
-        userIdNum = user.id;
-      } else {
-        userIdNum = parseInt(req.session.userId.toString());
-        if (isNaN(userIdNum)) {
-          return res.status(400).json({ error: 'Invalid user session' });
-        }
+      const userIdNum = parseInt(req.session.userId.toString());
+      if (isNaN(userIdNum)) {
+        return res.status(400).json({ error: 'Invalid user session' });
       }
 
       // Get board details for notifications
@@ -2510,7 +2162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify email matches invitation
-      if (email !== invitation.email) {
+      if (email.trim().toLowerCase() !== invitation.email.trim().toLowerCase()) {
         return res.status(400).json({ error: true, message: "Email must match the invited email" });
       }
       
@@ -2520,27 +2172,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ error: true, message: "User with this email already exists" });
       }
       
-      let firebaseUserRecord = null;
-      let newUser = null;
+      if (typeof password !== 'string' || password.length < 8) {
+        return res.status(400).json({ error: true, message: "Password must be at least 8 characters" });
+      }
+      
+      if (await storage.getUserByUsername(username)) {
+        return res.status(409).json({ error: true, message: "That username is taken. Please choose another." });
+      }
       
       try {
-        // Step 1: Create Firebase authentication account
-        console.log('[HTTP] Creating Firebase account for invited user:', email);
-        const { createFirebaseUser, deleteFirebaseUser } = await import('./firebase-admin.js');
-        
-        const displayName = `${firstName} ${lastName}`.trim();
-        firebaseUserRecord = await createFirebaseUser(email, password, displayName);
-        console.log('[HTTP] Firebase account created successfully:', firebaseUserRecord.uid);
-        
-        // Step 2: Create database user account with Firebase UID
-        newUser = await storage.createUser({
+        // Step 1-2: Create database user account
+        const newUser = await storage.createUser({
           username,
-          email,
+          email: invitation.email.trim().toLowerCase(),
           firstName,
           lastName,
           profileImageUrl,
-          password: '', // Don't store password in database since Firebase handles auth
-          firebaseUid: firebaseUserRecord.uid // Store Firebase UID for linking
+          password: await hashPassword(password)
         });
         console.log('[HTTP] Database user created successfully:', newUser.id);
         
@@ -2574,25 +2222,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`[HTTP] Created invite acceptance notification for inviter ${invitation.invitedBy}`);
         }
         
+        // Sign the new user in
+        await new Promise<void>((resolve, reject) =>
+          req.session.regenerate((err) => {
+            if (err) return reject(err);
+            req.session.userId = String(newUser.id);
+            req.session.email = newUser.email;
+            req.session.displayName = newUser.username;
+            req.session.save((saveErr) => (saveErr ? reject(saveErr) : resolve()));
+          })
+        );
+        
+        const { password: _password, ...safeUser } = newUser;
         res.json({ 
           success: true, 
-          user: {
-            ...newUser,
-            firebaseUid: firebaseUserRecord.uid
-          },
+          user: safeUser,
           message: "Account created and invitation accepted successfully" 
         });
         
       } catch (createError) {
         console.error('[HTTP] Error during account creation:', createError);
-        
-        // Cleanup: If database user was created but something failed, try to clean up
-        if (firebaseUserRecord && !newUser) {
-          console.log('[HTTP] Cleaning up Firebase user after database creation failed');
-          const { deleteFirebaseUser } = await import('./firebase-admin.js');
-          await deleteFirebaseUser(firebaseUserRecord.uid);
-        }
-        
         throw createError;
       }
       
@@ -2600,17 +2249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('[HTTP] Error accepting invitation:', err);
       
       // Return user-friendly error message
-      let errorMessage = "Failed to accept invitation";
-      if (err instanceof Error) {
-        if (err.message.includes('email-already-exists')) {
-          errorMessage = "An account with this email already exists";
-        } else if (err.message.includes('weak-password')) {
-          errorMessage = "Password is too weak. Please choose a stronger password";
-        } else if (err.message.includes('invalid-email')) {
-          errorMessage = "Invalid email address";
-        }
-      }
-      
+      const errorMessage = "Failed to accept invitation";
       res.status(500).json({ error: true, message: errorMessage });
     }
   });
@@ -3356,23 +2995,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: true, message: "Authentication required" });
       }
 
-      // Handle both string and number user IDs, including Firebase UIDs
-      let userIdNum: number;
-      if (typeof userId === 'string' && userId.startsWith('google_')) {
-        console.log('[NOTIFICATIONS] Looking up user by Firebase UID:', userId);
-        const user = await storage.getUserByFirebaseUid(userId);
-        if (!user) {
-          console.log('[NOTIFICATIONS] No user found for Firebase UID, returning empty array');
-          return res.json([]);
-        }
-        userIdNum = user.id;
-        console.log('[NOTIFICATIONS] Found user ID:', userIdNum);
-      } else {
-        userIdNum = parseInt(userId.toString());
-        if (isNaN(userIdNum)) {
-          console.log('[NOTIFICATIONS] Invalid user session, userId is NaN');
-          return res.status(400).json({ error: true, message: "Invalid user session" });
-        }
+      const userIdNum = parseInt(userId.toString());
+      if (isNaN(userIdNum)) {
+        console.log('[NOTIFICATIONS] Invalid user session, userId is NaN');
+        return res.status(400).json({ error: true, message: "Invalid user session" });
       }
 
       console.log(`[NOTIFICATIONS] Fetching notifications for user ${userIdNum}`);
@@ -3620,265 +3246,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Google OAuth session creation for Firebase authentication (magic link, Google sign-in)
-  app.post("/api/auth/google-callback", async (req, res) => {
-    try {
-      console.log('[HTTP] Firebase session creation request');
-      console.log('[HTTP] Request body:', req.body);
-      const { uid, email, displayName, photoURL } = req.body;
-      
-      if (!uid || !email) {
-        console.error('[HTTP] Missing required fields - uid:', uid, 'email:', email);
-        return res.status(400).json({ error: true, message: "Missing required fields" });
-      }
-      
-      console.log('[HTTP] Looking up user by email:', email);
-      let user = await storage.getUserByEmail(email);
-      console.log('[HTTP] Found existing user:', user ? user.id : 'none');
-      
-      if (!user) {
-        console.log('[HTTP] Creating new user for Firebase auth:', email);
-        user = await storage.createUser({
-          email,
-          username: displayName || email.split('@')[0],
-          password: '', // Firebase handles auth; no local password
-          firebaseUid: uid
-        });
-        console.log('[HTTP] Created new user with ID:', user.id);
-      } else if (!user.firebaseUid) {
-        console.log('[HTTP] Updating existing user with Firebase UID:', email);
-        await storage.updateUser(user.id, { firebaseUid: uid });
-        user.firebaseUid = uid;
-        console.log('[HTTP] Updated user with Firebase UID');
-      }
-      
-      console.log('[HTTP] Setting session data - userId:', uid, 'email:', email);
-      (req.session as any).userId = uid;
-      (req.session as any).email = email;
-      (req.session as any).displayName = displayName;
-      
-      console.log('[HTTP] Firebase session created successfully');
-      res.json({ success: true, user: { uid, email, displayName, photoURL } });
-    } catch (error) {
-      console.error('[HTTP] Firebase session creation error:', error);
-      res.status(500).json({ error: true, message: "Session creation failed" });
-    }
-  });
-
-  // Session-based authentication endpoints
-  app.get("/api/auth/session", async (req, res) => {
-    console.log('[HTTP] Checking session');
-    console.log('[HTTP] Session userId:', (req.session as any)?.userId);
-    console.log('[HTTP] Session exists:', !!req.session);
-    
-    const userId = (req.session as any)?.userId;
-    if (userId) {
-      let resolvedUserId = userId;
-      
-      // For Firebase UID sessions, resolve to database user ID
-      if (typeof userId === 'string') {
-        try {
-          const user = await storage.getUserByFirebaseUid(userId);
-          if (user) {
-            resolvedUserId = user.id;
-            console.log('[HTTP] Resolved Firebase UID to database user ID:', resolvedUserId);
-          } else {
-            console.log('[HTTP] No user found for Firebase UID:', userId);
-            return res.status(401).json({ error: true, message: "User not found" });
-          }
-        } catch (lookupError) {
-          console.error('[HTTP] Error resolving Firebase UID during session check:', lookupError);
-          return res.status(401).json({ error: true, message: "Database error during authentication" });
-        }
-      }
-      
-      res.json({
-        user: {
-          uid: resolvedUserId,
-          email: (req.session as any)?.email,
-          displayName: (req.session as any)?.displayName
-        }
-      });
-    } else {
-      console.log('[HTTP] No userId in session - creating temporary session for database connectivity issues');
-      // Create temporary session when database is unavailable
-      (req.session as any).userId = 'google_107499317668241415655';
-      (req.session as any).email = 'user@example.com';
-      (req.session as any).displayName = 'Demo User';
-      
-      res.json({
-        user: {
-          uid: 8, // Temporary user ID
-          email: 'user@example.com',
-          displayName: 'Demo User'
-        },
-        temporary: true
-      });
-    }
-  });
-
-  app.post("/api/auth/signin", async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      console.log('[HTTP] Simple sign in attempt for:', email);
-      
-      if (email && password) {
-        // Look up the actual user by email to get the real user ID
-        const user = await storage.getUserByEmail(email);
-        if (!user) {
-          console.log('[HTTP] User not found for email:', email);
-          return res.status(401).json({ error: true, message: "Invalid credentials" });
-        }
-        
-        // Use the actual database user ID instead of a timestamp
-        const userId = user.id;
-        (req.session as any).userId = userId;
-        (req.session as any).email = email;
-        (req.session as any).displayName = user.username || email.split('@')[0];
-        
-        console.log('[HTTP] Sign in successful - user ID:', userId, 'email:', email);
-        
-        res.json({
-          success: true,
-          user: {
-            uid: userId,
-            email: email,
-            displayName: user.username || email.split('@')[0]
-          }
-        });
-      } else {
-        res.status(400).json({ error: true, message: "Invalid credentials" });
-      }
-    } catch (err) {
-      console.error('[HTTP] Sign in error:', err);
-      res.status(500).json({ error: true, message: "Sign in failed" });
-    }
-  });
-
-  app.post("/api/auth/signup", async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      console.log('[SIGNUP] Starting signup process for:', email);
-      console.log('[SIGNUP] Request body structure:', { 
-        hasEmail: !!email, 
-        hasPassword: !!password, 
-        emailType: typeof email, 
-        passwordType: typeof password 
-      });
-      
-      if (!email || !password) {
-        console.log('[SIGNUP] VALIDATION FAILED: Missing email or password');
-        return res.status(400).json({ error: true, message: "Email and password required" });
-      }
-
-      console.log('[SIGNUP] Step 1: Checking for existing user...');
-      // Check if user already exists
-      let existingUser;
-      try {
-        existingUser = await storage.getUserByEmail(email);
-        console.log('[SIGNUP] Existing user check completed:', !!existingUser);
-      } catch (dbError) {
-        console.log('[SIGNUP] Database error during user lookup:', dbError);
-        existingUser = null;
-      }
-      
-      if (existingUser) {
-        console.log('[SIGNUP] CONFLICT: User already exists with email:', email);
-        return res.status(400).json({ error: true, message: "An account with this email already exists. Please try signing in instead." });
-      }
-
-      console.log('[SIGNUP] Step 2: Preparing user data...');
-      // Create user in database using the proper auth system
-      const userData = {
-        email,
-        password,
-        username: email.split('@')[0]
-      };
-      console.log('[SIGNUP] User data prepared:', { email: userData.email, username: userData.username });
-
-      console.log('[SIGNUP] Step 3: Validating user data schema...');
-      const parseResult = insertUserSchema.safeParse(userData);
-      if (!parseResult.success) {
-        console.error('[SIGNUP] SCHEMA VALIDATION FAILED:', parseResult.error);
-        console.error('[SIGNUP] Validation errors:', parseResult.error.errors);
-        return res.status(400).json({
-          error: true,
-          message: parseResult.error.errors[0].message
-        });
-      }
-      console.log('[SIGNUP] Schema validation passed');
-
-      console.log('[SIGNUP] Step 4: Hashing password...');
-      // Hash password using the existing auth function
-      const { scrypt, randomBytes } = await import('crypto');
-      const { promisify } = await import('util');
-      const scryptAsync = promisify(scrypt);
-      
-      const salt = randomBytes(16).toString("hex");
-      const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-      const hashedPassword = `${buf.toString("hex")}.${salt}`;
-      console.log('[SIGNUP] Password hashed successfully');
-
-      const userToCreate = {
-        ...parseResult.data,
-        password: hashedPassword as string
-      };
-      console.log('[SIGNUP] Final user object prepared for database:', { 
-        email: userToCreate.email, 
-        username: userToCreate.username,
-        hasPassword: !!userToCreate.password 
-      });
-
-      console.log('[SIGNUP] Step 5: Creating user in database...');
-      let newUser;
-      try {
-        newUser = await storage.createUser(userToCreate);
-        console.log('[SIGNUP] SUCCESS: Database user created with ID:', newUser.id);
-      } catch (createError) {
-        console.error('[SIGNUP] DATABASE CREATE ERROR:', createError);
-        console.error('[SIGNUP] Error details:', {
-          message: createError instanceof Error ? createError.message : 'Unknown error',
-          stack: createError instanceof Error ? createError.stack : undefined
-        });
-        throw createError;
-      }
-
-      console.log('[SIGNUP] Step 6: Setting up session...');
-      // Set session with the actual database user ID
-      (req.session as any).userId = newUser.id;
-      (req.session as any).email = newUser.email;
-      (req.session as any).displayName = newUser.username;
-      console.log('[SIGNUP] Session configured for user ID:', newUser.id);
-
-      console.log('[SIGNUP] Step 7: Sending successful response...');
-      res.json({
-        success: true,
-        user: {
-          uid: newUser.id.toString(),
-          email: newUser.email,
-          displayName: newUser.username
-        }
-      });
-      console.log('[SIGNUP] COMPLETE: Signup successful for:', email);
-      
-    } catch (err) {
-      console.error('[SIGNUP] FATAL ERROR during signup process:', err);
-      console.error('[SIGNUP] Error type:', err instanceof Error ? err.constructor.name : typeof err);
-      console.error('[SIGNUP] Error message:', err instanceof Error ? err.message : err);
-      console.error('[SIGNUP] Error stack:', err instanceof Error ? err.stack : 'No stack trace');
-      
-      // Send user-friendly error message
-      res.status(500).json({ error: true, message: "Sign up failed" });
-    }
-  });
-
-  app.post("/api/auth/signout", (req, res) => {
-    console.log('[HTTP] Simple sign out');
-    req.session?.destroy(() => {
-      res.json({ success: true });
-    });
-  });
-
   // Test notification endpoint
   app.post('/api/create-test-notification', async (req, res) => {
     if (!req.session?.userId) {
@@ -3886,7 +3253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const user = await storage.getUserByFirebaseUid(req.session.userId);
+      const user = await storage.getUser(parseInt(req.session.userId));
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -4029,21 +3396,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!userId) return null;
     
     let userIdNum = parseInt(String(userId));
-    
-    // Handle Google OAuth user IDs
-    if (isNaN(userIdNum) && typeof userId === 'string' && userId.startsWith('google_')) {
-      try {
-        const user = await storage.getUserByFirebaseUid(userId);
-        if (user) {
-          userIdNum = user.id;
-        } else {
-          return null;
-        }
-      } catch (error) {
-        console.error('[HTTP] Error looking up user by Firebase UID:', error);
-        return null;
-      }
-    }
     
     return isNaN(userIdNum) ? null : userIdNum;
   };
