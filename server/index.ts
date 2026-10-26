@@ -213,22 +213,24 @@ async function initializeServer() {
       message: 'Too many requests from this IP, please try again after 15 minutes'
     });
     
-    // Apply general rate limiting to all requests
-    app.use(generalLimiter);
+    // Apply general rate limiting to API requests (page assets aren't counted;
+    // in dev, Vite serves hundreds of module files per page load)
+    app.use('/api', generalLimiter);
     
-    // More strict rate limiting for authentication endpoints
+    // Stricter limit on sign-in attempts. Only the actual sign-in/sign-up
+    // actions count, not the session check that runs on every page load.
     const authLimiter = rateLimit({
-      windowMs: 60 * 60 * 1000, // 1 hour
-      limit: 10, // Limit each IP to 10 login/register attempts per hour
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      limit: 20,
       standardHeaders: 'draft-7',
       legacyHeaders: false,
-      message: 'Too many authentication attempts from this IP, please try again after an hour'
+      message: { error: true, message: 'Too many sign-in attempts. Please try again in 15 minutes.' }
     });
     
-    // Apply stricter rate limiting to authentication endpoints
-    app.use('/api/login', authLimiter);
-    app.use('/api/register', authLimiter);
-    app.use('/api/auth', authLimiter);
+    app.post('/api/auth/signin', authLimiter);
+    app.post('/api/auth/signup', authLimiter);
+    app.post('/api/invite/:token/accept', authLimiter);
+    app.get('/api/auth/google', authLimiter);
     
     log('[INFO] Rate limiting middleware initialized');
     
