@@ -2254,7 +2254,7 @@ export default function BoardGrid({
 
   return (
     <div className={`flex-1 relative overflow-hidden flex flex-col bauhaus-halftone-bg ${darkMode ? 'dark' : ''}`}>
-      <header className={`rounded h-20 border-b-2 px-8 flex justify-between items-center shadow-none flex-shrink-0 sticky top-0 left-0 right-0 z-50 ${
+      <header className={`h-20 border-b-2 px-8 flex justify-between items-center shadow-none flex-shrink-0 sticky top-0 left-0 right-0 z-50 ${
         darkMode ? 'bg-black border-[#FFD600]' : 'bg-[#0A0A0F] border-[color:var(--card-border)]'
       }`}>
         <div className="flex items-center gap-4 pl-4">
@@ -3813,7 +3813,7 @@ export default function BoardGrid({
           {/* Main Presentation Area */}
           <div className={`flex-1 flex flex-col ${presentationDarkMode ? 'bg-[#0A0A0F]' : 'bg-white'} overflow-hidden`}>
             {/* Presentation Header */}
-            <div className={`rounded flex items-center justify-between p-4 border-b-2 ${
+            <div className={`flex items-center justify-between p-4 border-b-2 ${
               presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333]' : 'bg-white border-[color:var(--card-border)]'
             }`}>
               {/* Left side - Board name and path */}
@@ -3852,7 +3852,7 @@ export default function BoardGrid({
                   <PopoverContent className={`w-80 p-0 rounded border-2 shadow-[2px_2px_0px_0px] ${
                     presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] shadow-[#333333]' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
                   }`} align="start">
-                    <div className={`rounded p-3 border-b-2 ${
+                    <div className={`p-3 border-b-2 ${
                       presentationDarkMode ? 'border-[#333333]' : 'border-[color:var(--card-border)]'
                     }`}>
                       <h4 className={`font-black uppercase tracking-widest text-xs ${
@@ -4194,10 +4194,10 @@ export default function BoardGrid({
           </div>
           
           {/* Right Sidebar - Notes and Add Block */}
-          <div className={`rounded ${presentationViewMode === 'large' ? 'w-80' : 'w-80'} border-l-2 flex flex-col ${
+          <div className={`${presentationViewMode === 'large' ? 'w-80' : 'w-80'} border-l-2 flex flex-col ${
             presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333]' : 'bg-gray-50 border-[color:var(--card-border)]'
           }`}>
-            <div className={`rounded p-4 border-b-2 ${
+            <div className={`p-4 border-b-2 ${
               presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333]' : 'bg-white border-[color:var(--card-border)]'
             }`}>
               <h3 className={`font-black uppercase tracking-widest text-xs ${
@@ -4217,7 +4217,7 @@ export default function BoardGrid({
               />
               
               {/* Add New Block Section */}
-              <div className={`rounded border-t-2 pt-6 mt-4 ${
+              <div className={`border-t-2 pt-6 mt-4 ${
                 presentationDarkMode ? 'border-[#333333]' : 'border-[color:var(--card-border)]'
               }`}>
                 <h4 className={`font-black uppercase tracking-widest text-[10px] mb-4 ${

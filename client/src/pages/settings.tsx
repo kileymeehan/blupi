@@ -33,7 +33,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Sub-navigation */}
-        <div className="rounded mb-8 border-b-2 border-[color:var(--card-border)]">
+        <div className="mb-8 border-b-2 border-[color:var(--card-border)]">
           <div className="flex gap-0">
             <button
               onClick={() => setActiveTab('team')}

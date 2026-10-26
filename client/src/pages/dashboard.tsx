@@ -667,7 +667,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bauhaus-halftone-bg animate-fade-in">
-      <header className="rounded border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F] shadow-lg">
+      <header className="border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F] shadow-lg">
         <div className="max-w-[1440px] mx-auto flex h-20 items-center px-6">
           <div className="flex-1 flex items-center gap-4">
             <Link href="/" className="flex items-center">
@@ -797,7 +797,7 @@ export default function Dashboard() {
         )}
 
         {/* Tab Navigation */}
-        <div className={`rounded border-b-2 border-[color:var(--card-border)] ${!showWelcome ? 'mt-6' : ''}`} id="sidebar">
+        <div className={`border-b-2 border-[color:var(--card-border)] ${!showWelcome ? 'mt-6' : ''}`} id="sidebar">
           <nav className="-mb-px flex space-x-0">
             <button
               onClick={() => setActiveTab('projects')}
@@ -1090,21 +1090,21 @@ export default function Dashboard() {
               <div className="bauhaus-card overflow-hidden mb-8">
                 <Table>
                   <TableHeader>
-                    <TableRow className="rounded bg-[#0A0A0F] border-b-2 border-[color:var(--card-border)]">
-                      <TableHead className="rounded w-[50px] border-r-2 border-[color:var(--card-border)]">
+                    <TableRow className="bg-[#0A0A0F] border-b-2 border-[color:var(--card-border)]">
+                      <TableHead className="w-[50px] border-r-2 border-[color:var(--card-border)]">
                         <Checkbox
                           className="border-2 border-white bg-white"
                           checked={selectedBlueprints.size === displayedBoards.length && displayedBoards.length > 0}
                           onCheckedChange={handleSelectAllBlueprints}
                         />
                       </TableHead>
-                      <TableHead className="rounded w-[300px] border-r-2 border-[color:var(--card-border)] font-black uppercase tracking-widest text-white py-4">
+                      <TableHead className="w-[300px] border-r-2 border-[color:var(--card-border)] font-black uppercase tracking-widest text-white py-4">
                         Blueprint Name
                       </TableHead>
-                      <TableHead className="rounded w-[180px] border-r-2 border-[color:var(--card-border)] font-black uppercase tracking-widest text-white py-4">
+                      <TableHead className="w-[180px] border-r-2 border-[color:var(--card-border)] font-black uppercase tracking-widest text-white py-4">
                         Created
                       </TableHead>
-                      <TableHead className="rounded w-[160px] border-r-2 border-[color:var(--card-border)] font-black uppercase tracking-widest text-white py-4">
+                      <TableHead className="w-[160px] border-r-2 border-[color:var(--card-border)] font-black uppercase tracking-widest text-white py-4">
                         Status
                       </TableHead>
                       <TableHead className="w-[250px] font-black uppercase tracking-widest text-white py-4">
@@ -1117,22 +1117,22 @@ export default function Dashboard() {
                     {displayedBoards.map((board) => {
                       const project = projects.find((p) => p.id === board.projectId);
                       return (
-                        <TableRow key={board.id} className="rounded hover:bg-[#FFD600] border-b-2 border-[color:var(--card-border)] transition-colors group">
-                          <TableCell className="rounded border-r-2 border-[color:var(--card-border)]">
+                        <TableRow key={board.id} className="hover:bg-[#FFD600] border-b-2 border-[color:var(--card-border)] transition-colors group">
+                          <TableCell className="border-r-2 border-[color:var(--card-border)]">
                             <Checkbox
                               checked={selectedBlueprints.has(board.id)}
                               onCheckedChange={(checked) => handleSelectBlueprint(board.id, checked as boolean)}
                             />
                           </TableCell>
-                          <TableCell className="rounded font-black uppercase tracking-tight border-r-2 border-[color:var(--card-border)] py-4">
+                          <TableCell className="font-black uppercase tracking-tight border-r-2 border-[color:var(--card-border)] py-4">
                             <Link href={`/board/${board.id}`} className="text-[#1976D2] group-hover:text-[#0A0A0F] block">
                               {board.name}
                             </Link>
                           </TableCell>
-                          <TableCell className="rounded border-r-2 border-[color:var(--card-border)] font-bold text-[#0A0A0F] py-4">
+                          <TableCell className="border-r-2 border-[color:var(--card-border)] font-bold text-[#0A0A0F] py-4">
                             {format(new Date(board.createdAt), "MMM d, yyyy")}
                           </TableCell>
-                          <TableCell className="rounded border-r-2 border-[color:var(--card-border)] py-4">
+                          <TableCell className="border-r-2 border-[color:var(--card-border)] py-4">
                             <StatusBadge status={board.status} />
                           </TableCell>
                           <TableCell className="py-4">

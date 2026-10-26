@@ -304,8 +304,8 @@ export function OrganizationSettings() {
   }
 
   return (
-      <Card className="max-w-6xl mx-auto border-2 border-[color:var(--card-border)] rounded shadow-[4px_4px_0px_0px_var(--card-shadow)] bg-white">
-      <CardHeader className="rounded border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F] text-white py-8 px-8">
+      <Card className="max-w-6xl mx-auto border-2 border-[color:var(--card-border)] rounded shadow-[4px_4px_0px_0px_var(--card-shadow)] bg-white overflow-hidden">
+      <CardHeader className="border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F] text-white py-8 px-8">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-white text-2xl">

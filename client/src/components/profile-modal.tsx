@@ -161,7 +161,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md border-2 border-[color:var(--card-border)] rounded shadow-[4px_4px_0px_0px_var(--card-shadow)]">
-        <DialogHeader className="rounded border-b-2 border-[color:var(--card-border)] pb-4">
+        <DialogHeader className="border-b-2 border-[color:var(--card-border)] pb-4">
           <DialogTitle className="text-[#0A0A0F] font-black uppercase tracking-tight">Profile Settings</DialogTitle>
           <DialogDescription className="text-gray-600">
             Manage your account settings and preferences
@@ -266,7 +266,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
         </div>
 
         {/* Footer Actions */}
-        <div className="rounded flex justify-between items-center pt-4 border-t-2 border-[color:var(--card-border)]">
+        <div className="flex justify-between items-center pt-4 border-t-2 border-[color:var(--card-border)]">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" className="text-red-600 hover:text-white hover:bg-red-600 text-sm p-2 h-auto font-bold uppercase tracking-wide rounded border-2 border-transparent hover:border-red-600">

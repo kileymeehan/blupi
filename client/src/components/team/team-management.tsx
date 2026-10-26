@@ -424,15 +424,15 @@ export default function TeamManagement() {
   }
 
   return (
-      <Card className="max-w-6xl mx-auto border-2 border-[color:var(--card-border)] rounded shadow-[4px_4px_0px_0px_var(--card-shadow)] bg-white">
+      <Card className="max-w-6xl mx-auto border-2 border-[color:var(--card-border)] rounded shadow-[4px_4px_0px_0px_var(--card-shadow)] bg-white overflow-hidden">
       {activeOrg && (
-        <div className="rounded bg-[#1976D2] border-b-2 border-[color:var(--card-border)] px-6 py-3 flex items-center gap-2 text-sm text-white">
+        <div className="bg-[#1976D2] border-b-2 border-[color:var(--card-border)] px-6 py-3 flex items-center gap-2 text-sm text-white">
           <Building2 className="h-4 w-4 text-[#FFD600]" />
           <span className="font-black uppercase tracking-widest">{activeOrg.name}</span>
           <span className="opacity-80 font-bold uppercase tracking-tight text-xs ml-1">organization</span>
         </div>
       )}
-      <CardHeader className="rounded border-b-2 border-[color:var(--card-border)] bg-white py-8 px-8">
+      <CardHeader className="border-b-2 border-[color:var(--card-border)] bg-white py-8 px-8">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-[#0A0A0F] text-2xl">

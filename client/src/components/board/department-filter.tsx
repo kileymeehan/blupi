@@ -73,7 +73,7 @@ export function DepartmentFilter({
         <TabsList className={`grid w-full grid-cols-2 mb-4 border-2 rounded p-0 h-auto ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c]" : "bg-white border-[color:var(--card-border)]"}`}>
           <TabsTrigger 
             value="departments" 
-            className={`rounded font-bold uppercase text-xs tracking-wide py-2 ${
+            className={`font-bold uppercase text-xs tracking-wide py-2 ${
               darkMode 
                 ? "border-r border-[#3a3a5c] text-white data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F]" 
                 : "border-r border-[color:var(--card-border)] data-[state=active]:bg-[#FFD600] data-[state=active]:text-[#0A0A0F]"
