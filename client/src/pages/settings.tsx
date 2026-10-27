@@ -4,9 +4,12 @@ import { ChevronLeft, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrganizationSettings } from "@/components/organization-settings";
 import TeamManagement from "@/components/team/team-management";
+import { ExtensionSettings } from "@/components/extension-settings";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'team' | 'other'>('team');
+  const [activeTab, setActiveTab] = useState<'team' | 'extension'>(
+    () => (new URLSearchParams(window.location.search).get('tab') === 'extension' ? 'extension' : 'team')
+  );
 
   return (
     <div className="min-h-screen bauhaus-halftone-bg">
@@ -46,14 +49,14 @@ export default function SettingsPage() {
               Team
             </button>
             <button
-              onClick={() => setActiveTab('other')}
+              onClick={() => setActiveTab('extension')}
               className={`py-3 px-6 font-bold text-sm uppercase tracking-wider transition-all ${
-                activeTab === 'other'
+                activeTab === 'extension'
                   ? 'bg-[#0A0A0F] text-white'
                   : 'bg-transparent text-[#0A0A0F] hover:bg-[#FFD600]'
               }`}
             >
-              Other Settings
+              Chrome Extension
             </button>
           </div>
         </div>
@@ -66,12 +69,8 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Other Settings Tab */}
-        {activeTab === 'other' && (
-          <div className="rounded text-center py-12 bg-white border-2 border-[color:var(--card-border)] shadow-[4px_4px_0px_0px_var(--card-shadow)]">
-            <p className="text-gray-600 font-semibold">Coming soon</p>
-          </div>
-        )}
+        {/* Chrome Extension Tab */}
+        {activeTab === 'extension' && <ExtensionSettings />}
       </main>
     </div>
   );

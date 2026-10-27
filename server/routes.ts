@@ -7,6 +7,7 @@ import { insertBoardSchema, insertProjectSchema, insertUserSchema } from "@share
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { setupCollaboration, notifyBoardChanged } from './collaboration';
+import { setupExtensionRoutes } from './extension';
 
 
 import { getFrictionMetrics, isPendoConfigured, getAuthorizationUrl, exchangeCodeForToken, setOAuthToken } from './utils/pendo';
@@ -490,6 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   setupCollaboration(httpServer);
+  setupExtensionRoutes(app);
 
   // Add a health check endpoint
   app.get("/api/ping", (_req, res) => {

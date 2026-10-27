@@ -519,3 +519,16 @@ export const insertBoardSchema = createInsertSchema(boards)
 export type InsertBoard = z.infer<typeof insertBoardSchema>;
 export type Board = typeof boards.$inferSelect;
 
+
+// Tokens that let the Chrome extension act as a user. Only a SHA-256 hash of
+// each token is stored; the token itself is shown once, when it's created.
+export const apiTokens = pgTable("api_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  name: text("name").notNull(),
+  tokenHash: text("token_hash").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastUsedAt: timestamp("last_used_at"),
+});
+
+export type ApiToken = typeof apiTokens.$inferSelect;

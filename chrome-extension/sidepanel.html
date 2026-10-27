@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Blupi Flow Capture</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header class="topbar">
+    <img src="icons/icon-48.png" alt="" class="logo">
+    <div class="topbar-text">
+      <h1>Flow Capture</h1>
+      <p id="account" class="muted"></p>
+    </div>
+    <button id="settings-btn" class="icon-btn" title="Connection settings" hidden>⚙︎</button>
+  </header>
+
+  <!-- Connect to a Blupi account -->
+  <section id="connect-view" hidden>
+    <h2>Connect to Blupi</h2>
+    <p class="muted">Create a token in Blupi under <strong>Settings → Chrome Extension</strong>, then paste it here.</p>
+    <form id="connect-form" class="stack">
+      <label>
+        Blupi address
+        <input id="base-url" type="url" required placeholder="https://blupi-production.up.railway.app">
+      </label>
+      <label>
+        Token
+        <input id="token" type="password" required placeholder="blupi_…" autocomplete="off">
+      </label>
+      <p id="connect-error" class="error" hidden></p>
+      <div class="row">
+        <button type="submit" class="btn primary">Connect</button>
+        <button type="button" id="get-token" class="btn link">Get a token ↗</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Capture steps and create a board -->
+  <section id="main-view" hidden>
+    <div class="capture-bar">
+      <button id="capture-btn" class="btn primary big">＋ Capture step</button>
+      <p class="muted small">Shortcut: <kbd id="shortcut">⌥⇧S</kbd></p>
+      <label class="toggle">
+        <input id="auto-capture" type="checkbox">
+        <span>Auto-capture each new page</span>
+      </label>
+      <p id="capture-error" class="error" hidden></p>
+    </div>
+
+    <div class="steps-header">
+      <h2>Steps <span id="step-count" class="count"></span></h2>
+      <button id="clear-btn" class="btn link danger" hidden>Clear all</button>
+    </div>
+    <ol id="steps" class="steps"></ol>
+    <p id="empty" class="empty muted">Walk through a flow on any website and capture each step. Screenshots stay on this computer until you create a board.</p>
+
+    <form id="create-form" class="create stack" hidden>
+      <label>
+        Board name
+        <input id="board-name" type="text" required maxlength="200">
+      </label>
+      <label>
+        Project
+        <select id="project"></select>
+      </label>
+      <p id="create-error" class="error" hidden></p>
+      <button type="submit" id="create-btn" class="btn primary big">Create board</button>
+    </form>
+    <p id="create-success" class="success" hidden></p>
+  </section>
+
+  <template id="step-template">
+    <li class="step">
+      <div class="step-num"></div>
+      <div class="step-body">
+        <img class="thumb" alt="">
+        <input class="step-title" type="text" maxlength="300" placeholder="Step name">
+        <a class="step-url muted small" target="_blank" rel="noopener"></a>
+        <textarea class="step-note" rows="2" maxlength="5000" placeholder="Add a note (optional)"></textarea>
+      </div>
+      <div class="step-actions">
+        <button class="icon-btn up" title="Move up">↑</button>
+        <button class="icon-btn down" title="Move down">↓</button>
+        <button class="icon-btn delete" title="Remove step">✕</button>
+      </div>
+    </li>
+  </template>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

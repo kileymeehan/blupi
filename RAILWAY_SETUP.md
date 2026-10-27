@@ -49,8 +49,9 @@ Then add any optional keys from `.env.example` (OpenAI, SendGrid, etc.).
 
 ## 5. Keep uploaded files
 
-Uploaded logos are written to the `uploads/` folder, which Railway wipes on every
-deploy unless it lives on a volume.
+Organization logos and Chrome extension screenshots are written to the `uploads/`
+folder, which Railway wipes on every deploy unless it lives on a volume. (Images
+added to board columns in the app are stored in the database and aren't affected.)
 
 App service → **Settings** → **Volumes** → **Add Volume** → mount path `/app/uploads`.
 
@@ -92,6 +93,19 @@ What the migration does:
   create duplicates. If anything fails, nothing is written.
 
 To re-run `db:push` later after changing `shared/schema.ts`, use the same Railway URL.
+
+## 7. When the database schema changes
+
+Some updates add tables (for example `api_tokens`, used by the Chrome extension).
+Railway doesn't apply schema changes on deploy, so run this from this folder after
+pulling them:
+
+```bash
+DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npm run db:push
+```
+
+If it asks whether a new table was **created or renamed** from an existing one,
+choose **create table**.
 
 ## Check it's working
 
