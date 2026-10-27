@@ -92,20 +92,25 @@ What the migration does:
 - Only runs against an empty Railway database, so running it twice can't
   create duplicates. If anything fails, nothing is written.
 
-To re-run `db:push` later after changing `shared/schema.ts`, use the same Railway URL.
+For later schema changes, see section 7 (don't re-run `db:push`).
 
 ## 7. When the database schema changes
 
 Some updates add tables (for example `api_tokens`, used by the Chrome extension).
-Railway doesn't apply schema changes on deploy, so run this from this folder after
-pulling them:
+Railway doesn't apply schema changes on deploy. Each change has a SQL file in
+`scripts/sql/`; run any you haven't applied yet, in order, from this folder:
 
 ```bash
-DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npm run db:push
+DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npx -y node@22 scripts/apply-sql.mjs scripts/sql/0001_api_tokens.sql
 ```
 
-If it asks whether a new table was **created or renamed** from an existing one,
-choose **create table**.
+Each file is safe to run twice, and runs in a transaction: it either fully applies
+or changes nothing.
+
+**Don't use `npm run db:push` on an existing database.** This drizzle-kit version
+misreads the "not null" constraints of newer Postgres versions and plans to drop
+them on every table; it also applies changes without a transaction, so a failure
+leaves them half done. It's fine for creating a brand-new, empty database.
 
 ## Check it's working
 

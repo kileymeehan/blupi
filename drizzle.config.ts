@@ -11,4 +11,7 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.DATABASE_URL,
   },
+  // Sign-in sessions live in a "session" table managed by connect-pg-simple,
+  // not by this schema. Without this, db:push offers to drop or rename it.
+  tablesFilter: ["!session"],
 });
