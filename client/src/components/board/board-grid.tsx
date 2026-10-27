@@ -3846,7 +3846,7 @@ export default function BoardGrid({
               {/* Left side - Step selector and navigation controls */}
               <div className="flex items-center">
                 {/* Step Counter with Border - Smaller size */}
-                <div className={`border-2 rounded px-2 py-1 transition-all ${
+                <div className={`border-2 rounded-l px-2 py-1 transition-all ${
                   presentationDarkMode ? 'border-[#333333] bg-[#0A0A0F]' : 'border-[color:var(--card-border)] bg-white'
                 }`}>
                 <Popover>
@@ -3917,7 +3917,7 @@ export default function BoardGrid({
                   onClick={() => setPresentationViewMode(presentationViewMode === 'compact' ? 'large' : 'compact')}
                   variant="ghost"
                   size="sm"
-                  className={`h-9 w-9 p-0 rounded border-2 border-l-0 transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
                       ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)]' 
                       : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600]'
@@ -3934,7 +3934,7 @@ export default function BoardGrid({
                   onClick={() => setPresentationDarkMode(!presentationDarkMode)}
                   variant="ghost"
                   size="sm"
-                  className={`h-9 w-9 p-0 rounded border-2 border-l-0 transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
                       ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)]' 
                       : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600]'
@@ -3952,7 +3952,7 @@ export default function BoardGrid({
                   size="sm"
                   onClick={prevStep}
                   disabled={currentStepIndex === 0}
-                  className={`h-9 w-9 p-0 rounded border-2 border-l-0 transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
                       ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)] disabled:opacity-30 disabled:text-gray-600' 
                       : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600] disabled:opacity-30 disabled:text-gray-300'
@@ -3965,7 +3965,7 @@ export default function BoardGrid({
                   size="sm"
                   onClick={nextStep}
                   disabled={currentStepIndex === allSteps.length - 1}
-                  className={`h-9 w-9 p-0 rounded border-2 border-l-0 transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
                       ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)] disabled:opacity-30 disabled:text-gray-600' 
                       : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600] disabled:opacity-30 disabled:text-gray-300'
@@ -3980,7 +3980,7 @@ export default function BoardGrid({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={`h-9 w-9 p-0 rounded border-2 border-l-0 transition-all ${
+                      className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                         presentationDarkMode 
                           ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)]' 
                           : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600]'
@@ -4007,7 +4007,7 @@ export default function BoardGrid({
                   variant="ghost"
                   size="sm"
                   onClick={exportNotesToText}
-                  className={`h-9 w-9 p-0 rounded border-2 border-l-0 transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
                       ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)]' 
                       : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600]'
@@ -4021,7 +4021,7 @@ export default function BoardGrid({
                   variant="ghost"
                   size="sm"
                   onClick={exitPresentationMode}
-                  className={`h-9 w-9 p-0 rounded border-2 border-l-0 transition-all ${
+                  className={`h-9 w-9 p-0 rounded-none rounded-r border-2 border-l-0 transition-all ${
                     presentationDarkMode 
                       ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-red-500 hover:text-white hover:border-red-500' 
                       : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-red-500 hover:text-white hover:border-red-500'

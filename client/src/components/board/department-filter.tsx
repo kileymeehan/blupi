@@ -98,7 +98,7 @@ export function DepartmentFilter({
             {departments.length === 0 ? (
               <p className={`text-sm text-center p-3 border-2 rounded ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c] text-gray-400" : "bg-gray-50 border-[color:var(--card-border)] text-gray-500"}`}>No departments tagged yet</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 pr-1 pb-1">
                 {departments.map((department) => (
                   <Button
                     key={department}
@@ -134,7 +134,7 @@ export function DepartmentFilter({
             {blockTypes.length === 0 ? (
               <p className={`text-sm text-center p-3 border-2 rounded ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c] text-gray-400" : "bg-gray-50 border-[color:var(--card-border)] text-gray-500"}`}>No block types found</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 pr-1 pb-1">
                 {blockTypes.map((type) => {
                   const blockType = LAYER_TYPES.find(l => l.type === type);
                   return (
