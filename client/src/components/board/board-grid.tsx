@@ -180,9 +180,7 @@ export default function BoardGrid({
   
   const [showGoogleSheets, setShowGoogleSheets] = useState(false);
   const [spacePressed, setSpacePressed] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [scrollStartX, setScrollStartX] = useState(0);
+  const [isPanning, setIsPanning] = useState(false);
   const [isModifierKeyPressed, setIsModifierKeyPressed] = useState(false);
   const [isDuplicateMode, setIsDuplicateMode] = useState(false);
   const [departmentFilter, setDepartmentFilter] = useState<
@@ -505,6 +503,52 @@ export default function BoardGrid({
     onBoardChange(updatedBoard);
   };
 
+  // Canvas navigation: hold Space (or the middle mouse button) and drag to pan,
+  // arrow keys to scroll sideways. Keys are left alone while typing or when a
+  // control, menu or drag handle has focus.
+  const isCanvasKeyTarget = (target: EventTarget | null) => {
+    const el = target as HTMLElement | null;
+    if (!el?.closest) return true;
+    return !el.closest(
+      'input, textarea, select, button, a, [contenteditable="true"], [contenteditable=""], ' +
+      '[role="menu"], [role="menuitem"], [role="dialog"], [role="listbox"], [role="option"], ' +
+      '[role="slider"], [role="tab"], [role="combobox"], [data-rfd-drag-handle-draggable-id]'
+    );
+  };
+
+  // The canvas scrolls sideways itself; vertical scrolling belongs to an ancestor
+  const getVerticalScroller = (el: HTMLElement): HTMLElement => {
+    for (let node = el.parentElement; node; node = node.parentElement) {
+      const { overflowY } = getComputedStyle(node);
+      if ((overflowY === 'auto' || overflowY === 'scroll') && node.scrollHeight > node.clientHeight) return node;
+    }
+    return (document.scrollingElement as HTMLElement) || document.documentElement;
+  };
+
+  const startPan = (e: React.MouseEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    e.preventDefault();
+    const vertical = getVerticalScroller(container);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startLeft = container.scrollLeft;
+    const startTop = vertical.scrollTop;
+    setIsPanning(true);
+
+    const handleMove = (moveEvent: MouseEvent) => {
+      container.scrollLeft = startLeft - (moveEvent.clientX - startX);
+      vertical.scrollTop = startTop - (moveEvent.clientY - startY);
+    };
+    const handleUp = () => {
+      setIsPanning(false);
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleUp);
+    };
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleUp);
+  };
+
   // Add keyboard event listeners for modifier keys (Cmd/Ctrl) and undo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -523,13 +567,26 @@ export default function BoardGrid({
         setIsDuplicateMode(false);
       }
       
-      // Space key for horizontal scroll mode - exclude input fields and contentEditable elements
-      if (e.code === 'Space' &&
-          !(e.target instanceof HTMLInputElement) &&
-          !(e.target instanceof HTMLTextAreaElement) &&
-          !((e.target as HTMLElement)?.contentEditable === 'true')) {
+      // Hold Space to pan the canvas
+      if (e.code === 'Space' && !presentationMode && isCanvasKeyTarget(e.target)) {
         e.preventDefault();
-        setSpacePressed(true);
+        if (!e.repeat) setSpacePressed(true);
+      }
+
+      // Arrow keys scroll the canvas sideways; Shift moves most of a screen.
+      // defaultPrevented means a keyboard block drag already used the key.
+      if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') &&
+          !e.defaultPrevented && !cmdPressed && !e.altKey &&
+          !presentationMode && isCanvasKeyTarget(e.target)) {
+        const container = scrollContainerRef.current;
+        if (container) {
+          e.preventDefault();
+          const step = e.shiftKey ? container.clientWidth * 0.8 : 120;
+          container.scrollBy({
+            left: e.key === 'ArrowLeft' ? -step : step,
+            behavior: e.repeat ? 'auto' : 'smooth',
+          });
+        }
       }
 
       // Handle Cmd-Z / Ctrl-Z for undo
@@ -550,21 +607,24 @@ export default function BoardGrid({
         setIsDuplicateMode(false);
       }
       
-      // Reset spacebar pressed state
       if (e.code === 'Space') {
         setSpacePressed(false);
-        setIsDragging(false);
       }
     };
+
+    // Switching windows while holding Space never fires keyup
+    const handleBlur = () => setSpacePressed(false);
     
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
     
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
     };
-  }, [undoHistory, onBlocksChange]);
+  }, [undoHistory, onBlocksChange, presentationMode]);
 
   const {
     data: boardFromQuery,
@@ -3001,53 +3061,24 @@ export default function BoardGrid({
               </div>
             )}
             <div className="flex-1 relative board-container">
+              {/* While Space is held, this layer takes the mouse so a drag pans
+                  the canvas instead of selecting text or picking up a block */}
+              {(spacePressed || isPanning) && (
+                <div
+                  className="absolute inset-0 z-40"
+                  style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+                  onMouseDown={(e) => {
+                    if (e.button === 0 || e.button === 1) startPan(e);
+                  }}
+                />
+              )}
 
-              
               <div 
                 ref={scrollContainerRef}
                 className="overflow-x-auto"
                 onMouseDown={(e) => {
-                  if (spacePressed) {
-                    e.preventDefault();
-                    setIsDragging(true);
-                    setDragStartX(e.clientX);
-                    const container = e.currentTarget;
-                    setScrollStartX(container.scrollLeft);
-                    container.style.cursor = 'grabbing';
-                  }
-                }}
-                onMouseMove={(e) => {
-                  if (isDragging && spacePressed) {
-                    e.preventDefault();
-                    const container = e.currentTarget;
-                    const deltaX = e.clientX - dragStartX;
-                    const newScrollLeft = scrollStartX - deltaX;
-                    
-                    // Constrain scrolling within bounds
-                    const maxScroll = container.scrollWidth - container.clientWidth;
-                    container.scrollLeft = Math.max(0, Math.min(newScrollLeft, maxScroll));
-                  }
-                }}
-                onMouseUp={() => {
-                  if (isDragging) {
-                    setIsDragging(false);
-                    const container = document.getElementById('board-scroll-container');
-                    if (container) {
-                      container.style.cursor = spacePressed ? 'grab' : 'default';
-                    }
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (isDragging) {
-                    setIsDragging(false);
-                    const container = document.getElementById('board-scroll-container');
-                    if (container) {
-                      container.style.cursor = spacePressed ? 'grab' : 'default';
-                    }
-                  }
-                }}
-                style={{ 
-                  cursor: spacePressed ? (isDragging ? 'grabbing' : 'grab') : 'default' 
+                  // Middle mouse button pans without holding Space
+                  if (e.button === 1) startPan(e);
                 }}
               >
                 <div ref={boardRef} className="p-4 sm:p-6 lg:p-8 pt-4 min-w-max" style={{ minWidth: '120vw' }}>
@@ -3057,7 +3088,7 @@ export default function BoardGrid({
                     <div 
                       key={phase.id}
                       id={`phase-${phase.id}`} 
-                      className="flex-shrink-0 relative mr-4 sm:mr-6 lg:mr-8">
+                      className="flex-shrink-0 relative">
                       <div className="px-4">
                         <div className={`mb-4 border-2 rounded p-3 group shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)] ${darkMode ? 'border-[#3a3a5c] bg-[#2a2a4a]' : 'border-[color:var(--card-border)] bg-white shadow-[2px_2px_0px_0px_var(--card-shadow)]'}`}>
                           <div className="flex items-center justify-between mb-1">
@@ -3243,7 +3274,7 @@ export default function BoardGrid({
                                       </div>
 
                                       {/* Image upload for column */}
-                                      <div className="scale-90 origin-top -mb-4">
+                                      <div className="px-7">
                                         <ImageUpload
                                           currentImage={column.image}
                                           onImageChange={(image) =>
@@ -3328,7 +3359,7 @@ export default function BoardGrid({
                                                                   newExpanded.delete(groupKey);
                                                                   setExpandedGroups(newExpanded);
                                                                 }}
-                                                                className={`w-full mb-4 p-2 text-xs font-medium rounded-lg border-2 border-dashed ${layerType?.color || 'border-gray-400'} bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2 transition-colors`}
+                                                                className={`w-[calc(100%-2.5rem)] mx-5 mb-4 p-2 text-xs font-medium rounded-lg border-2 border-dashed ${layerType?.color || 'border-gray-400'} bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2 transition-colors`}
                                                               >
                                                                 <ChevronUp className="w-3 h-3" />
                                                                 Collapse {blocksOfType.length} {layerType?.label || type} blocks
@@ -3349,7 +3380,7 @@ export default function BoardGrid({
                                                                       {...provided.draggableProps}
                                                                       className={`
                                                                         ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
-                                                                        group relative rounded-lg border-3 border-gray-500 mb-4 pl-6 pr-2 py-2
+                                                                        group relative rounded-lg border-3 border-gray-500 mb-4 px-5 py-2
                                                                         transition-shadow duration-200
                                                                         ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                                         ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
@@ -3416,7 +3447,7 @@ export default function BoardGrid({
                                                             setExpandedGroups(newExpanded);
                                                           }}
                                                           className={`
-                                                            relative cursor-pointer rounded-lg border-3 mb-4 p-2 w-full aspect-square
+                                                            relative cursor-pointer rounded-lg border-3 mb-4 mx-5 p-2 aspect-square
                                                             ${layerType?.color || 'border-gray-400'}
                                                             hover:shadow-md transition-all bg-white flex flex-col
                                                             shadow-[0_0_0_1px_rgba(0,0,0,0.1)]
@@ -3477,7 +3508,7 @@ export default function BoardGrid({
                                                       {...provided.draggableProps}
                                                       className={`
                                                         ${LAYER_TYPES.find((l) => l.type === block.type)?.color}
-                                                        group relative rounded-lg border-3 border-gray-500 mb-4 pl-6 pr-2 py-2
+                                                        group relative rounded-lg border-3 border-gray-500 mb-4 px-5 py-2
                                                         transition-shadow duration-200
                                                         ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                         ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
@@ -4355,7 +4386,7 @@ export default function BoardGrid({
       )}
       
       {/* Custom scrollbar at the bottom */}
-      <CustomScrollbar scrollContainer={scrollContainerRef.current} />
+      <CustomScrollbar scrollContainer={scrollContainerRef.current} darkMode={darkMode} />
     </div>
   );
 }

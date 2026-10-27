@@ -3,10 +3,14 @@ import { createPortal } from 'react-dom';
 
 interface CustomScrollbarProps {
   scrollContainer: HTMLElement | null;
+  darkMode?: boolean;
 }
 
-export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
+export function CustomScrollbar({ scrollContainer, darkMode = false }: CustomScrollbarProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  // Where on the thumb it was grabbed, so it doesn't jump to center under the cursor
+  const grabOffset = useRef(0);
   const [thumbPosition, setThumbPosition] = useState(0);
   const [thumbWidth, setThumbWidth] = useState(100);
   const [mounted, setMounted] = useState(false);
@@ -48,6 +52,8 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    grabOffset.current = e.clientX - e.currentTarget.getBoundingClientRect().left;
     setIsDragging(true);
   };
 
@@ -59,7 +65,7 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
     const trackWidth = trackRect.width;
     const maxThumbPosition = trackWidth - thumbWidth;
     
-    const newThumbPosition = Math.max(0, Math.min(relativeX - thumbWidth / 2, maxThumbPosition));
+    const newThumbPosition = Math.max(0, Math.min(relativeX - grabOffset.current, maxThumbPosition));
     const scrollRatio = newThumbPosition / maxThumbPosition;
     
     const { scrollWidth, clientWidth } = scrollContainer;
@@ -111,40 +117,45 @@ export function CustomScrollbar({ scrollContainer }: CustomScrollbarProps) {
 
   if (!scrollContainer || !mounted) return null;
 
+  // Nothing to scroll: hide the bar entirely
+  if (thumbWidth >= window.innerWidth) return null;
+
+  // Slim and neutral at rest, thicker and darker on hover or drag
+  const active = isHovered || isDragging;
+  const thumbColor = darkMode
+    ? (active ? '#9CA3AF' : '#4B5563')
+    : (active ? 'var(--card-border)' : 'var(--card-shadow)');
+
   const scrollbarElement = (
-    <div 
-      className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[color:var(--card-border)] h-5"
+    <div
+      className={`fixed bottom-0 left-0 right-0 h-4 border-t backdrop-blur-sm ${
+        darkMode ? 'bg-[#1a1a2e]/80 border-white/10' : 'bg-white/80 border-gray-200'
+      }`}
       style={{ zIndex: 99999 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div
         ref={trackRef}
         className="relative h-full w-full cursor-pointer"
         onClick={handleTrackClick}
+        title="Drag to scroll sideways (or hold Space and drag the canvas)"
       >
+        {/* Full-height hit area; the visible pill inside stays slim */}
         <div
-          className="absolute top-0 h-full cursor-grab hover:brightness-105 transition-all duration-200"
+          className="absolute top-0 h-full flex items-center px-0.5"
           style={{
             left: `${thumbPosition}px`,
             width: `${thumbWidth}px`,
             cursor: isDragging ? 'grabbing' : 'grab',
-            backgroundColor: '#FFD600',
-            borderRight: '2px solid #0A0A0F',
-            borderLeft: '2px solid #0A0A0F',
-            borderRadius: '0px',
-            backgroundImage: `
-              radial-gradient(circle, rgba(10, 10, 15, 0.15) 0.5px, transparent 0.5px)
-            `,
-            backgroundSize: '4px 4px',
-            backgroundPosition: 'center center'
           }}
           onMouseDown={handleMouseDown}
+          onClick={(e) => e.stopPropagation()}
         >
-          {/* Grip lines for tactile affordance */}
-          <div className="absolute inset-0 flex items-center justify-center gap-0.5 pointer-events-none">
-            <div className="w-px h-2.5 bg-[#0A0A0F] opacity-20 rounded-full" />
-            <div className="w-px h-2.5 bg-[#0A0A0F] opacity-20 rounded-full" />
-            <div className="w-px h-2.5 bg-[#0A0A0F] opacity-20 rounded-full" />
-          </div>
+          <div
+            className="w-full rounded-full transition-all duration-150"
+            style={{ height: active ? 10 : 6, backgroundColor: thumbColor }}
+          />
         </div>
       </div>
     </div>
