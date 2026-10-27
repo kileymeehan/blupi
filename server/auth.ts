@@ -168,6 +168,31 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // Local development only: one-click sign-in as DEV_LOGIN_EMAIL, creating the
+  // account if it doesn't exist. Never registered in production.
+  const devLoginEmail = normalizeEmail(process.env.DEV_LOGIN_EMAIL);
+  if (process.env.NODE_ENV !== "production" && devLoginEmail) {
+    console.warn(`[Auth] Dev sign-in enabled for ${devLoginEmail} at /api/auth/dev-login`);
+    app.get("/api/auth/dev-login", async (req: Request, res: Response) => {
+      try {
+        let user = await storage.getUserByEmail(devLoginEmail);
+        if (!user) {
+          user = await storage.createUser({
+            email: devLoginEmail,
+            username: await uniqueUsername(devLoginEmail),
+            password: await hashPassword(process.env.DEV_LOGIN_PASSWORD || randomBytes(16).toString("hex")),
+          });
+          await createPersonalWorkspace(user);
+        }
+        await startSession(req, user);
+        res.redirect("/");
+      } catch (err) {
+        console.error("[Auth] Dev sign-in failed:", err);
+        res.status(500).json({ error: true, message: "Dev sign-in failed" });
+      }
+    });
+  }
+
   app.post("/api/auth/signout", (req: Request, res: Response) => {
     req.session.destroy(() => {
       res.clearCookie("connect.sid");

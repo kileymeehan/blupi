@@ -171,7 +171,17 @@ export default function LoginPage() {
             </form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-3">
-            <Button 
+            {/* Dev-only shortcut; stripped from production builds */}
+            {import.meta.env.DEV && (
+              <Button
+                asChild
+                variant="outline"
+                className="w-full border-dashed border-[#F2918C] text-[#302E87]"
+              >
+                <a href="/api/auth/dev-login">Dev sign-in (local only)</a>
+              </Button>
+            )}
+            <Button
               variant="outline" 
               className="w-full border-[#A1D9F5] text-[#302E87] flex items-center justify-center gap-2"
               onClick={async () => {
