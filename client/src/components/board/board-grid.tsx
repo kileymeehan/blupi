@@ -86,6 +86,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { captureBlocks, describe as describeDeleted, restore, type DeletedItems } from "./undo-deletes";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -486,8 +488,59 @@ export default function BoardGrid({
   
   // Drag state protection to prevent DOM conflicts
 
-  // Undo functionality
-  const [undoHistory, setUndoHistory] = useState<{action: string, blocks: BlockType[]}[]>([]);
+  // Undo for deletions (and clearing emojis). Entries hold what was removed,
+  // and undoing puts it back into the board as it is now, so changes made in
+  // between, including by collaborators, are kept.
+  type UndoEntry = { id: number } & (DeletedItems | { kind: "emojis"; emojis: Record<string, string> });
+  const undoStack = useRef<UndoEntry[]>([]);
+  const nextUndoId = useRef(1);
+  // Latest board for undo actions fired from a toast or shortcut set up earlier
+  const latestBoard = useRef(board);
+  latestBoard.current = board;
+
+  const undo = (id?: number) => {
+    const stack = undoStack.current;
+    const index = id === undefined ? stack.length - 1 : stack.findIndex((e) => e.id === id);
+    if (index < 0) return;
+    const [entry] = stack.splice(index, 1);
+    const current = latestBoard.current;
+
+    if (entry.kind === "emojis") {
+      onBlocksChange(current.blocks.map((b) => (b.id in entry.emojis ? { ...b, emoji: entry.emojis[b.id] } : b)));
+      toast({ title: "Emojis restored", duration: 3000 });
+      return;
+    }
+
+    const result = restore(current, entry);
+    if (!result) {
+      toast({
+        title: "Couldn't undo",
+        description: "The step or phase it was in has since been removed.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (result.phases) onPhasesChange(result.phases);
+    onBlocksChange(result.blocks);
+    toast({ title: "Restored", duration: 3000 });
+  };
+  // Keyboard shortcut handler is set up once, so it calls the latest undo
+  const undoRef = useRef(undo);
+  undoRef.current = undo;
+
+  const recordUndo = (entry: DeletedItems | { kind: "emojis"; emojis: Record<string, string> }, title: string) => {
+    const id = nextUndoId.current++;
+    undoStack.current = [...undoStack.current.slice(-19), { id, ...entry } as UndoEntry];
+    toast({
+      title,
+      duration: 8000,
+      action: (
+        <ToastAction altText="Undo" onClick={() => undo(id)}>
+          Undo
+        </ToastAction>
+      ),
+    });
+  };
   
 
 
@@ -593,14 +646,13 @@ export default function BoardGrid({
         }
       }
 
-      // Handle Cmd-Z / Ctrl-Z for undo
-      if (cmdPressed && e.key === 'z' && !e.shiftKey) {
+      // Cmd-Z / Ctrl-Z undoes the last deletion, except while typing, where
+      // the browser's own text undo should work
+      const target = e.target as HTMLElement | null;
+      const isTyping = !!target?.closest?.('input, textarea, select, [contenteditable="true"], [contenteditable=""]');
+      if (cmdPressed && e.key.toLowerCase() === 'z' && !e.shiftKey && !isTyping && !presentationMode) {
         e.preventDefault();
-        if (undoHistory.length > 0) {
-          const lastState = undoHistory[undoHistory.length - 1];
-          onBlocksChange(lastState.blocks);
-          setUndoHistory(prev => prev.slice(0, -1));
-        }
+        undoRef.current();
       }
     };
     
@@ -628,7 +680,7 @@ export default function BoardGrid({
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [undoHistory, onBlocksChange, presentationMode]);
+  }, [presentationMode]);
 
   const {
     data: boardFromQuery,
@@ -1017,11 +1069,11 @@ export default function BoardGrid({
   };
 
   const handleDeleteBlock = (blockId: string) => {
-    // Save current state to undo history before deletion
-    setUndoHistory(prev => [...prev.slice(-4), { action: 'delete', blocks: structuredClone(board.blocks) }]);
-    
-    const blocks = structuredClone(board.blocks).filter((block) => block.id !== blockId);
-    onBlocksChange(blocks);
+    const removed = captureBlocks(board.blocks, (block) => block.id === blockId);
+    if (removed.length === 0) return;
+    onBlocksChange(board.blocks.filter((block) => block.id !== blockId));
+    const deleted: DeletedItems = { kind: "blocks", blocks: removed };
+    recordUndo(deleted, describeDeleted(deleted));
   };
 
   const handleAddColumn = (phaseIndex: number) => {
@@ -1087,6 +1139,14 @@ export default function BoardGrid({
   };
 
   const handleDeletePhase = (phaseIndex: number) => {
+    const phase = board.phases[phaseIndex];
+    if (!phase) return;
+    const deleted: DeletedItems = {
+      kind: "phase",
+      phaseIndex,
+      phase: structuredClone(phase),
+      blocks: captureBlocks(board.blocks, (block) => block.phaseIndex === phaseIndex),
+    };
     const newPhases = [...board.phases];
     newPhases.splice(phaseIndex, 1);
     
@@ -1104,6 +1164,7 @@ export default function BoardGrid({
     
     onPhasesChange(newPhases);
     onBlocksChange(updatedBlocks);
+    recordUndo(deleted, describeDeleted(deleted));
   };
 
   const handleMovePhase = (phaseIndex: number, direction: 'left' | 'right') => {
@@ -1258,8 +1319,23 @@ export default function BoardGrid({
   };
 
   const handleDeleteColumn = (phaseIndex: number, columnIndex: number) => {
-    const newPhases = [...board.phases];
-    newPhases[phaseIndex].columns.splice(columnIndex, 1);
+    const phase = board.phases[phaseIndex];
+    const column = phase?.columns[columnIndex];
+    if (!column) return;
+    const deleted: DeletedItems = {
+      kind: "column",
+      phaseId: phase.id,
+      columnIndex,
+      column: structuredClone(column),
+      blocks: captureBlocks(
+        board.blocks,
+        (block) => block.phaseIndex === phaseIndex && block.columnIndex === columnIndex,
+      ),
+    };
+    // Copy rather than splice, which would change the cached board in place
+    const newPhases = board.phases.map((p, i) =>
+      i === phaseIndex ? { ...p, columns: p.columns.filter((_, c) => c !== columnIndex) } : p,
+    );
 
     const newBlocks = board.blocks
       .filter(
@@ -1280,6 +1356,7 @@ export default function BoardGrid({
 
     onPhasesChange(newPhases);
     onBlocksChange(newBlocks);
+    recordUndo(deleted, describeDeleted(deleted));
   };
 
   const handleCommentClick = (block: BlockType) => {
@@ -2258,36 +2335,25 @@ export default function BoardGrid({
 
   // Bulk edit functions
   const handleBulkDelete = () => {
-    const blocksToDelete = Array.from(selectedBlocks);
-    const newBlocks = board.blocks.filter(block => !selectedBlocks.has(block.id));
-    
-    // Save to undo history
-    setUndoHistory(prev => [...prev, {action: 'bulk delete', blocks: board.blocks}]);
-    
-    onBlocksChange(newBlocks);
+    const removed = captureBlocks(board.blocks, (block) => selectedBlocks.has(block.id));
+    if (removed.length === 0) return;
+    onBlocksChange(board.blocks.filter((block) => !selectedBlocks.has(block.id)));
     setSelectedBlocks(new Set());
-    
-    toast({
-      title: "Blocks deleted",
-      description: `Deleted ${blocksToDelete.length} blocks`,
-    });
+    const deleted: DeletedItems = { kind: "blocks", blocks: removed };
+    recordUndo(deleted, describeDeleted(deleted));
   };
 
   const handleClearAllEmojis = () => {
-    // Save to undo history
-    setUndoHistory(prev => [...prev, {action: 'clear emojis', blocks: board.blocks}]);
-    
+    const emojis = Object.fromEntries(
+      board.blocks.filter((block) => block.emoji).map((block) => [block.id, block.emoji as string]),
+    );
     const updatedBlocks = board.blocks.map(block => ({
       ...block,
       emoji: ''
     }));
     
     onBlocksChange(updatedBlocks);
-    
-    toast({
-      title: "Emojis cleared",
-      description: `Removed emojis from all blocks`,
-    });
+    recordUndo({ kind: "emojis", emojis }, "Emojis cleared");
   };
 
   const toggleBlockSelection = (blockId: string) => {
