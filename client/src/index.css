@@ -666,3 +666,42 @@
 .dark .emotion-journey-light .border-gray-300 {
   border-color: #e5e7eb !important;
 }
+/* New cards settle into place. A card dropped from the palette starts as a
+   tile-sized window in the middle of the column, right where the tile landed,
+   and opens outward to full width (a reveal, so its text never stretches).
+   It also grows from the tile's height, so the cards below glide down.
+   Set per card: --card-enter-w (start width; 100% = no reveal),
+   --card-enter-from (start height), --card-enter-opacity. */
+@keyframes card-enter-reveal {
+  from {
+    opacity: var(--card-enter-opacity, 0);
+    clip-path: inset(0 calc(50% - var(--card-enter-w, 100%) / 2) round 8px);
+  }
+  to {
+    clip-path: inset(-16px round 8px); /* room for the card's shadow */
+  }
+}
+@keyframes card-enter-reveal-grow {
+  from {
+    height: var(--card-enter-from, 0px);
+    opacity: var(--card-enter-opacity, 0);
+    clip-path: inset(0 calc(50% - var(--card-enter-w, 100%) / 2) round 8px);
+  }
+  to {
+    clip-path: inset(-16px round 8px);
+  }
+}
+.card-enter {
+  animation: card-enter-reveal 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Growing to the card's natural height needs interpolate-size (Chrome 129+);
+   elsewhere it would jump halfway through, so those browsers skip it */
+@supports (interpolate-size: allow-keywords) {
+  .card-enter {
+    interpolate-size: allow-keywords;
+    animation-name: card-enter-reveal-grow;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-enter { animation: none; }
+}

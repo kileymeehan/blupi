@@ -1,10 +1,42 @@
 import { LAYER_TYPES } from "./constants";
-import { Draggable } from "@hello-pangea/dnd";
+import { Draggable, type DraggableStateSnapshot, type DraggingStyle, type NotDraggingStyle } from "@hello-pangea/dnd";
 import * as Icons from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface BlockDrawerProps {
   darkMode?: boolean;
+}
+
+// When a tile is dropped on the board, it glides to the horizontal middle of
+// the column (rather than the left-aligned gap the drag library holds open)
+// and fades as it lands. The new card then opens outward from that same spot
+// (see .card-enter in index.css).
+function tileStyle(style: DraggingStyle | NotDraggingStyle | undefined, snapshot: DraggableStateSnapshot) {
+  const base = {
+    ...style,
+    zIndex: snapshot.isDragging ? 9999 : "auto",
+    cursor: snapshot.isDragging ? "grabbing" : "grab",
+  };
+  const drop = snapshot.dropAnimation;
+  const target = snapshot.draggingOver;
+  if (!snapshot.isDropAnimating || !drop || !target || target === "drawer") return base;
+
+  // While dragging, the tile is position: fixed at `left`, moved by transform
+  let x = drop.moveTo.x;
+  const dragging = style as DraggingStyle;
+  const column = document.querySelector(`[data-rfd-droppable-id="${CSS.escape(target)}"]`);
+  if (column && typeof dragging.left === "number" && typeof dragging.width === "number") {
+    const r = column.getBoundingClientRect();
+    x = r.left + r.width / 2 - dragging.width / 2 - dragging.left;
+  }
+  return {
+    ...base,
+    transform: `translate(${x}px, ${drop.moveTo.y}px)`,
+    opacity: 0,
+    // The library waits for this transform transition to end before dropping.
+    // Opacity eases in, so the tile stays visible until it's nearly landed.
+    transition: "transform 180ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms cubic-bezier(0.55, 0, 1, 0.45)",
+  };
 }
 
 export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
@@ -46,11 +78,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                   ${snapshot.isDragging ? (darkMode ? "shadow-[2px_2px_0px_0px_#333333]" : "shadow-[2px_2px_0px_0px_var(--card-shadow)]") : ""}
                   transition-all duration-200 hover:bg-[#FFD600]
                 `}
-                style={{
-                  ...provided.draggableProps.style,
-                  zIndex: snapshot.isDragging ? 9999 : 'auto',
-                  cursor: snapshot.isDragging ? "grabbing" : "grab"
-                }}
+                style={tileStyle(provided.draggableProps.style, snapshot)}
               >
                 <div className="font-black text-[9px] uppercase tracking-wide text-[#0A0A0F] dark:text-white text-center flex flex-col items-center justify-center px-1">
                   {renderIcon(layer.icon)}
@@ -89,11 +117,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                   ${snapshot.isDragging ? (darkMode ? "shadow-[2px_2px_0px_0px_#333333]" : "shadow-[2px_2px_0px_0px_var(--card-shadow)]") : ""}
                   transition-all duration-200 hover:bg-[#FFD600] hover:text-[#0A0A0F]
                 `}
-                style={{
-                  ...provided.draggableProps.style,
-                  zIndex: snapshot.isDragging ? 9999 : 'auto',
-                  cursor: snapshot.isDragging ? "grabbing" : "grab"
-                }}
+                style={tileStyle(provided.draggableProps.style, snapshot)}
               >
                 <div className="font-black text-[10px] text-white dark:text-white text-center flex items-center justify-center uppercase tracking-wide">
                   {renderIcon(layer.icon)}

@@ -187,6 +187,8 @@ export default function BoardGrid({
   const [showGoogleSheets, setShowGoogleSheets] = useState(false);
   const [spacePressed, setSpacePressed] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
+  // A card that was just added, so it can animate into place (see .card-enter)
+  const [enteringBlock, setEnteringBlock] = useState<{ id: string; vars: Record<string, string> } | null>(null);
   const [isModifierKeyPressed, setIsModifierKeyPressed] = useState(false);
   const [isDuplicateMode, setIsDuplicateMode] = useState(false);
   const [departmentFilter, setDepartmentFilter] = useState<
@@ -488,11 +490,14 @@ export default function BoardGrid({
   
   // Drag state protection to prevent DOM conflicts
 
-  // Undo for deletions (and clearing emojis). Entries hold what was removed,
-  // and undoing puts it back into the board as it is now, so changes made in
-  // between, including by collaborators, are kept.
-  type UndoEntry = { id: number } & (DeletedItems | { kind: "emojis"; emojis: Record<string, string> });
+  // Undo/redo for deletions (and clearing emojis). Entries hold what was
+  // removed; undoing puts it back into the board as it is now, and redoing
+  // removes the same items again, so changes made in between, including by
+  // collaborators, are kept.
+  type UndoItems = DeletedItems | { kind: "emojis"; emojis: Record<string, string> };
+  type UndoEntry = { id: number } & UndoItems;
   const undoStack = useRef<UndoEntry[]>([]);
+  const redoStack = useRef<UndoItems[]>([]);
   const nextUndoId = useRef(1);
   // Latest board for undo actions fired from a toast or shortcut set up earlier
   const latestBoard = useRef(board);
@@ -505,13 +510,26 @@ export default function BoardGrid({
     const [entry] = stack.splice(index, 1);
     const current = latestBoard.current;
 
-    if (entry.kind === "emojis") {
-      onBlocksChange(current.blocks.map((b) => (b.id in entry.emojis ? { ...b, emoji: entry.emojis[b.id] } : b)));
-      toast({ title: "Emojis restored", duration: 3000 });
+    const { id: _id, ...items } = entry;
+    const showRestored = (title: string) =>
+      toast({
+        title,
+        duration: 5000,
+        action: (
+          <ToastAction altText="Redo" onClick={() => redoRef.current()}>
+            Redo
+          </ToastAction>
+        ),
+      });
+
+    if (items.kind === "emojis") {
+      onBlocksChange(current.blocks.map((b) => (b.id in items.emojis ? { ...b, emoji: items.emojis[b.id] } : b)));
+      redoStack.current = [...redoStack.current.slice(-19), items];
+      showRestored("Emojis restored");
       return;
     }
 
-    const result = restore(current, entry);
+    const result = restore(current, items);
     if (!result) {
       toast({
         title: "Couldn't undo",
@@ -522,15 +540,51 @@ export default function BoardGrid({
     }
     if (result.phases) onPhasesChange(result.phases);
     onBlocksChange(result.blocks);
-    toast({ title: "Restored", duration: 3000 });
+    redoStack.current = [...redoStack.current.slice(-19), items];
+    showRestored("Restored");
   };
-  // Keyboard shortcut handler is set up once, so it calls the latest undo
+
+  // Redo the most recently undone change by deleting the same items again
+  const redo = () => {
+    const items = redoStack.current.pop();
+    if (!items) return;
+    const current = latestBoard.current;
+    let done = false;
+
+    if (items.kind === "emojis") {
+      handleClearAllEmojis(true);
+      done = true;
+    } else if (items.kind === "blocks") {
+      done = deleteBlocks(new Set(items.blocks.map((r) => r.block.id)), true);
+    } else if (items.kind === "column") {
+      // Find by ID: indices may have shifted since the undo
+      const phaseIndex = current.phases.findIndex((p) => p.id === items.phaseId);
+      const columnIndex = current.phases[phaseIndex]?.columns.findIndex((c) => c.id === items.column.id) ?? -1;
+      if (columnIndex >= 0) {
+        handleDeleteColumn(phaseIndex, columnIndex, true);
+        done = true;
+      }
+    } else {
+      const phaseIndex = current.phases.findIndex((p) => p.id === items.phase.id);
+      if (phaseIndex >= 0) {
+        handleDeletePhase(phaseIndex, true);
+        done = true;
+      }
+    }
+    if (!done) toast({ title: "Nothing to redo", description: "Those items were already removed." });
+  };
+
+  // Keyboard shortcuts and toast buttons are set up earlier, so they call the latest versions
   const undoRef = useRef(undo);
   undoRef.current = undo;
+  const redoRef = useRef(redo);
+  redoRef.current = redo;
 
-  const recordUndo = (entry: DeletedItems | { kind: "emojis"; emojis: Record<string, string> }, title: string) => {
+  const recordUndo = (entry: UndoItems, title: string, fromRedo = false) => {
     const id = nextUndoId.current++;
     undoStack.current = [...undoStack.current.slice(-19), { id, ...entry } as UndoEntry];
+    // A new change ends the redo trail, as in any editor
+    if (!fromRedo) redoStack.current = [];
     toast({
       title,
       duration: 8000,
@@ -650,9 +704,16 @@ export default function BoardGrid({
       // the browser's own text undo should work
       const target = e.target as HTMLElement | null;
       const isTyping = !!target?.closest?.('input, textarea, select, [contenteditable="true"], [contenteditable=""]');
-      if (cmdPressed && e.key.toLowerCase() === 'z' && !e.shiftKey && !isTyping && !presentationMode) {
-        e.preventDefault();
-        undoRef.current();
+      if (cmdPressed && !isTyping && !presentationMode) {
+        const key = e.key.toLowerCase();
+        if (key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          undoRef.current();
+        } else if ((key === 'z' && e.shiftKey) || (key === 'y' && e.ctrlKey && !e.metaKey)) {
+          // Cmd+Shift+Z, Ctrl+Shift+Z, or Ctrl+Y (Windows convention)
+          e.preventDefault();
+          redoRef.current();
+        }
       }
     };
     
@@ -788,8 +849,7 @@ export default function BoardGrid({
       
       // Handle dropping block in drawer (delete)
       if (destination.droppableId === "drawer") {
-        blocks = blocks.filter((b) => b.id !== result.draggableId);
-        onBlocksChange(blocks);
+        deleteBlocks(new Set([result.draggableId]));
         return;
       }
       
@@ -851,6 +911,18 @@ export default function BoardGrid({
         }
 
         onBlocksChange(blocks);
+        // Open the card out from the tile's size, where the tile just landed
+        const tile = document
+          .querySelector(`[data-rfd-draggable-id="${CSS.escape(result.draggableId)}"]`)
+          ?.getBoundingClientRect();
+        setEnteringBlock({
+          id: newBlock.id,
+          vars: {
+            "--card-enter-w": `${Math.round(tile?.width ?? 110)}px`,
+            "--card-enter-from": `${Math.round(tile?.height ?? 52)}px`,
+            "--card-enter-opacity": "0.6",
+          },
+        });
         return;
       }
       
@@ -975,6 +1047,7 @@ export default function BoardGrid({
 
     const updatedBlocks = [...board.blocks, newBlock];
     onBlocksChange(updatedBlocks);
+    setEnteringBlock({ id: newBlock.id, vars: { "--card-enter-from": "0px" } });
     setShowBlockTypeMenu(null);
   };
   
@@ -1068,12 +1141,18 @@ export default function BoardGrid({
     onBlocksChange(blocks);
   };
 
-  const handleDeleteBlock = (blockId: string) => {
-    const removed = captureBlocks(board.blocks, (block) => block.id === blockId);
-    if (removed.length === 0) return;
-    onBlocksChange(board.blocks.filter((block) => block.id !== blockId));
+  // Returns false if none of the cards exist any more
+  const deleteBlocks = (ids: Set<string>, fromRedo = false) => {
+    const removed = captureBlocks(board.blocks, (block) => ids.has(block.id));
+    if (removed.length === 0) return false;
+    onBlocksChange(board.blocks.filter((block) => !ids.has(block.id)));
     const deleted: DeletedItems = { kind: "blocks", blocks: removed };
-    recordUndo(deleted, describeDeleted(deleted));
+    recordUndo(deleted, describeDeleted(deleted), fromRedo);
+    return true;
+  };
+
+  const handleDeleteBlock = (blockId: string) => {
+    deleteBlocks(new Set([blockId]));
   };
 
   const handleAddColumn = (phaseIndex: number) => {
@@ -1138,7 +1217,7 @@ export default function BoardGrid({
     onBlocksChange(newBlocks);
   };
 
-  const handleDeletePhase = (phaseIndex: number) => {
+  const handleDeletePhase = (phaseIndex: number, fromRedo = false) => {
     const phase = board.phases[phaseIndex];
     if (!phase) return;
     const deleted: DeletedItems = {
@@ -1164,7 +1243,7 @@ export default function BoardGrid({
     
     onPhasesChange(newPhases);
     onBlocksChange(updatedBlocks);
-    recordUndo(deleted, describeDeleted(deleted));
+    recordUndo(deleted, describeDeleted(deleted), fromRedo);
   };
 
   const handleMovePhase = (phaseIndex: number, direction: 'left' | 'right') => {
@@ -1318,7 +1397,7 @@ export default function BoardGrid({
     onPhasesChange(newPhases);
   };
 
-  const handleDeleteColumn = (phaseIndex: number, columnIndex: number) => {
+  const handleDeleteColumn = (phaseIndex: number, columnIndex: number, fromRedo = false) => {
     const phase = board.phases[phaseIndex];
     const column = phase?.columns[columnIndex];
     if (!column) return;
@@ -1356,7 +1435,7 @@ export default function BoardGrid({
 
     onPhasesChange(newPhases);
     onBlocksChange(newBlocks);
-    recordUndo(deleted, describeDeleted(deleted));
+    recordUndo(deleted, describeDeleted(deleted), fromRedo);
   };
 
   const handleCommentClick = (block: BlockType) => {
@@ -2335,15 +2414,11 @@ export default function BoardGrid({
 
   // Bulk edit functions
   const handleBulkDelete = () => {
-    const removed = captureBlocks(board.blocks, (block) => selectedBlocks.has(block.id));
-    if (removed.length === 0) return;
-    onBlocksChange(board.blocks.filter((block) => !selectedBlocks.has(block.id)));
+    deleteBlocks(selectedBlocks);
     setSelectedBlocks(new Set());
-    const deleted: DeletedItems = { kind: "blocks", blocks: removed };
-    recordUndo(deleted, describeDeleted(deleted));
   };
 
-  const handleClearAllEmojis = () => {
+  const handleClearAllEmojis = (fromRedo = false) => {
     const emojis = Object.fromEntries(
       board.blocks.filter((block) => block.emoji).map((block) => [block.id, block.emoji as string]),
     );
@@ -2353,7 +2428,7 @@ export default function BoardGrid({
     }));
     
     onBlocksChange(updatedBlocks);
-    recordUndo({ kind: "emojis", emojis }, "Emojis cleared");
+    recordUndo({ kind: "emojis", emojis }, "Emojis cleared", fromRedo);
   };
 
   const toggleBlockSelection = (blockId: string) => {
@@ -2479,7 +2554,7 @@ export default function BoardGrid({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleClearAllEmojis}
+                  onClick={() => handleClearAllEmojis()}
                   className="h-9 text-blue-600 hover:text-blue-700"
                 >
                   Clear All Emojis
@@ -3467,10 +3542,15 @@ export default function BoardGrid({
                                                                         transition-shadow duration-200
                                                                         ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                                         ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
+                                                                        ${enteringBlock?.id === block.id ? "card-enter" : ""}
                                                                       `}
                                                                       style={{
                                                                         ...provided.draggableProps.style,
-                                                                        zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                                        zIndex: snapshot.isDragging ? 9999 : "auto",
+                                                                        ...(enteringBlock?.id === block.id ? enteringBlock.vars : {}),
+                                                                      } as React.CSSProperties}
+                                                                      onAnimationEnd={(e) => {
+                                                                        if (e.target === e.currentTarget && enteringBlock?.id === block.id) setEnteringBlock(null);
                                                                       }}
                                                                     >
                                                                       <div 
@@ -3595,10 +3675,15 @@ export default function BoardGrid({
                                                         transition-shadow duration-200
                                                         ${snapshot.isDragging ? "shadow-xl z-50" : "hover:shadow-md hover:border-gray-900"}
                                                         ${highlightedBlockId === block.id ? "ring-2 ring-primary ring-offset-2" : ""}
+                                                        ${enteringBlock?.id === block.id ? "card-enter" : ""}
                                                       `}
                                                       style={{
                                                         ...provided.draggableProps.style,
-                                                        zIndex: snapshot.isDragging ? 9999 : "auto"
+                                                        zIndex: snapshot.isDragging ? 9999 : "auto",
+                                                        ...(enteringBlock?.id === block.id ? enteringBlock.vars : {}),
+                                                      } as React.CSSProperties}
+                                                      onAnimationEnd={(e) => {
+                                                        if (e.target === e.currentTarget && enteringBlock?.id === block.id) setEnteringBlock(null);
                                                       }}
                                                     >
                                                       <div 
