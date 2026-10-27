@@ -21,9 +21,20 @@ async function initializeServer() {
 
     // Serve images before security middleware to avoid CSP conflicts
     app.use('/images', express.static(path.join(process.cwd(), 'client', 'public', 'images')));
-    // Serve uploaded files (logos, etc.)
-    app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+    // Serve uploaded files (logos, extension screenshots)
+    const uploadsDir = path.join(process.cwd(), 'uploads');
+    app.use('/uploads', express.static(uploadsDir));
     log('[INFO] Static image serving initialized');
+
+    // On Railway, uploads only survive deploys if this folder is a volume
+    if (process.env.RAILWAY_ENVIRONMENT) {
+      const volume = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+      if (volume && path.resolve(volume) === uploadsDir) {
+        log(`[INFO] Uploads directory ${uploadsDir} is on a persistent volume`);
+      } else {
+        log(`[WARN] Uploads directory ${uploadsDir} is NOT on a volume${volume ? ` (volume is mounted at ${volume})` : ''}; uploaded files will be lost on redeploy`);
+      }
+    }
 
     // Security middleware - should be one of the first middleware
     app.use(helmet({
