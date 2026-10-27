@@ -31,7 +31,7 @@ function normalizeEmail(email: unknown) {
   return typeof email === "string" ? email.trim().toLowerCase() : "";
 }
 
-function displayNameFor(user: User) {
+export function displayNameFor(user: User) {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
   return fullName || user.username || user.email.split("@")[0];
 }
@@ -170,22 +170,50 @@ export function setupAuth(app: Express) {
 
   // Local development only: one-click sign-in as DEV_LOGIN_EMAIL, creating the
   // account if it doesn't exist. Never registered in production.
+  //   /api/auth/dev-login          signs in as DEV_LOGIN_EMAIL
+  //   /api/auth/dev-login?as=2     signs in as a second user (name+2@domain) who
+  //                                shares the first user's workspace, for testing
+  //                                collaboration in a private window
+  //   &next=/board/1               where to go afterwards
   const devLoginEmail = normalizeEmail(process.env.DEV_LOGIN_EMAIL);
   if (process.env.NODE_ENV !== "production" && devLoginEmail) {
     console.warn(`[Auth] Dev sign-in enabled for ${devLoginEmail} at /api/auth/dev-login`);
+
+    const getOrCreateDevUser = async (email: string, withWorkspace: boolean) => {
+      const existing = await storage.getUserByEmail(email);
+      if (existing) return existing;
+      const user = await storage.createUser({
+        email,
+        username: await uniqueUsername(email),
+        password: await hashPassword(process.env.DEV_LOGIN_PASSWORD || randomBytes(16).toString("hex")),
+      });
+      if (withWorkspace) await createPersonalWorkspace(user);
+      return user;
+    };
+
     app.get("/api/auth/dev-login", async (req: Request, res: Response) => {
       try {
-        let user = await storage.getUserByEmail(devLoginEmail);
-        if (!user) {
-          user = await storage.createUser({
-            email: devLoginEmail,
-            username: await uniqueUsername(devLoginEmail),
-            password: await hashPassword(process.env.DEV_LOGIN_PASSWORD || randomBytes(16).toString("hex")),
-          });
-          await createPersonalWorkspace(user);
+        const primary = await getOrCreateDevUser(devLoginEmail, true);
+        let user = primary;
+
+        if (req.query.as === "2") {
+          const [local, domain] = devLoginEmail.split("@");
+          user = await getOrCreateDevUser(`${local}+2@${domain}`, false);
+          // Join every workspace the primary user is in, and open the same one
+          const primaryOrgs = await storage.getUserOrganizations(primary.id);
+          const memberOf = new Set((await storage.getUserOrganizations(user.id)).map((m) => m.organizationId));
+          for (const m of primaryOrgs) {
+            if (!memberOf.has(m.organizationId)) {
+              await storage.addUserToOrganization(user.id, m.organizationId, "member");
+            }
+          }
+          const active = primaryOrgs.find((m) => m.isActive) ?? primaryOrgs[0];
+          if (active) await storage.setActiveOrganization(user.id, active.organizationId);
         }
+
         await startSession(req, user);
-        res.redirect("/");
+        const next = typeof req.query.next === "string" ? req.query.next : "/";
+        res.redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/");
       } catch (err) {
         console.error("[Auth] Dev sign-in failed:", err);
         res.status(500).json({ error: true, message: "Dev sign-in failed" });

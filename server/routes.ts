@@ -6,7 +6,7 @@ import { hashPassword } from "./auth";
 import { insertBoardSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
-import { WebSocketServer, WebSocket } from 'ws';
+import { setupCollaboration, notifyBoardChanged } from './collaboration';
 
 
 import { getFrictionMetrics, isPendoConfigured, getAuthorizationUrl, exchangeCodeForToken, setOAuthToken } from './utils/pendo';
@@ -19,22 +19,6 @@ import multer from 'multer';
 import { generalRateLimit, aiRateLimit, boardUpdateRateLimit, sheetsRateLimit } from './rate-limiter';
 import { tenantMiddleware, requireTenant } from './tenant-middleware';
 import { insertOrganizationSchema } from '@shared/schema';
-
-interface ConnectedUser {
-  id: string;
-  name: string;
-  color: string;
-  emoji?: string;
-  photoURL?: string;
-  ws: WebSocket;
-  boardId?: string;
-}
-
-const connectedUsers = new Map<string, ConnectedUser>();
-const COLORS = [
-  "#FF5733", "#33FF57", "#3357FF", "#FF33F5",
-  "#33FFF5", "#F5FF33", "#FF3333", "#33FF33"
-];
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -505,138 +489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Create WebSocket server with enhanced configuration for better connectivity
-  const wss = new WebSocketServer({ 
-    server: httpServer,
-    path: '/ws',
-    clientTracking: true,
-    perMessageDeflate: false,
-    maxPayload: 16 * 1024 * 1024
-  });
-
-  console.log('[WS] WebSocket server created on path /ws');
-
-  // Add WebSocket error handling
-  wss.on('error', (error) => {
-    console.error('[WS] WebSocket server error:', error);
-  });
-
-  wss.on('connection', (ws, req) => {
-    const userId = nanoid();
-    console.log(`[WS] New connection established: ${userId}`);
-
-    ws.on('error', (error: Error) => {
-      console.error(`[WS] Connection error for ${userId}:`, error);
-      connectedUsers.delete(userId);
-    });
-
-    ws.on('message', (data: Buffer) => {
-      try {
-        const message = JSON.parse(data.toString());
-        console.log(`[WS] Received message from ${userId}:`, message);
-
-        if (message.type === 'subscribe') {
-          // First, remove any existing connections for this user/board combo to prevent duplicates
-          const existingUserIds = Array.from(connectedUsers.entries())
-            .filter(([id, user]) => 
-              user.name === (message.userName || 'Anonymous') && 
-              user.boardId === message.boardId &&
-              id !== userId
-            )
-            .map(([id]) => id);
-          
-          // Remove all existing connections for this user on this board
-          existingUserIds.forEach(existingId => {
-            console.log(`[WS] Removing duplicate connection for user: ${message.userName}, ID: ${existingId}`);
-            const existingUser = connectedUsers.get(existingId);
-            if (existingUser?.ws && existingUser.ws.readyState === WebSocket.OPEN) {
-              existingUser.ws.close(1000, 'Duplicate connection removed');
-            }
-            connectedUsers.delete(existingId);
-          });
-
-          // Also remove the current userId if it already exists to prevent conflicts
-          if (connectedUsers.has(userId)) {
-            console.log(`[WS] Removing existing connection for current userId: ${userId}`);
-            const existingUser = connectedUsers.get(userId);
-            if (existingUser?.ws && existingUser.ws.readyState === WebSocket.OPEN && existingUser.ws !== ws) {
-              existingUser.ws.close(1000, 'Replaced by new connection');
-            }
-            connectedUsers.delete(userId);
-          }
-
-          const user: ConnectedUser = {
-            id: userId,
-            name: message.userName || 'Anonymous',
-            color: COLORS[Math.floor(Math.random() * COLORS.length)],
-            emoji: message.userEmoji,
-            photoURL: message.userPhotoURL, // Add support for actual profile photos
-            ws,
-            boardId: message.boardId
-          };
-          connectedUsers.set(userId, user);
-
-          // Send initial users list to new user
-          const boardUsers = Array.from(connectedUsers.values())
-            .filter(u => u.boardId === message.boardId)
-            .map(({ id, name, color, emoji, photoURL }) => ({ id, name, color, emoji, photoURL }));
-
-          ws.send(JSON.stringify({
-            type: 'users_update',
-            users: boardUsers
-          }));
-
-          // Broadcast to other users in the same board
-          connectedUsers.forEach((connectedUser) => {
-            if (connectedUser.ws !== ws && 
-                connectedUser.boardId === message.boardId && 
-                connectedUser.ws.readyState === WebSocket.OPEN) {
-              connectedUser.ws.send(JSON.stringify({
-                type: 'users_update',
-                users: boardUsers
-              }));
-            }
-          });
-        }
-      } catch (error) {
-        console.error('[WS] Error processing message:', error);
-      }
-    });
-
-    ws.on('close', () => {
-      console.log(`[WS] Connection closed: ${userId}`);
-      const user = connectedUsers.get(userId);
-      if (user?.boardId) {
-        connectedUsers.delete(userId);
-
-        // Broadcast updated users list
-        const boardUsers = Array.from(connectedUsers.values())
-          .filter(u => u.boardId === user.boardId)
-          .map(({ id, name, color, emoji, photoURL }) => ({ id, name, color, emoji, photoURL }));
-
-        connectedUsers.forEach((connectedUser) => {
-          if (connectedUser.boardId === user.boardId &&
-              connectedUser.ws.readyState === WebSocket.OPEN) {
-            connectedUser.ws.send(JSON.stringify({
-              type: 'users_update',
-              users: boardUsers
-            }));
-          }
-        });
-      }
-    });
-
-    // Send heartbeat to keep connection alive
-    const heartbeat = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.ping();
-      }
-    }, 30000);
-
-    ws.on('close', () => {
-      clearInterval(heartbeat);
-    });
-  });
+  setupCollaboration(httpServer);
 
   // Add a health check endpoint
   app.get("/api/ping", (_req, res) => {
@@ -1158,6 +1011,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const board = await storage.updateBoard(Number(req.params.id), req.body, req.tenantId);
       console.log(`[HTTP] Successfully updated board: ${board.id}`);
       res.json(board);
+      notifyBoardChanged(board.id, req.get('X-Collab-Connection'));
     } catch (err) {
       console.error('[HTTP] Error updating board:', err);
       res.status(500).json({ error: true, message: "Failed to update board" });
@@ -1264,6 +1118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }, req.tenantId);
       console.log(`[HTTP] Successfully added comment to board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
+      notifyBoardChanged(updatedBoard.id);
     } catch (err) {
       console.error('[HTTP] Error adding comment:', err);
       res.status(500).json({ error: true, message: "Failed to add comment" });
@@ -1294,6 +1149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }, req.tenantId);
       console.log(`[HTTP] Successfully cleared comments for board ${updatedBoard.id}, block ${req.params.blockId}`);
       res.json(updatedBoard);
+      notifyBoardChanged(updatedBoard.id);
     } catch (err) {
       console.error('[HTTP] Error clearing comments:', err);
       res.status(500).json({ error: true, message: "Failed to clear comments" });
@@ -1334,6 +1190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }, req.tenantId);
       console.log(`[HTTP] Successfully toggled comment completion for board ${updatedBoard.id}, block ${req.params.blockId}, comment ${req.params.commentId}`);
       res.json(updatedBoard);
+      notifyBoardChanged(updatedBoard.id);
     } catch (err) {
       console.error('[HTTP] Error toggling comment completion:', err);
       res.status(500).json({ error: true, message: "Failed to update comment" });

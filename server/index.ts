@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import session from "express-session";
+import { sessionMiddleware } from "./session";
 import { storage } from "./storage";
 import { createServer } from "http";
 import { setupAuth } from "./auth";
@@ -241,18 +241,7 @@ async function initializeServer() {
 
     try {
       // Session configuration
-      app.use(session({
-        secret: process.env.SESSION_SECRET || 'dev_secret_key',
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-          secure: process.env.NODE_ENV === 'production',
-          maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-          httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
-          sameSite: 'lax' // Provides some CSRF protection
-        },
-        store: storage.sessionStore
-      }));
+      app.use(sessionMiddleware);
       log('[INFO] Session middleware initialized');
     } catch (err) {
       log('[ERROR] Failed to initialize session middleware:', String(err));

@@ -17,7 +17,7 @@ interface UsersPresenceProps {
 
 const ANIMAL_EMOJIS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐮", "🐷", "🐸", "🐙", "🦒", "🦘", "🦔", "🦦", "🦥", "🦡"];
 
-function getAnimalEmoji(id: string | number): string {
+export function getAnimalEmoji(id: string | number): string {
   const idString = String(id);
   const hash = idString.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return ANIMAL_EMOJIS[Math.abs(hash) % ANIMAL_EMOJIS.length];

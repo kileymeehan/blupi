@@ -14,17 +14,7 @@ export default function BoardPage() {
   const { id } = useParams();
   const { toast } = useToast();
 
-  const { sendMessage, connectedUsers, lastMessage } = useWebSocket(id || '');
-
-  // Listen for incoming board updates via WebSocket for real-time collaboration
-  useEffect(() => {
-    console.log('[BoardPage] WebSocket message received:', lastMessage?.type);
-    if (lastMessage?.type === 'board_update' && lastMessage.board) {
-      console.log('[BoardPage] Processing real-time board update:', lastMessage.board.id);
-      // Immediately update the local cache with incoming changes
-      queryClient.setQueryData(['/api/boards', id], lastMessage.board);
-    }
-  }, [lastMessage, id]);
+  const { connectedUsers, collaboration } = useWebSocket(id || '');
 
   // Pending background saves (see saveBoard below)
   // The board as last edited locally, shown until the server confirms it.
@@ -37,6 +27,8 @@ export default function BoardPage() {
     inFlight: false,
     queued: null,
   });
+  // Someone else saved while our own save was pending; re-fetch once it lands
+  const missedRemoteChange = useRef(false);
 
   const { data: board, isLoading, error } = useQuery({
     queryKey: ['/api/boards', id],
@@ -86,10 +78,11 @@ export default function BoardPage() {
     q.queued = null;
     q.inFlight = true;
     try {
+      const connectionId = collaboration.getConnectionId();
       const res = await apiRequest("PATCH", `/api/boards/${id}`, {
         ...updates,
         updatedAt: new Date().toISOString(),
-      });
+      }, connectionId ? { 'X-Collab-Connection': connectionId } : undefined);
       const saved = await res.json();
       // Only adopt the server's copy if nothing newer is waiting to be sent
       if (!q.queued) {
@@ -97,7 +90,6 @@ export default function BoardPage() {
         optimisticRef.current = null;
         setOptimisticBoard(null);
       }
-      sendMessage({ type: 'board_update', board: saved, timestamp: Date.now() });
     } catch (error) {
       console.error('Board update error:', error);
       q.queued = null;
@@ -111,9 +103,33 @@ export default function BoardPage() {
       });
     } finally {
       q.inFlight = false;
-      if (q.queued) flushSaves();
+      if (q.queued) {
+        flushSaves();
+      } else if (missedRemoteChange.current) {
+        missedRemoteChange.current = false;
+        queryClient.invalidateQueries({ queryKey: boardKey });
+      }
     }
-  }, [id, sendMessage, toast]);
+  }, [id, collaboration, toast]);
+
+  // When a collaborator saves, re-fetch the board right away. Also re-fetch
+  // after reconnecting, in case changes were missed while offline.
+  useEffect(() => {
+    let connectedBefore = false;
+    return collaboration.subscribe((msg) => {
+      const isReconnect = msg.type === 'welcome' && connectedBefore;
+      if (msg.type === 'welcome') connectedBefore = true;
+      if (msg.type !== 'board_changed' && !isReconnect) return;
+
+      // Fetching now could overwrite an edit that's still being saved
+      const q = saveQueue.current;
+      if (q.inFlight || q.queued) {
+        missedRemoteChange.current = true;
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ['/api/boards', id] });
+    });
+  }, [collaboration, id]);
 
   const saveBoard = useCallback((updates: Partial<Board>) => {
     const base = optimisticRef.current ?? queryClient.getQueryData<Board>(boardKey);
@@ -187,6 +203,7 @@ export default function BoardPage() {
         onPhasesChange={handlePhasesChange}
         onBoardChange={handleBoardChange}
         connectedUsers={connectedUsers}
+        collaboration={collaboration}
         project={project}
       />
     );

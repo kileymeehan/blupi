@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-simple-auth';
 
@@ -7,12 +7,25 @@ type WebSocketMessage = {
   [key: string]: any;
 };
 
-interface ConnectedUser {
+export interface ConnectedUser {
   id: string;
   name: string;
   color: string;
   emoji?: string;
   photoURL?: string;
+}
+
+// These skip React state and go straight to subscribers: cursors and focus
+// arrive many times a second and shouldn't re-render the board
+const PRESENCE_TYPES = new Set(['cursor', 'focus', 'left', 'welcome', 'board_changed']);
+
+export type PresenceListener = (message: WebSocketMessage) => void;
+
+export interface Collaboration {
+  send: (message: WebSocketMessage) => void;
+  subscribe: (listener: PresenceListener) => () => void;
+  // This tab's connection, sent with saves so the server doesn't echo them back
+  getConnectionId: () => string | null;
 }
 
 export function useWebSocket(boardId: string) {
@@ -21,6 +34,8 @@ export function useWebSocket(boardId: string) {
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
   const socketRef = useRef<WebSocket | null>(null);
+  const listenersRef = useRef(new Set<PresenceListener>());
+  const connectionIdRef = useRef<string | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttempts = useRef(0);
   const { toast } = useToast();
@@ -31,19 +46,23 @@ export function useWebSocket(boardId: string) {
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
-      console.log('[WS] Sending message:', message);
       socketRef.current.send(JSON.stringify(message));
-    } else {
-      console.warn('[WS] Socket not ready, message not sent:', message);
     }
   }, []);
 
+  const subscribe = useCallback((listener: PresenceListener) => {
+    listenersRef.current.add(listener);
+    return () => {
+      listenersRef.current.delete(listener);
+    };
+  }, []);
+
   useEffect(() => {
-    if (!boardId) return;
+    // The server identifies us from the session cookie, so wait for sign-in
+    if (!boardId || !user) return;
 
     // Clean up any existing connection when board changes
     if (socketRef.current) {
-      console.log('[WS] Board changed, closing existing connection');
       socketRef.current.close(1000, 'Board navigation');
       socketRef.current = null;
       setIsConnected(false);
@@ -58,21 +77,17 @@ export function useWebSocket(boardId: string) {
     }
     reconnectAttempts.current = 0;
 
-    // Listen for profile updates to reconnect with new emoji
-    const handleProfileUpdate = (event: CustomEvent) => {
-      console.log('[WS] Profile updated, reconnecting with new emoji:', event.detail.photoURL);
+    // Reconnect after a profile change so others see the new avatar
+    const handleProfileUpdate = () => {
       if (socketRef.current?.readyState === WebSocket.OPEN) {
-        socketRef.current.close(1000, 'Profile updated');
+        socketRef.current.close(4000, 'Profile updated');
       }
     };
 
     window.addEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
 
-    // Construct WebSocket URL with proper protocol detection
     const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const wsUrl = `${wsProtocol}://${window.location.host}/ws`;
-
-    console.log('[WS] Attempting to connect to:', wsUrl);
 
     const connect = () => {
       try {
@@ -81,76 +96,69 @@ export function useWebSocket(boardId: string) {
         socketRef.current = socket;
 
         socket.addEventListener('open', () => {
-          console.log('[WS] Connection opened');
           setIsConnected(true);
           setIsConnecting(false);
           reconnectAttempts.current = 0;
-
-          sendMessage({
-            type: 'subscribe',
-            boardId,
-            userName: user?.email || 'Anonymous',
-            userEmoji: user?.photoURL || '👤',
-            userPhotoURL: (user?.photoURL && user.photoURL.length > 1) ? user.photoURL : undefined
-          });
+          sendMessage({ type: 'subscribe', boardId });
         });
 
         socket.addEventListener('message', (event) => {
+          let data: WebSocketMessage;
           try {
-            const data = JSON.parse(event.data);
-            console.log('[WS] Received message:', data.type, data.timestamp ? `(${Date.now() - data.timestamp}ms delay)` : '');
-
-            if (data.type === 'users_update') {
-              setConnectedUsers(data.users);
-            }
-            setLastMessage(data);
+            data = JSON.parse(event.data);
           } catch (error) {
             console.error('[WS] Message parsing error:', error);
+            return;
           }
+
+          if (data.type === 'welcome') connectionIdRef.current = data.connectionId;
+          if (PRESENCE_TYPES.has(data.type)) {
+            listenersRef.current.forEach((listener) => listener(data));
+            return;
+          }
+          if (data.type === 'users_update') {
+            setConnectedUsers(data.users);
+          }
+          setLastMessage(data);
         });
 
-        socket.addEventListener('error', (error) => {
-          console.error('[WS] Connection error:', error);
+        socket.addEventListener('error', () => {
           setIsConnected(false);
           setIsConnecting(false);
         });
 
         socket.addEventListener('close', (event) => {
-          console.log(`[WS] Connection closed. Code: ${event.code}, Reason: ${event.reason}`);
           setIsConnected(false);
           setIsConnecting(false);
+          if (socketRef.current === socket) {
+            setConnectedUsers([]);
+            connectionIdRef.current = null;
+          }
 
-          if (event.code !== 1000) {
-            const backoffTime = Math.min(
-              INITIAL_RETRY_DELAY * Math.pow(1.2, reconnectAttempts.current), // Faster reconnection
-              2000 // Cap at 2 seconds for faster real-time updates
-            );
-            reconnectAttempts.current++;
+          // 1000 = we closed it on purpose; 4401 = not signed in, retrying won't help
+          if (event.code === 1000 || event.code === 4401) return;
 
-            if (reconnectAttempts.current <= MAX_RETRY_ATTEMPTS) {
-              console.log(`[WS] Attempting to reconnect in ${backoffTime}ms (attempt ${reconnectAttempts.current}/${MAX_RETRY_ATTEMPTS})`);
-              reconnectTimeoutRef.current = setTimeout(() => {
-                if (document.visibilityState === 'visible') {
-                  connect();
-                }
-              }, backoffTime);
-            } else {
-              toast({
-                title: "Connection Failed",
-                description: "Unable to establish a stable connection. Please check your internet connection and refresh the page.",
-                variant: "destructive"
-              });
-            }
+          const backoffTime = Math.min(
+            INITIAL_RETRY_DELAY * Math.pow(1.2, reconnectAttempts.current),
+            2000
+          );
+          reconnectAttempts.current++;
+
+          if (reconnectAttempts.current <= MAX_RETRY_ATTEMPTS) {
+            reconnectTimeoutRef.current = setTimeout(() => {
+              if (document.visibilityState === 'visible') {
+                connect();
+              }
+            }, backoffTime);
+          } else {
+            toast({
+              title: "Connection Failed",
+              description: "Unable to establish a stable connection. Please check your internet connection and refresh the page.",
+              variant: "destructive"
+            });
           }
         });
-
-        return () => {
-          if (socket.readyState === WebSocket.OPEN) {
-            socket.close(1000, 'Component unmounted');
-          }
-        };
       } catch (error) {
-        console.log('[WS] WebSocket connection not established - this is expected in development and usually safe to ignore');
         setIsConnecting(false);
       }
     };
@@ -158,8 +166,12 @@ export function useWebSocket(boardId: string) {
     connect();
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !isConnected && boardId) {
-        console.log('[WS] Tab became visible, attempting to reconnect');
+      if (
+        document.visibilityState === 'visible' &&
+        socketRef.current?.readyState !== WebSocket.OPEN &&
+        socketRef.current?.readyState !== WebSocket.CONNECTING
+      ) {
+        reconnectAttempts.current = 0;
         connect();
       }
     };
@@ -174,9 +186,15 @@ export function useWebSocket(boardId: string) {
       }
       if (socketRef.current) {
         socketRef.current.close(1000, 'Component unmounted');
+        socketRef.current = null;
       }
     };
-  }, [boardId, toast, sendMessage, user?.email, user?.photoURL]);
+  }, [boardId, toast, sendMessage, user?.uid]);
 
-  return { isConnected, isConnecting, lastMessage, sendMessage, connectedUsers };
+  const collaboration = useMemo<Collaboration>(
+    () => ({ send: sendMessage, subscribe, getConnectionId: () => connectionIdRef.current }),
+    [sendMessage, subscribe]
+  );
+
+  return { isConnected, isConnecting, lastMessage, sendMessage, connectedUsers, collaboration };
 }

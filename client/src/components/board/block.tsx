@@ -177,6 +177,8 @@ export default function Block({
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [notes, setNotes] = useState(block.notes || "");
   const [localContent, setLocalContent] = useState(block.content || "");
+  // Whether the text was typed in since the card was last saved or synced
+  const typedRef = useRef(false);
   const [isEditing, setIsEditing] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
 
@@ -199,6 +201,9 @@ export default function Block({
 
   useEffect(() => {
     if (contentRef.current && !isTemplate) {
+      // A collaborator's save shouldn't wipe out text being typed here; this
+      // card's own save on blur decides the final text
+      if (document.activeElement === contentRef.current) return;
       setLocalContent(block.content || "");
       contentRef.current.textContent = block.content || "";
     }
@@ -214,15 +219,21 @@ export default function Block({
   const handleInput = () => {
     if (!contentRef.current) return;
     const newContent = contentRef.current.textContent || "";
+    typedRef.current = true;
     setLocalContent(newContent);
   };
 
   const handleBlur = () => {
     if (!onChange || !contentRef.current) return;
     const content = contentRef.current.textContent || "";
-    if (content !== block.content) {
+    if (typedRef.current && content !== block.content) {
       onChange(content);
+    } else if (!typedRef.current) {
+      // Nothing typed: pick up any collaborator change that arrived meanwhile
+      contentRef.current.textContent = block.content || "";
+      setLocalContent(block.content || "");
     }
+    typedRef.current = false;
     setIsEditing(false);
   };
   

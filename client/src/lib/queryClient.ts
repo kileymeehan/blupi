@@ -11,13 +11,14 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
+  extraHeaders?: Record<string, string>,
 ): Promise<Response> {
   // Check if we're using development bypass mode (only in development)
   const isDevelopment = import.meta.env.DEV;
   const isDevBypass = isDevelopment && localStorage.getItem('blupi_dev_bypass') === 'true';
   
   // Create headers object with dev bypass flag if needed
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { ...extraHeaders };
   if (data) {
     headers['Content-Type'] = 'application/json';
   }

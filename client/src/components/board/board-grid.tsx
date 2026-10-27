@@ -123,6 +123,8 @@ import { SheetDocumentsManager } from "@/components/google-sheets/sheet-document
 import { FileSpreadsheet } from "lucide-react";
 import { BlueprintImportTrigger } from "./blueprint-import-dialog";
 import { CustomScrollbar } from "./custom-scrollbar";
+import { LiveCursors } from "./live-cursors";
+import type { Collaboration, ConnectedUser } from "@/hooks/use-websocket";
 import { ProfileModal } from "@/components/profile-modal";
 import { ProfileIcon } from "@/components/profile-icon";
 import { EmotionJourney } from "./emotion-journey";
@@ -138,7 +140,8 @@ interface BoardGridProps {
   onBlocksChange: (blocks: BlockType[]) => void;
   onPhasesChange: (phases: Phase[]) => void;
   onBoardChange: (board: Board) => void;
-  connectedUsers?: Array<{ id: string; name: string; color: string }>;
+  connectedUsers?: ConnectedUser[];
+  collaboration?: Collaboration;
   isPublicView?: boolean;
 }
 
@@ -150,6 +153,7 @@ export default function BoardGrid({
   onPhasesChange,
   onBoardChange,
   connectedUsers = [],
+  collaboration,
   isPublicView = false,
 }: BoardGridProps) {
   const [_, setLocation] = useLocation();
@@ -2241,6 +2245,10 @@ export default function BoardGrid({
 
   // Add a function to handle the drag start event for potential duplication
   const handleDragStart = (initial: any) => {
+    // Show collaborators which card is being moved
+    if (initial.type === "BLOCK") {
+      collaboration?.send({ type: "focus", blockId: initial.draggableId, mode: "dragging" });
+    }
     // We only need to show a visual indicator if modifier is pressed
     if (isModifierKeyPressed) {
       // Could add some visual indication here that we're in duplicate mode
@@ -2620,7 +2628,13 @@ export default function BoardGrid({
       </header>
 
       <div className="flex flex-1 overflow-hidden relative pt-0.5">
-        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <DragDropContext
+        onDragStart={handleDragStart}
+        onDragEnd={(result) => {
+          if (result.type === "BLOCK") collaboration?.send({ type: "focus", blockId: null });
+          handleDragEnd(result);
+        }}
+      >
           <div
             className={`${isDrawerOpen ? "w-72" : "w-16"} flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-40 h-auto flex flex-col overflow-y-auto`}
             style={{
@@ -3081,7 +3095,10 @@ export default function BoardGrid({
                   if (e.button === 1) startPan(e);
                 }}
               >
-                <div ref={boardRef} className="p-4 sm:p-6 lg:p-8 pt-4 min-w-max" style={{ minWidth: '120vw' }}>
+                <div ref={boardRef} className="relative p-4 sm:p-6 lg:p-8 pt-4 min-w-max" style={{ minWidth: '120vw' }}>
+                  {collaboration && (
+                    <LiveCursors containerRef={boardRef} collaboration={collaboration} users={connectedUsers} />
+                  )}
                   <div className="flex items-start gap-4 sm:gap-6 lg:gap-8">
 
                   {board.phases.map((phase, phaseIndex) => (
