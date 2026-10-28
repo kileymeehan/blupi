@@ -3,14 +3,15 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, UserPlus, Trash2, Archive, RotateCcw, MoreVertical, ExternalLink, FileText, Users, LinkIcon, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { formatDistanceToNowStrict } from "date-fns";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 import { InviteProjectDialog } from "@/components/invite-project-dialog";
 import { ProjectMembers } from "@/components/project-members";
 import { PageHeader } from "@/components/page-header";
 import { useState } from "react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { Board } from "@shared/schema";
+import type { Board, ProjectLink } from "@shared/schema";
 import { StatusSelector } from "@/components/status-selector";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
@@ -22,6 +23,7 @@ import { Input } from "@/components/ui/input";
 
 export default function Project() {
   const { id } = useParams();
+  const [, navigate] = useLocation();
   const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
@@ -30,7 +32,6 @@ export default function Project() {
   const [archiveBlueprintId, setArchiveBlueprintId] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [projectDescription, setProjectDescription] = useState('');
-  const [documents, setDocuments] = useState<{ id: string; title: string; url: string; type: 'google_drive' | 'link' }[]>([]);
   const [newDocumentTitle, setNewDocumentTitle] = useState('');
   const [newDocumentUrl, setNewDocumentUrl] = useState('');
   const [showAddLinkForm, setShowAddLinkForm] = useState(false);
@@ -161,22 +162,50 @@ export default function Project() {
   });
 
   // Add document mutation
-  const addDocumentMutation = useMutation({
-    mutationFn: async (document: { title: string; url: string; type: 'google_drive' | 'link' }) => {
-      // In a real implementation, this would save to the database
-      const newDoc = { ...document, id: Date.now().toString() };
-      setDocuments(prev => [...prev, newDoc]);
-      return newDoc;
+  const linksKey = ['/api/projects', id, 'links'];
+  const { data: documents = [] } = useQuery<ProjectLink[]>({
+    queryKey: linksKey,
+    queryFn: async () => {
+      const res = await fetch(`/api/projects/${id}/links`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch links');
+      return res.json();
     },
+    enabled: !!id,
+  });
+
+  // Surface the server's validation message (e.g. "invalid URL") instead of a raw status
+  const linkRequest = async (method: string, url: string, body?: unknown) => {
+    const res = await fetch(url, {
+      method,
+      credentials: 'include',
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Something went wrong');
+    return data;
+  };
+
+  const addDocumentMutation = useMutation({
+    mutationFn: (document: { title: string; url: string }) =>
+      linkRequest('POST', `/api/projects/${id}/links`, document),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: linksKey });
       setNewDocumentTitle('');
       setNewDocumentUrl('');
       setShowAddLinkForm(false);
-      toast({
-        title: "Success",
-        description: "Document added successfully"
-      });
-    }
+    },
+    onError: (error: Error) => {
+      toast({ title: "Couldn't add link", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: (linkId: number) => linkRequest('DELETE', `/api/projects/${id}/links/${linkId}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: linksKey }),
+    onError: (error: Error) => {
+      toast({ title: "Couldn't remove link", description: error.message, variant: "destructive" });
+    },
   });
 
   // Filter boards by archived status
@@ -256,7 +285,7 @@ export default function Project() {
                 placeholder="Describe your project goals, scope, and objectives..."
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
-                className="min-h-[120px] resize-none border-2 border-[color:var(--card-border)] rounded focus-visible:ring-0 focus-visible:border-[#1976D2] font-bold"
+                className="min-h-[120px] resize-none border border-gray-200 rounded text-[15px] leading-relaxed text-[#0A0A0F] placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[#1976D2]"
               />
             </section>
 
@@ -272,36 +301,60 @@ export default function Project() {
 
           {!showArchived ? (
             <>
-              <div className="space-y-4">
+              {activeBoards.length > 0 && (
+              <table className="w-full table-fixed text-left">
+                <thead>
+                  <tr className="border-b border-gray-200 text-[11px] font-bold uppercase tracking-widest text-gray-500">
+                    <th className="pb-2 pl-3 font-bold">Name</th>
+                    <th className="pb-2 w-[150px] font-bold">Status</th>
+                    <th className="pb-2 w-[130px] font-bold hidden md:table-cell">Updated</th>
+                    <th className="pb-2 w-[44px]"><span className="sr-only">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody>
                 {activeBoards.map((board) => (
-                  <div key={board.id} className="rounded flex items-center justify-between p-4 bg-white border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] transition-colors group">
-                    <div className="flex items-center gap-4 flex-1">
-                      <div
-                        className="rounded w-4 h-4 border-2 border-[color:var(--card-border)] flex-shrink-0"
-                        style={{ backgroundColor: project?.color || '#1976D2' }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-black uppercase tracking-widest text-[#1976D2] group-hover:text-[#0A0A0F] truncate">{board.name}</h3>
-                        {board.description && (
-                          <p className="text-sm font-bold text-[#0A0A0F] truncate">{board.description}</p>
-                        )}
+                  <tr
+                    key={board.id}
+                    onClick={() => navigate(`/board/${board.id}`)}
+                    className="group cursor-pointer border-b border-gray-100 last:border-0 hover:bg-[#FFD600]/10 transition-colors"
+                  >
+                    <td className="py-3 pl-3 pr-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span
+                          className="h-2.5 w-2.5 rounded-sm flex-shrink-0"
+                          style={{ backgroundColor: project?.color || '#1976D2' }}
+                        />
+                        <div className="min-w-0">
+                          <Link
+                            href={`/board/${board.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="block truncate font-bold text-[#0A0A0F] group-hover:underline underline-offset-2"
+                          >
+                            {board.name}
+                          </Link>
+                          {board.description && (
+                            <p className="truncate text-sm text-gray-500">{board.description}</p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
+                    </td>
+                    <td className="py-3" onClick={(e) => e.stopPropagation()}>
                       <StatusSelector
                         type="board"
+                        variant="subtle"
                         value={board.status}
                         onChange={(status) => updateBoardStatus.mutate({ boardId: board.id, status })}
                         disabled={updateBoardStatus.isPending}
                       />
-                      <Button asChild className="bauhaus-btn h-8 px-4 text-xs">
-                        <Link href={`/board/${board.id}`}>View</Link>
-                      </Button>
+                    </td>
+                    <td className="py-3 text-sm text-gray-500 whitespace-nowrap hidden md:table-cell" title={new Date(board.updatedAt).toLocaleString()}>
+                      {formatDistanceToNowStrict(new Date(board.updatedAt), { addSuffix: true })}
+                    </td>
+                    <td className="py-3 pr-1 text-right" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-black/10">
-                            <MoreVertical className="h-4 w-4 text-[#0A0A0F]" />
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-[#0A0A0F] hover:bg-black/5" aria-label={`Actions for ${board.name}`}>
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="border-2 border-[color:var(--card-border)] rounded">
@@ -318,10 +371,12 @@ export default function Project() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </div>
-                  </div>
+                    </td>
+                  </tr>
                 ))}
-              </div>
+                </tbody>
+              </table>
+              )}
 
               {activeBoards.length === 0 && !boardsLoading && (
                 <div className="space-y-4">
@@ -413,81 +468,91 @@ export default function Project() {
           {/* Sidebar */}
           <div className={`w-full lg:w-1/4 space-y-6 order-1 lg:order-2 ${sidebarOpen ? 'block' : 'hidden lg:block'}`}>
             {/* Project Members Section */}
-            <div className="bauhaus-card p-6">
-              {id && <ProjectMembers projectId={id} />}
-            </div>
+            {id && <ProjectMembers projectId={id} />}
 
             {/* Documents & Links Section */}
             <section className="bauhaus-card p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <LinkIcon className="h-5 w-5 text-[#1976D2]" />
-                <h2 className="text-xl font-black uppercase tracking-widest text-[#0A0A0F]">Documents & Links</h2>
-              </div>
-              
-              {/* Document list */}
-              <div className="space-y-2 mb-4">
-                {documents.map((doc) => (
-                  <div key={doc.id} className="rounded flex items-center justify-between p-3 bg-white border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] transition-colors group">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-black uppercase tracking-widest text-[#0A0A0F] truncate">{doc.title}</div>
-                      <div className="text-[10px] font-bold uppercase tracking-tighter text-[#6B7280] group-hover:text-[#0A0A0F]">
-                        {doc.type === 'google_drive' ? 'Google Drive' : 'External Link'}
-                      </div>
-                    </div>
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ml-2 p-2 hover:bg-black/10 rounded"
-                    >
-                      <ExternalLink className="h-4 w-4 text-[#0A0A0F]" />
-                    </a>
-                  </div>
-                ))}
-                {documents.length === 0 && !showAddLinkForm && (
-                  <div className="text-sm text-gray-500 text-center py-6">
-                    No documents added yet
-                  </div>
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <h2 className="flex items-center gap-2 text-base font-black uppercase tracking-widest text-[#0A0A0F] min-w-0">
+                  <LinkIcon className="h-4 w-4 text-[#1976D2] flex-shrink-0" />
+                  Documents & Links
+                </h2>
+                {!showAddLinkForm && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowAddLinkForm(true)}
+                    title="Add a link"
+                    aria-label="Add link"
+                    className="h-8 w-8 p-0 flex-shrink-0 text-[#0A0A0F] hover:bg-black/5"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
 
-              {/* Add Link Form or CTA Button */}
-              {!showAddLinkForm ? (
-                <Button
-                  onClick={() => setShowAddLinkForm(true)}
-                  className="bauhaus-btn w-full h-12"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Link
-                </Button>
-              ) : (
-                <div className="space-y-3">
+              {/* Document list */}
+              {documents.length > 0 && (
+                <ul className="divide-y divide-gray-100">
+                  {documents.map((doc) => (
+                    <li key={doc.id} className="flex items-center gap-1 group/row">
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={doc.url}
+                        className="flex flex-1 min-w-0 items-center justify-between gap-2 py-2.5 group"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-sm font-bold text-[#0A0A0F] truncate group-hover:underline underline-offset-2">{doc.title}</div>
+                          <div className="text-xs text-gray-500">
+                            {doc.type === 'google_drive' ? 'Google Drive' : 'External link'}
+                          </div>
+                        </div>
+                        <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-gray-300 group-hover:text-[#0A0A0F]" />
+                      </a>
+                      <Button
+                        variant="ghost"
+                        onClick={() => deleteDocumentMutation.mutate(doc.id)}
+                        disabled={deleteDocumentMutation.isPending}
+                        aria-label={`Remove ${doc.title}`}
+                        className="h-7 w-7 p-0 flex-shrink-0 text-gray-300 opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 hover:text-[#E53935] hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {documents.length === 0 && !showAddLinkForm && (
+                <p className="text-sm text-gray-500 py-2">
+                  No documents added yet
+                </p>
+              )}
+
+              {/* Add Link Form */}
+              {showAddLinkForm && (
+                <div className={`space-y-3 ${documents.length > 0 ? 'mt-4' : ''}`}>
                   <Input
                     placeholder="Title"
                     value={newDocumentTitle}
                     onChange={(e) => setNewDocumentTitle(e.target.value)}
-                    className="border-2 border-[color:var(--card-border)] rounded focus-visible:ring-0 font-black uppercase text-xs"
+                    className="h-9 border border-gray-200 rounded text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[#1976D2]"
                   />
                   <Input
                     placeholder="URL"
                     value={newDocumentUrl}
                     onChange={(e) => setNewDocumentUrl(e.target.value)}
-                    className="border-2 border-[color:var(--card-border)] rounded focus-visible:ring-0 font-black text-xs"
+                    className="h-9 border border-gray-200 rounded text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[#1976D2]"
                   />
                   <div className="flex gap-2">
                     <Button
                       onClick={() => {
                         if (newDocumentTitle && newDocumentUrl) {
-                          const docType = newDocumentUrl.includes('drive.google.com') ? 'google_drive' : 'link';
-                          addDocumentMutation.mutate({
-                            title: newDocumentTitle,
-                            url: newDocumentUrl,
-                            type: docType
-                          });
+                          addDocumentMutation.mutate({ title: newDocumentTitle, url: newDocumentUrl });
                         }
                       }}
                       disabled={!newDocumentTitle || !newDocumentUrl || addDocumentMutation.isPending}
-                      className="bauhaus-btn-blue flex-1 h-10"
+                      className="bauhaus-btn-blue flex-1 h-9"
                     >
                       Add
                     </Button>
@@ -497,7 +562,8 @@ export default function Project() {
                         setNewDocumentTitle('');
                         setNewDocumentUrl('');
                       }}
-                      className="bauhaus-btn flex-1 h-10"
+                      variant="ghost"
+                      className="flex-1 h-9 text-xs font-bold uppercase tracking-wider hover:bg-black/5"
                     >
                       Cancel
                     </Button>

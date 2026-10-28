@@ -129,6 +129,20 @@ export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
   })
 }));
 
+// Documents & links pinned to a project (Google Drive files, specs, etc.)
+export const projectLinks = pgTable("project_links", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }).notNull(),
+  title: text("title").notNull(),
+  url: text("url").notNull(),
+  type: text("type").notNull().default('link'), // 'google_drive' | 'link'
+  createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type ProjectLink = typeof projectLinks.$inferSelect;
+export type InsertProjectLink = typeof projectLinks.$inferInsert;
+
 // Board schema
 export const boards = pgTable("boards", {
   id: serial("id").primaryKey(),

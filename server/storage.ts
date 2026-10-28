@@ -1,12 +1,13 @@
 import { 
   projects, boards as boardsTable, 
-  users, projectMembers, sheetDocuments, projectSheetDocuments,
+  users, projectMembers, projectLinks, sheetDocuments, projectSheetDocuments,
   boardPermissions, teamMembers, pendingInvitations, notifications, flaggedBlocks,
   organizations, userOrganizations,
   type Board, type InsertBoard, 
   type User, type InsertUser, 
   type Project, type InsertProject,
   type ProjectMember, type InsertProjectMember,
+  type ProjectLink, type InsertProjectLink,
   type SheetDocument, type InsertSheetDocument,
   type ProjectSheetDocument, type InsertProjectSheetDocument,
   type BoardPermission, type InsertBoardPermission,
@@ -1253,6 +1254,28 @@ export class DatabaseStorage {
       console.error('[Storage] Error removing project member:', error);
       throw error;
     }
+  }
+
+  async getProjectLinks(projectId: number): Promise<ProjectLink[]> {
+    return db
+      .select()
+      .from(projectLinks)
+      .where(eq(projectLinks.projectId, projectId))
+      .orderBy(projectLinks.createdAt);
+  }
+
+  async addProjectLink(link: InsertProjectLink): Promise<ProjectLink> {
+    const [result] = await db.insert(projectLinks).values(link).returning();
+    return result;
+  }
+
+  // Scoped by project so a link id from another project can't be deleted through this one
+  async deleteProjectLink(projectId: number, linkId: number): Promise<boolean> {
+    const deleted = await db
+      .delete(projectLinks)
+      .where(and(eq(projectLinks.id, linkId), eq(projectLinks.projectId, projectId)))
+      .returning({ id: projectLinks.id });
+    return deleted.length > 0;
   }
 
   async updateProjectMemberRole(projectId: number, userId: number, role: string): Promise<void> {

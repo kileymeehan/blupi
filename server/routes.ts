@@ -3077,6 +3077,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Project documents & links
+  app.get("/api/projects/:id/links", requireTenant, async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      const project = await storage.getProject(projectId, req.tenantId);
+      if (!project) return res.status(404).json({ error: "Project not found" });
+      res.json(await storage.getProjectLinks(projectId));
+    } catch (error) {
+      console.error("[HTTP] Error fetching project links:", error);
+      res.status(500).json({ error: "Failed to fetch links" });
+    }
+  });
+
+  app.post("/api/projects/:id/links", requireTenant, async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      const project = await storage.getProject(projectId, req.tenantId);
+      if (!project) return res.status(404).json({ error: "Project not found" });
+
+      const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
+      const rawUrl = typeof req.body?.url === "string" ? req.body.url.trim() : "";
+      if (!title || title.length > 200) {
+        return res.status(400).json({ error: "Title is required (200 characters max)" });
+      }
+      // Only web links: anything else (e.g. javascript:) would run when clicked
+      let url: URL;
+      try {
+        url = new URL(/^[a-z][a-z0-9+.-]*:/i.test(rawUrl) ? rawUrl : `https://${rawUrl}`);
+      } catch {
+        return res.status(400).json({ error: "That doesn't look like a valid URL" });
+      }
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        return res.status(400).json({ error: "Links must start with http:// or https://" });
+      }
+
+      const userId = req.session.userId ? Number(req.session.userId) : null;
+      const link = await storage.addProjectLink({
+        projectId,
+        title,
+        url: url.toString(),
+        type: url.hostname === "drive.google.com" || url.hostname === "docs.google.com" ? "google_drive" : "link",
+        createdBy: userId,
+      });
+      res.json(link);
+    } catch (error) {
+      console.error("[HTTP] Error adding project link:", error);
+      res.status(500).json({ error: "Failed to add link" });
+    }
+  });
+
+  app.delete("/api/projects/:id/links/:linkId", requireTenant, async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      const project = await storage.getProject(projectId, req.tenantId);
+      if (!project) return res.status(404).json({ error: "Project not found" });
+      const deleted = await storage.deleteProjectLink(projectId, Number(req.params.linkId));
+      if (!deleted) return res.status(404).json({ error: "Link not found" });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[HTTP] Error deleting project link:", error);
+      res.status(500).json({ error: "Failed to delete link" });
+    }
+  });
+
   app.patch("/api/projects/:id/members/:userId", requireTenant, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);

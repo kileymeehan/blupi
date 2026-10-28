@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -219,27 +218,22 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
   };
 
   return (
-    <Card className="bauhaus-card">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-widest text-[#0A0A0F]">
-              <Users className="w-5 h-5 text-[#1976D2]" />
-              Project Members
-            </CardTitle>
-            <CardDescription className="text-sm mt-1 font-bold text-[#6B7280] uppercase tracking-wider">
-              Assign team members to this project
-            </CardDescription>
-          </div>
-        </div>
+    <section className="bauhaus-card p-6">
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <h2 className="flex items-center gap-2 text-base font-black uppercase tracking-widest text-[#0A0A0F] min-w-0">
+          <Users className="w-4 h-4 text-[#1976D2] flex-shrink-0" />
+          Project Members
+        </h2>
         <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
           <DialogTrigger asChild>
-            <Button 
+            <Button
+              variant="ghost"
               disabled={availableMembers.length === 0}
-              className="bauhaus-btn w-full mt-4 h-12"
+              title={availableMembers.length === 0 ? "Everyone in the workspace is already on this project" : "Assign a team member"}
+              aria-label="Assign member"
+              className="h-8 w-8 p-0 flex-shrink-0 text-[#0A0A0F] hover:bg-black/5"
             >
-              <UserPlus className="w-4 h-4 mr-2" />
-              Assign Member
+              <UserPlus className="w-4 h-4" />
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -306,9 +300,9 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
             </div>
           </DialogContent>
         </Dialog>
-      </CardHeader>
+      </div>
 
-      <CardContent className="pt-2">
+      <div>
         {membersLoading ? (
           <div className="space-y-2">
             {[1, 2].map((i) => (
@@ -322,31 +316,30 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
             ))}
           </div>
         ) : projectMembers.length === 0 ? (
-          <div className="text-center py-4">
-            <User className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">
-              No members assigned yet
-            </p>
-          </div>
+          <p className="text-sm text-gray-500 py-2">
+            No members assigned yet
+          </p>
         ) : (
-          <div className="space-y-3">
+          <ul className="divide-y divide-gray-100">
             {projectMembers.map((member) => (
-              <div key={member.id} className="rounded flex items-center justify-between p-3 bg-white border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] transition-colors group">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <Avatar className="w-8 h-8 border-2 border-[color:var(--card-border)] rounded">
-                    <AvatarFallback className="text-xs font-black rounded">
+              <li key={member.id} className="flex items-center justify-between py-2.5 group">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <Avatar className="w-7 h-7">
+                    <AvatarFallback className="text-xs font-bold bg-gray-100 text-gray-600">
                       {(member.user?.username || member.user?.email || 'U').charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <div className="font-black text-xs uppercase tracking-widest text-[#0A0A0F] truncate">
+                    <div className="text-sm font-bold text-[#0A0A0F] truncate">
                       {member.user?.username || member.user?.email}
                     </div>
-                    <div className="text-[10px] font-bold text-[#6B7280] group-hover:text-[#0A0A0F] truncate">{member.user?.email}</div>
+                    {member.user?.username && (
+                      <div className="text-xs text-gray-500 truncate">{member.user?.email}</div>
+                    )}
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-1 ml-2">
+
+                <div className="flex items-center gap-0.5 ml-2">
                   <Select
                     value={member.role}
                     onValueChange={(role) => updateRoleMutation.mutate({ 
@@ -354,7 +347,7 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
                       role 
                     })}
                   >
-                    <SelectTrigger className="w-20 h-7 text-[10px] font-black uppercase border-2 border-[color:var(--card-border)] rounded">
+                    <SelectTrigger className="w-auto h-7 gap-1 px-2 border-0 shadow-none text-xs text-gray-500 hover:bg-black/5 hover:text-[#0A0A0F] focus:ring-0 focus:ring-offset-0 capitalize [&>svg]:h-3 [&>svg]:w-3">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="border-2 border-[color:var(--card-border)] rounded">
@@ -365,18 +358,20 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
                   </Select>
                   
                   <Button
-                    className="w-7 h-7 p-0 bg-white border-2 border-[color:var(--card-border)] text-[#E53935] hover:bg-[#E53935] hover:text-white rounded"
+                    variant="ghost"
+                    className="w-7 h-7 p-0 text-gray-300 hover:text-[#E53935] hover:bg-red-50 rounded"
                     onClick={() => removeMemberMutation.mutate(member.userId)}
                     disabled={removeMemberMutation.isPending}
+                    aria-label={`Remove ${member.user?.username || member.user?.email}`}
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
