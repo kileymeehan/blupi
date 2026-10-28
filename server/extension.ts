@@ -7,6 +7,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "./db";
 import { storage } from "./storage";
 import { apiTokens, userOrganizations, type Block, type Phase } from "@shared/schema";
+import { AiDraftError, aiDraftAvailable, draftFlow, type FlowDraft } from "./ai-draft";
 
 // API for the Blupi Chrome extension, which captures the steps of a flow on
 // any website and turns them into a new board.
@@ -64,6 +65,9 @@ const stepSchema = z.object({
   title: z.string().trim().max(300).default(""),
   url: z.string().url().max(2000),
   note: z.string().trim().max(5000).optional(),
+  // The page's own title when captured; if `title` still matches it, the
+  // user didn't rename the step and an AI draft may name it instead
+  pageTitle: z.string().trim().max(300).optional(),
   screenshotUrl: z.string().regex(/^\/uploads\/captures\/[a-f0-9-]+\/[a-f0-9]+\.(jpg|png)$/).optional(),
 });
 
@@ -71,6 +75,7 @@ const createBoardSchema = z.object({
   name: z.string().trim().min(1).max(200),
   projectId: z.number().int().optional(),
   steps: z.array(stepSchema).min(1).max(MAX_STEPS),
+  aiDraft: z.boolean().optional(),
 });
 
 function hostOf(url: string) {
@@ -81,48 +86,59 @@ function hostOf(url: string) {
   }
 }
 
-// One phase per site visited, in order, with a column per captured step
-function buildBoard(steps: z.infer<typeof stepSchema>[]) {
+const AI_NOTE = "Drafted by AI from the screenshot. Review before relying on it.";
+
+function block(type: Block["type"], content: string, phaseIndex: number, columnIndex: number, extra: Partial<Block> = {}): Block {
+  return {
+    id: newId(),
+    type,
+    content,
+    phaseIndex,
+    columnIndex,
+    comments: [],
+    attachments: [],
+    isDivider: false,
+    flagged: false,
+    ...extra,
+  };
+}
+
+// Phases come from the AI draft when there is one, otherwise one per site
+// visited. Each step gets a column (screenshot as its image) and a touchpoint
+// card linking to the page; an AI draft adds friction and question cards.
+export function buildBoard(steps: z.infer<typeof stepSchema>[], draft?: FlowDraft) {
   const phases: Phase[] = [];
   const blocks: Block[] = [];
+  const aiPhaseStarts = new Map((draft?.phases ?? []).map((p) => [p.firstStepIndex, p.name]));
 
-  for (const step of steps) {
+  steps.forEach((step, i) => {
     const host = hostOf(step.url);
-    let phaseIndex = phases.length - 1;
-    if (phaseIndex < 0 || phases[phaseIndex].name !== host) {
-      phases.push({ id: newId(), name: host, columns: [], collapsed: false });
-      phaseIndex = phases.length - 1;
+    const ai = draft?.steps[i];
+    const phaseName = aiPhaseStarts.size ? aiPhaseStarts.get(i) : phases.at(-1)?.name === host ? undefined : host;
+    if (phaseName !== undefined || phases.length === 0) {
+      phases.push({ id: newId(), name: phaseName ?? host, columns: [], collapsed: false });
     }
-    const phase = phases[phaseIndex];
-    const columnIndex = phase.columns.length;
-    const title = step.title || host;
-    phase.columns.push({ id: newId(), name: title, image: step.screenshotUrl });
+    const phaseIndex = phases.length - 1;
+    const columnIndex = phases[phaseIndex].columns.length;
 
-    blocks.push({
-      id: newId(),
-      type: "touchpoint",
-      content: title,
-      phaseIndex,
-      columnIndex,
-      comments: [],
-      attachments: [{ id: newId(), type: "link", url: step.url, title: step.url }],
-      isDivider: false,
-      flagged: false,
-    });
-    if (step.note) {
-      blocks.push({
-        id: newId(),
-        type: "note",
-        content: step.note,
-        phaseIndex,
-        columnIndex,
-        comments: [],
-        attachments: [],
-        isDivider: false,
-        flagged: false,
-      });
+    const renamed = !!step.title && step.title !== step.pageTitle;
+    const title = renamed ? step.title : ai?.stepName || step.title || host;
+    phases[phaseIndex].columns.push({ id: newId(), name: title, image: step.screenshotUrl });
+
+    const link = { id: newId(), type: "link" as const, url: step.url, title: step.url };
+    blocks.push(
+      ai?.touchpoint
+        ? block("touchpoint", ai.touchpoint, phaseIndex, columnIndex, { attachments: [link], notes: AI_NOTE })
+        : block("touchpoint", title, phaseIndex, columnIndex, { attachments: [link] }),
+    );
+    if (step.note) blocks.push(block("note", step.note, phaseIndex, columnIndex));
+    for (const friction of ai?.frictions ?? []) {
+      blocks.push(block("friction", friction, phaseIndex, columnIndex, { notes: AI_NOTE }));
     }
-  }
+    for (const question of ai?.questions ?? []) {
+      blocks.push(block("question", question, phaseIndex, columnIndex, { notes: AI_NOTE }));
+    }
+  });
   return { phases, blocks };
 }
 
@@ -167,14 +183,9 @@ export function setupExtensionRoutes(app: Express) {
   app.get("/api/extension/me", requireExtensionToken, async (req, res) => {
     const user = await storage.getUser(req.userId!);
     if (!user) return res.status(401).json({ error: true, message: "Account not found" });
-    // Same projects the dashboard shows: owned plus assigned
-    const owned = await storage.getProjects(user.id, req.tenantId);
-    const assigned = await storage.getProjectsByMember(user.id, req.tenantId);
-    const seen = new Set<number>();
-    const projects = [...owned, ...assigned]
-      .filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)))
-      .map((p) => ({ id: p.id, name: p.name }));
-    res.json({ user: { email: user.email, name: user.firstName || user.username }, projects });
+    // Same projects the dashboard shows: everything in the workspace
+    const projects = (await storage.getProjects(undefined, req.tenantId!)).map((p) => ({ id: p.id, name: p.name }));
+    res.json({ user: { email: user.email, name: user.firstName || user.username }, projects, aiAvailable: aiDraftAvailable() });
   });
 
   app.post(
@@ -211,7 +222,7 @@ export function setupExtensionRoutes(app: Express) {
     if (!parsed.success) {
       return res.status(400).json({ error: true, message: parsed.error.errors[0].message });
     }
-    const { name, projectId, steps } = parsed.data;
+    const { name, projectId, steps, aiDraft } = parsed.data;
 
     try {
       if (projectId !== undefined) {
@@ -221,7 +232,21 @@ export function setupExtensionRoutes(app: Express) {
         }
       }
 
-      const { phases, blocks } = buildBoard(steps);
+      // A failed draft never blocks the board: it's created without one and
+      // the extension shows why
+      let draft: FlowDraft | undefined;
+      let ai: { status: "off" | "done" | "failed"; message?: string } = { status: "off" };
+      if (aiDraft) {
+        try {
+          draft = await draftFlow(steps);
+          ai = { status: "done" };
+        } catch (err) {
+          console.error("[Extension] AI draft failed:", err);
+          ai = { status: "failed", message: err instanceof AiDraftError ? err.message : "Something went wrong" };
+        }
+      }
+
+      const { phases, blocks } = buildBoard(steps, draft);
       const sites = Array.from(new Set(steps.map((s) => hostOf(s.url))));
       const board = await storage.createBoard({
         name,
@@ -233,7 +258,7 @@ export function setupExtensionRoutes(app: Express) {
         userId: req.userId!,
         organizationId: req.tenantId,
       });
-      res.json({ id: board.id, url: `/board/${board.id}` });
+      res.json({ id: board.id, url: `/board/${board.id}`, aiDraft: ai });
     } catch (err) {
       console.error("[Extension] Creating board failed:", err);
       res.status(500).json({ error: true, message: "Could not create board" });

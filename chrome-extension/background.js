@@ -68,9 +68,11 @@ async function captureStep(tab) {
 
   const raw = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "jpeg", quality: 90 });
   const screenshot = await shrink(raw);
+  const pageTitle = (tab.title || "").trim().slice(0, 300);
   const step = {
     id: crypto.randomUUID(),
-    title: (tab.title || "").trim().slice(0, 300),
+    title: pageTitle,
+    pageTitle, // kept so Blupi can tell whether the step was renamed
     url: tab.url,
     note: "",
     screenshot,

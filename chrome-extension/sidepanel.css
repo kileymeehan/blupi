@@ -125,4 +125,7 @@ kbd {
 
 .empty { margin: 8px 0; padding: 16px; text-align: center; border: 2px dashed #D4D4D8; border-radius: var(--radius); font-size: 13px; }
 
+.ai-toggle { align-items: flex-start; padding: 10px; border: 1.5px dashed #C7C3F0; border-radius: var(--radius); background: #F6F5FF; }
+.ai-toggle input { margin-top: 2px; flex-shrink: 0; }
+.ai-toggle .muted { display: block; font-weight: 400; margin-top: 2px; }
 .create { margin-top: 20px; padding-top: 16px; border-top: 2px solid #E4E4E7; }

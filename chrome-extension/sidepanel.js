@@ -75,6 +75,8 @@ async function loadProjects() {
     select.replaceChildren(new Option("No project", ""));
     for (const p of me.projects) select.add(new Option(p.name, String(p.id)));
     if ([...select.options].some((o) => o.value === current)) select.value = current;
+    // Only offer the AI draft when this Blupi server has it set up
+    $("ai-draft-row").hidden = !me.aiAvailable;
   } catch (err) {
     if (err.status === 401) showConnect("This token no longer works. Create a new one in Blupi settings.");
   }
@@ -125,6 +127,10 @@ $("capture-btn").addEventListener("click", async () => {
 
 $("auto-capture").addEventListener("change", (e) => {
   chrome.storage.local.set({ autoCapture: e.target.checked });
+});
+
+$("ai-draft").addEventListener("change", (e) => {
+  chrome.storage.local.set({ aiDraft: e.target.checked });
 });
 
 $("clear-btn").addEventListener("click", () => {
@@ -216,15 +222,22 @@ $("create-form").addEventListener("submit", async (e) => {
         headers: { "Content-Type": blob.type || "image/jpeg" },
         body: blob,
       });
-      uploaded.push({ title: step.title, url: step.url, note: step.note || undefined, screenshotUrl: url });
+      uploaded.push({
+        title: step.title,
+        pageTitle: step.pageTitle,
+        url: step.url,
+        note: step.note || undefined,
+        screenshotUrl: url,
+      });
     }
 
-    btn.textContent = "Creating board…";
+    const aiDraft = !$("ai-draft-row").hidden && $("ai-draft").checked;
+    btn.textContent = aiDraft ? "Drafting with AI… (can take a minute)" : "Creating board…";
     const projectId = $("project").value ? Number($("project").value) : undefined;
     const board = await api("/api/extension/boards", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: $("board-name").value.trim(), projectId, steps: uploaded }),
+      body: JSON.stringify({ name: $("board-name").value.trim(), projectId, steps: uploaded, aiDraft }),
     });
 
     const boardUrl = connection.baseUrl + board.url;
@@ -232,7 +245,12 @@ $("create-form").addEventListener("submit", async (e) => {
     await send("clearSteps");
     $("board-name").value = "";
     const success = $("create-success");
-    success.replaceChildren("Board created. ", Object.assign(document.createElement("a"), {
+    const aiNote = board.aiDraft?.status === "done"
+      ? "Board created with an AI first draft. "
+      : board.aiDraft?.status === "failed"
+        ? `Board created, but without the AI draft (${board.aiDraft.message}). `
+        : "Board created. ";
+    success.replaceChildren(aiNote, Object.assign(document.createElement("a"), {
       href: boardUrl, target: "_blank", textContent: "Open it again ↗",
     }));
     success.hidden = false;
@@ -260,9 +278,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 (async () => {
-  const stored = await chrome.storage.local.get(["connection", "steps", "autoCapture"]);
+  const stored = await chrome.storage.local.get(["connection", "steps", "autoCapture", "aiDraft"]);
   steps = stored.steps || [];
   $("auto-capture").checked = !!stored.autoCapture;
+  $("ai-draft").checked = stored.aiDraft !== false; // on unless turned off
   renderSteps();
   connection = stored.connection || null;
   if (connection?.token) {

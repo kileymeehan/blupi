@@ -35,6 +35,12 @@ Tokens can be revoked from the same settings page at any time.
   computer until you click **Create board**.
 - **Create board** uploads the screenshots, creates the board (optionally in a
   project), and opens it.
+- **✨ AI first draft** (shown when the Blupi server has `ANTHROPIC_API_KEY` set):
+  Claude looks at all the screenshots together and names each step, describes
+  the screen, suggests friction points and research questions, and groups the
+  steps into phases. Steps you renamed keep your name. AI-written cards carry a
+  "Drafted by AI" note. If drafting fails, the board is still created without it.
+  Costs roughly 1-2 cents per step.
 
 ## How it works
 
