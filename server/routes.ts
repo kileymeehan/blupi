@@ -694,8 +694,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      console.log('[BOARDS API] Fetching boards for user:', userIdNum, 'tenant:', req.tenantId);
-      const boards = await storage.getBoards(userIdNum, req.tenantId);
+      // Everyone in a workspace sees all of its blueprints, matching who can
+      // open them. Without a workspace, getBoards would return every board.
+      if (!req.tenantId) return res.json([]);
+      console.log('[BOARDS API] Fetching boards for workspace:', req.tenantId);
+      const boards = await storage.getBoards(undefined, req.tenantId);
       console.log(`[BOARDS API] Retrieved ${boards.length} boards for user ${userIdNum}`);
       
       if (boards.length > 0) {
@@ -732,27 +735,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[HTTP] Fetching projects for user:', userIdNum, 'tenant:', req.tenantId);
       
-      // Get both owned projects and projects where user is a member
-      const ownedProjects = await storage.getProjects(userIdNum, req.tenantId);
-      console.log(`[HTTP] Retrieved ${ownedProjects.length} owned projects for user ${userIdNum}`);
-      
-      // Get projects where user is assigned as a member
-      const assignedProjects = await storage.getProjectsByMember(userIdNum, req.tenantId);
-      console.log(`[HTTP] Retrieved ${assignedProjects.length} assigned projects for user ${userIdNum}`);
-      
-      // Combine and deduplicate projects (in case user owns and is assigned to same project)
-      const allProjectIds = new Set();
-      const combinedProjects = [];
-      
-      for (const project of [...ownedProjects, ...assignedProjects]) {
-        if (!allProjectIds.has(project.id)) {
-          allProjectIds.add(project.id);
-          combinedProjects.push(project);
-        }
-      }
-      
-      console.log(`[HTTP] Combined total: ${combinedProjects.length} projects for user ${userIdNum}`);
-      res.json(combinedProjects);
+      // Everyone in a workspace sees all of its projects, matching who can
+      // open them. Without a workspace, getProjects would return every project.
+      if (!req.tenantId) return res.json([]);
+      const workspaceProjects = await storage.getProjects(undefined, req.tenantId);
+      console.log(`[HTTP] Retrieved ${workspaceProjects.length} projects for workspace ${req.tenantId}`);
+      res.json(workspaceProjects);
     } catch (err) {
       console.error('[HTTP] Error fetching projects:', err);
       res.status(500).json({ error: true, message: "Failed to fetch projects" });
