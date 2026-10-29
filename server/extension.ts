@@ -128,15 +128,15 @@ export function buildBoard(steps: z.infer<typeof stepSchema>[], draft?: FlowDraf
     const link = { id: newId(), type: "link" as const, url: step.url, title: step.url };
     blocks.push(
       ai?.touchpoint
-        ? block("touchpoint", ai.touchpoint, phaseIndex, columnIndex, { attachments: [link], notes: AI_NOTE })
+        ? block("touchpoint", ai.touchpoint, phaseIndex, columnIndex, { attachments: [link], notes: AI_NOTE, aiDraft: true })
         : block("touchpoint", title, phaseIndex, columnIndex, { attachments: [link] }),
     );
     if (step.note) blocks.push(block("note", step.note, phaseIndex, columnIndex));
     for (const friction of ai?.frictions ?? []) {
-      blocks.push(block("friction", friction, phaseIndex, columnIndex, { notes: AI_NOTE }));
+      blocks.push(block("friction", friction, phaseIndex, columnIndex, { notes: AI_NOTE, aiDraft: true }));
     }
     for (const question of ai?.questions ?? []) {
-      blocks.push(block("question", question, phaseIndex, columnIndex, { notes: AI_NOTE }));
+      blocks.push(block("question", question, phaseIndex, columnIndex, { notes: AI_NOTE, aiDraft: true }));
     }
   });
   return { phases, blocks };

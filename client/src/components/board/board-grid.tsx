@@ -5,6 +5,7 @@ import {
   DropResult,
 } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
+import { StateSwitcher } from "./state-switcher";
 import {
   Plus,
   GripVertical,
@@ -1020,7 +1021,9 @@ export default function BoardGrid({
         ? {
             ...block,
             content: content,
-            ...(newType ? { type: newType as BlockType['type'] } : {})
+            ...(newType ? { type: newType as BlockType['type'] } : {}),
+            // Once a person edits an AI-written card it's theirs
+            ...(block.aiDraft && content !== block.content ? { aiDraft: false } : {})
           }
         : block,
     );
@@ -2511,11 +2514,13 @@ export default function BoardGrid({
                 </Button>
               </div>
             ) : (
-              <h1 className="text-xl font-black uppercase tracking-widest text-white cursor-pointer hover:text-[#FFD600] transition-colors" onClick={handleBoardNameEdit}>
+              <h1 className="max-w-[22rem] truncate text-xl font-black uppercase tracking-widest text-white cursor-pointer hover:text-[#FFD600] transition-colors" onClick={handleBoardNameEdit} title={board.name}>
                 {board.name}
               </h1>
             )}
           </div>
+
+          <StateSwitcher board={board} />
 
           <div className="w-px h-6 bg-gray-200 mx-2" />
           

@@ -115,8 +115,6 @@ function validPhases(phases: FlowDraft["phases"], stepCount: number) {
 }
 
 export async function draftFlow(steps: DraftInputStep[]): Promise<FlowDraft> {
-  if (!aiDraftAvailable()) throw new AiDraftError("AI drafting isn't set up on this server");
-
   const content: Anthropic.Beta.BetaContentBlockParam[] = [];
   for (let i = 0; i < steps.length; i++) {
     const step = steps[i];
@@ -132,19 +130,45 @@ export async function draftFlow(steps: DraftInputStep[]): Promise<FlowDraft> {
     text: `Draft the journey for these ${steps.length} steps, in order. Return exactly ${steps.length} items in "steps".`,
   });
 
+  const parsed = await requestStructured({
+    label: `flow draft, ${steps.length} steps`,
+    system: SYSTEM_PROMPT,
+    content,
+    responseSchema: RESPONSE_SCHEMA,
+    parse: draftSchema,
+  });
+  if (parsed.steps.length !== steps.length) {
+    throw new AiDraftError(`The AI drafted ${parsed.steps.length} steps instead of ${steps.length}`);
+  }
+  return { phases: validPhases(parsed.phases, steps.length) ? parsed.phases : [], steps: parsed.steps };
+}
+
+// One Claude request whose reply is constrained to `responseSchema`, then
+// checked again with `parse`. Every failure becomes an AiDraftError with a
+// message that's safe to show the person who asked.
+export async function requestStructured<T extends z.ZodTypeAny>(opts: {
+  label: string;
+  system: string;
+  content: Anthropic.Beta.BetaContentBlockParam[];
+  responseSchema: Record<string, unknown>;
+  parse: T;
+  effort?: "low" | "medium" | "high";
+}): Promise<z.infer<T>> {
+  if (!aiDraftAvailable()) throw new AiDraftError("AI drafting isn't set up on this server");
+
   const client = new Anthropic();
   let message: Anthropic.Beta.BetaMessage;
   try {
-    // Streaming avoids HTTP timeouts on large flows; we only need the final message
+    // Streaming avoids HTTP timeouts on large drafts; we only need the final message
     message = await client.beta.messages
       .stream({
         model: MODEL,
         max_tokens: 32000,
         betas: ["server-side-fallback-2026-07-01"],
         fallbacks: "default", // re-run a declined request on Anthropic's recommended fallback model
-        output_config: { effort: "medium", format: { type: "json_schema", schema: RESPONSE_SCHEMA } },
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content }],
+        output_config: { effort: opts.effort ?? "medium", format: { type: "json_schema", schema: opts.responseSchema } },
+        system: opts.system,
+        messages: [{ role: "user", content: opts.content }],
       })
       .finalMessage();
   } catch (err) {
@@ -155,22 +179,16 @@ export async function draftFlow(steps: DraftInputStep[]): Promise<FlowDraft> {
     throw err;
   }
 
-  if (message.stop_reason === "refusal") throw new AiDraftError("The AI declined to draft this flow");
-  if (message.stop_reason === "max_tokens") throw new AiDraftError("The flow was too long to draft in one go");
+  if (message.stop_reason === "refusal") throw new AiDraftError("The AI declined to draft this");
+  if (message.stop_reason === "max_tokens") throw new AiDraftError("This was too long to draft in one go");
 
   const text = message.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
-  let parsed: z.infer<typeof draftSchema>;
+  let parsed: z.infer<T>;
   try {
-    parsed = draftSchema.parse(JSON.parse(text));
+    parsed = opts.parse.parse(JSON.parse(text));
   } catch {
     throw new AiDraftError("The AI's response wasn't in the expected format");
   }
-  if (parsed.steps.length !== steps.length) {
-    throw new AiDraftError(`The AI drafted ${parsed.steps.length} steps instead of ${steps.length}`);
-  }
-
-  console.log(
-    `[AI draft] ${steps.length} steps: ${message.usage.input_tokens} in / ${message.usage.output_tokens} out tokens`,
-  );
-  return { phases: validPhases(parsed.phases, steps.length) ? parsed.phases : [], steps: parsed.steps };
+  console.log(`[AI draft] ${opts.label}: ${message.usage.input_tokens} in / ${message.usage.output_tokens} out tokens`);
+  return parsed;
 }

@@ -446,6 +446,22 @@ export default function Block({
             }
           }}
         >
+          {block.aiDraft && (
+            <span
+              className="absolute -top-2.5 left-2 z-10 rounded-sm border border-violet-200 bg-violet-50 px-1.5 text-[10px] font-bold uppercase leading-4 tracking-wider text-violet-700 pointer-events-none"
+              title="Written by AI. Edit this card to confirm it."
+            >
+              AI
+            </span>
+          )}
+          {!!block.resolvesBlockIds?.length && (
+            <span
+              className="absolute -top-2.5 right-2 z-10 rounded-sm border border-green-200 bg-green-50 px-1.5 text-[10px] font-bold uppercase leading-4 tracking-wider text-green-700 pointer-events-none"
+              title="Frictions from the current state that this change resolves. See Compare."
+            >
+              Fixes {block.resolvesBlockIds.length}
+            </span>
+          )}
           {block.type === 'video' ? (
             <VideoBlock
               content={block.content}

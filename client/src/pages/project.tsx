@@ -325,13 +325,20 @@ export default function Project() {
                           style={{ backgroundColor: project?.color || '#1976D2' }}
                         />
                         <div className="min-w-0">
-                          <Link
-                            href={`/board/${board.id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="block truncate font-bold text-[#0A0A0F] group-hover:underline underline-offset-2"
-                          >
-                            {board.name}
-                          </Link>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Link
+                              href={`/board/${board.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="truncate font-bold text-[#0A0A0F] group-hover:underline underline-offset-2"
+                            >
+                              {board.name}
+                            </Link>
+                            {board.state === 'future' && (
+                              <span className="flex-shrink-0 rounded-sm border border-violet-200 bg-violet-50 px-1.5 text-[10px] font-bold uppercase leading-4 tracking-wider text-violet-700">
+                                Future
+                              </span>
+                            )}
+                          </div>
                           {board.description && (
                             <p className="truncate text-sm text-gray-500">{board.description}</p>
                           )}

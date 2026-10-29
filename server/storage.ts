@@ -17,7 +17,7 @@ import {
   type FlaggedBlock, type InsertFlaggedBlock,
   type Organization, type InsertOrganization,
   type UserOrganization, type InsertUserOrganization,
-  type Block, type Phase, type OrganizationSettings
+  type Block, type Phase, type OrganizationSettings, type BoardState
 } from "@shared/schema";
 import { db, sql as neonSql, pool } from "./db";
 import { eq, desc, or, and, inArray, count, sql } from "drizzle-orm";
@@ -380,7 +380,7 @@ export class DatabaseStorage {
     }
   }
 
-  async createBoard(insertBoard: InsertBoard & { userId: number; organizationId?: string }): Promise<Board> {
+  async createBoard(insertBoard: InsertBoard & { userId: number; organizationId?: string; state?: BoardState; basedOnBoardId?: number | null }): Promise<Board> {
     try {
       console.log('[Storage] Creating board:', insertBoard);
       // projectId is now optional, so we don't check for it
@@ -397,7 +397,9 @@ export class DatabaseStorage {
         organizationId: insertBoard.organizationId,
         status: insertBoard.status || 'draft',
         blocks: blocks,
-        phases: phases
+        phases: phases,
+        state: insertBoard.state || 'current',
+        basedOnBoardId: insertBoard.basedOnBoardId ?? null
       }).returning();
 
       if (!board) {
@@ -1254,6 +1256,29 @@ export class DatabaseStorage {
       console.error('[Storage] Error removing project member:', error);
       throw error;
     }
+  }
+
+  // The current-state board this one is based on (if any), and every future
+  // state based on the current one, all within the same workspace
+  async getLinkedBoards(boardId: number, organizationId: string) {
+    const board = await this.getBoard(boardId, organizationId);
+    if (!board) return undefined;
+    const currentId = board.state === 'future' && board.basedOnBoardId ? board.basedOnBoardId : board.id;
+    const summary = { id: boardsTable.id, name: boardsTable.name, state: boardsTable.state, updatedAt: boardsTable.updatedAt };
+    const [current] = await db
+      .select(summary)
+      .from(boardsTable)
+      .where(and(eq(boardsTable.id, currentId), eq(boardsTable.organizationId, organizationId)));
+    const futures = await db
+      .select(summary)
+      .from(boardsTable)
+      .where(and(
+        eq(boardsTable.basedOnBoardId, currentId),
+        eq(boardsTable.state, 'future'),
+        eq(boardsTable.organizationId, organizationId),
+      ))
+      .orderBy(desc(boardsTable.updatedAt));
+    return { current: current?.state === 'current' ? current : null, futures };
   }
 
   async getProjectLinks(projectId: number): Promise<ProjectLink[]> {

@@ -13,6 +13,7 @@ import LoginPage from "@/pages/auth/login";
 import RegisterPage from "@/pages/auth/register";
 import Dashboard from "@/pages/dashboard";
 import Project from "@/pages/project";
+import ComparePage from "@/pages/compare";
 
 import TeamPage from "@/pages/team";
 import PublicBoard from "@/pages/public-board";
@@ -85,6 +86,7 @@ function Router() {
         <ProtectedRoute path="/boards" component={Home} />
         <ProtectedRoute path="/boards/:id" component={Board} /> {/* Added support for plural boards URL */}
         <ProtectedRoute path="/board/new" component={Board} />
+        <ProtectedRoute path="/board/:id/compare" component={ComparePage} />
         <ProtectedRoute path="/board/:id" component={Board} />
         <Route component={NotFound} />
       </Switch>

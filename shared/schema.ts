@@ -1,4 +1,4 @@
-import { pgTable, text, serial, jsonb, integer, timestamp, boolean, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, integer, timestamp, boolean, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from 'drizzle-orm';
@@ -152,6 +152,10 @@ export const boards = pgTable("boards", {
   blocks: jsonb("blocks").$type<Block[]>().notNull().default([]),
   phases: jsonb("phases").$type<Phase[]>().notNull().default([]),
   status: text("status").notNull().default('draft'),
+  // 'current' maps how things work today; 'future' is a proposed redesign,
+  // usually linked to the current-state board it reimagines
+  state: text("state").notNull().default('current'),
+  basedOnBoardId: integer("based_on_board_id").references((): AnyPgColumn => boards.id, { onDelete: "set null" }),
   projectId: integer("project_id").references(() => projects.id), // Made optional for blueprint-first approach
   userId: integer("user_id").references(() => users.id).notNull(),
   organizationId: uuid("organization_id").references(() => organizations.id),
@@ -369,7 +373,10 @@ export const columnSchema = z.object({
   image: z.string().optional(),
   storyboardPrompt: z.string().optional(),
   storyboardImageUrl: z.string().optional(),
-  emotion: emotionSchema.optional() // Optional emotion for blueprint feature
+  emotion: emotionSchema.optional(), // Optional emotion for blueprint feature
+  // Future-state boards: ids of the current-state columns this step replaces.
+  // Empty or missing means a new step; a current column nobody lists was removed.
+  basedOnColumnIds: z.array(z.string()).optional()
 });
 
 export type Column = z.infer<typeof columnSchema>;
@@ -503,6 +510,11 @@ export const blockSchema = z.object({
   sheetsConnection: sheetsConnectionSchema.optional(), // Google Sheets connection for metrics blocks
   experimentTarget: z.string().optional(), // Target value for experiment blocks
   flagged: z.boolean().optional().default(false), // Whether this block is flagged for follow-up
+  aiDraft: z.boolean().optional(), // Written by AI and not yet edited by a person
+  // Future-state boards: ids of friction blocks on the current-state board that this change resolves
+  resolvesBlockIds: z.array(z.string()).optional(),
+  // Future-state boards started from a copy: the current-state block this was copied from
+  basedOnBlockId: z.string().optional(),
 });
 
 export type Block = z.infer<typeof blockSchema>;
@@ -527,10 +539,14 @@ export const insertBoardSchema = createInsertSchema(boards)
   .extend({
     status: z.enum(boardStatuses).optional(),
     projectId: z.number().optional(), // Make projectId optional for blueprint-first approach
+    state: z.enum(["current", "future"]).optional(),
   })
-  .omit({ id: true, userId: true, createdAt: true, updatedAt: true });
+  // Links between current and future states are only made by the future-state route
+  .omit({ id: true, userId: true, createdAt: true, updatedAt: true, basedOnBoardId: true });
 
 export type InsertBoard = z.infer<typeof insertBoardSchema>;
+export const boardStates = ["current", "future"] as const;
+export type BoardState = typeof boardStates[number];
 export type Board = typeof boards.$inferSelect;
 
 

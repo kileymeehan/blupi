@@ -8,6 +8,7 @@ import { ZodError } from "zod";
 import { nanoid } from 'nanoid';
 import { setupCollaboration, notifyBoardChanged } from './collaboration';
 import { setupExtensionRoutes } from './extension';
+import { setupBlueprintAiRoutes } from './ai-blueprint';
 
 
 import { getFrictionMetrics, isPendoConfigured, getAuthorizationUrl, exchangeCodeForToken, setOAuthToken } from './utils/pendo';
@@ -492,6 +493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   setupCollaboration(httpServer);
   setupExtensionRoutes(app);
+  setupBlueprintAiRoutes(app);
 
   // Add a health check endpoint
   app.get("/api/ping", (_req, res) => {
@@ -998,7 +1000,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/boards/:id", boardUpdateRateLimit, requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Updating board with ID: ${req.params.id}`);
-      const board = await storage.updateBoard(Number(req.params.id), req.body, req.tenantId);
+      // Current/future links are only set when a future state is created
+      const { state: _state, basedOnBoardId: _basedOn, ...updates } = req.body ?? {};
+      const board = await storage.updateBoard(Number(req.params.id), updates, req.tenantId);
       console.log(`[HTTP] Successfully updated board: ${board.id}`);
       res.json(board);
       notifyBoardChanged(board.id, req.get('X-Collab-Connection'));
