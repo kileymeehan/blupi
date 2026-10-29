@@ -1,6 +1,5 @@
 -- Current/future state for boards (shared/schema.ts: boards.state, boards.basedOnBoardId).
--- Safe to run more than once. Use this instead of `npm run db:push` where
--- drizzle-kit misreads Postgres 18's named NOT NULL constraints and fails.
+-- Safe to run more than once. Apply with scripts/apply-sql.mjs (see RAILWAY_SETUP.md section 7).
 
 ALTER TABLE "boards" ADD COLUMN IF NOT EXISTS "state" text DEFAULT 'current' NOT NULL;
 ALTER TABLE "boards" ADD COLUMN IF NOT EXISTS "based_on_board_id" integer;

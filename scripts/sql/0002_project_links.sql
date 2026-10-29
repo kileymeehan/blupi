@@ -1,6 +1,5 @@
 -- Documents & links pinned to a project (shared/schema.ts: projectLinks).
--- Safe to run more than once. Use this instead of `npm run db:push` where
--- drizzle-kit misreads Postgres 18's named NOT NULL constraints and fails.
+-- Safe to run more than once. Apply with scripts/apply-sql.mjs (see RAILWAY_SETUP.md section 7).
 
 CREATE TABLE IF NOT EXISTS "project_links" (
   "id" serial PRIMARY KEY NOT NULL,

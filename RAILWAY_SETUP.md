@@ -102,6 +102,8 @@ Railway doesn't apply schema changes on deploy. Each change has a SQL file in
 
 ```bash
 DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npx -y node@22 scripts/apply-sql.mjs scripts/sql/0001_api_tokens.sql
+DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npx -y node@22 scripts/apply-sql.mjs scripts/sql/0002_project_links.sql
+DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npx -y node@22 scripts/apply-sql.mjs scripts/sql/0003_board_future_state.sql
 ```
 
 Each file is safe to run twice, and runs in a transaction: it either fully applies
