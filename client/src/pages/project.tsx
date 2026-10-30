@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Link, useLocation } from "wouter";
 import { formatDistanceToNowStrict } from "date-fns";
 import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
-import { InviteProjectDialog } from "@/components/invite-project-dialog";
 import { ProjectMembers } from "@/components/project-members";
 import { PageHeader } from "@/components/page-header";
 import { useState, useEffect, useRef } from "react";
@@ -25,7 +24,6 @@ export default function Project() {
   const { id } = useParams();
   const [, navigate] = useLocation();
   const [createBlueprintOpen, setCreateBlueprintOpen] = useState(false);
-  const [inviteOpen, setInviteOpen] = useState(false);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [deleteBlueprintId, setDeleteBlueprintId] = useState<number | null>(null);
@@ -517,7 +515,7 @@ export default function Project() {
           {/* Sidebar */}
           <div className={`w-full lg:w-1/4 space-y-6 order-1 lg:order-2 ${sidebarOpen ? 'block' : 'hidden lg:block'}`}>
             {/* Project Members Section */}
-            {id && <ProjectMembers projectId={id} />}
+            {id && <ProjectMembers projectId={id} projectName={project?.name} />}
 
             {/* Documents & Links Section */}
             <section className="bauhaus-card p-6">
@@ -630,11 +628,6 @@ export default function Project() {
         projectId={Number(id)}
       />
 
-      <InviteProjectDialog
-        open={inviteOpen}
-        onOpenChange={setInviteOpen}
-        projectId={Number(id)}
-      />
       <DeleteProjectDialog
         open={deleteProjectOpen}
         onOpenChange={setDeleteProjectOpen}

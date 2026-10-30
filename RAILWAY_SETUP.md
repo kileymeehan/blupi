@@ -47,6 +47,15 @@ Open the app service → **Variables** and add:
 
 Then add any optional keys from `.env.example` (OpenAI, SendGrid, etc.).
 
+Optional, for AI drafting and invitation emails:
+
+| Variable | Value |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Turns on "Describe it" and AI future states |
+| `SENDGRID_API_KEY` | Invitation emails go out automatically. Without it, invites still work: the inviter copies the link and sends it themselves |
+| `EMAIL_FROM` | The sender address verified in SendGrid (default `noreply@blupi.io`) |
+| `APP_URL` | Optional: the address used in invitation links, e.g. `https://blupi-production.up.railway.app` (defaults to the address the inviter is using) |
+
 ## 5. Keep uploaded files
 
 Organization logos and Chrome extension screenshots are written to the `uploads/`
@@ -105,6 +114,7 @@ DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npx -y node@22 scripts/apply-sql.mj
 DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npx -y node@22 scripts/apply-sql.mjs scripts/sql/0002_project_links.sql
 DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npx -y node@22 scripts/apply-sql.mjs scripts/sql/0003_board_future_state.sql
 DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npx -y node@22 scripts/apply-sql.mjs scripts/sql/0004_project_overview.sql
+DATABASE_URL="<Railway DATABASE_PUBLIC_URL>" npx -y node@22 scripts/apply-sql.mjs scripts/sql/0005_invitations.sql
 ```
 
 Each file is safe to run twice, and runs in a transaction: it either fully applies

@@ -239,6 +239,10 @@ export function setupAuth(app: Express) {
     // Random state ties the callback to this browser session (CSRF protection)
     const state = randomBytes(16).toString("hex");
     req.session.oauthState = state;
+    // Same-site path to return to afterwards, e.g. an invitation link
+    const next = typeof req.query.next === "string" ? req.query.next : "";
+    if (next.startsWith("/") && !next.startsWith("//")) req.session.oauthNext = next;
+    else delete req.session.oauthNext;
 
     const params = new URLSearchParams({
       client_id: clientId,
@@ -258,7 +262,9 @@ export function setupAuth(app: Express) {
     try {
       const { code, state, error } = req.query;
       const expectedState = req.session.oauthState;
+      const next = req.session.oauthNext || "/";
       delete req.session.oauthState;
+      delete req.session.oauthNext;
 
       if (error) return fail("google_cancelled");
       if (typeof code !== "string") return fail("google_failed");
@@ -321,7 +327,7 @@ export function setupAuth(app: Express) {
       }
 
       await startSession(req, user);
-      res.redirect("/");
+      res.redirect(next);
     } catch (err) {
       console.error("[Auth] Google callback failed:", err);
       fail("google_failed");

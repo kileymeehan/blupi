@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { InvitePeopleDialog } from "@/components/team/invite-dialog";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-simple-auth";
 import { UserPlus, Users, Trash2, Crown, User } from "lucide-react";
@@ -23,56 +24,25 @@ interface ProjectMember {
   };
 }
 
-interface TeamMember {
-  id: number;
+interface WorkspaceMember {
+  userId: number;
+  name: string;
   email: string;
   role: string;
-  status: string;
-  userId: number;
-  user?: {
-    username: string;
-    email: string;
-  };
 }
 
 interface ProjectMembersProps {
   projectId: string;
+  projectName?: string;
 }
 
-export function ProjectMembers({ projectId }: ProjectMembersProps) {
+export function ProjectMembers({ projectId, projectName }: ProjectMembersProps) {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState("member");
   const { toast } = useToast();
   const { user } = useAuth();
-
-  // Get organization ID from user (same logic as team management)
-  const getOrganizationId = () => {
-    if (!user?.uid) return null;
-    
-    // Handle different session types:
-    // - Password login: integer user ID
-    // - Google OAuth: Firebase UID string that gets resolved to database user ID
-    if (typeof user.uid === 'number') {
-      return user.uid;
-    }
-    
-    if (typeof user.uid === 'string') {
-      // Try parsing as integer first (for password accounts)
-      const parsed = parseInt(user.uid);
-      if (!isNaN(parsed)) {
-        return parsed;
-      }
-      
-      // For Firebase UIDs, the session endpoint should have resolved them to database user IDs
-      console.warn('[ProjectMembers] Cannot resolve organization ID for Firebase UID:', user.uid);
-      return null;
-    }
-    
-    return null;
-  };
-  
-  const organizationId = getOrganizationId();
 
   // Get project members
   const { data: projectMembers = [], isLoading: membersLoading } = useQuery<ProjectMember[]>({
@@ -81,43 +51,18 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
     enabled: !!projectId,
   });
 
-  // Get all team members (to assign from) - using user's own organization
-  const { data: teamMembers = [], isLoading: teamMembersLoading, error: teamMembersError } = useQuery<TeamMember[]>({
-    queryKey: ["/api/teams", organizationId, "members"],
+  // Everyone in the workspace, to assign from
+  const { data: workspace } = useQuery<{ members: WorkspaceMember[]; myRole: string }>({
+    queryKey: ["/api/workspace/members"],
     queryFn: async () => {
-      console.log('[ProjectMembers] Fetching team members from organization:', organizationId);
-      const res = await fetch(`/api/teams/${organizationId}/members`);
-      console.log('[ProjectMembers] Team API response status:', res.status);
-      
-      if (!res.ok) {
-        console.error('[ProjectMembers] Team API failed with status:', res.status);
-        const errorText = await res.text();
-        console.error('[ProjectMembers] Team API error response:', errorText);
-        return [];
-      }
-      
-      const data = await res.json();
-      console.log('[ProjectMembers] Team API success, received members:', data.length);
-      return data;
+      const res = await fetch("/api/workspace/members", { credentials: "include" });
+      return res.ok ? res.json() : { members: [], myRole: "" };
     },
-    enabled: !!organizationId, // Only fetch when we have a valid organization ID
-    retry: false, // Don't retry on 403 errors
   });
-
-  // Safely filter out already assigned members
-  const availableMembers = Array.isArray(teamMembers) ? teamMembers.filter(
-    teamMember => !projectMembers.some(projectMember => projectMember.userId === teamMember.userId)
-  ) : [];
-  
-  // Add comprehensive logging for debugging
-  console.log('[ProjectMembers] State debug:');
-  console.log('  - projectId:', projectId);
-  console.log('  - projectMembers count:', projectMembers.length);
-  console.log('  - teamMembers count:', teamMembers.length);
-  console.log('  - teamMembersLoading:', teamMembersLoading);
-  console.log('  - teamMembersError:', teamMembersError);
-  console.log('  - availableMembers count:', availableMembers.length);
-  console.log('  - button disabled:', availableMembers.length === 0);
+  const canInvite = workspace?.myRole === "owner" || workspace?.myRole === "admin";
+  const availableMembers = (workspace?.members ?? []).filter(
+    (m) => !projectMembers.some((pm) => pm.userId === m.userId)
+  );
 
   const assignMemberMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: number; role: string }) => {
@@ -228,9 +173,8 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
           <DialogTrigger asChild>
             <Button
               variant="ghost"
-              disabled={availableMembers.length === 0}
-              title={availableMembers.length === 0 ? "Everyone in the workspace is already on this project" : "Assign a team member"}
-              aria-label="Assign member"
+              title="Add people to this project"
+              aria-label="Add people to this project"
               className="h-8 w-8 p-0 flex-shrink-0 text-[#0A0A0F] hover:bg-black/5"
             >
               <UserPlus className="w-4 h-4" />
@@ -238,13 +182,16 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Assign Team Member</DialogTitle>
+              <DialogTitle>Add people to this project</DialogTitle>
               <DialogDescription>
-                Select a team member to assign to this project
+                Choose someone from the workspace{canInvite ? ", or invite someone new by email" : ""}.
               </DialogDescription>
             </DialogHeader>
-            
-            <div className="space-y-4">
+
+            {availableMembers.length === 0 && (
+              <p className="text-sm text-gray-600">Everyone in the workspace is already on this project.</p>
+            )}
+            <div className={`space-y-4 ${availableMembers.length === 0 ? "hidden" : ""}`}>
               <div>
                 <label className="text-sm font-medium">Team Member</label>
                 <Select value={selectedUserId} onValueChange={setSelectedUserId}>
@@ -257,11 +204,11 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
                         <div className="flex items-center gap-2">
                           <Avatar className="w-6 h-6">
                             <AvatarFallback className="text-xs">
-                              {(member.user?.username || member.email).charAt(0).toUpperCase()}
+                              {(member.name || member.email).charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">
-                            <span className="text-sm">{member.user?.username || member.email}</span>
+                            <span className="text-sm">{member.name}</span>
                             <span className="text-xs text-muted-foreground">{member.email}</span>
                           </div>
                         </div>
@@ -286,20 +233,30 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 mt-6">
+            <div className="flex items-center justify-end gap-2 mt-6">
+              {canInvite && (
+                <Button
+                  variant="ghost"
+                  className="mr-auto px-0 text-sm text-[#1976D2] hover:bg-transparent hover:underline"
+                  onClick={() => { setAssignDialogOpen(false); setInviteOpen(true); }}
+                >
+                  Invite by email
+                </Button>
+              )}
               <Button className="bauhaus-btn" onClick={() => setAssignDialogOpen(false)}>
                 Cancel
               </Button>
               <Button 
                 className="bauhaus-btn-blue"
                 onClick={handleAssignMember}
-                disabled={!selectedUserId || assignMemberMutation.isPending}
+                disabled={!selectedUserId || assignMemberMutation.isPending || availableMembers.length === 0}
               >
                 {assignMemberMutation.isPending ? "Assigning..." : "Assign Member"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
+        <InvitePeopleDialog open={inviteOpen} onOpenChange={setInviteOpen} projectId={Number(projectId)} projectName={projectName} />
       </div>
 
       <div>

@@ -25,7 +25,7 @@ export default function TeamPage() {
           <div className="flex items-center space-x-4">
             <Link href="/">
               <img 
-                src="/blupi-logomark-blue.png" 
+                src="/Blupi-logomark-blue.png" 
                 alt="Blupi" 
                 className="h-8 w-auto cursor-pointer"
               />

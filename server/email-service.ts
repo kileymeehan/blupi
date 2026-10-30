@@ -1,5 +1,8 @@
 import { MailService } from '@sendgrid/mail';
-import { isProduction } from '../config/environment';
+
+// Invite emails are optional: invites always produce a link the inviter can
+// share, and these emails go out automatically once SENDGRID_API_KEY is set.
+// EMAIL_FROM must be a sender verified in SendGrid.
 
 let mailService: MailService | null = null;
 
@@ -8,102 +11,65 @@ if (process.env.SENDGRID_API_KEY) {
   mailService.setApiKey(process.env.SENDGRID_API_KEY);
   console.log('[EMAIL-SERVICE] SendGrid initialized successfully');
 } else {
-  console.warn('[EMAIL-SERVICE] SendGrid API key not configured - email features will be disabled');
+  console.log('[EMAIL-SERVICE] SENDGRID_API_KEY not set: invites are shared as links, no emails sent');
 }
+
+export function emailConfigured() {
+  return mailService !== null;
+}
+
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
 interface InviteEmailParams {
   toEmail: string;
-  toName?: string;
   inviterName: string;
-  teamName: string;
-  inviteToken: string;
-  appUrl: string;
+  workspaceName: string;
+  projectName?: string | null;
+  inviteUrl: string;
 }
 
-export async function sendTeamInviteEmail(params: InviteEmailParams): Promise<boolean> {
-  if (!mailService) {
-    console.warn('[EMAIL-SERVICE] Cannot send invite email - SendGrid not configured');
-    return false;
-  }
-  
-  try {
-    const inviteUrl = `${params.appUrl}/invite/${params.inviteToken}`;
-    
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #302E87; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: white; padding: 30px; border: 1px solid #e1e5e9; }
-            .button { display: inline-block; background: #302E87; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; margin: 20px 0; }
-            .footer { color: #666; font-size: 14px; text-align: center; margin-top: 30px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>You're invited to join ${params.teamName}</h1>
-            </div>
-            <div class="content">
-              <p>Hi${params.toName ? ` ${params.toName}` : ''},</p>
-              
-              <p><strong>${params.inviterName}</strong> has invited you to collaborate on <strong>${params.teamName}</strong> using Blupi - a collaborative blueprint design platform.</p>
-              
-              <p>With Blupi, you can:</p>
-              <ul>
-                <li>Create and share customer journey blueprints</li>
-                <li>Collaborate in real-time with your team</li>
-                <li>Organize projects and track progress</li>
-                <li>Add comments and feedback on designs</li>
-              </ul>
-              
-              <p>Click the button below to accept the invitation and create your account:</p>
-              
-              <div style="text-align: center;">
-                <a href="${inviteUrl}" class="button">Accept Invitation</a>
-              </div>
-              
-              <p>Or copy and paste this link into your browser:</p>
-              <p style="background: #f5f5f5; padding: 10px; border-radius: 4px; word-break: break-all;">${inviteUrl}</p>
-              
-              <p>This invitation will expire in 7 days.</p>
-            </div>
-            <div class="footer">
-              <p>Powered by Blupi - Collaborative Blueprint Design</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
+export async function sendInviteEmail(params: InviteEmailParams): Promise<boolean> {
+  if (!mailService) return false;
 
+  const target = params.projectName
+    ? `the project "${params.projectName}" in ${params.workspaceName}`
+    : params.workspaceName;
+  const subject = `${params.inviterName} invited you to ${params.projectName ?? params.workspaceName} on Blupi`;
+  const html = `<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:24px;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0A0F;">
+    <div style="max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;padding:32px;">
+      <p style="margin:0 0 16px;font-size:16px;line-height:1.5;">
+        <strong>${escapeHtml(params.inviterName)}</strong> invited you to join ${escapeHtml(target)} on Blupi, a tool for mapping customer journeys together.
+      </p>
+      <p style="margin:24px 0;">
+        <a href="${escapeHtml(params.inviteUrl)}" style="display:inline-block;background:#302E87;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:600;">Accept invitation</a>
+      </p>
+      <p style="margin:0;font-size:13px;line-height:1.5;color:#6b7280;">
+        Or open this link: ${escapeHtml(params.inviteUrl)}<br>
+        The invitation expires in 7 days. If you weren't expecting it, you can ignore this email.
+      </p>
+    </div>
+  </body>
+</html>`;
+  const text = `${params.inviterName} invited you to join ${target} on Blupi.
+
+Accept the invitation: ${params.inviteUrl}
+
+The invitation expires in 7 days. If you weren't expecting it, you can ignore this email.`;
+
+  try {
     await mailService.send({
       to: params.toEmail,
-      from: {
-        email: 'noreply@blupi.io',
-        name: 'Blupi Team'
-      },
-      subject: `You're invited to join ${params.teamName} on Blupi`,
-      html: emailHtml,
-      text: `
-        Hi${params.toName ? ` ${params.toName}` : ''},
-        
-        ${params.inviterName} has invited you to collaborate on ${params.teamName} using Blupi.
-        
-        Accept your invitation: ${inviteUrl}
-        
-        This invitation will expire in 7 days.
-        
-        Powered by Blupi - Collaborative Blueprint Design
-      `
+      from: { email: process.env.EMAIL_FROM || 'noreply@blupi.io', name: 'Blupi' },
+      subject,
+      html,
+      text,
     });
-    
     return true;
   } catch (error) {
-    console.error('SendGrid email error:', error);
+    console.error('[EMAIL-SERVICE] Sending invite email failed:', error);
     return false;
   }
 }

@@ -257,7 +257,11 @@ export const pendingInvitations = pgTable("pending_invitations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   acceptedAt: timestamp("accepted_at"),
-  status: text("status").notNull().default('pending') // 'pending', 'accepted', 'expired'
+  status: text("status").notNull().default('pending'), // 'pending', 'accepted', 'expired', 'revoked'
+  // Optional: accepting also adds the person to this project with this role
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "set null" }),
+  projectRole: text("project_role"),
+  acceptedBy: integer("accepted_by").references(() => users.id, { onDelete: "set null" }),
 });
 
 export const pendingInvitationsRelations = relations(pendingInvitations, ({ one }) => ({

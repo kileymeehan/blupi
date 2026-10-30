@@ -1122,19 +1122,22 @@ export class DatabaseStorage {
       const message = notification.message;
       const isRead = notification.read || false;
       
+      // The table has no link column; the link lives in meta and is returned as actionUrl
+      const meta = notification.actionUrl ? JSON.stringify({ actionUrl: notification.actionUrl }) : null;
       const values = [
         notificationId,
         toUserId,
         notificationType,
         title,
         message,
-        isRead
+        isRead,
+        meta
       ];
       
       // Use neon SQL client with string query and parameters array
       const query = `
-        INSERT INTO notifications (id, to_user_id, type, title, message, read, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        INSERT INTO notifications (id, to_user_id, type, title, message, read, meta, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
         RETURNING *
       `;
       
@@ -1183,7 +1186,7 @@ export class DatabaseStorage {
         console.log('[Storage] Raw SQL result:', rawResult);
       }
       
-      return results;
+      return results.map((n) => ({ ...n, actionUrl: (n.meta as { actionUrl?: string } | null)?.actionUrl }));
     } catch (error: any) {
       console.error('[Storage] Error getting user notifications:', error);
       console.error('[Storage] Error details:', error.message);

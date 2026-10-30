@@ -1,702 +1,236 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { 
-  Users, 
-  UserPlus, 
-  Mail, 
-  Shield, 
-  Trash2,
-  Check,
-  X,
-  Clock,
-  ChevronDown,
-  RotateCcw,
-  Building2
-} from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { formatDistanceToNowStrict } from "date-fns";
+import { MoreVertical, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/use-simple-auth";
+import { InvitePeopleDialog, CopyLinkButton } from "./invite-dialog";
 
-interface TeamMember {
+type Member = { userId: number; name: string; email: string; role: string; joinedAt: string; isYou: boolean };
+type Invitation = {
   id: number;
   email: string;
   role: string;
-  status: string;
-  invitedAt: string;
-  lastAccessAt?: string;
-  user?: {
-    username: string;
-    email: string;
-  };
-}
-
-interface InviteTeamMemberForm {
-  email: string;
-  role: string;
-  teamName: string;
-  inviterName: string;
-}
-
-interface PendingInvitation {
-  id: number;
-  email: string;
-  role: string;
-  teamName: string;
-  inviterName: string;
-  createdAt: string;
+  projectName: string | null;
   expiresAt: string;
-  status: string;
-}
+  status: "pending" | "expired";
+  url: string;
+};
 
-interface Organization {
-  id: string;
-  name: string;
-  slug: string;
+const ROLE_LABEL: Record<string, string> = { owner: "Owner", admin: "Admin", member: "Member" };
+const th = "pb-2 text-[11px] font-bold uppercase tracking-widest text-gray-500";
+
+async function send(method: string, url: string, body?: unknown) {
+  const res = await fetch(url, {
+    method,
+    credentials: "include",
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || "Something went wrong");
+  return data;
 }
 
 export default function TeamManagement() {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  
-  const { data: activeOrg } = useQuery<Organization | null>({
-    queryKey: ['/api/organizations/active'],
+  const [inviteOpen, setInviteOpen] = useState(false);
+
+  const { data: activeOrg } = useQuery<{ name: string }>({ queryKey: ["/api/organizations/active"] });
+  const { data, isLoading } = useQuery<{ members: Member[]; myRole: string }>({
+    queryKey: ["/api/workspace/members"],
+    queryFn: () => send("GET", "/api/workspace/members"),
   });
-  
-  const [inviteForm, setInviteForm] = useState<InviteTeamMemberForm>({
-    email: "",
-    role: "member",
-    teamName: "My Team",
-    inviterName: user?.displayName || user?.email || "Team Admin"
-  });
+  const members = data?.members ?? [];
+  const canManage = data?.myRole === "owner" || data?.myRole === "admin";
 
-  useEffect(() => {
-    if (activeOrg?.name) {
-      setInviteForm(prev => ({ ...prev, teamName: activeOrg.name }));
-    }
-  }, [activeOrg?.name]);
-
-  // Use user ID as organization ID to ensure data isolation
-  // Each user has their own team/organization scope
-  const getOrganizationId = () => {
-    if (!user?.uid) return null;
-    
-    // Handle different session types:
-    // - Password login: integer user ID
-    // - Google OAuth: Firebase UID string like "google_123456"
-    if (typeof user.uid === 'number') {
-      return user.uid;
-    }
-    
-    if (typeof user.uid === 'string') {
-      // Try parsing as integer first (for password accounts)
-      const parsed = parseInt(user.uid);
-      if (!isNaN(parsed)) {
-        return parsed;
-      }
-      
-      // For Firebase UIDs like "google_123456", we need to lookup the database user ID
-      // Since we can't do async lookups in the component, we'll need a different approach
-      // For now, log the issue and return null to prevent API calls with NaN
-      console.warn('[Team Management] Cannot resolve organization ID for Firebase UID:', user.uid);
-      return null;
-    }
-    
-    return null;
-  };
-  
-  const organizationId = getOrganizationId();
-
-  const { data: teamMembers = [], isLoading, error: teamMembersError } = useQuery<TeamMember[]>({
-    queryKey: ["/api/teams", organizationId, "members"],
-    queryFn: async () => {
-      const res = await fetch(`/api/teams/${organizationId}/members`);
-      if (!res.ok) {
-        throw new Error(`Failed to fetch team members: ${res.status}`);
-      }
-      return res.json();
-    },
-    enabled: !!user && !!organizationId,
-    retry: 2,
+  const { data: invitations = [] } = useQuery<Invitation[]>({
+    queryKey: ["/api/invitations"],
+    queryFn: () => send("GET", "/api/invitations"),
+    enabled: canManage,
   });
 
-  const { data: pendingInvitations = [], error: pendingInvitationsError } = useQuery<PendingInvitation[]>({
-    queryKey: ["/api/teams", organizationId, "pending-invitations"],
-    queryFn: async () => {
-      const res = await fetch(`/api/teams/${organizationId}/pending-invitations`);
-      if (!res.ok) {
-        throw new Error(`Failed to fetch pending invitations: ${res.status}`);
-      }
-      return res.json();
-    },
-    enabled: !!user,
-    retry: 2,
+  const onError = (error: Error) => toast({ title: "Couldn't do that", description: error.message, variant: "destructive" });
+  const refreshMembers = () => queryClient.invalidateQueries({ queryKey: ["/api/workspace/members"] });
+  const refreshInvites = () => queryClient.invalidateQueries({ queryKey: ["/api/invitations"] });
+
+  const changeRole = useMutation({
+    mutationFn: ({ userId, role }: { userId: number; role: string }) => send("PATCH", `/api/workspace/members/${userId}`, { role }),
+    onSuccess: refreshMembers,
+    onError,
   });
-
-  const inviteMutation = useMutation({
-    mutationFn: async (data: InviteTeamMemberForm) => {
-      const response = await fetch(`/api/teams/${organizationId}/invite`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to invite team member");
-      }
-      
-      return response.json();
+  const removeMember = useMutation({
+    mutationFn: (m: Member) => send("DELETE", `/api/workspace/members/${m.userId}`),
+    onSuccess: (_d, m) => {
+      // Leaving the workspace: reload into whichever workspace is now active
+      if (m.isYou) window.location.href = "/";
+      else refreshMembers();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "pending-invitations"] });
-      setInviteDialogOpen(false);
-      setInviteForm({ 
-        email: "", 
-        role: "member",
-        teamName: "My Team",
-        inviterName: user?.displayName || user?.email || "Team Admin"
-      });
-      toast({
-        title: "Team member invited",
-        description: "The invitation has been sent successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to invite team member",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+    onError,
   });
-
-  const updateMemberMutation = useMutation({
-    mutationFn: async ({ memberId, updates }: { memberId: number; updates: Partial<TeamMember> }) => {
-      const response = await fetch(`/api/teams/members/${memberId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to update team member");
-      }
-      
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "members"] });
-      toast({
-        title: "Team member updated",
-        description: "The team member has been updated successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to update team member",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+  const revoke = useMutation({
+    mutationFn: (id: number) => send("DELETE", `/api/invitations/${id}`),
+    onSuccess: refreshInvites,
+    onError,
   });
-
-  const deleteMemberMutation = useMutation({
-    mutationFn: async (memberId: number) => {
-      const response = await fetch(`/api/teams/members/${memberId}`, {
-        method: "DELETE",
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to remove team member");
-      }
-      
-      // 204 No Content response doesn't have a body to parse
-      return;
+  const renew = useMutation({
+    mutationFn: (id: number) => send("POST", `/api/invitations/${id}/renew`),
+    onSuccess: async (data: { url: string }) => {
+      refreshInvites();
+      await navigator.clipboard.writeText(data.url).catch(() => {});
+      toast({ title: "New link copied", description: "The old link no longer works. This one lasts 7 days." });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "members"] });
-      toast({
-        title: "Team member removed",
-        description: "The team member has been removed from the organization.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to remove team member",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+    onError,
   });
-
-  const cancelInvitationMutation = useMutation({
-    mutationFn: async (invitationId: number) => {
-      const response = await fetch(`/api/teams/pending-invitations/${invitationId}`, {
-        method: "DELETE",
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to cancel invitation");
-      }
-      
-      // 204 No Content response doesn't have a body to parse
-      return;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "pending-invitations"] });
-      toast({
-        title: "Invitation cancelled",
-        description: "The invitation has been cancelled successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to cancel invitation",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const resendInviteMutation = useMutation({
-    mutationFn: async (invitationId: number) => {
-      const response = await fetch(`/api/teams/invitations/${invitationId}/resend`, {
-        method: "POST",
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to resend invitation");
-      }
-      
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", organizationId, "pending-invitations"] });
-      toast({
-        title: "Invitation resent",
-        description: "The invitation has been sent again successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to resend invitation",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleInvite = () => {
-    if (!inviteForm.email.trim()) {
-      toast({
-        title: "Email required",
-        description: "Please enter an email address.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    inviteMutation.mutate(inviteForm);
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">Active</Badge>;
-      case "pending":
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">Invite Pending</Badge>;
-      case "inactive":
-        return <Badge variant="outline" className="bg-gray-100 text-gray-600">Inactive</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case "admin":
-        return <Badge variant="default" className="bg-purple-100 text-purple-800 border-purple-200">
-          <Shield className="w-3 h-3 mr-1" />
-          Admin
-        </Badge>;
-      case "editor":
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">Editor</Badge>;
-      case "member":
-        return <Badge variant="outline">Member</Badge>;
-      default:
-        return <Badge variant="outline">{role}</Badge>;
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <Card>
-        {activeOrg && (
-          <div className="bg-[#302E87]/5 border-b border-[#302E87]/20 px-6 py-3 flex items-center gap-2 text-sm">
-            <Building2 className="h-4 w-4 text-[#302E87]" />
-            <span className="text-[#302E87] font-medium">{activeOrg.name}</span>
-            <span className="text-gray-500">organization</span>
-          </div>
-        )}
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Team Management
-              </CardTitle>
-              <CardDescription>
-                Invite team members and manage permissions for your organization
-              </CardDescription>
-            </div>
-            <div className="h-9 w-32 bg-gray-200 rounded animate-pulse" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="p-3 rounded border border-gray-200 flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse flex-shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-3 w-48 bg-gray-100 rounded animate-pulse" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
-                  <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
-      <Card className="max-w-6xl mx-auto border-2 border-[color:var(--card-border)] rounded shadow-[4px_4px_0px_0px_var(--card-shadow)] bg-white overflow-hidden">
-      {activeOrg && (
-        <div className="bg-[#1976D2] border-b-2 border-[color:var(--card-border)] px-6 py-3 flex items-center gap-2 text-sm text-white">
-          <Building2 className="h-4 w-4 text-[#FFD600]" />
-          <span className="font-black uppercase tracking-widest">{activeOrg.name}</span>
-          <span className="opacity-80 font-bold uppercase tracking-tight text-xs ml-1">organization</span>
-        </div>
-      )}
-      <CardHeader className="border-b-2 border-[color:var(--card-border)] bg-white py-8 px-8">
-        <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-5xl space-y-6">
+      <section className="bauhaus-card p-6">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-[#0A0A0F] text-2xl">
-              <Users className="w-6 h-6" />
-              Team Management
-            </CardTitle>
-            <CardDescription className="text-gray-600 font-medium text-base mt-2">
-              Invite team members and manage permissions for your organization
-            </CardDescription>
-          </div>
-          <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto">
-                <UserPlus className="w-5 h-5 mr-2" />
-                Invite Member
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Invite Team Member</DialogTitle>
-                <DialogDescription>
-                  Send an invitation to join your team
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="colleague@company.com"
-                    value={inviteForm.email}
-                    onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="role">Role</Label>
-                  <Select
-                    value={inviteForm.role}
-                    onValueChange={(value) => setInviteForm(prev => ({ ...prev, role: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="editor">Editor</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setInviteDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleInvite}
-                    disabled={inviteMutation.isPending}
-                  >
-                    {inviteMutation.isPending ? "Sending..." : "Send Invitation"}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
-      <CardContent className="p-8">
-        {teamMembers.length === 0 && pendingInvitations.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-200">
-            <Users className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-            <h3 className="text-xl font-black uppercase tracking-tight text-[#0A0A0F] mb-2">No team members yet</h3>
-            <p className="text-gray-500 mb-6 font-medium">
-              Start collaborating by inviting your team members
+            <h2 className="text-xl font-black uppercase tracking-widest text-[#0A0A0F]">Team</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              {members.length} {members.length === 1 ? "person" : "people"} in {activeOrg?.name ?? "this workspace"}
             </p>
           </div>
+          {canManage && (
+            <Button onClick={() => setInviteOpen(true)} className="bauhaus-btn h-10 px-5">
+              <UserPlus className="mr-1.5 h-4 w-4" />
+              Invite people
+            </Button>
+          )}
+        </div>
+
+        {isLoading ? (
+          <p className="py-4 text-sm text-gray-500">Loading…</p>
         ) : (
-          <div className="border-2 border-[color:var(--card-border)] rounded overflow-hidden shadow-[3px_3px_0px_0px_var(--card-shadow)]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Access</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {teamMembers.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gray-100 border-2 border-[color:var(--card-border)] rounded flex items-center justify-center shadow-[2px_2px_0px_0px_var(--card-shadow)]">
-                          <Mail className="w-5 h-5 text-[#0A0A0F]" />
-                        </div>
-                        <div>
-                          <div className="font-black uppercase tracking-tight text-base text-[#0A0A0F]">
-                            {member.user?.username || member.email}
-                          </div>
-                          <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">{member.email}</div>
-                        </div>
+          <table className="w-full table-fixed text-left">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className={`${th} pl-1`}>Name</th>
+                <th className={`${th} w-[150px]`}>Role</th>
+                <th className={`${th} hidden w-[130px] md:table-cell`}>Joined</th>
+                <th className={`${th} w-[44px]`}><span className="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {members.map((m) => {
+                const editable = canManage && !m.isYou && m.role !== "owner";
+                const removable = (canManage && !m.isYou && m.role !== "owner") || (m.isYou && m.role !== "owner");
+                return (
+                  <tr key={m.userId} className="border-b border-gray-100 last:border-0">
+                    <td className="py-3 pl-1 pr-4">
+                      <div className="truncate text-sm font-bold text-[#0A0A0F]">
+                        {m.name}{m.isYou && <span className="ml-1.5 font-normal text-gray-400">(you)</span>}
                       </div>
-                    </TableCell>
-                    <TableCell>{getRoleBadge(member.role)}</TableCell>
-                    <TableCell>{getStatusBadge(member.status)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <Clock className="w-3 h-3" />
-                        {member.lastAccessAt 
-                          ? new Date(member.lastAccessAt).toLocaleDateString()
-                          : "Never"
-                        }
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        {member.status === "pending" && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateMemberMutation.mutate({
-                                memberId: member.id,
-                                updates: { status: "active" }
-                              })}
-                            >
-                              <Check className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateMemberMutation.mutate({
-                                memberId: member.id,
-                                updates: { status: "inactive" }
-                              })}
-                            >
-                              <X className="w-3 h-3" />
-                            </Button>
-                          </>
-                        )}
-                        <Select
-                          value={member.role}
-                          onValueChange={(value) => updateMemberMutation.mutate({
-                            memberId: member.id,
-                            updates: { role: value }
-                          })}
-                        >
-                          <SelectTrigger className="w-24 h-8 text-sm">
+                      <div className="truncate text-xs text-gray-500">{m.email}</div>
+                    </td>
+                    <td className="py-3">
+                      {editable ? (
+                        <Select value={m.role} onValueChange={(role) => changeRole.mutate({ userId: m.userId, role })}>
+                          <SelectTrigger className="h-7 w-auto gap-1 border-0 px-2 text-sm shadow-none hover:bg-black/5 focus:ring-0 focus:ring-offset-0 [&>svg]:h-3 [&>svg]:w-3">
                             <SelectValue />
-                            <ChevronDown className="w-3 h-3" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="member">Member</SelectItem>
-                            <SelectItem value="editor">Editor</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
                           </SelectContent>
                         </Select>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-3 h-3" />
+                      ) : (
+                        <span className="px-2 text-sm text-gray-600">{ROLE_LABEL[m.role] ?? m.role}</span>
+                      )}
+                    </td>
+                    <td className="hidden py-3 text-sm text-gray-500 md:table-cell">
+                      {formatDistanceToNowStrict(new Date(m.joinedAt), { addSuffix: true })}
+                    </td>
+                    <td className="py-3 text-right">
+                      {removable && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-[#0A0A0F] hover:bg-black/5" aria-label={`Actions for ${m.name}`}>
+                              <MoreVertical className="h-4 w-4" />
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to remove {member.user?.username || member.email} from the team? 
-                                This action cannot be undone and they will lose access to all projects and blueprints.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-red-600 hover:bg-red-700"
-                                onClick={() => deleteMemberMutation.mutate(member.id)}
-                              >
-                                Remove Member
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {pendingInvitations.map((invitation) => (
-                  <TableRow key={`pending-${invitation.id}`}>
-                    <TableCell>
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-yellow-50 border-2 border-[color:var(--card-border)] rounded flex items-center justify-center shadow-[2px_2px_0px_0px_var(--card-shadow)]">
-                          <Mail className="w-5 h-5 text-yellow-600" />
-                        </div>
-                        <div>
-                          <div className="font-black uppercase tracking-tight text-base text-[#0A0A0F]">{invitation.email}</div>
-                          <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">Invitation sent</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getRoleBadge(invitation.role)}</TableCell>
-                    <TableCell>{getStatusBadge("pending")}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <Clock className="w-3 h-3" />
-                        Invited {new Date(invitation.createdAt).toLocaleDateString()}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => resendInviteMutation.mutate(invitation.id)}
-                          disabled={resendInviteMutation.isPending}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => {
+                                const msg = m.isYou
+                                  ? `Leave ${activeOrg?.name ?? "this workspace"}? You'll lose access to its projects and blueprints.`
+                                  : `Remove ${m.name} from the workspace? They'll lose access to its projects and blueprints.`;
+                                if (confirm(msg)) removeMember.mutate(m);
+                              }}
                             >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Cancel Invitation</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to cancel the invitation for {invitation.email}? 
-                                They will not be able to join the team using this invitation.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-red-600 hover:bg-red-700"
-                                onClick={() => cancelInvitationMutation.mutate(invitation.id)}
-                              >
-                                Cancel Invitation
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                              {m.isYou ? "Leave workspace" : "Remove from workspace"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
-      </CardContent>
-    </Card>
+      </section>
+
+      {canManage && invitations.length > 0 && (
+        <section className="bauhaus-card p-6">
+          <h2 className="mb-1 text-base font-black uppercase tracking-widest text-[#0A0A0F]">Pending invitations</h2>
+          <p className="mb-4 text-sm text-gray-500">Links work once. Copy one to send it again.</p>
+          <table className="w-full table-fixed text-left">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className={`${th} pl-1`}>Email</th>
+                <th className={`${th} hidden w-[140px] md:table-cell`}>Expires</th>
+                <th className={`${th} w-[230px]`}><span className="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {invitations.map((inv) => (
+                <tr key={inv.id} className="border-b border-gray-100 last:border-0">
+                  <td className="py-3 pl-1 pr-4">
+                    <div className="truncate text-sm text-[#0A0A0F]">{inv.email}</div>
+                    <div className="truncate text-xs text-gray-500">
+                      {ROLE_LABEL[inv.role] ?? inv.role}{inv.projectName ? ` · Project: ${inv.projectName}` : ""}
+                    </div>
+                  </td>
+                  <td className="hidden py-3 text-sm md:table-cell">
+                    {inv.status === "expired"
+                      ? <span className="text-amber-700">Expired</span>
+                      : <span className="text-gray-500">{formatDistanceToNowStrict(new Date(inv.expiresAt), { addSuffix: true })}</span>}
+                  </td>
+                  <td className="py-3">
+                    <div className="flex justify-end gap-1.5">
+                      {inv.status === "expired" ? (
+                        <Button variant="outline" className="h-8 text-xs" disabled={renew.isPending} onClick={() => renew.mutate(inv.id)}>
+                          Renew &amp; copy
+                        </Button>
+                      ) : (
+                        <CopyLinkButton url={inv.url} className="h-8 text-xs" />
+                      )}
+                      <Button
+                        variant="ghost"
+                        className="h-8 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50"
+                        disabled={revoke.isPending}
+                        onClick={() => confirm(`Cancel the invitation for ${inv.email}? The link will stop working.`) && revoke.mutate(inv.id)}
+                      >
+                        Revoke
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      <InvitePeopleDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+    </div>
   );
 }
