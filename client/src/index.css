@@ -7,146 +7,151 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Bauhaus Design System - CSS Custom Properties */
+/* Blupi on the shared design system (ds.css, brand: blupi). The older
+   bauhaus-* names alias design-system tokens, so they follow the reef
+   palette and dark mode. Prefer ds tokens in new code. */
 :root {
-  --bauhaus-bg: #0A0A0F;
-  --bauhaus-surface: #FFFFFF;
-  --bauhaus-accent-blue: #1976D2;
-  --bauhaus-accent-blue-hover: #1565C0;
-  --bauhaus-accent-yellow: #FFD600;
-  --bauhaus-accent-red: #E53935;
-  --bauhaus-accent-red-hover: #C62828;
-  --bauhaus-success: #00E676;
-  --bauhaus-neutral: #F5F5F5;
-  --bauhaus-text-dark: #0A0A0F;
+  --bauhaus-bg: var(--ds-chrome);
+  --bauhaus-surface: var(--ds-surface);
+  --bauhaus-accent-blue: var(--ds-accent);
+  --bauhaus-accent-blue-hover: var(--ds-accent);
+  --bauhaus-accent-yellow: var(--ds-pop);
+  --bauhaus-accent-red: var(--ds-danger);
+  --bauhaus-accent-red-hover: var(--ds-danger);
+  --bauhaus-success: var(--ds-success);
+  --bauhaus-neutral: var(--ds-page);
+  --bauhaus-text-dark: var(--ds-ink);
   --bauhaus-text-light: #FFFFFF;
-  --bauhaus-text-muted: #6B7280;
+  --bauhaus-text-muted: var(--ds-ink-muted);
 
-  /* Card outlines and offset shadows. Tune the app's overall contrast here. */
-  --card-border: #475569;
-  --card-shadow: #94A3B8;
-}
-
-.dark {
-  --card-border: #333333;
-  --card-shadow: #333333;
+  /* Card outlines and offset shadows */
+  --card-border: var(--ds-line-strong);
+  --card-shadow: var(--ds-shadow);
 }
 
 /* Bauhaus Button Styles */
 .bauhaus-btn {
-  @apply bg-white text-[#0A0A0F] rounded border-2 border-[color:var(--card-border)] font-black uppercase tracking-wider transition-all duration-200 shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
+  @apply rounded border-2 border-[color:var(--card-border)] font-black uppercase tracking-wider transition-all duration-200 shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
+  background-color: var(--ds-surface);
+  color: var(--ds-ink);
+}
+.bauhaus-btn:hover {
+  background-color: var(--ds-pop);
+  color: var(--ds-pop-contrast);
 }
 
 .bauhaus-btn-blue {
-  @apply bg-[#1976D2] text-white rounded border-2 border-[color:var(--card-border)] font-black uppercase tracking-wider transition-all duration-200 shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
+  @apply rounded border-2 border-[color:var(--card-border)] font-black uppercase tracking-wider transition-all duration-200 shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px];
+  background-color: var(--ds-accent);
+  color: var(--ds-accent-contrast);
+}
+.bauhaus-btn-blue:hover {
+  background-color: var(--ds-pop);
+  color: var(--ds-pop-contrast);
 }
 
 /* Bauhaus Card Style */
 .bauhaus-card {
-  @apply bg-white rounded border-2 border-[color:var(--card-border)] shadow-[4px_4px_0px_0px_var(--card-shadow)];
+  @apply rounded border-2 border-[color:var(--card-border)] shadow-[4px_4px_0px_0px_var(--card-shadow)];
+  background-color: var(--ds-surface);
 }
 
 .blupi-column-halftone {
-  /* 1. Set your base colors */
-  background-color: #fcfcfc;
-  /* Even lighter grey base */
-
-  /* 2. Create the dot pattern */
-  background-image: radial-gradient(#e0e0e0 15%, transparent 20%);
-
-  /* 3. Control the size and density */
+  /* Fine print-style dot pattern behind board columns */
+  background-color: var(--ds-surface);
+  background-image: radial-gradient(var(--ds-line) 15%, transparent 20%);
   background-size: 6px 6px;
-  /* Even more dense (was 8px) */
-
-  /* 4. Optional: Add a slight "print offset" for more realism */
   background-position: 0 0, 3px 3px;
 }
 
+/* Presentation mode has its own light/dark switch, independent of the app theme */
 .bauhaus-halftone-bg.show-dark {
-  background-color: #0A0A0F !important;
-  background-image: radial-gradient(rgba(255, 214, 0, 0.15) 1px, transparent 1px) !important;
+  background-color: #0D1A22 !important;   /* night dive (ds dark page) */
+  background-image: radial-gradient(rgba(232, 194, 94, 0.1) 1px, transparent 1px) !important;
 }
 
 .bauhaus-halftone-bg.show-light {
-  background-color: #F5F5F5 !important;
-  background-image: radial-gradient(rgba(10, 10, 15, 0.08) 1px, transparent 1px) !important;
+  background-color: #F6F2EC !important;   /* sand (ds light page) */
+  background-image: radial-gradient(rgba(20, 36, 46, 0.08) 1px, transparent 1px) !important;
 }
 
 .bauhaus-halftone-bg {
   position: relative;
   /* Safari-safe: Apply halftone pattern directly as background with rgba for opacity */
-  background-color: #F5F5F5;
-  background-image: radial-gradient(rgba(10, 10, 15, 0.08) 1px, transparent 1px);
+  background-color: var(--ds-page);
+  background-image: radial-gradient(var(--ds-page-dots) 1px, transparent 1px);
   background-size: 20px 20px;
   background-attachment: fixed;
   min-height: 100vh;
 }
 
 @layer base {
+  /* shadcn theme colours, mirroring the design-system reef tokens (ds.css).
+     They stay as HSL channels so Tailwind opacity modifiers (bg-primary/90) work. */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 241 49% 15%;
-    --card: 0 0% 100%;
-    --card-foreground: 241 49% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 241 49% 15%;
-    --primary: 241 49% 36%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 200 40% 95%;
-    --secondary-foreground: 241 49% 36%;
-    --muted: 27 100% 92%;
-    --muted-foreground: 240 17% 51%;
-    --accent: 3 80% 75%;
-    --accent-foreground: 241 49% 15%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 200 81% 80%;
-    --input: 200 81% 80%;
-    --ring: 241 49% 36%;
     --radius: 6px;
-    --chart-1: 241 49% 36%;
-    --chart-2: 3 80% 75%;
-    --chart-3: 200 81% 60%;
-    --chart-4: 27 100% 70%;
-    --chart-5: 240 17% 51%;
-    --sidebar-background: 241 49% 15%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 241 49% 36%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 241 40% 25%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 241 30% 25%;
-    --sidebar-ring: 241 49% 36%;
+    --background: 36 36% 95%;   /* #F6F2EC */
+    --foreground: 203 39% 13%;   /* #14242E */
+    --card: 0 0% 100%;   /* #FFFFFF */
+    --card-foreground: 203 39% 13%;   /* #14242E */
+    --popover: 0 0% 100%;   /* #FFFFFF */
+    --popover-foreground: 203 39% 13%;   /* #14242E */
+    --primary: 202 51% 37%;   /* #2E6A8E */
+    --primary-foreground: 0 0% 100%;   /* #FFFFFF */
+    --secondary: 35 30% 92%;   /* #F1ECE5 */
+    --secondary-foreground: 206 19% 33%;   /* #435563 */
+    --muted: 35 30% 92%;   /* #F1ECE5 */
+    --muted-foreground: 204 12% 41%;   /* #5D6C76 */
+    --accent: 35 26% 91%;   /* #EEE9E2 */
+    --accent-foreground: 203 39% 13%;   /* #14242E */
+    --destructive: 10 54% 45%;   /* #B04A35 */
+    --destructive-foreground: 0 0% 100%;   /* #FFFFFF */
+    --border: 35 24% 86%;   /* #E4DDD3 */
+    --input: 35 24% 86%;   /* #E4DDD3 */
+    --ring: 202 51% 37%;   /* #2E6A8E */
+    --chart-1: 205 38% 47%;   /* #4A7FA6 */
+    --chart-2: 13 59% 64%;   /* #D9826B */
+    --chart-3: 188 38% 59%;   /* #6FB3BE */
+    --chart-4: 43 63% 59%;   /* #D9B455 */
+    --chart-5: 263 27% 66%;   /* #A391C0 */
+    --sidebar-background: 203 39% 13%;   /* #14242E */
+    --sidebar-foreground: 0 0% 100%;   /* #FFFFFF */
+    --sidebar-primary: 202 51% 37%;   /* #2E6A8E */
+    --sidebar-primary-foreground: 0 0% 100%;   /* #FFFFFF */
+    --sidebar-accent: 203 36% 18%;   /* #1E3340 */
+    --sidebar-accent-foreground: 0 0% 100%;   /* #FFFFFF */
+    --sidebar-border: 207 35% 22%;   /* #24394A */
+    --sidebar-ring: 202 51% 37%;   /* #2E6A8E */
   }
 
   .dark {
-    --background: 241 49% 8%;
-    --foreground: 0 0% 98%;
-    --card: 241 49% 10%;
-    --card-foreground: 0 0% 98%;
-    --popover: 241 49% 10%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 241 49% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 241 30% 20%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 241 30% 20%;
-    --muted-foreground: 240 17% 65%;
-    --accent: 3 80% 65%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 241 30% 25%;
-    --input: 241 30% 25%;
-    --ring: 241 49% 55%;
-    --sidebar-background: 241 49% 5%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 241 49% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 241 40% 15%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 241 30% 15%;
-    --sidebar-ring: 241 49% 55%;
+    --background: 203 45% 9%;   /* #0D1A22 */
+    --foreground: 192 17% 94%;   /* #EEF2F3 */
+    --card: 203 41% 13%;   /* #13232D */
+    --card-foreground: 192 17% 94%;   /* #EEF2F3 */
+    --popover: 203 41% 13%;   /* #13232D */
+    --popover-foreground: 192 17% 94%;   /* #EEF2F3 */
+    --primary: 202 45% 55%;   /* #5A9BC0 */
+    --primary-foreground: 203 45% 9%;   /* #0D1A22 */
+    --secondary: 202 37% 16%;   /* #1A2D38 */
+    --secondary-foreground: 192 17% 94%;   /* #EEF2F3 */
+    --muted: 202 37% 16%;   /* #1A2D38 */
+    --muted-foreground: 202 11% 65%;   /* #9DA9B0 */
+    --accent: 202 37% 16%;   /* #1A2D38 */
+    --accent-foreground: 192 17% 94%;   /* #EEF2F3 */
+    --destructive: 11 65% 65%;   /* #E0806B */
+    --destructive-foreground: 203 45% 9%;   /* #0D1A22 */
+    --border: 207 35% 22%;   /* #24394A */
+    --input: 207 35% 22%;   /* #24394A */
+    --ring: 202 45% 55%;   /* #5A9BC0 */
+    --sidebar-background: 203 53% 7%;   /* #08131A */
+    --sidebar-foreground: 192 17% 94%;   /* #EEF2F3 */
+    --sidebar-primary: 202 45% 55%;   /* #5A9BC0 */
+    --sidebar-primary-foreground: 203 45% 9%;   /* #0D1A22 */
+    --sidebar-accent: 204 41% 12%;   /* #12212B */
+    --sidebar-accent-foreground: 192 17% 94%;   /* #EEF2F3 */
+    --sidebar-border: 204 34% 16%;   /* #1B2C37 */
+    --sidebar-ring: 202 45% 55%;   /* #5A9BC0 */
   }
 
   * {

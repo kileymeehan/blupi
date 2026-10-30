@@ -1,5 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
+// Shared design system (generated from claude-sandbox/design-system), then app styles
+import "./ds.css";
 import "./index.css";
 
 console.log('[MAIN] Starting React app initialization...');
