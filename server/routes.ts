@@ -22,6 +22,14 @@ import { generalRateLimit, aiRateLimit, boardUpdateRateLimit, sheetsRateLimit } 
 import { tenantMiddleware, requireTenant } from './tenant-middleware';
 import { insertOrganizationSchema } from '@shared/schema';
 
+const PROJECT_ROLES = ["member", "editor", "admin"];
+
+// Copies only the listed keys from a request body
+function pick(body: unknown, keys: string[]): Record<string, unknown> {
+  const source = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
+  return Object.fromEntries(keys.filter((k) => k in source).map((k) => [k, source[k]]));
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   console.log('[HTTP] Creating basic HTTP server');
@@ -823,7 +831,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/projects/:id", requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Updating project with ID: ${req.params.id}`);
-      const project = await storage.updateProject(Number(req.params.id), req.body, req.tenantId);
+      // Only fields people edit; never ownership or workspace
+      const updates = pick(req.body, ["name", "description", "overview", "color", "status"]);
+      if (typeof updates.overview === "string" && updates.overview.length > 20000) {
+        return res.status(400).json({ error: true, message: "Description is too long (20,000 characters max)" });
+      }
+      const project = await storage.updateProject(Number(req.params.id), updates, req.tenantId);
       if (!project) {
         return res.status(404).json({ error: true, message: "Project not found" });
       }
@@ -832,6 +845,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error('[HTTP] Error updating project:', err);
       res.status(500).json({ error: true, message: "Failed to update project" });
+    }
+  });
+
+  app.delete("/api/projects/:id", requireTenant, async (req, res) => {
+    try {
+      const blueprintAction = req.body?.blueprintAction === "delete" ? "delete" : "unassign";
+      console.log(`[HTTP] Deleting project ${req.params.id} (blueprints: ${blueprintAction})`);
+      const deleted = await storage.deleteProject(Number(req.params.id), req.tenantId!, blueprintAction);
+      if (!deleted) {
+        return res.status(404).json({ error: true, message: "Project not found" });
+      }
+      res.json({ success: true });
+    } catch (err) {
+      console.error('[HTTP] Error deleting project:', err);
+      res.status(500).json({ error: true, message: "Failed to delete project" });
     }
   });
 
@@ -1000,8 +1028,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/boards/:id", boardUpdateRateLimit, requireTenant, async (req, res) => {
     try {
       console.log(`[HTTP] Updating board with ID: ${req.params.id}`);
-      // Current/future links are only set when a future state is created
-      const { state: _state, basedOnBoardId: _basedOn, ...updates } = req.body ?? {};
+      // Current/future links are only set when a future state is created, and
+      // ownership/workspace never change through an edit
+      const { state: _state, basedOnBoardId: _basedOn, id: _id, userId: _userId, organizationId: _org, createdAt: _created, updatedAt: _updated, ...updates } = req.body ?? {};
+      if (updates.projectId != null && !(await storage.getProject(Number(updates.projectId), req.tenantId))) {
+        return res.status(404).json({ error: true, message: "Project not found" });
+      }
       const board = await storage.updateBoard(Number(req.params.id), updates, req.tenantId);
       console.log(`[HTTP] Successfully updated board: ${board.id}`);
       res.json(board);
@@ -3005,6 +3037,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = parseInt(req.params.id);
       console.log(`[HTTP] Fetching members for project: ${projectId}`);
+      if (!(await storage.getProject(projectId, req.tenantId))) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
       
       const members = await storage.getProjectMembers(projectId);
       res.json(members);
@@ -3021,6 +3056,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!userId) {
         return res.status(400).json({ error: 'User ID is required' });
+      }
+      if (!PROJECT_ROLES.includes(role)) {
+        return res.status(400).json({ error: 'Role must be member, editor or admin' });
+      }
+      const project = await storage.getProject(projectId, req.tenantId);
+      if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      // Only people already in this workspace can be assigned to its projects
+      if (!(await storage.isUserInOrganization(Number(userId), req.tenantId!))) {
+        return res.status(400).json({ error: 'That person isn\'t in this workspace' });
       }
       
       console.log(`[HTTP] Adding member ${userId} to project ${projectId} with role ${role}`);
@@ -3043,9 +3089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[HTTP] Successfully added member to project - member ID: ${member.id}`);
       
-      // Get project details for notification
-      const project = await storage.getProject(projectId, req.tenantId);
-      if (project) {
+      {
         // Create notification for the assigned user
         await storage.createNotification({
           userId: userId,
@@ -3072,6 +3116,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       
       console.log(`[HTTP] Removing member ${userId} from project ${projectId}`);
+      if (!(await storage.getProject(projectId, req.tenantId))) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
       
       await storage.removeProjectMember(projectId, userId);
       res.json({ success: true });
@@ -3152,6 +3199,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { role } = req.body;
       
       console.log(`[HTTP] Updating member ${userId} role in project ${projectId} to ${role}`);
+      if (!PROJECT_ROLES.includes(role)) {
+        return res.status(400).json({ error: 'Role must be member, editor or admin' });
+      }
+      if (!(await storage.getProject(projectId, req.tenantId))) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
       
       await storage.updateProjectMemberRole(projectId, userId, role);
       res.json({ success: true });

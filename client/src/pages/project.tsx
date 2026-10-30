@@ -9,7 +9,7 @@ import { CreateBlueprintDialog } from "@/components/create-blueprint-dialog";
 import { InviteProjectDialog } from "@/components/invite-project-dialog";
 import { ProjectMembers } from "@/components/project-members";
 import { PageHeader } from "@/components/page-header";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Board, ProjectLink } from "@shared/schema";
 import { StatusSelector } from "@/components/status-selector";
@@ -58,6 +58,43 @@ export default function Project() {
     },
     enabled: !!id
   });
+
+  // Project description box: loads the saved text once, then autosaves a
+  // second after typing stops (and on blur) without toasts
+  const [overviewStatus, setOverviewStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const savedOverview = useRef<string | null>(null);
+  useEffect(() => {
+    savedOverview.current = null;
+    setOverviewStatus('idle');
+  }, [id]);
+  useEffect(() => {
+    if (project && savedOverview.current === null) {
+      savedOverview.current = project.overview ?? '';
+      setProjectDescription(project.overview ?? '');
+    }
+  }, [project]);
+  const saveOverview = async (text: string) => {
+    if (savedOverview.current === null || text === savedOverview.current) return;
+    setOverviewStatus('saving');
+    try {
+      const res = await fetch(`/api/projects/${id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ overview: text }),
+      });
+      if (!res.ok) throw new Error();
+      savedOverview.current = text;
+      queryClient.setQueryData(['/api/projects', id], (p: any) => (p ? { ...p, overview: text } : p));
+      setOverviewStatus('saved');
+    } catch {
+      setOverviewStatus('error');
+    }
+  };
+  useEffect(() => {
+    const timer = setTimeout(() => saveOverview(projectDescription), 1000);
+    return () => clearTimeout(timer);
+  }, [projectDescription]);
 
   const updateProjectMutation = useMutation({
     mutationFn: async (updates: { name?: string; status?: string; color?: string }) => {
@@ -280,11 +317,16 @@ export default function Project() {
               <div className="flex items-center gap-2 mb-4">
                 <FileText className="h-5 w-5 text-[#1976D2]" />
                 <h2 className="text-xl font-black uppercase tracking-widest text-[#0A0A0F]">Project Description</h2>
+                <span className={`ml-auto text-xs ${overviewStatus === 'error' ? 'text-[#E53935]' : 'text-gray-400'}`} aria-live="polite">
+                  {overviewStatus === 'saving' ? 'Saving…' : overviewStatus === 'saved' ? 'Saved' : overviewStatus === 'error' ? "Couldn't save. Keep this page open and try again." : ''}
+                </span>
               </div>
               <Textarea
                 placeholder="Describe your project goals, scope, and objectives..."
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
+                onBlur={() => saveOverview(projectDescription)}
+                maxLength={20000}
                 className="min-h-[120px] resize-none border border-gray-200 rounded text-[15px] leading-relaxed text-[#0A0A0F] placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[#1976D2]"
               />
             </section>

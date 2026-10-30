@@ -84,6 +84,7 @@ export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  overview: text("overview"), // longer goals/scope notes from the project page
   color: text("color").notNull().default('#4F46E5'),
   status: text("status").notNull().default('draft'),
   userId: integer("user_id").references(() => users.id).notNull(),

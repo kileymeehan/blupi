@@ -1,7 +1,7 @@
 import { 
   projects, boards as boardsTable, 
   users, projectMembers, projectLinks, sheetDocuments, projectSheetDocuments,
-  boardPermissions, teamMembers, pendingInvitations, notifications, flaggedBlocks,
+  boardPermissions, boardComments, teamMembers, pendingInvitations, notifications, flaggedBlocks,
   organizations, userOrganizations,
   type Board, type InsertBoard, 
   type User, type InsertUser, 
@@ -25,6 +25,19 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 
 const PgSessionStore = connectPgSimple(session);
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+// Boards are referenced by these tables without ON DELETE CASCADE, so their
+// rows have to go first or Postgres refuses to delete the board
+async function deleteBoardsWithDependents(tx: Tx, boardIds: number[]) {
+  if (boardIds.length === 0) return;
+  await tx.delete(boardPermissions).where(inArray(boardPermissions.boardId, boardIds));
+  await tx.delete(boardComments).where(inArray(boardComments.boardId, boardIds));
+  await tx.delete(flaggedBlocks).where(inArray(flaggedBlocks.boardId, boardIds));
+  await tx.delete(sheetDocuments).where(inArray(sheetDocuments.boardId, boardIds));
+  await tx.delete(boardsTable).where(inArray(boardsTable.id, boardIds));
+}
 
 export class DatabaseStorage {
   public sessionStore: session.Store;
@@ -492,11 +505,54 @@ export class DatabaseStorage {
         ? and(eq(boardsTable.id, id), eq(boardsTable.organizationId, organizationId))
         : eq(boardsTable.id, id);
       
-      await db.delete(boardsTable).where(conditions);
+      await db.transaction(async (tx) => {
+        const found = await tx.select({ id: boardsTable.id }).from(boardsTable).where(conditions);
+        await deleteBoardsWithDependents(tx, found.map((b) => b.id));
+      });
     } catch (error) {
       console.error('[Storage] Error deleting board:', error);
       throw error;
     }
+  }
+
+  // Deletes a project in one transaction. Its boards are either unassigned
+  // (kept, moved out of the project) or deleted along with their comments,
+  // permissions, flags and sheet links. Returns false if the project isn't
+  // in this workspace.
+  async deleteProject(id: number, organizationId: string, blueprintAction: 'unassign' | 'delete'): Promise<boolean> {
+    return db.transaction(async (tx) => {
+      const [project] = await tx
+        .select({ id: projects.id })
+        .from(projects)
+        .where(and(eq(projects.id, id), eq(projects.organizationId, organizationId)));
+      if (!project) return false;
+
+      const boardIds = (await tx
+        .select({ id: boardsTable.id })
+        .from(boardsTable)
+        .where(eq(boardsTable.projectId, id))).map((b) => b.id);
+
+      if (blueprintAction === 'delete') {
+        await deleteBoardsWithDependents(tx, boardIds);
+      } else if (boardIds.length) {
+        await tx.update(boardsTable).set({ projectId: null }).where(inArray(boardsTable.id, boardIds));
+      }
+
+      await tx.delete(projectMembers).where(eq(projectMembers.projectId, id));
+      await tx.delete(projectSheetDocuments).where(eq(projectSheetDocuments.projectId, id));
+      // project_links rows go with the project (ON DELETE CASCADE)
+      await tx.delete(projects).where(eq(projects.id, id));
+      return true;
+    });
+  }
+
+  async isUserInOrganization(userId: number, organizationId: string): Promise<boolean> {
+    const [row] = await db
+      .select({ id: userOrganizations.id })
+      .from(userOrganizations)
+      .where(and(eq(userOrganizations.userId, userId), eq(userOrganizations.organizationId, organizationId)))
+      .limit(1);
+    return !!row;
   }
 
   // User methods
