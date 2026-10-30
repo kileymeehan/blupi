@@ -2449,7 +2449,7 @@ export default function BoardGrid({
   return (
     <div className={`flex-1 relative overflow-hidden flex flex-col bauhaus-halftone-bg ${darkMode ? 'dark' : ''}`}>
       <header className={`h-20 border-b-2 px-8 flex justify-between items-center shadow-none flex-shrink-0 sticky top-0 left-0 right-0 z-50 ${
-        darkMode ? 'bg-black border-ds-pop' : 'bg-ds-chrome border-[color:var(--card-border)]'
+        darkMode ? 'bg-ds-chrome border-ds-pop' : 'bg-ds-chrome border-[color:var(--card-border)]'
       }`}>
         <div className="flex items-center gap-4 pl-4">
           <Button

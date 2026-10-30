@@ -569,6 +569,15 @@
   background-color: var(--ds-surface) !important;
 }
 
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: var(--ds-surface-sunken) !important;
+}
+
+.dark .bg-gray-200 {
+  background-color: var(--ds-line) !important;
+}
+
 .dark .text-gray-500,
 .dark .text-gray-600,
 .dark .text-gray-700,
