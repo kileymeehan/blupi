@@ -25,8 +25,8 @@ export function EnvironmentBadge() {
   const badgeColor = config.isStaging 
     ? 'bg-orange-500 text-white' 
     : config.isDevelopment 
-    ? 'bg-blue-500 text-white'
-    : 'bg-green-500 text-white';
+    ? 'bg-blue-600 text-white'
+    : 'bg-green-600 text-white';
 
   return (
     <div className={`fixed top-4 right-4 px-2 py-1 rounded text-xs font-bold z-50 ${badgeColor}`}>

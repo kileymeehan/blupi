@@ -74,7 +74,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
                 className={`${layer.color} border-2 rounded w-full min-w-[100px] h-[52px] relative flex items-center justify-center
-                  ${darkMode ? 'border-ds-line-strong shadow-[2px_2px_0px_0px_var(--ds-shadow)]' : 'border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]'}
+                  ${darkMode ? 'shadow-[2px_2px_0px_0px_var(--ds-shadow)]' : 'shadow-[2px_2px_0px_0px_var(--card-shadow)]'}
                   ${snapshot.isDragging ? (darkMode ? "shadow-[2px_2px_0px_0px_var(--ds-shadow)]" : "shadow-[2px_2px_0px_0px_var(--card-shadow)]") : ""}
                   transition-all duration-200 hover:bg-ds-pop
                 `}

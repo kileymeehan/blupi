@@ -398,9 +398,9 @@ export default function Block({
             leading-normal
             focus:outline-none
             ${isEditing ? "cursor-text" : "cursor-default"}
-            ${block.type === "front-stage" ? "bg-blue-500/75 text-white" : ""}
-            ${block.type === "back-stage" ? "bg-purple-500/75 text-white" : ""}
-            ${block.type === "custom-divider" ? "bg-gray-600/75 text-white" : ""}
+            ${block.type === "front-stage" ? "bg-[rgba(74,127,166,0.9)] text-white" : ""}
+            ${block.type === "back-stage" ? "bg-[rgba(142,122,181,0.92)] text-white" : ""}
+            ${block.type === "custom-divider" ? "bg-[rgba(85,100,110,0.9)] text-white" : ""}
             border-2 border-white
             font-semibold
           `}
@@ -739,7 +739,7 @@ export default function Block({
                 className={`
                   flex items-center justify-center w-6 h-6 p-0
                   rounded bg-white border ${block.type === 'experiment' ? 'border-amber-200' : 'border-gray-200'}
-                  text-xs ${block.type === 'experiment' ? 'text-amber-600 hover:text-amber-900' : 'text-teal-600 hover:text-teal-900'}
+                  text-xs ${block.type === 'experiment' ? 'text-amber-700 hover:text-amber-900' : 'text-teal-600 hover:text-teal-900'}
                   shadow-sm hover:shadow ${block.type === 'experiment' ? 'hover:border-amber-300' : 'hover:border-teal-300'}
                   ${block.sheetsConnection ? `after:content-["•"] after:${block.type === 'experiment' ? 'text-amber-500' : 'text-teal-500'} after:absolute after:top-[-2px] after:right-[-2px]` : ""}
                   transition-all duration-150
@@ -847,7 +847,7 @@ export default function Block({
                 text-xs transition-all duration-150
                 shadow-sm hover:shadow hover:border-gray-300
                 ${isFlagged 
-                  ? 'text-yellow-500 hover:text-yellow-600 after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' 
+                  ? 'text-yellow-500 hover:text-yellow-700 after:content-["•"] after:text-yellow-500 after:absolute after:top-[-2px] after:right-[-2px]' 
                   : 'text-gray-600 hover:text-gray-900'
                 }
               `}

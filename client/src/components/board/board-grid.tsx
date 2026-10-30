@@ -4288,21 +4288,7 @@ export default function BoardGrid({
                           style={{ 
                             borderLeftWidth: '12px',
                             borderLeftColor: (layerType?.color && !layerType.isDivider) ? 
-                              (layerType.color.includes('blue-600') ? '#2563eb' : 
-                               layerType.color.includes('indigo-500') ? '#6366f1' :
-                               layerType.color.includes('cyan-500') ? '#06b6d4' :
-                               layerType.color.includes('green-500') ? '#22c55e' :
-                               layerType.color.includes('pink-500') ? '#ec4899' :
-                               layerType.color.includes('red-500') ? '#ef4444' :
-                               layerType.color.includes('orange-500') ? '#f97316' :
-                               layerType.color.includes('purple-500') ? '#a855f7' :
-                               layerType.color.includes('violet-500') ? '#8b5cf6' :
-                               layerType.color.includes('yellow-500') ? '#eab308' :
-                               layerType.color.includes('emerald-500') ? '#10b981' :
-                               layerType.color.includes('fuchsia-500') ? '#d946ef' :
-                               layerType.color.includes('teal-500') ? '#14b8a6' :
-                               layerType.color.includes('amber-500') ? '#f59e0b' :
-                               layerType.color.includes('rose-500') ? '#f43f5e' : '#6B7280') : '#6B7280'
+                              (layerType.hex) : '#7D878D'
                           }}
                         >
                           <div className="flex flex-col gap-4">

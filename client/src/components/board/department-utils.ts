@@ -6,19 +6,20 @@ export interface DepartmentInfo {
 }
 
 export const DEPARTMENT_COLORS: Record<Department, DepartmentInfo> = {
-  Engineering: { name: "Engineering", color: "#3B82F6" },
-  Marketing: { name: "Marketing", color: "#EF4444" },
-  Product: { name: "Product", color: "#10B981" },
-  Design: { name: "Design", color: "#F59E0B" },
-  Brand: { name: "Brand", color: "#8B5CF6" },
-  Support: { name: "Support", color: "#06B6D4" },
-  Sales: { name: "Sales", color: "#EC4899" },
-  Custom: { name: "Custom", color: "#6B7280" }
+  // Reef palette; white text meets 4.5:1 on each
+  Engineering: { name: "Engineering", color: "#3B72A3" },
+  Marketing: { name: "Marketing", color: "#B8563F" },
+  Product: { name: "Product", color: "#457F55" },
+  Design: { name: "Design", color: "#8C6F1A" },
+  Brand: { name: "Brand", color: "#7E62AB" },
+  Support: { name: "Support", color: "#2C7F8C" },
+  Sales: { name: "Sales", color: "#B0577C" },
+  Custom: { name: "Custom", color: "#66717A" }
 };
 
 export function getDepartmentInfo(department: Department | undefined): DepartmentInfo {
   if (!department) {
-    return { name: "Unknown", color: "#6B7280" };
+    return { name: "Unknown", color: "#66717A" };
   }
-  return DEPARTMENT_COLORS[department] || { name: department, color: "#6B7280" };
+  return DEPARTMENT_COLORS[department] || { name: department, color: "#66717A" };
 }

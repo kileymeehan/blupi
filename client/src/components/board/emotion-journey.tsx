@@ -10,13 +10,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const EMOTION_SCALE = {
-  1: { color: '#dc2626', label: 'Very Negative' },
-  2: { color: '#ef4444', label: 'Negative' },
-  3: { color: '#f59e0b', label: 'Somewhat Negative' },
-  4: { color: '#eab308', label: 'Neutral' },
-  5: { color: '#84cc16', label: 'Somewhat Positive' },
-  6: { color: '#22c55e', label: 'Positive' },
-  7: { color: '#16a34a', label: 'Very Positive' },
+  // Reef scale: sea-fan red through gold to kelp; white text meets 4.5:1 on each
+  1: { color: '#A8402E', label: 'Very Negative' },
+  2: { color: '#B5523C', label: 'Negative' },
+  3: { color: '#9C6226', label: 'Somewhat Negative' },
+  4: { color: '#85722A', label: 'Neutral' },
+  5: { color: '#557D33', label: 'Somewhat Positive' },
+  6: { color: '#3E7E52', label: 'Positive' },
+  7: { color: '#2C6A48', label: 'Very Positive' },
 };
 
 const CHART_AREA_HEIGHT = 140;
@@ -239,7 +240,9 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                                 size="sm"
                                 className="h-10 w-10 p-0 rounded border-2 border-[color:var(--card-border)] dark:border-white shadow-[2px_2px_0px_0px_var(--card-shadow)] dark:shadow-[2px_2px_0px_0px_white] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-white font-bold text-base"
                                 style={{
-                                  backgroundColor: emotion?.color || 'var(--ds-surface-sunken)',
+                                  // Colour comes from the value via the current scale, so boards saved with
+                                  // older colours still match (and keep white text readable)
+                                  backgroundColor: emotion ? (EMOTION_SCALE[emotion.value as keyof typeof EMOTION_SCALE]?.color ?? emotion.color) : 'var(--ds-surface-sunken)',
                                   color: emotion ? 'white' : 'var(--ds-ink-faint)'
                                 }}
                               >
