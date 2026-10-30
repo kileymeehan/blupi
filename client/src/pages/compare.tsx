@@ -37,7 +37,7 @@ const Pill = ({ kind, children }: { kind: string; children: React.ReactNode }) =
   </span>
 );
 
-const sectionTitle = "text-base font-black uppercase tracking-widest text-[#0A0A0F]";
+const sectionTitle = "text-base font-black uppercase tracking-widest text-ds-ink";
 const th = "pb-2 text-[11px] font-bold uppercase tracking-widest text-gray-500";
 
 export default function ComparePage() {
@@ -111,9 +111,9 @@ export default function ComparePage() {
       <main className="mx-auto max-w-[1100px] space-y-6 px-6 py-8">
         <div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-            <Link href={`/board/${current.id}`} className="font-bold text-[#0A0A0F] hover:underline">{current.name}</Link>
+            <Link href={`/board/${current.id}`} className="font-bold text-ds-ink hover:underline">{current.name}</Link>
             <ArrowRight className="h-4 w-4" />
-            <Link href={`/board/${future.id}`} className="font-bold text-[#0A0A0F] hover:underline">{future.name}</Link>
+            <Link href={`/board/${future.id}`} className="font-bold text-ds-ink hover:underline">{future.name}</Link>
           </div>
           {future.description && <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-gray-600">{plain(future.description)}</p>}
         </div>
@@ -127,7 +127,7 @@ export default function ComparePage() {
             { value: `${counts.new} new · ${removedSteps.length} removed`, label: "Structure" },
           ].map((stat) => (
             <div key={stat.label}>
-              <div className="text-2xl font-black text-[#0A0A0F]">{stat.value}</div>
+              <div className="text-2xl font-black text-ds-ink">{stat.value}</div>
               <div className="text-[11px] font-bold uppercase tracking-widest text-gray-500">{stat.label}</div>
             </div>
           ))}
@@ -152,7 +152,7 @@ export default function ComparePage() {
                 {frictions.map(({ block, step, fixes, status, stillThere }) => (
                   <tr key={block.id} className="border-b border-gray-100 align-top last:border-0">
                     <td className="py-3 pl-1 pr-4">
-                      <div className="text-sm text-[#0A0A0F]">{plain(block.content)}</div>
+                      <div className="text-sm text-ds-ink">{plain(block.content)}</div>
                       {step && <div className="mt-0.5 text-xs text-gray-500">{step.phase} · {step.name}</div>}
                     </td>
                     <td className="py-3">
@@ -165,7 +165,7 @@ export default function ComparePage() {
                             const s = stepAt(futureSteps, fix);
                             return (
                               <li key={fix.id}>
-                                {s && <span className="font-bold text-[#0A0A0F]">{s.name}: </span>}
+                                {s && <span className="font-bold text-ds-ink">{s.name}: </span>}
                                 {plain(fix.content)}
                               </li>
                             );
@@ -204,7 +204,7 @@ export default function ComparePage() {
                 return (
                   <tr key={s.id} className="border-b border-gray-100 align-top last:border-0">
                     <td className="py-3 pl-1 pr-4">
-                      <div className="text-sm font-bold text-[#0A0A0F]">{s.name}</div>
+                      <div className="text-sm font-bold text-ds-ink">{s.name}</div>
                       <div className="text-xs text-gray-500">{s.phase}</div>
                     </td>
                     <td className="py-3"><Pill kind={kind}>{kind === "new" ? "New" : kind === "same" ? "Same" : "Reworked"}</Pill></td>

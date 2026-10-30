@@ -73,7 +73,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Hero content */}
-      <div className="hidden lg:flex lg:w-1/3 bg-[#302E87] text-white p-12 flex-col justify-between relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/3 bg-ds-accent text-white p-12 flex-col justify-between relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
           <svg width="100%" height="100%" fill="none">
             <pattern id="blueprint-grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -86,7 +86,7 @@ export default function LoginPage() {
           <h1 className="mb-6">
             <img src="/images/Blupi-logomark-white-300.png" alt="Blupi" className="h-10" />
           </h1>
-          <p className="text-xl font-light leading-relaxed text-[#A1D9F5] max-w-md">
+          <p className="text-xl font-light leading-relaxed text-white/80 max-w-md">
             A simple way to create and collaborate on your customer journeys.
           </p>
         </div>
@@ -100,19 +100,19 @@ export default function LoginPage() {
           </div>
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-[#A1D9F5]/30 flex items-center justify-center text-xl">
+              <div className="w-10 h-10 rounded-full bg-[color-mix(in_srgb,var(--ds-accent-soft)_30%,transparent)] flex items-center justify-center text-xl">
                 ✨
               </div>
               <p className="text-lg">Intelligent workflow management</p>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-[#A1D9F5]/30 flex items-center justify-center text-xl">
+              <div className="w-10 h-10 rounded-full bg-[color-mix(in_srgb,var(--ds-accent-soft)_30%,transparent)] flex items-center justify-center text-xl">
                 🤝
               </div>
               <p className="text-lg">Real-time collaboration</p>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-[#A1D9F5]/30 flex items-center justify-center text-xl">
+              <div className="w-10 h-10 rounded-full bg-[color-mix(in_srgb,var(--ds-accent-soft)_30%,transparent)] flex items-center justify-center text-xl">
                 📊
               </div>
               <p className="text-lg">Dynamic project organization</p>
@@ -122,11 +122,11 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Login form */}
-      <div className="w-full lg:w-2/3 flex items-center justify-center p-8 bg-gradient-to-br from-white to-[#FFE8D6]/30">
-        <Card className="w-full max-w-md border-[#A1D9F5] shadow-lg">
+      <div className="w-full lg:w-2/3 flex items-center justify-center p-8 bg-gradient-to-br from-white to-[color-mix(in_srgb,var(--ds-reef-sand)_30%,transparent)]">
+        <Card className="w-full max-w-md border-ds-line shadow-lg">
           <CardHeader className="space-y-1">
-            <h2 className="text-2xl font-bold tracking-tight text-[#302E87]">Welcome back</h2>
-            <p className="text-sm text-[#6B6B97]">
+            <h2 className="text-2xl font-bold tracking-tight text-ds-ink">Welcome back</h2>
+            <p className="text-sm text-ds-ink-muted">
               Sign in to your account to continue
             </p>
           </CardHeader>
@@ -137,10 +137,10 @@ export default function LoginPage() {
                   type="email"
                   placeholder="Email"
                   {...form.register("email")}
-                  className="bg-white border-[#A1D9F5] focus-visible:ring-[#302E87]"
+                  className="bg-white border-ds-line focus-visible:ring-ds-accent"
                 />
                 {form.formState.errors.email && (
-                  <p className="text-sm text-[#F2918C]">
+                  <p className="text-sm text-ds-coral">
                     {form.formState.errors.email.message}
                   </p>
                 )}
@@ -150,20 +150,20 @@ export default function LoginPage() {
                   type="password"
                   placeholder="Password"
                   {...form.register("password")}
-                  className="bg-white border-[#A1D9F5] focus-visible:ring-[#302E87]"
+                  className="bg-white border-ds-line focus-visible:ring-ds-accent"
                 />
                 {form.formState.errors.password && (
-                  <p className="text-sm text-[#F2918C]">
+                  <p className="text-sm text-ds-coral">
                     {form.formState.errors.password.message}
                   </p>
                 )}
               </div>
               {error && (
-                <p className="text-sm text-[#F2918C]">{error}</p>
+                <p className="text-sm text-ds-coral">{error}</p>
               )}
               <Button 
                 type="submit" 
-                className="w-full bg-[#302E87] hover:bg-[#252270]"
+                className="w-full bg-ds-accent hover:bg-ds-ink"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Signing in..." : "Sign in"}
@@ -176,14 +176,14 @@ export default function LoginPage() {
               <Button
                 asChild
                 variant="outline"
-                className="w-full border-dashed border-[#F2918C] text-[#302E87]"
+                className="w-full border-dashed border-ds-coral text-ds-ink"
               >
                 <a href="/api/auth/dev-login">Dev sign-in (local only)</a>
               </Button>
             )}
             <Button
               variant="outline" 
-              className="w-full border-[#A1D9F5] text-[#302E87] flex items-center justify-center gap-2"
+              className="w-full border-ds-line text-ds-ink flex items-center justify-center gap-2"
               onClick={async () => {
                 try {
                   await signInWithGoogle();
@@ -198,7 +198,7 @@ export default function LoginPage() {
             
             <Button 
               variant="link" 
-              className="w-full text-[#6B6B97] hover:text-[#302E87]"
+              className="w-full text-ds-ink-muted hover:text-ds-ink"
               onClick={() => {
                 toast({
                   title: "Password Reset",
@@ -209,11 +209,11 @@ export default function LoginPage() {
               Forgot your password?
             </Button>
             
-            <p className="text-sm text-[#6B6B97] pt-2">
+            <p className="text-sm text-ds-ink-muted pt-2">
               Don't have an account?{" "}
               <Button
                 variant="link"
-                className="px-0 text-[#302E87] hover:text-[#252270]"
+                className="px-0 text-ds-ink hover:text-ds-ink"
                 onClick={() => setLocation(`/auth/register`)}
               >
                 Register

@@ -165,8 +165,8 @@ export function ProjectMembers({ projectId, projectName }: ProjectMembersProps) 
   return (
     <section className="bauhaus-card p-6">
       <div className="flex items-center justify-between gap-2 mb-4">
-        <h2 className="flex items-center gap-2 text-base font-black uppercase tracking-widest text-[#0A0A0F] min-w-0">
-          <Users className="w-4 h-4 text-[#1976D2] flex-shrink-0" />
+        <h2 className="flex items-center gap-2 text-base font-black uppercase tracking-widest text-ds-ink min-w-0">
+          <Users className="w-4 h-4 text-ds-accent flex-shrink-0" />
           Project Members
         </h2>
         <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
@@ -175,7 +175,7 @@ export function ProjectMembers({ projectId, projectName }: ProjectMembersProps) 
               variant="ghost"
               title="Add people to this project"
               aria-label="Add people to this project"
-              className="h-8 w-8 p-0 flex-shrink-0 text-[#0A0A0F] hover:bg-black/5"
+              className="h-8 w-8 p-0 flex-shrink-0 text-ds-ink hover:bg-black/5"
             >
               <UserPlus className="w-4 h-4" />
             </Button>
@@ -237,7 +237,7 @@ export function ProjectMembers({ projectId, projectName }: ProjectMembersProps) 
               {canInvite && (
                 <Button
                   variant="ghost"
-                  className="mr-auto px-0 text-sm text-[#1976D2] hover:bg-transparent hover:underline"
+                  className="mr-auto px-0 text-sm text-ds-accent hover:bg-transparent hover:underline"
                   onClick={() => { setAssignDialogOpen(false); setInviteOpen(true); }}
                 >
                   Invite by email
@@ -287,7 +287,7 @@ export function ProjectMembers({ projectId, projectName }: ProjectMembersProps) 
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-bold text-[#0A0A0F] truncate">
+                    <div className="text-sm font-bold text-ds-ink truncate">
                       {member.user?.username || member.user?.email}
                     </div>
                     {member.user?.username && (
@@ -304,7 +304,7 @@ export function ProjectMembers({ projectId, projectName }: ProjectMembersProps) 
                       role 
                     })}
                   >
-                    <SelectTrigger className="w-auto h-7 gap-1 px-2 border-0 shadow-none text-xs text-gray-500 hover:bg-black/5 hover:text-[#0A0A0F] focus:ring-0 focus:ring-offset-0 capitalize [&>svg]:h-3 [&>svg]:w-3">
+                    <SelectTrigger className="w-auto h-7 gap-1 px-2 border-0 shadow-none text-xs text-gray-500 hover:bg-black/5 hover:text-ds-ink focus:ring-0 focus:ring-offset-0 capitalize [&>svg]:h-3 [&>svg]:w-3">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="border-2 border-[color:var(--card-border)] rounded">
@@ -316,7 +316,7 @@ export function ProjectMembers({ projectId, projectName }: ProjectMembersProps) 
                   
                   <Button
                     variant="ghost"
-                    className="w-7 h-7 p-0 text-gray-300 hover:text-[#E53935] hover:bg-red-50 rounded"
+                    className="w-7 h-7 p-0 text-gray-300 hover:text-ds-danger hover:bg-red-50 rounded"
                     onClick={() => removeMemberMutation.mutate(member.userId)}
                     disabled={removeMemberMutation.isPending}
                     aria-label={`Remove ${member.user?.username || member.user?.email}`}

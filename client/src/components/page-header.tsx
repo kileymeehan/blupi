@@ -58,7 +58,7 @@ export function PageHeader({
   };
 
   return (
-    <div className="bg-[#0A0A0F] border-b-2 border-[#1976D2]">
+    <div className="bg-ds-chrome border-b-2 border-ds-accent">
       <div className="max-w-[1440px] mx-auto px-8 py-3">
         <div className="flex items-center gap-6">
           <Button asChild className="bauhaus-btn-blue h-9 px-4 text-xs">
@@ -74,7 +74,7 @@ export function PageHeader({
                 <Input
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  className="text-lg font-black uppercase tracking-widest h-9 bg-white text-[#0A0A0F] border-2 border-[#FFD600] rounded focus-visible:ring-0"
+                  className="text-lg font-black uppercase tracking-widest h-9 bg-white text-ds-ink border-2 border-ds-pop rounded focus-visible:ring-0"
                   autoFocus
                 />
               ) : (
@@ -91,7 +91,7 @@ export function PageHeader({
               )}
             </div>
             {description && (
-              <p className="text-[10px] font-bold text-[#FFD600] uppercase tracking-wider mt-1">{description}</p>
+              <p className="text-[10px] font-bold text-ds-pop uppercase tracking-wider mt-1">{description}</p>
             )}
           </div>
 

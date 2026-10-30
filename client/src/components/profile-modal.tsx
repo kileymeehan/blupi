@@ -162,7 +162,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md border-2 border-[color:var(--card-border)] rounded shadow-[4px_4px_0px_0px_var(--card-shadow)]">
         <DialogHeader className="border-b-2 border-[color:var(--card-border)] pb-4">
-          <DialogTitle className="text-[#0A0A0F] font-black uppercase tracking-tight">Profile Settings</DialogTitle>
+          <DialogTitle className="text-ds-ink font-black uppercase tracking-tight">Profile Settings</DialogTitle>
           <DialogDescription className="text-gray-600">
             Manage your account settings and preferences
           </DialogDescription>
@@ -171,7 +171,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
         <div className="space-y-6 py-4">
           {/* Plan Badge */}
           <div className="flex justify-center">
-            <Badge className="bg-[#1976D2] text-white font-bold uppercase tracking-wide rounded border-2 border-[color:var(--card-border)]">
+            <Badge className="bg-ds-accent text-white font-bold uppercase tracking-wide rounded border-2 border-[color:var(--card-border)]">
               Beta Plan
             </Badge>
           </div>
@@ -194,20 +194,20 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
 
           {/* Display Name */}
           <div className="space-y-2">
-            <Label htmlFor="displayName" className="text-sm font-bold uppercase tracking-wide text-[#0A0A0F]">Display Name</Label>
+            <Label htmlFor="displayName" className="text-sm font-bold uppercase tracking-wide text-ds-ink">Display Name</Label>
             <div className="flex gap-2">
               <Input
                 id="displayName"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Enter your display name"
-                className="flex-1 border-2 border-[color:var(--card-border)] rounded focus:ring-[#FFD600] focus:border-[color:var(--card-border)]"
+                className="flex-1 border-2 border-[color:var(--card-border)] rounded focus:ring-ds-pop focus:border-[color:var(--card-border)]"
               />
               <Button 
                 size="sm" 
                 onClick={handleDisplayNameChange}
                 disabled={!displayName.trim()}
-                className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none font-bold uppercase tracking-wide transition-all"
+                className="bg-white text-ds-ink border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-ds-pop hover:shadow-none font-bold uppercase tracking-wide transition-all"
               >
                 Save
               </Button>
@@ -216,7 +216,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
 
           {/* Email (Read-only) */}
           <div className="space-y-1">
-            <Label className="text-sm font-bold uppercase tracking-wide text-[#0A0A0F]">Email</Label>
+            <Label className="text-sm font-bold uppercase tracking-wide text-ds-ink">Email</Label>
             <p className="text-sm text-gray-600 bg-gray-50 p-2 border-2 border-[color:var(--card-border)] rounded">
               {user?.email}
             </p>
@@ -224,7 +224,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
 
           {/* Avatar Selection */}
           <div className="space-y-3">
-            <Label className="text-sm font-bold uppercase tracking-wide text-[#0A0A0F]">Choose Your Avatar</Label>
+            <Label className="text-sm font-bold uppercase tracking-wide text-ds-ink">Choose Your Avatar</Label>
             
             {/* Google Avatar Option */}
             {user?.photoURL && !AVATAR_OPTIONS.includes(user.photoURL) && (
@@ -237,7 +237,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
                 <Button 
                   size="sm" 
                   onClick={handleUseGoogleAvatar}
-                  className={`rounded border-2 border-[color:var(--card-border)] font-bold uppercase tracking-wide ${useGoogleAvatar ? 'bg-[#0A0A0F] text-white' : 'bg-white text-[#0A0A0F] hover:bg-[#FFD600]'}`}
+                  className={`rounded border-2 border-[color:var(--card-border)] font-bold uppercase tracking-wide ${useGoogleAvatar ? 'bg-ds-chrome text-white' : 'bg-white text-ds-ink hover:bg-ds-pop'}`}
                 >
                   {useGoogleAvatar ? "Selected" : "Use"}
                 </Button>
@@ -253,8 +253,8 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
                     key={avatar}
                     onClick={() => handleAvatarChange(avatar)}
                     className={`
-                      w-8 h-8 flex items-center justify-center text-lg rounded hover:bg-[#FFD600] transition-colors
-                      ${selectedAvatar === avatar && !useGoogleAvatar ? 'bg-[#FFD600] ring-2 ring-[color:var(--card-border)]' : ''}
+                      w-8 h-8 flex items-center justify-center text-lg rounded hover:bg-ds-pop transition-colors
+                      ${selectedAvatar === avatar && !useGoogleAvatar ? 'bg-ds-pop ring-2 ring-[color:var(--card-border)]' : ''}
                     `}
                   >
                     {avatar}
@@ -275,7 +275,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
             </AlertDialogTrigger>
             <AlertDialogContent className="border-2 border-[color:var(--card-border)] rounded shadow-[4px_4px_0px_0px_var(--card-shadow)]">
               <AlertDialogHeader>
-                <AlertDialogTitle className="font-black uppercase tracking-tight text-[#0A0A0F]">Cancel your account?</AlertDialogTitle>
+                <AlertDialogTitle className="font-black uppercase tracking-tight text-ds-ink">Cancel your account?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This action cannot be undone. This will permanently cancel your
                   account and remove your data from our servers.
@@ -295,7 +295,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
 
           <Button 
             onClick={() => onOpenChange(false)}
-            className="bg-[#0A0A0F] text-white border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none font-bold uppercase tracking-wide transition-all"
+            className="bg-ds-chrome text-white border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--ds-pop)] hover:bg-ds-pop hover:text-ds-ink hover:shadow-none font-bold uppercase tracking-wide transition-all"
           >
             Close
           </Button>

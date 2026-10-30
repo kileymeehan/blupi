@@ -270,7 +270,7 @@ export function OrganizationSettings() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-[#4D629B]" />
+                <Building2 className="h-5 w-5 text-ds-ink-muted" />
                 Organization
               </CardTitle>
               <CardDescription className="mt-1.5">
@@ -305,11 +305,11 @@ export function OrganizationSettings() {
 
   return (
       <Card className="max-w-6xl mx-auto border-2 border-[color:var(--card-border)] rounded shadow-[4px_4px_0px_0px_var(--card-shadow)] bg-white overflow-hidden">
-      <CardHeader className="border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F] text-white py-8 px-8">
+      <CardHeader className="border-b-2 border-[color:var(--card-border)] bg-ds-chrome text-white py-8 px-8">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight text-white text-2xl">
-              <Building2 className="h-6 w-6 text-[#FFD600]" />
+              <Building2 className="h-6 w-6 text-ds-pop" />
               Organization
             </CardTitle>
             <CardDescription className="mt-2 text-gray-300 font-medium text-base">
@@ -319,7 +319,7 @@ export function OrganizationSettings() {
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
+                className="bg-white text-ds-ink border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-ds-pop hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
                 data-testid="create-org-button"
               >
                 <Plus className="h-5 w-5 mr-2" />
@@ -360,7 +360,7 @@ export function OrganizationSettings() {
                 <Button
                   onClick={handleCreateOrg}
                   disabled={!newOrgName.trim() || createOrganization.isPending}
-                  className="bg-[#302E87] hover:bg-[#252371]"
+                  className="bg-ds-accent hover:bg-ds-ink"
                   data-testid="submit-create-org"
                 >
                   {createOrganization.isPending ? (
@@ -380,7 +380,7 @@ export function OrganizationSettings() {
             <p className="mb-6 font-medium">You're not a member of any organization yet.</p>
             <Button 
               onClick={() => setCreateDialogOpen(true)}
-              className="bg-[#0A0A0F] text-white border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
+              className="bg-ds-chrome text-white border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-ds-pop hover:text-ds-ink hover:shadow-none font-bold uppercase tracking-wide transition-all px-6 py-6 h-auto"
             >
               <Plus className="h-5 w-5 mr-2" />
               Create Your First Organization
@@ -388,13 +388,13 @@ export function OrganizationSettings() {
           </div>
         ) : (
           <div className="space-y-6">
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#0A0A0F]/60 mb-4 ml-1">Your Organizations</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[color-mix(in_srgb,var(--ds-ink)_60%,transparent)] mb-4 ml-1">Your Organizations</h3>
             {organizations.map((org) => (
               <div
                 key={org.organizationId}
                 className={`p-6 border-2 rounded transition-all ${
                   org.isActive 
-                    ? 'border-[color:var(--card-border)] bg-[#FFD600]/5 shadow-[3px_3px_0px_0px_var(--card-shadow)]' 
+                    ? 'border-[color:var(--card-border)] bg-[color-mix(in_srgb,var(--ds-pop)_5%,transparent)] shadow-[3px_3px_0px_0px_var(--card-shadow)]' 
                     : 'border-[color:var(--card-border)] hover:bg-gray-50 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]'
                 }`}
                 data-testid={`org-card-${org.organization.slug}`}
@@ -423,8 +423,8 @@ export function OrganizationSettings() {
                           )}
                         </div>
                       ) : (
-                        <div className={`h-16 w-16 rounded flex items-center justify-center border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] ${org.isActive ? 'bg-[#FFD600]' : 'bg-gray-100'}`}>
-                          <Building2 className={`h-8 w-8 ${org.isActive ? 'text-[#0A0A0F]' : 'text-gray-600'}`} />
+                        <div className={`h-16 w-16 rounded flex items-center justify-center border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] ${org.isActive ? 'bg-ds-pop' : 'bg-gray-100'}`}>
+                          <Building2 className={`h-8 w-8 ${org.isActive ? 'text-ds-ink' : 'text-gray-600'}`} />
                         </div>
                       )}
                     </div>
@@ -469,10 +469,10 @@ export function OrganizationSettings() {
                     ) : (
                       <>
                         <div className="flex items-center gap-2">
-                          <span className="font-black uppercase tracking-tight text-[#0A0A0F]">{org.organization.name}</span>
+                          <span className="font-black uppercase tracking-tight text-ds-ink">{org.organization.name}</span>
                           {org.isActive && (
                             <span 
-                              className="inline-flex items-center text-[10px] px-2 py-0.5 border border-[color:var(--card-border)] rounded bg-[#0A0A0F] text-white font-black uppercase tracking-widest select-none"
+                              className="inline-flex items-center text-[10px] px-2 py-0.5 border border-[color:var(--card-border)] rounded bg-ds-chrome text-white font-black uppercase tracking-widest select-none"
                               data-testid="active-badge"
                             >
                               Active
@@ -501,7 +501,7 @@ export function OrganizationSettings() {
                   
                   {editingOrgId !== org.organizationId && (
                     org.isActive ? (
-                      <div className="flex items-center gap-2 text-[#302E87] flex-shrink-0">
+                      <div className="flex items-center gap-2 text-ds-ink flex-shrink-0">
                         <Check className="h-5 w-5" />
                         <span className="text-sm font-medium">Current</span>
                       </div>

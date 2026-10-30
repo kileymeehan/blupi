@@ -138,17 +138,17 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
   if (allColumns.length === 0) return null;
 
   return (
-    <div className={`w-full bg-white dark:bg-[#12121A] border-2 border-[color:var(--card-border)] dark:border-[#333333] rounded p-6 shadow-[3px_3px_0px_0px_var(--card-shadow)] dark:shadow-[3px_3px_0px_0px_#333333] overflow-hidden ${className}`} ref={containerRef}>
+    <div className={`w-full bg-white dark:bg-ds-surface border-2 border-[color:var(--card-border)] dark:border-ds-line-strong rounded p-6 shadow-[3px_3px_0px_0px_var(--card-shadow)] dark:shadow-[3px_3px_0px_0px_var(--ds-shadow)] overflow-hidden ${className}`} ref={containerRef}>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-black uppercase tracking-widest text-[#0A0A0F] dark:text-white">Emotional Journey</h3>
+        <h3 className="text-lg font-black uppercase tracking-widest text-ds-ink dark:text-white">Emotional Journey</h3>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded border-2 border-[color:var(--card-border)] dark:border-white hover:bg-[#FFD600] dark:hover:bg-[#FFD600] dark:text-white">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded border-2 border-[color:var(--card-border)] dark:border-white hover:bg-ds-pop dark:hover:bg-ds-pop dark:text-white">
                 <Info className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-white dark:bg-[#12121A] border-2 border-[color:var(--card-border)] dark:border-[#333333] rounded p-3 shadow-[2px_2px_0px_0px_var(--card-shadow)] dark:shadow-[2px_2px_0px_0px_#333333]">
+            <TooltipContent className="bg-white dark:bg-ds-surface border-2 border-[color:var(--card-border)] dark:border-ds-line-strong rounded p-3 shadow-[2px_2px_0px_0px_var(--card-shadow)] dark:shadow-[2px_2px_0px_0px_var(--ds-shadow)]">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500 border border-[color:var(--card-border)] dark:border-white" />
@@ -168,7 +168,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
         </TooltipProvider>
       </div>
       
-      <div className="relative bg-[#F8F9FA] dark:bg-[#0A0A0F] rounded border-2 border-[color:var(--card-border)] dark:border-[#333333] overflow-hidden">
+      <div className="relative bg-ds-sunken dark:bg-ds-chrome rounded border-2 border-[color:var(--card-border)] dark:border-ds-line-strong overflow-hidden">
         <div 
           ref={contentRef} 
           className="relative flex items-start"
@@ -182,7 +182,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
             {pathD && (
               <motion.path
                 d={pathD}
-                stroke={darkMode ? "#FFFFFF" : "#0A0A0F"}
+                stroke={darkMode ? "#EEF2F3" : "#14242E"} /* reef ink; SVG attributes can't read CSS variables */
                 strokeWidth="3"
                 vectorEffect="non-scaling-stroke"
                 fill="none"
@@ -239,8 +239,8 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                                 size="sm"
                                 className="h-10 w-10 p-0 rounded border-2 border-[color:var(--card-border)] dark:border-white shadow-[2px_2px_0px_0px_var(--card-shadow)] dark:shadow-[2px_2px_0px_0px_white] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-white font-bold text-base"
                                 style={{
-                                  backgroundColor: emotion?.color || (darkMode ? '#12121A' : '#f8fafc'),
-                                  color: emotion ? 'white' : '#94a3b8'
+                                  backgroundColor: emotion?.color || 'var(--ds-surface-sunken)',
+                                  color: emotion ? 'white' : 'var(--ds-ink-faint)'
                                 }}
                               >
                                 {emotion?.value || '○'}
@@ -280,7 +280,7 @@ export function EmotionJourney({ phases, board, onEmotionChange, className = '',
                       </div>
                       
                       <div 
-                        className="text-center px-1 py-2 border-t border-slate-100 dark:border-[#333333] bg-white dark:bg-transparent"
+                        className="text-center px-1 py-2 border-t border-slate-100 dark:border-ds-line-strong bg-white dark:bg-transparent"
                         style={{ height: `${LABEL_HEIGHT}px` }}
                       >
                         <p className="text-[10px] font-bold text-slate-500 dark:text-slate-200 uppercase tracking-wide truncate">

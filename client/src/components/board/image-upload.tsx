@@ -380,7 +380,7 @@ export default function ImageUpload({
                 size="sm"
                 variant="secondary"
                 onClick={() => setShowImageModal(true)}
-                className="bg-white hover:bg-[#FFD600] text-[#0A0A0F] h-8 px-2 text-xs min-w-0 font-bold border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)]"
+                className="bg-white hover:bg-ds-pop text-ds-ink h-8 px-2 text-xs min-w-0 font-bold border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)]"
               >
                 <ZoomIn className="w-4 h-4" />
               </Button>
@@ -388,7 +388,7 @@ export default function ImageUpload({
                 size="sm"
                 variant="secondary"
                 onClick={handleReplace}
-                className="bg-white hover:bg-[#FFD600] text-[#0A0A0F] h-8 px-2 text-xs min-w-0 font-bold border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)]"
+                className="bg-white hover:bg-ds-pop text-ds-ink h-8 px-2 text-xs min-w-0 font-bold border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)]"
               >
                 <Upload className="w-4 h-4" />
               </Button>
@@ -430,7 +430,7 @@ export default function ImageUpload({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div
-              className={`mb-6 h-40 border-2 rounded flex flex-col items-center justify-center transition-colors cursor-pointer relative overflow-hidden w-full self-start border-dashed border-[color:var(--card-border)] bg-gray-50 text-gray-600 hover:bg-[#FFD600] hover:text-[#0A0A0F] font-bold`}
+              className={`mb-6 h-40 border-2 rounded flex flex-col items-center justify-center transition-colors cursor-pointer relative overflow-hidden w-full self-start border-dashed border-[color:var(--card-border)] bg-gray-50 text-gray-600 hover:bg-ds-pop hover:text-ds-ink font-bold`}
             >
               {imageUploadContent}
             </div>
@@ -460,7 +460,7 @@ export default function ImageUpload({
         className={`mb-6 h-40 border-2 rounded flex flex-col items-center justify-center transition-colors cursor-pointer relative overflow-hidden w-full self-start group ${
           currentImage 
             ? "border-solid border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]" 
-            : "border-dashed border-[color:var(--card-border)] bg-gray-50 text-gray-600 hover:bg-[#FFD600] hover:text-[#0A0A0F] font-bold"
+            : "border-dashed border-[color:var(--card-border)] bg-gray-50 text-gray-600 hover:bg-ds-pop hover:text-ds-ink font-bold"
         }`}
       >
         {imageUploadContent}

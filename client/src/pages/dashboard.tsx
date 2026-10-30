@@ -667,7 +667,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bauhaus-halftone-bg animate-fade-in">
-      <header className="border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F] shadow-lg">
+      <header className="border-b-2 border-[color:var(--card-border)] bg-ds-chrome shadow-lg">
         <div className="max-w-[1440px] mx-auto flex h-20 items-center px-6">
           <div className="flex-1 flex items-center gap-4">
             <Link href="/" className="flex items-center">
@@ -681,7 +681,7 @@ export default function Dashboard() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:text-[#FFD600] hover:bg-white/10 h-10 w-10 transition-colors"
+              className="text-white hover:text-ds-pop hover:bg-white/10 h-10 w-10 transition-colors"
               onClick={() => window.location.href = '/settings'}
               data-testid="header-settings-button"
             >
@@ -694,7 +694,7 @@ export default function Dashboard() {
             </div>
             
             {/* Divider */}
-            <div className="h-8 w-px bg-[#1976D2] mx-1"></div>
+            <div className="h-8 w-px bg-ds-accent mx-1"></div>
             
             {/* Profile Menu */}
             <DropdownMenu>
@@ -703,7 +703,7 @@ export default function Dashboard() {
                   variant="ghost"
                   className="relative flex items-center gap-2 h-10 w-10 p-0 text-white hover:bg-white/10"
                 >
-                  <div className="border-2 border-[#FFD600] rounded">
+                  <div className="border-2 border-ds-pop rounded">
                     <ProfileIcon />
                   </div>
                 </Button>
@@ -748,7 +748,7 @@ export default function Dashboard() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowWelcome(false)}
-                className="h-8 w-8 p-0 rounded border-2 border-[color:var(--card-border)] hover:bg-[#FFD600] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+                className="h-8 w-8 p-0 rounded border-2 border-[color:var(--card-border)] hover:bg-ds-pop shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
               >
                 <span className="sr-only">Close</span>
                 <X className="h-4 w-4" />
@@ -756,7 +756,7 @@ export default function Dashboard() {
             </div>
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="relative w-full max-w-[200px]">
-                <div className="absolute inset-0 bg-[#FFD600] -rotate-6 opacity-30" />
+                <div className="absolute inset-0 bg-ds-pop -rotate-6 opacity-30" />
                 <img 
                   src="/blupi-pufferfish.png" 
                   alt="Blupi mascot" 
@@ -764,7 +764,7 @@ export default function Dashboard() {
                 />
               </div>
               <div className="flex-1">
-                <h1 className="text-5xl mb-3 font-black text-[#0A0A0F] uppercase tracking-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                <h1 className="text-5xl mb-3 font-black text-ds-ink uppercase tracking-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                   Blueprinting Reimagined
                 </h1>
                 <p className="text-gray-600 mb-6 max-w-2xl text-lg leading-relaxed">
@@ -774,7 +774,7 @@ export default function Dashboard() {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     size="sm"
-                    className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
+                    className="bg-white text-ds-ink border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-ds-pop hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
                     onClick={() => setCreateBlueprintOpen(true)}
                   >
                     <FileText className="mr-2 h-4 w-4" />
@@ -784,7 +784,7 @@ export default function Dashboard() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
+                    className="bg-white text-ds-ink border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-ds-pop hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase tracking-wider transition-all"
                     onClick={() => setImportDialogOpen(true)}
                   >
                     <Upload className="mr-2 h-4 w-4" />
@@ -803,8 +803,8 @@ export default function Dashboard() {
               onClick={() => setActiveTab('projects')}
               className={`whitespace-nowrap py-3 px-6 font-bold text-sm uppercase tracking-wider transition-all ${
                 activeTab === 'projects'
-                  ? 'bg-[#0A0A0F] text-white'
-                  : 'bg-transparent text-[#0A0A0F] hover:bg-[#FFD600]'
+                  ? 'bg-ds-chrome text-white'
+                  : 'bg-transparent text-ds-ink hover:bg-ds-pop'
               }`}
             >
               <Folder className="w-4 h-4 inline mr-2" />
@@ -814,8 +814,8 @@ export default function Dashboard() {
               onClick={() => setActiveTab('blueprints')}
               className={`whitespace-nowrap py-3 px-6 font-bold text-sm uppercase tracking-wider transition-all ${
                 activeTab === 'blueprints'
-                  ? 'bg-[#0A0A0F] text-white'
-                  : 'bg-transparent text-[#0A0A0F] hover:bg-[#FFD600]'
+                  ? 'bg-ds-chrome text-white'
+                  : 'bg-transparent text-ds-ink hover:bg-ds-pop'
               }`}
             >
               <LayoutGrid className="w-4 h-4 inline mr-2" />
@@ -825,8 +825,8 @@ export default function Dashboard() {
               onClick={() => setActiveTab('starred')}
               className={`whitespace-nowrap py-3 px-6 font-bold text-sm uppercase tracking-wider transition-all ${
                 activeTab === 'starred'
-                  ? 'bg-[#0A0A0F] text-white'
-                  : 'bg-transparent text-[#0A0A0F] hover:bg-[#FFD600]'
+                  ? 'bg-ds-chrome text-white'
+                  : 'bg-transparent text-ds-ink hover:bg-ds-pop'
               }`}
             >
               <Star className="w-4 h-4 inline mr-2" />
@@ -840,8 +840,8 @@ export default function Dashboard() {
           <section className="bauhaus-card p-10">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
-                <Star className="h-6 w-6 text-[#FFD600]" />
-                <h2 className="text-2xl font-black uppercase tracking-wide text-[#0A0A0F]">Starred Items</h2>
+                <Star className="h-6 w-6 text-ds-pop" />
+                <h2 className="text-2xl font-black uppercase tracking-wide text-ds-ink">Starred Items</h2>
               </div>
               <div className="text-sm text-gray-500">
                 {starredItems.length} items starred
@@ -873,15 +873,15 @@ export default function Dashboard() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <Star className="h-4 w-4 text-[#FFD600] fill-current" />
+                            <Star className="h-4 w-4 text-ds-pop fill-current" />
                             <div className="flex items-center gap-2">
-                              <Link href={`/board/${item.boardId}`} className="text-[#1976D2] hover:text-[#0A0A0F] font-black uppercase tracking-widest">
+                              <Link href={`/board/${item.boardId}`} className="text-ds-accent hover:text-ds-ink font-black uppercase tracking-widest">
                                 {board?.name || 'Blueprint'}
                               </Link>
-                              <ExternalLink className="h-3 w-3 text-[#0A0A0F]" />
+                              <ExternalLink className="h-3 w-3 text-ds-ink" />
                             </div>
-                            <span className="text-[#0A0A0F] font-black">•</span>
-                            <span className="text-sm text-[#0A0A0F] font-black uppercase tracking-widest bg-[#FFD600] px-2">
+                            <span className="text-ds-ink font-black">•</span>
+                            <span className="text-sm text-ds-ink font-black uppercase tracking-widest bg-ds-pop px-2">
                               {project?.name || 'No Project'}
                             </span>
                           </div>
@@ -933,15 +933,15 @@ export default function Dashboard() {
             {/* Blueprint section header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
-                <FileText className="h-6 w-6 text-[#E53935]" />
-                <h2 className="text-2xl font-black uppercase tracking-wide text-[#0A0A0F]">Blueprints</h2>
+                <FileText className="h-6 w-6 text-ds-danger" />
+                <h2 className="text-2xl font-black uppercase tracking-wide text-ds-ink">Blueprints</h2>
               </div>
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAllBlueprints(!showAllBlueprints)}
-                  className="flex items-center gap-2 text-sm text-[#0A0A0F] font-bold uppercase tracking-wider hover:text-[#E53935]"
+                  className="flex items-center gap-2 text-sm text-ds-ink font-bold uppercase tracking-wider hover:text-ds-danger"
                 >
                   {showAllBlueprints ? (
                     <>
@@ -968,23 +968,23 @@ export default function Dashboard() {
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem 
                       onClick={() => setCreateBlueprintOpen(true)}
-                      className="cursor-pointer text-sm py-3 hover:bg-[#FFD600]/30"
+                      className="cursor-pointer text-sm py-3 hover:bg-[color-mix(in_srgb,var(--ds-pop)_30%,transparent)]"
                     >
-                      <FileText className="mr-2 h-4 w-4 text-[#0A0A0F]" />
+                      <FileText className="mr-2 h-4 w-4 text-ds-ink" />
                       New Empty Blueprint
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => setImportDialogOpen(true)}
-                      className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                      className="cursor-pointer text-sm py-3 hover:bg-[color-mix(in_srgb,var(--ds-surface-hover)_50%,transparent)]"
                     >
-                      <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
+                      <FileBarChart className="mr-2 h-4 w-4 text-ds-ink" />
                       Import from Pendo
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => setImportDialogOpen(true)}
-                      className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                      className="cursor-pointer text-sm py-3 hover:bg-[color-mix(in_srgb,var(--ds-surface-hover)_50%,transparent)]"
                     >
-                      <Upload className="mr-2 h-4 w-4 text-[#302E87]" />
+                      <Upload className="mr-2 h-4 w-4 text-ds-ink" />
                       Import from CSV
                     </DropdownMenuItem>
                     <DropdownMenuItem 
@@ -1000,9 +1000,9 @@ export default function Dashboard() {
                           });
                         }
                       }}
-                      className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                      className="cursor-pointer text-sm py-3 hover:bg-[color-mix(in_srgb,var(--ds-surface-hover)_50%,transparent)]"
                     >
-                      <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
+                      <FileBarChart className="mr-2 h-4 w-4 text-ds-ink" />
                       Import from Google Sheets
                     </DropdownMenuItem>
                     <DropdownMenuItem 
@@ -1011,7 +1011,7 @@ export default function Dashboard() {
                     >
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center">
-                        <div className="mr-2 h-4 w-4 text-[#302E87] flex items-center justify-center">
+                        <div className="mr-2 h-4 w-4 text-ds-ink flex items-center justify-center">
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                             <path d="M4 4.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-7z"/>
                             <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2z"/>
@@ -1090,7 +1090,7 @@ export default function Dashboard() {
               <div className="bauhaus-card overflow-hidden mb-8">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-[#0A0A0F] border-b-2 border-[color:var(--card-border)]">
+                    <TableRow className="bg-ds-chrome border-b-2 border-[color:var(--card-border)]">
                       <TableHead className="w-[50px] border-r-2 border-[color:var(--card-border)]">
                         <Checkbox
                           className="border-2 border-white bg-white"
@@ -1117,7 +1117,7 @@ export default function Dashboard() {
                     {displayedBoards.map((board) => {
                       const project = projects.find((p) => p.id === board.projectId);
                       return (
-                        <TableRow key={board.id} className="hover:bg-[#FFD600] border-b-2 border-[color:var(--card-border)] transition-colors group">
+                        <TableRow key={board.id} className="hover:bg-ds-pop border-b-2 border-[color:var(--card-border)] transition-colors group">
                           <TableCell className="border-r-2 border-[color:var(--card-border)]">
                             <Checkbox
                               checked={selectedBlueprints.has(board.id)}
@@ -1125,11 +1125,11 @@ export default function Dashboard() {
                             />
                           </TableCell>
                           <TableCell className="font-black uppercase tracking-tight border-r-2 border-[color:var(--card-border)] py-4">
-                            <Link href={`/board/${board.id}`} className="text-[#1976D2] group-hover:text-[#0A0A0F] block">
+                            <Link href={`/board/${board.id}`} className="text-ds-accent group-hover:text-ds-ink block">
                               {board.name}
                             </Link>
                           </TableCell>
-                          <TableCell className="border-r-2 border-[color:var(--card-border)] font-bold text-[#0A0A0F] py-4">
+                          <TableCell className="border-r-2 border-[color:var(--card-border)] font-bold text-ds-ink py-4">
                             {format(new Date(board.createdAt), "MMM d, yyyy")}
                           </TableCell>
                           <TableCell className="border-r-2 border-[color:var(--card-border)] py-4">
@@ -1137,10 +1137,10 @@ export default function Dashboard() {
                           </TableCell>
                           <TableCell className="py-4">
                             {board.projectId ? (
-                              <div className="flex items-center font-black uppercase tracking-wider text-[#0A0A0F]">
+                              <div className="flex items-center font-black uppercase tracking-wider text-ds-ink">
                                 <div 
                                   className="rounded w-4 h-4 border-2 border-[color:var(--card-border)] mr-2" 
-                                  style={{ backgroundColor: project?.color || "#1976D2" }}
+                                  style={{ backgroundColor: project?.color || "#2E6A8E" }}
                                 ></div>
                                 <span>{project?.name}</span>
                               </div>
@@ -1148,7 +1148,7 @@ export default function Dashboard() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 px-2 text-xs font-black uppercase tracking-widest text-[#6B7280] hover:text-[#0A0A0F]"
+                                className="h-8 px-2 text-xs font-black uppercase tracking-widest text-ds-ink-muted hover:text-ds-ink"
                                 onClick={() => {
                                   setSelectedBoardId(String(board.id));
                                   setAddToProjectOpen(true);
@@ -1257,8 +1257,8 @@ export default function Dashboard() {
             {/* Project section header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
-                <Folder className="h-6 w-6 text-[#1976D2]" />
-                <h2 className="text-2xl font-black uppercase tracking-wide text-[#0A0A0F]">Projects</h2>
+                <Folder className="h-6 w-6 text-ds-accent" />
+                <h2 className="text-2xl font-black uppercase tracking-wide text-ds-ink">Projects</h2>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -1272,16 +1272,16 @@ export default function Dashboard() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem 
                   onClick={() => setCreateProjectOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                  className="cursor-pointer text-sm py-3 hover:bg-[color-mix(in_srgb,var(--ds-surface-hover)_50%,transparent)]"
                 >
-                  <Folder className="mr-2 h-4 w-4 text-[#302E87]" />
+                  <Folder className="mr-2 h-4 w-4 text-ds-ink" />
                   New Empty Project
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => setImportDialogOpen(true)}
-                  className="cursor-pointer text-sm py-3 hover:bg-[#ffe8d6]/50"
+                  className="cursor-pointer text-sm py-3 hover:bg-[color-mix(in_srgb,var(--ds-surface-hover)_50%,transparent)]"
                 >
-                  <FileBarChart className="mr-2 h-4 w-4 text-[#302E87]" />
+                  <FileBarChart className="mr-2 h-4 w-4 text-ds-ink" />
                   Import from Pendo
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -1304,7 +1304,7 @@ export default function Dashboard() {
                   >
                     <div
                       className="absolute h-2 w-full top-0 left-0"
-                      style={{ backgroundColor: project.color || "#1976D2" }}
+                      style={{ backgroundColor: project.color || "#2E6A8E" }}
                     ></div>
                     <CardHeader>
                       <div className="flex items-center justify-between">
@@ -1312,7 +1312,7 @@ export default function Dashboard() {
                           <div
                             className="w-3 h-3 rounded border-2 border-[color:var(--card-border)]"
                             style={{
-                              backgroundColor: project.color || "#1976D2",
+                              backgroundColor: project.color || "#2E6A8E",
                             }}
                           ></div>
                           <CardTitle className="text-lg text-gray-900">{project.name}</CardTitle>
@@ -1372,7 +1372,7 @@ export default function Dashboard() {
                         }
                       />
                       <div className="flex items-center space-x-3">
-                        <Button asChild size="sm" className="bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all">
+                        <Button asChild size="sm" className="bg-white text-ds-ink border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-ds-pop hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide transition-all">
                           <Link href={`/project/${project.id}`}>
                             View
                           </Link>

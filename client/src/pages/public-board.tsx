@@ -47,7 +47,7 @@ export default function PublicBoard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0EEE9]">
+    <div className="min-h-screen bg-ds-sunken">
       <header className="border-b bg-white shadow-sm">
         <div className="max-w-[1440px] mx-auto flex h-16 items-center px-6">
           <div className="flex items-center">

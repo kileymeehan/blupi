@@ -113,8 +113,8 @@ export function OrganizationSwitcher() {
   if (orgsLoading) {
     return (
       <div className="bg-white rounded px-3 py-2 flex items-center gap-2 border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]">
-        <Loader2 className="h-4 w-4 animate-spin text-[#0A0A0F]" />
-        <span className="text-sm text-[#0A0A0F] font-semibold">Loading...</span>
+        <Loader2 className="h-4 w-4 animate-spin text-ds-ink" />
+        <span className="text-sm text-ds-ink font-semibold">Loading...</span>
       </div>
     );
   }
@@ -137,7 +137,7 @@ export function OrganizationSwitcher() {
       );
     }
     return (
-      <div className={`${sizeClass} bg-[#302E87] rounded flex items-center justify-center`}>
+      <div className={`${sizeClass} bg-ds-accent rounded flex items-center justify-center`}>
         <Building2 className={`${iconSize} text-white`} />
       </div>
     );
@@ -149,7 +149,7 @@ export function OrganizationSwitcher() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="bg-white hover:bg-[#FFD600] text-[#0A0A0F] rounded px-3 py-2 h-auto flex items-center gap-2 border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+            className="bg-white hover:bg-ds-pop text-ds-ink rounded px-3 py-2 h-auto flex items-center gap-2 border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
             data-testid="org-switcher-trigger"
           >
             <OrgLogo org={activeOrg} size="sm" />
@@ -157,7 +157,7 @@ export function OrganizationSwitcher() {
               {activeOrg?.name || "Select Organization"}
             </span>
             {organizations.length > 1 && (
-              <ChevronDown className="h-4 w-4 text-[#0A0A0F]" />
+              <ChevronDown className="h-4 w-4 text-ds-ink" />
             )}
           </Button>
         </DropdownMenuTrigger>
@@ -237,7 +237,7 @@ export function OrganizationSwitcher() {
             <Button
               onClick={handleCreateOrg}
               disabled={!newOrgName.trim() || createOrganization.isPending}
-              className="bg-[#302E87] hover:bg-[#252370]"
+              className="bg-ds-accent hover:bg-ds-ink"
               data-testid="button-create-org"
             >
               {createOrganization.isPending && (

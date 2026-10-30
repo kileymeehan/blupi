@@ -126,13 +126,13 @@ export function NotificationBell({ variant = 'auto' }: { variant?: 'light' | 'da
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0 border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] overflow-hidden" align="end">
-        <div className="flex items-center justify-between p-4 border-b-2 border-[color:var(--card-border)] bg-[#0A0A0F]">
+        <div className="flex items-center justify-between p-4 border-b-2 border-[color:var(--card-border)] bg-ds-chrome">
           <h3 className="font-bold text-white uppercase tracking-wide text-sm">Notifications</h3>
           <Button
             size="sm"
             onClick={() => markAllAsReadMutation.mutate()}
             disabled={markAllAsReadMutation.isPending || unreadCount === 0}
-            className="text-xs bg-white text-[#0A0A0F] border border-[color:var(--card-border)] rounded hover:bg-[#FFD600] font-bold uppercase tracking-wide"
+            className="text-xs bg-white text-ds-ink border border-[color:var(--card-border)] rounded hover:bg-ds-pop font-bold uppercase tracking-wide"
           >
             Mark all read
           </Button>
@@ -143,20 +143,20 @@ export function NotificationBell({ variant = 'auto' }: { variant?: 'light' | 'da
             notifications.map((notification: SimpleNotification) => (
               <div
                 key={notification.id}
-                className={`p-4 border-b-2 border-[color:var(--card-border)] cursor-pointer hover:bg-[#FFD600] transition-all duration-200 ${
-                  !notification.read ? 'bg-[#E3F2FD] border-l-2 border-l-[#1976D2]' : 'bg-white'
+                className={`p-4 border-b-2 border-[color:var(--card-border)] cursor-pointer hover:bg-ds-pop transition-all duration-200 ${
+                  !notification.read ? 'bg-ds-accent-soft border-l-2 border-l-ds-accent' : 'bg-white'
                 }`}
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className={`font-bold text-sm uppercase tracking-wide ${!notification.read ? 'text-[#1976D2]' : 'text-[#0A0A0F]'}`}>
+                  <h4 className={`font-bold text-sm uppercase tracking-wide ${!notification.read ? 'text-ds-accent' : 'text-ds-ink'}`}>
                     {notification.title}
                   </h4>
                   {!notification.read && (
-                    <div className="h-2 w-2 bg-[#1976D2] rounded flex-shrink-0 ml-2 mt-1" />
+                    <div className="h-2 w-2 bg-ds-accent rounded flex-shrink-0 ml-2 mt-1" />
                   )}
                 </div>
-                <p className="text-sm text-[#0A0A0F] mb-3 leading-relaxed">{notification.message}</p>
+                <p className="text-sm text-ds-ink mb-3 leading-relaxed">{notification.message}</p>
                 <div className="flex items-center text-xs text-gray-500 font-medium">
                   <Clock className="h-3 w-3 mr-1" />
                   {formatNotificationTime(notification.createdAt)}
@@ -164,7 +164,7 @@ export function NotificationBell({ variant = 'auto' }: { variant?: 'light' | 'da
               </div>
             ))
           ) : (
-            <div className="p-8 text-center text-[#0A0A0F] text-sm">
+            <div className="p-8 text-center text-ds-ink text-sm">
               <Bell className="h-8 w-8 mx-auto mb-2 text-gray-400" />
               <span className="font-semibold">No notifications</span>
             </div>

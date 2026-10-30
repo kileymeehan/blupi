@@ -15,7 +15,7 @@ type Linked = { current: LinkedBoard | null; futures: LinkedBoard[] };
 
 const segment = (active: boolean) =>
   `h-8 px-3 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${
-    active ? "bg-[#FFD600] text-[#0A0A0F]" : "text-white/80 hover:text-white hover:bg-white/10"
+    active ? "bg-ds-pop text-ds-ink" : "text-white/80 hover:text-white hover:bg-white/10"
   }`;
 
 // Header control for moving between a current-state board and its future states
@@ -94,7 +94,7 @@ export function StateSwitcher({ board }: { board: Board }) {
       </div>
 
       {activeFuture && (
-        <Button asChild variant="ghost" className="h-8 px-2.5 text-xs text-white/90 hover:text-[#FFD600] hover:bg-white/10" title="Compare current and future state">
+        <Button asChild variant="ghost" className="h-8 px-2.5 text-xs text-white/90 hover:text-ds-pop hover:bg-white/10" title="Compare current and future state">
           <Link href={`/board/${activeFuture.id}/compare`}>
             <GitCompareArrows className="mr-1.5 h-4 w-4" />
             Compare
@@ -180,14 +180,14 @@ function CreateFutureStateDialog({
     <Dialog open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle className="text-[#302E87] text-xl font-semibold">New future state</DialogTitle>
-          <DialogDescription className="text-[#6B6B97]">
+          <DialogTitle className="text-ds-ink text-xl font-semibold">New future state</DialogTitle>
+          <DialogDescription className="text-ds-ink-muted">
             A separate blueprint linked to “{currentName}”, so you can switch between them and compare.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
-          <label htmlFor="future-goal" className="text-sm font-medium text-[#302E87]">What should the future state achieve?</label>
+          <label htmlFor="future-goal" className="text-sm font-medium text-ds-ink">What should the future state achieve?</label>
           <Textarea
             id="future-goal"
             value={goal}
@@ -196,20 +196,20 @@ function CreateFutureStateDialog({
             rows={4}
             maxLength={5000}
             placeholder="e.g. Replace the sales call with self-serve sign-up so customers get value on day one. Keep sales for enterprise deals."
-            className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50"
+            className="border-ds-line focus-visible:ring-[color-mix(in_srgb,var(--ds-accent)_30%,transparent)] placeholder:text-[color-mix(in_srgb,var(--ds-ink-muted)_50%,transparent)]"
           />
-          <p className="text-xs text-[#6B6B97]">
+          <p className="text-xs text-ds-ink-muted">
             The AI can redesign the journey from scratch. Each change notes which current frictions it fixes, and Compare shows what's still unaddressed.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {aiPending && <span className="mr-auto text-xs text-[#6B6B97]">Redesigning the journey usually takes about a minute…</span>}
+          {aiPending && <span className="mr-auto text-xs text-ds-ink-muted">Redesigning the journey usually takes about a minute…</span>}
           <Button
             variant="outline"
             disabled={pending}
             onClick={() => create.mutate("copy")}
-            className="border-[#A1D9F5] text-[#302E87] hover:bg-[#FFE8D6]/20 hover:border-[#302E87]"
+            className="border-ds-line text-ds-ink hover:bg-[color-mix(in_srgb,var(--ds-surface-hover)_20%,transparent)] hover:border-ds-accent"
           >
             {pending && !aiPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
             Start from a copy
@@ -218,7 +218,7 @@ function CreateFutureStateDialog({
             <Button
               disabled={pending}
               onClick={() => create.mutate("ai")}
-              className="bg-[#302E87] hover:bg-[#252270] text-white"
+              className="bg-ds-accent hover:bg-ds-ink text-white"
             >
               {aiPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
               {aiPending ? "Drafting…" : "Draft with AI"}

@@ -210,20 +210,20 @@ export function AttachmentDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle className="text-[#302E87] text-xl font-semibold">Attachments</DialogTitle>
+            <DialogTitle className="text-ds-ink text-xl font-semibold">Attachments</DialogTitle>
           </DialogHeader>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mt-4">
-            <TabsList className="grid w-full grid-cols-3 bg-[#FFE8D6]/20">
-              <TabsTrigger value="link" className="data-[state=active]:bg-[#302E87] data-[state=active]:text-white">
+            <TabsList className="grid w-full grid-cols-3 bg-[color-mix(in_srgb,var(--ds-surface-hover)_20%,transparent)]">
+              <TabsTrigger value="link" className="data-[state=active]:bg-ds-accent data-[state=active]:text-white">
                 <LinkIcon className="w-4 h-4 mr-2" />
                 Link
               </TabsTrigger>
-              <TabsTrigger value="image" className="data-[state=active]:bg-[#302E87] data-[state=active]:text-white">
+              <TabsTrigger value="image" className="data-[state=active]:bg-ds-accent data-[state=active]:text-white">
                 <ImageIcon className="w-4 h-4 mr-2" />
                 Image
               </TabsTrigger>
-              <TabsTrigger value="board" className="data-[state=active]:bg-[#302E87] data-[state=active]:text-white">
+              <TabsTrigger value="board" className="data-[state=active]:bg-ds-accent data-[state=active]:text-white">
                 <FileText className="w-4 h-4 mr-2" />
                 Board
               </TabsTrigger>
@@ -235,17 +235,17 @@ export function AttachmentDialog({
                   placeholder="Enter URL"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50"
+                  className="border-ds-line focus-visible:ring-[color-mix(in_srgb,var(--ds-accent)_30%,transparent)] placeholder:text-[color-mix(in_srgb,var(--ds-ink-muted)_50%,transparent)]"
                 />
                 <Input
                   placeholder="Title (optional)"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50"
+                  className="border-ds-line focus-visible:ring-[color-mix(in_srgb,var(--ds-accent)_30%,transparent)] placeholder:text-[color-mix(in_srgb,var(--ds-ink-muted)_50%,transparent)]"
                 />
               </div>
               <Button
-                className="w-full bg-[#302E87] hover:bg-[#252270] text-white"
+                className="w-full bg-ds-accent hover:bg-ds-ink text-white"
                 onClick={handleAddLink}
                 disabled={!url}
               >
@@ -261,22 +261,22 @@ export function AttachmentDialog({
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 className={`
-                  border-2 border-dashed border-[#A1D9F5] rounded-lg p-6 
-                  text-center hover:border-[#302E87] transition-colors
+                  border-2 border-dashed border-ds-line rounded-lg p-6 
+                  text-center hover:border-ds-accent transition-colors
                   ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
               >
                 {isUploading ? (
                   <div className="flex flex-col items-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#302E87]" />
-                    <p className="mt-2 text-sm text-[#6B6B97]">
+                    <Loader2 className="w-8 h-8 animate-spin text-ds-ink" />
+                    <p className="mt-2 text-sm text-ds-ink-muted">
                       Uploading image...
                     </p>
                   </div>
                 ) : (
                   <>
-                    <ImageIcon className="w-8 h-8 mx-auto text-[#A1D9F5]" />
-                    <p className="mt-2 text-sm text-[#6B6B97]">
+                    <ImageIcon className="w-8 h-8 mx-auto text-ds-info" />
+                    <p className="mt-2 text-sm text-ds-ink-muted">
                       Drag and drop an image here (max 250KB), or{" "}
                       <button
                         onClick={() => {
@@ -284,7 +284,7 @@ export function AttachmentDialog({
                           console.log('[AttachmentDialog] fileInputRef.current:', fileInputRef.current);
                           fileInputRef.current?.click();
                         }}
-                        className="text-[#302E87] hover:underline font-medium"
+                        className="text-ds-ink hover:underline font-medium"
                         disabled={isUploading}
                       >
                         browse
@@ -304,11 +304,11 @@ export function AttachmentDialog({
             </TabsContent>
 
             <TabsContent value="board" className="space-y-4">
-              <ScrollArea className="h-[200px] rounded-md border border-[#A1D9F5] p-2">
+              <ScrollArea className="h-[200px] rounded-md border border-ds-line p-2">
                 {projectBoards?.map(board => (
                   <Card
                     key={board.id}
-                    className="mb-2 cursor-pointer hover:bg-[#FFE8D6]/20 transition-colors"
+                    className="mb-2 cursor-pointer hover:bg-[color-mix(in_srgb,var(--ds-surface-hover)_20%,transparent)] transition-colors"
                     onClick={() => {
                       const newAttachment: Attachment = {
                         id: nanoid(),
@@ -321,9 +321,9 @@ export function AttachmentDialog({
                     }}
                   >
                     <CardContent className="p-3">
-                      <div className="text-sm font-medium text-[#302E87]">{board.name}</div>
+                      <div className="text-sm font-medium text-ds-ink">{board.name}</div>
                       {board.description && (
-                        <div className="text-xs text-[#6B6B97] mt-1 line-clamp-2">
+                        <div className="text-xs text-ds-ink-muted mt-1 line-clamp-2">
                           {board.description}
                         </div>
                       )}
@@ -331,7 +331,7 @@ export function AttachmentDialog({
                   </Card>
                 ))}
                 {(!projectBoards || projectBoards.length === 0) && (
-                  <div className="text-sm text-[#6B6B97] text-center py-4">
+                  <div className="text-sm text-ds-ink-muted text-center py-4">
                     No other boards found in this project
                   </div>
                 )}
@@ -340,11 +340,11 @@ export function AttachmentDialog({
           </Tabs>
 
           {safeCurrentAttachments.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-[#A1D9F5]/50">
-              <h3 className="text-sm font-medium mb-2 text-[#302E87]">Current Attachments</h3>
+            <div className="mt-4 pt-4 border-t border-[color-mix(in_srgb,var(--ds-line)_50%,transparent)]">
+              <h3 className="text-sm font-medium mb-2 text-ds-ink">Current Attachments</h3>
               <div className="space-y-2">
                 {safeCurrentAttachments.map(attachment => (
-                  <div key={attachment.id} className="flex items-center justify-between p-2 bg-[#FFE8D6]/20 rounded border border-[#FFE8D6]/50">
+                  <div key={attachment.id} className="flex items-center justify-between p-2 bg-[color-mix(in_srgb,var(--ds-surface-hover)_20%,transparent)] rounded border border-[color-mix(in_srgb,var(--ds-line)_50%,transparent)]">
                     <div className="flex items-center gap-2">
                       {attachment.type === 'image' ? (
                         <button
@@ -358,9 +358,9 @@ export function AttachmentDialog({
                           />
                         </button>
                       ) : (
-                        <LinkIcon className="w-4 h-4 text-[#302E87]" />
+                        <LinkIcon className="w-4 h-4 text-ds-ink" />
                       )}
-                      <span className="text-sm truncate text-[#302E87]">
+                      <span className="text-sm truncate text-ds-ink">
                         {attachment.title || attachment.url}
                       </span>
                     </div>
@@ -368,7 +368,7 @@ export function AttachmentDialog({
                       variant="ghost"
                       size="sm"
                       onClick={() => handleRemoveAttachment(attachment.id)}
-                      className="hover:bg-[#F2918C]/20 hover:text-[#F2918C]"
+                      className="hover:bg-[color-mix(in_srgb,var(--ds-reef-coral)_20%,transparent)] hover:text-ds-coral"
                     >
                       <X className="w-4 h-4" />
                     </Button>

@@ -38,7 +38,7 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
   return (
     <div className="p-4 h-full">
       <div className="flex items-center mb-4">
-        <h2 className="text-xs font-bold uppercase tracking-wide text-[#0A0A0F]">All Comments</h2>
+        <h2 className="text-xs font-bold uppercase tracking-wide text-ds-ink">All Comments</h2>
       </div>
 
       <ScrollArea className="h-[calc(100vh-12rem)]">
@@ -48,7 +48,7 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
           <div className="space-y-4">
             {blocksWithComments.map(block => (
               <div key={block.id} className="space-y-2">
-                <div className="text-sm font-semibold text-[#0A0A0F]">
+                <div className="text-sm font-semibold text-ds-ink">
                   {block.content.slice(0, 50)}{block.content.length > 50 ? '...' : ''}
                 </div>
                 {block.comments?.map(comment => (
@@ -64,20 +64,20 @@ export function CommentsOverview({ board, onCommentClick }: CommentsOverviewProp
                               completed: checked as boolean,
                             });
                           }}
-                          className="border-2 border-[color:var(--card-border)] rounded data-[state=checked]:bg-[#FFD600] data-[state=checked]:text-[#0A0A0F]"
+                          className="border-2 border-[color:var(--card-border)] rounded data-[state=checked]:bg-ds-pop data-[state=checked]:text-ds-ink"
                         />
-                        <span className="text-xs font-bold text-[#0A0A0F]">{comment.username}</span>
+                        <span className="text-xs font-bold text-ds-ink">{comment.username}</span>
                       </div>
                       <span className="text-xs text-gray-500">
                         {format(new Date(comment.createdAt), 'MMM d, h:mm a')}
                       </span>
                     </div>
-                    <p className="text-sm text-[#0A0A0F]">{comment.content}</p>
+                    <p className="text-sm text-ds-ink">{comment.content}</p>
                   </div>
                 ))}
                 <Button 
                   size="sm" 
-                  className="w-full text-xs bg-white text-[#0A0A0F] border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide" 
+                  className="w-full text-xs bg-white text-ds-ink border-2 border-[color:var(--card-border)] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-ds-pop hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] font-bold uppercase tracking-wide" 
                   onClick={() => onCommentClick(block)}
                 >
                   View All Comments

@@ -47,7 +47,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
   // Dynamic icon rendering function
   const renderIcon = (iconName: string) => {
     const IconComponent = (Icons as any)[iconName] || Icons.Square;
-    return <IconComponent className="w-4 h-4 mr-0.5" style={{ color: darkMode ? '#FFFFFF' : '#111827', strokeWidth: darkMode ? 3 : 2 }} />;
+    return <IconComponent className="w-4 h-4 mr-0.5" style={{ color: 'var(--ds-ink)', strokeWidth: darkMode ? 3 : 2 }} />;
   };
 
   return (
@@ -55,7 +55,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
       <div className="flex items-center mb-4">
         <h2 
           className="font-black uppercase tracking-widest text-[10px]"
-          style={{ color: darkMode ? '#FFFFFF' : '#0A0A0F' }}
+          style={{ color: 'var(--ds-ink)' }}
         >
           Content Blocks
         </h2>
@@ -74,13 +74,13 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
                 className={`${layer.color} border-2 rounded w-full min-w-[100px] h-[52px] relative flex items-center justify-center
-                  ${darkMode ? 'border-[#333333] shadow-[2px_2px_0px_0px_#333333]' : 'border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]'}
-                  ${snapshot.isDragging ? (darkMode ? "shadow-[2px_2px_0px_0px_#333333]" : "shadow-[2px_2px_0px_0px_var(--card-shadow)]") : ""}
-                  transition-all duration-200 hover:bg-[#FFD600]
+                  ${darkMode ? 'border-ds-line-strong shadow-[2px_2px_0px_0px_var(--ds-shadow)]' : 'border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]'}
+                  ${snapshot.isDragging ? (darkMode ? "shadow-[2px_2px_0px_0px_var(--ds-shadow)]" : "shadow-[2px_2px_0px_0px_var(--card-shadow)]") : ""}
+                  transition-all duration-200 hover:bg-ds-pop
                 `}
                 style={tileStyle(provided.draggableProps.style, snapshot)}
               >
-                <div className="font-black text-[9px] uppercase tracking-wide text-[#0A0A0F] dark:text-white text-center flex flex-col items-center justify-center px-1">
+                <div className="font-black text-[9px] uppercase tracking-wide text-ds-ink dark:text-white text-center flex flex-col items-center justify-center px-1">
                   {renderIcon(layer.icon)}
                   <span className="mt-1 leading-tight whitespace-nowrap">{layer.label}</span>
                 </div>
@@ -94,7 +94,7 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
       <div className="flex items-center mb-4 mt-6 justify-start">
         <h2 
           className="font-black uppercase tracking-widest text-[10px]"
-          style={{ color: darkMode ? '#FFFFFF' : '#0A0A0F' }}
+          style={{ color: 'var(--ds-ink)' }}
         >
           Stage Dividers
         </h2>
@@ -113,9 +113,9 @@ export default function BlockDrawer({ darkMode = false }: BlockDrawerProps) {
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
                 className={`${layer.color} border-2 rounded w-full h-[48px] relative flex items-center justify-center text-white
-                  ${darkMode ? 'border-[#333333] shadow-[2px_2px_0px_0px_#333333]' : 'border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]'}
-                  ${snapshot.isDragging ? (darkMode ? "shadow-[2px_2px_0px_0px_#333333]" : "shadow-[2px_2px_0px_0px_var(--card-shadow)]") : ""}
-                  transition-all duration-200 hover:bg-[#FFD600] hover:text-[#0A0A0F]
+                  ${darkMode ? 'border-ds-line-strong shadow-[2px_2px_0px_0px_var(--ds-shadow)]' : 'border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)]'}
+                  ${snapshot.isDragging ? (darkMode ? "shadow-[2px_2px_0px_0px_var(--ds-shadow)]" : "shadow-[2px_2px_0px_0px_var(--card-shadow)]") : ""}
+                  transition-all duration-200 hover:bg-ds-pop hover:text-ds-ink
                 `}
                 style={tileStyle(provided.draggableProps.style, snapshot)}
               >

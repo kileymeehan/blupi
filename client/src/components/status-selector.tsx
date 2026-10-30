@@ -50,10 +50,10 @@ export function StatusSelector({ value, onChange, type, disabled = false, varian
           </SelectValue>
         </SelectTrigger>
       ) : (
-        <SelectTrigger className="w-[180px] border-2 border-[color:var(--card-border)] rounded bg-white shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none transition-all">
+        <SelectTrigger className="w-[180px] border-2 border-[color:var(--card-border)] rounded bg-white shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-ds-pop hover:shadow-none transition-all">
           <SelectValue placeholder="Status">
             {value && (
-              <span className="px-1 py-1 text-xs font-black uppercase tracking-widest text-[#0A0A0F] whitespace-nowrap">
+              <span className="px-1 py-1 text-xs font-black uppercase tracking-widest text-ds-ink whitespace-nowrap">
                 {value}
               </span>
             )}
@@ -65,9 +65,9 @@ export function StatusSelector({ value, onChange, type, disabled = false, varian
           <SelectItem 
             key={status} 
             value={status}
-            className="flex items-center space-x-2 rounded hover:bg-[#FFD600] cursor-pointer"
+            className="flex items-center space-x-2 rounded hover:bg-ds-pop cursor-pointer"
           >
-            <span className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-[#0A0A0F]">
+            <span className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-ds-ink">
               {status}
             </span>
           </SelectItem>

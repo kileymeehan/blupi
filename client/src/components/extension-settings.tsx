@@ -58,7 +58,7 @@ export function ExtensionSettings() {
   return (
     <div className="rounded bg-white border-2 border-[color:var(--card-border)] shadow-[4px_4px_0px_0px_var(--card-shadow)] p-6 space-y-6">
       <div>
-        <h2 className="text-xl font-black uppercase tracking-tight text-[#0A0A0F] flex items-center gap-2">
+        <h2 className="text-xl font-black uppercase tracking-tight text-ds-ink flex items-center gap-2">
           <Chrome className="h-5 w-5" />
           Chrome extension
         </h2>
@@ -89,8 +89,8 @@ export function ExtensionSettings() {
       </form>
 
       {newToken && (
-        <div className="rounded border-2 border-[#5FA873] bg-[#5FA873]/10 p-4 space-y-2 max-w-xl">
-          <p className="text-sm font-bold text-[#0A0A0F]">Copy this token now. It won't be shown again.</p>
+        <div className="rounded border-2 border-ds-success bg-[color-mix(in_srgb,var(--ds-success)_10%,transparent)] p-4 space-y-2 max-w-xl">
+          <p className="text-sm font-bold text-ds-ink">Copy this token now. It won't be shown again.</p>
           <div className="flex gap-2">
             <code className="flex-1 min-w-0 truncate rounded bg-white border border-gray-300 px-2 py-1.5 text-xs">
               {newToken}
@@ -114,7 +114,7 @@ export function ExtensionSettings() {
             {tokens.map((token) => (
               <li key={token.id} className="flex items-center justify-between py-2.5 gap-4">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[#0A0A0F] truncate">{token.name}</p>
+                  <p className="text-sm font-semibold text-ds-ink truncate">{token.name}</p>
                   <p className="text-xs text-gray-500">
                     Created {formatDate(token.createdAt)} · Last used {formatDate(token.lastUsedAt)}
                   </p>

@@ -78,10 +78,10 @@ export function InvitePeopleDialog({
     <Dialog open={open} onOpenChange={(next) => { onOpenChange(next); if (!next) reset(); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-[#302E87] text-xl font-semibold">
+          <DialogTitle className="text-ds-ink text-xl font-semibold">
             {projectName ? `Invite to ${projectName}` : "Invite people"}
           </DialogTitle>
-          <DialogDescription className="text-[#6B6B97]">
+          <DialogDescription className="text-ds-ink-muted">
             {projectName
               ? "They'll join the workspace and this project."
               : "They'll join this workspace and can be added to its projects."}
@@ -97,7 +97,7 @@ export function InvitePeopleDialog({
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={reset}>Invite someone else</Button>
-              <Button className="bg-[#302E87] hover:bg-[#252270] text-white" onClick={() => onOpenChange(false)}>Done</Button>
+              <Button className="bg-ds-accent hover:bg-ds-ink text-white" onClick={() => onOpenChange(false)}>Done</Button>
             </div>
           </div>
         ) : result?.type === "invited" ? (
@@ -116,7 +116,7 @@ export function InvitePeopleDialog({
             )}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={reset}>Invite someone else</Button>
-              <Button className="bg-[#302E87] hover:bg-[#252270] text-white" onClick={() => onOpenChange(false)}>Done</Button>
+              <Button className="bg-ds-accent hover:bg-ds-ink text-white" onClick={() => onOpenChange(false)}>Done</Button>
             </div>
           </div>
         ) : (
@@ -128,7 +128,7 @@ export function InvitePeopleDialog({
             }}
           >
             <div className="space-y-1.5">
-              <label htmlFor="invite-email" className="text-sm font-medium text-[#302E87]">Email</label>
+              <label htmlFor="invite-email" className="text-sm font-medium text-ds-ink">Email</label>
               <Input
                 id="invite-email"
                 type="email"
@@ -141,7 +141,7 @@ export function InvitePeopleDialog({
             </div>
             <div className={`grid gap-3 ${projectId ? "grid-cols-2" : "grid-cols-1"}`}>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-[#302E87]">Workspace role</label>
+                <label className="text-sm font-medium text-ds-ink">Workspace role</label>
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -152,7 +152,7 @@ export function InvitePeopleDialog({
               </div>
               {projectId && (
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-[#302E87]">Project role</label>
+                  <label className="text-sm font-medium text-ds-ink">Project role</label>
                   <Select value={projectRole} onValueChange={setProjectRole}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -164,10 +164,10 @@ export function InvitePeopleDialog({
                 </div>
               )}
             </div>
-            {invite.error && <p className="text-sm text-[#E53935]" role="alert">{(invite.error as Error).message}</p>}
+            {invite.error && <p className="text-sm text-ds-danger" role="alert">{(invite.error as Error).message}</p>}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit" disabled={invite.isPending || !email} className="bg-[#302E87] hover:bg-[#252270] text-white">
+              <Button type="submit" disabled={invite.isPending || !email} className="bg-ds-accent hover:bg-ds-ink text-white">
                 {invite.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create invite
               </Button>

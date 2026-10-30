@@ -95,7 +95,7 @@ export function ProfileIcon() {
     return (
       <Avatar className={`w-8 h-8 rounded ${borderStyle}`}>
         <AvatarImage src={user.photoURL} alt={displayName} />
-        <AvatarFallback className="bg-[#1976D2] text-white text-xs rounded">
+        <AvatarFallback className="bg-ds-accent text-white text-xs rounded">
           {getInitials()}
         </AvatarFallback>
       </Avatar>

@@ -28,7 +28,7 @@ const ENDED: Record<string, { title: string; body: string }> = {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F5F5F5] px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-ds-page px-4 py-12">
       <div className="w-full max-w-md">
         <img src="/Blupi-logomark-blue.png" alt="Blupi" className="mx-auto mb-8 h-10 w-auto" />
         <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">{children}</div>
@@ -85,9 +85,9 @@ export default function InvitePage() {
     const ended = ENDED[invite?.status ?? "invalid"];
     return (
       <Shell>
-        <h1 className="text-xl font-semibold text-[#0A0A0F]">{ended.title}</h1>
+        <h1 className="text-xl font-semibold text-ds-ink">{ended.title}</h1>
         <p className="mt-2 text-sm text-gray-600">{ended.body}</p>
-        <Button asChild className="mt-6 w-full bg-[#302E87] hover:bg-[#252270] text-white">
+        <Button asChild className="mt-6 w-full bg-ds-accent hover:bg-ds-ink text-white">
           <Link href={user ? "/" : "/auth/login"}>{user ? "Go to Blupi" : "Sign in"}</Link>
         </Button>
       </Shell>
@@ -106,7 +106,7 @@ export default function InvitePage() {
   return (
     <Shell>
       <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Invitation</p>
-      <h1 className="mt-2 text-xl font-semibold leading-snug text-[#0A0A0F]">
+      <h1 className="mt-2 text-xl font-semibold leading-snug text-ds-ink">
         {invite.inviterName} invited you to join {target}
       </h1>
       <p className="mt-2 text-sm text-gray-600">
@@ -116,7 +116,7 @@ export default function InvitePage() {
       <div className="mt-6 space-y-3">
         {signedIn && emailMatches && (
           <Button
-            className="w-full bg-[#302E87] hover:bg-[#252270] text-white"
+            className="w-full bg-ds-accent hover:bg-ds-ink text-white"
             disabled={working}
             onClick={() => run(accept)}
           >
@@ -166,7 +166,7 @@ export default function InvitePage() {
             />
             <Button
               type="submit"
-              className="w-full bg-[#302E87] hover:bg-[#252270] text-white"
+              className="w-full bg-ds-accent hover:bg-ds-ink text-white"
               disabled={working || password.length < (invite.accountExists ? 1 : 8)}
             >
               {working ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -181,7 +181,7 @@ export default function InvitePage() {
           </form>
         )}
 
-        {error && <p className="text-sm text-[#E53935]" role="alert">{error}</p>}
+        {error && <p className="text-sm text-ds-danger" role="alert">{error}</p>}
       </div>
     </Shell>
   );

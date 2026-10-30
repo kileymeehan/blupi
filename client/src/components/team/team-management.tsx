@@ -91,7 +91,7 @@ export default function TeamManagement() {
       <section className="bauhaus-card p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-black uppercase tracking-widest text-[#0A0A0F]">Team</h2>
+            <h2 className="text-xl font-black uppercase tracking-widest text-ds-ink">Team</h2>
             <p className="mt-1 text-sm text-gray-500">
               {members.length} {members.length === 1 ? "person" : "people"} in {activeOrg?.name ?? "this workspace"}
             </p>
@@ -123,7 +123,7 @@ export default function TeamManagement() {
                 return (
                   <tr key={m.userId} className="border-b border-gray-100 last:border-0">
                     <td className="py-3 pl-1 pr-4">
-                      <div className="truncate text-sm font-bold text-[#0A0A0F]">
+                      <div className="truncate text-sm font-bold text-ds-ink">
                         {m.name}{m.isYou && <span className="ml-1.5 font-normal text-gray-400">(you)</span>}
                       </div>
                       <div className="truncate text-xs text-gray-500">{m.email}</div>
@@ -150,7 +150,7 @@ export default function TeamManagement() {
                       {removable && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-[#0A0A0F] hover:bg-black/5" aria-label={`Actions for ${m.name}`}>
+                            <Button variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-ds-ink hover:bg-black/5" aria-label={`Actions for ${m.name}`}>
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -180,7 +180,7 @@ export default function TeamManagement() {
 
       {canManage && invitations.length > 0 && (
         <section className="bauhaus-card p-6">
-          <h2 className="mb-1 text-base font-black uppercase tracking-widest text-[#0A0A0F]">Pending invitations</h2>
+          <h2 className="mb-1 text-base font-black uppercase tracking-widest text-ds-ink">Pending invitations</h2>
           <p className="mb-4 text-sm text-gray-500">Links work once. Copy one to send it again.</p>
           <table className="w-full table-fixed text-left">
             <thead>
@@ -194,7 +194,7 @@ export default function TeamManagement() {
               {invitations.map((inv) => (
                 <tr key={inv.id} className="border-b border-gray-100 last:border-0">
                   <td className="py-3 pl-1 pr-4">
-                    <div className="truncate text-sm text-[#0A0A0F]">{inv.email}</div>
+                    <div className="truncate text-sm text-ds-ink">{inv.email}</div>
                     <div className="truncate text-xs text-gray-500">
                       {ROLE_LABEL[inv.role] ?? inv.role}{inv.projectName ? ` · Project: ${inv.projectName}` : ""}
                     </div>

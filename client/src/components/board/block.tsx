@@ -51,9 +51,9 @@ const getBlockBorderColor = (blockType: string, darkMode: boolean = false): stri
     return layerType.color;
   }
   
-  if (!layerType) return darkMode ? "border-[#333333]" : "rounded border-[color:var(--card-border)]";
+  if (!layerType) return darkMode ? "border-ds-line-strong" : "rounded border-[color:var(--card-border)]";
   
-  return darkMode ? "border-[#333333]" : "rounded border-[color:var(--card-border)]";
+  return darkMode ? "border-ds-line-strong" : "rounded border-[color:var(--card-border)]";
 };
 
 interface BlockProps {
@@ -436,9 +436,9 @@ export default function Block({
             w-full relative
             ${getBlockBorderColor(block.type, darkMode)}
             ${block.type === 'video' ? 'border-[3px] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)]' : ''}
-            ${block.type !== 'video' ? 'bg-white dark:bg-[#12121A] border-[3px] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)]' : ''}
-            ${darkMode ? 'dark:shadow-[2px_2px_0px_0px_#333333]' : ''}
-            ${isCondensed && !isExpanded ? 'min-h-[50px] cursor-pointer hover:bg-[#FFD600] dark:hover:bg-[#FFD600] transition-colors' : 'min-h-[80px] aspect-[4/3]'}
+            ${block.type !== 'video' ? 'bg-white dark:bg-ds-surface border-[3px] rounded shadow-[2px_2px_0px_0px_var(--card-shadow)]' : ''}
+            ${darkMode ? 'dark:shadow-[2px_2px_0px_0px_var(--ds-shadow)]' : ''}
+            ${isCondensed && !isExpanded ? 'min-h-[50px] cursor-pointer hover:bg-ds-pop dark:hover:bg-ds-pop transition-colors' : 'min-h-[80px] aspect-[4/3]'}
           `}
           onClick={() => {
             if (isCondensed && !isExpanded && onToggleExpand) {

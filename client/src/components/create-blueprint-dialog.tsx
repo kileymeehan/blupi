@@ -40,12 +40,12 @@ function StatePicker({ value, onChange, disabled }: { value: BoardState; onChang
           onClick={() => onChange(opt.value)}
           className={`rounded border px-3 py-2 text-left transition-colors ${
             value === opt.value
-              ? 'border-[#302E87] bg-[#302E87]/5'
-              : 'border-[#A1D9F5] hover:border-[#302E87]/50'
+              ? 'border-ds-accent bg-[color-mix(in_srgb,var(--ds-accent)_5%,transparent)]'
+              : 'border-ds-line hover:border-[color-mix(in_srgb,var(--ds-accent)_50%,transparent)]'
           }`}
         >
-          <div className="text-sm font-semibold text-[#302E87]">{opt.label}</div>
-          <div className="text-xs text-[#6B6B97]">{opt.hint}</div>
+          <div className="text-sm font-semibold text-ds-ink">{opt.label}</div>
+          <div className="text-xs text-ds-ink-muted">{opt.hint}</div>
         </button>
       ))}
     </div>
@@ -180,8 +180,8 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
     <Dialog open={open} onOpenChange={(next) => !draftBlueprint.isPending && onOpenChange(next)}>
       <DialogContent className={mode === 'describe' ? 'sm:max-w-2xl' : undefined}>
         <DialogHeader>
-          <DialogTitle className="text-[#302E87] text-xl font-semibold">Create New Blueprint</DialogTitle>
-          <DialogDescription className="text-[#6B6B97]">
+          <DialogTitle className="text-ds-ink text-xl font-semibold">Create New Blueprint</DialogTitle>
+          <DialogDescription className="text-ds-ink-muted">
             {mode === 'describe'
               ? 'Describe the journey and AI drafts the blueprint for you to edit'
               : 'Create a new blueprint to design your workflow'}
@@ -199,7 +199,7 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
                 disabled={busy}
                 onClick={() => setMode(value)}
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors ${
-                  mode === value ? 'bg-white text-[#302E87] shadow-sm' : 'text-[#6B6B97] hover:text-[#302E87]'
+                  mode === value ? 'bg-white text-ds-ink shadow-sm' : 'text-ds-ink-muted hover:text-ds-ink'
                 }`}
               >
                 {value === 'describe' && <Sparkles className="h-3.5 w-3.5" />}
@@ -220,7 +220,7 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
             <StatePicker value={state} onChange={setState} disabled={busy} />
 
             <div className="space-y-2">
-              <label htmlFor="ai-description" className="text-sm font-medium text-[#302E87]">
+              <label htmlFor="ai-description" className="text-sm font-medium text-ds-ink">
                 {state === 'future' ? 'Describe the experience you want' : 'Describe how the journey works'}
               </label>
               <Textarea
@@ -233,42 +233,42 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
                 placeholder={state === 'future'
                   ? 'Walk through the proposed journey step by step: what the customer does, what happens behind the scenes, and what should be different from today.'
                   : 'Walk through the journey step by step, or paste interview notes, support tickets or part of a spec. Mention problems customers run into.'}
-                className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50 resize-y"
+                className="border-ds-line focus-visible:ring-[color-mix(in_srgb,var(--ds-accent)_30%,transparent)] placeholder:text-[color-mix(in_srgb,var(--ds-ink-muted)_50%,transparent)] resize-y"
               />
-              <p className="text-xs text-[#6B6B97]">
+              <p className="text-xs text-ds-ink-muted">
                 Problems your text describes become friction cards. Anything the AI infers becomes a hypothesis or question, and every AI card is tagged until someone edits it.
               </p>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="ai-name" className="text-sm font-medium text-[#302E87]">Name</label>
+              <label htmlFor="ai-name" className="text-sm font-medium text-ds-ink">Name</label>
               <Input
                 id="ai-name"
                 value={aiName}
                 onChange={(e) => setAiName(e.target.value)}
                 disabled={busy}
                 placeholder="Optional. AI will suggest one"
-                className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50"
+                className="border-ds-line focus-visible:ring-[color-mix(in_srgb,var(--ds-accent)_30%,transparent)] placeholder:text-[color-mix(in_srgb,var(--ds-ink-muted)_50%,transparent)]"
               />
             </div>
 
             <div className="flex items-center justify-end gap-2">
               {draftBlueprint.isPending && (
-                <span className="mr-auto text-xs text-[#6B6B97]">This usually takes 20–40 seconds…</span>
+                <span className="mr-auto text-xs text-ds-ink-muted">This usually takes 20–40 seconds…</span>
               )}
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={busy}
-                className="border-[#A1D9F5] text-[#302E87] hover:bg-[#FFE8D6]/20 hover:border-[#302E87]"
+                className="border-ds-line text-ds-ink hover:bg-[color-mix(in_srgb,var(--ds-surface-hover)_20%,transparent)] hover:border-ds-accent"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={busy || tooShort}
-                className="bg-[#302E87] hover:bg-[#252270] text-white"
+                className="bg-ds-accent hover:bg-ds-ink text-white"
               >
                 {draftBlueprint.isPending ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Drafting…</>
@@ -288,11 +288,11 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[#302E87]">Name</FormLabel>
+                    <FormLabel className="text-ds-ink">Name</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Enter blueprint name"
-                        className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50"
+                        className="border-ds-line focus-visible:ring-[color-mix(in_srgb,var(--ds-accent)_30%,transparent)] placeholder:text-[color-mix(in_srgb,var(--ds-ink-muted)_50%,transparent)]"
                         {...field}
                       />
                     </FormControl>
@@ -306,13 +306,13 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[#302E87]">Description</FormLabel>
+                    <FormLabel className="text-ds-ink">Description</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Enter blueprint description (optional)"
                         value={field.value || ''}
                         onChange={field.onChange}
-                        className="border-[#A1D9F5] focus-visible:ring-[#302E87]/30 placeholder:text-[#6B6B97]/50"
+                        className="border-ds-line focus-visible:ring-[color-mix(in_srgb,var(--ds-accent)_30%,transparent)] placeholder:text-[color-mix(in_srgb,var(--ds-ink-muted)_50%,transparent)]"
                       />
                     </FormControl>
                     <FormMessage />
@@ -326,14 +326,14 @@ export function CreateBlueprintDialog({ open, onOpenChange, projectId }: CreateB
                   variant="outline"
                   onClick={() => onOpenChange(false)}
                   disabled={busy}
-                  className="border-[#A1D9F5] text-[#302E87] hover:bg-[#FFE8D6]/20 hover:border-[#302E87]"
+                  className="border-ds-line text-ds-ink hover:bg-[color-mix(in_srgb,var(--ds-surface-hover)_20%,transparent)] hover:border-ds-accent"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={busy}
-                  className="bg-[#302E87] hover:bg-[#252270] text-white"
+                  className="bg-ds-accent hover:bg-ds-ink text-white"
                 >
                   {createBlueprint.isPending ? "Creating..." : "Create Blueprint"}
                 </Button>

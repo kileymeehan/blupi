@@ -22,8 +22,8 @@ export function ComingSoonBadge({ size = 'sm', className = '' }: ComingSoonBadge
     <span 
       className={`
         inline-flex items-center gap-1.5 rounded-full font-medium
-        bg-gradient-to-r from-[#A1D9F5] to-[#F2918C] 
-        text-[#302E87] shadow-sm border border-white/20
+        bg-gradient-to-r from-ds-lagoon to-ds-coral 
+        text-ds-ink shadow-sm border border-white/20
         ${sizeClasses[size]} ${className}
       `}
     >

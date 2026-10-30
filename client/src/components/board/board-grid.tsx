@@ -2449,13 +2449,13 @@ export default function BoardGrid({
   return (
     <div className={`flex-1 relative overflow-hidden flex flex-col bauhaus-halftone-bg ${darkMode ? 'dark' : ''}`}>
       <header className={`h-20 border-b-2 px-8 flex justify-between items-center shadow-none flex-shrink-0 sticky top-0 left-0 right-0 z-50 ${
-        darkMode ? 'bg-black border-[#FFD600]' : 'bg-[#0A0A0F] border-[color:var(--card-border)]'
+        darkMode ? 'bg-black border-ds-pop' : 'bg-ds-chrome border-[color:var(--card-border)]'
       }`}>
         <div className="flex items-center gap-4 pl-4">
           <Button
             variant="ghost"
             onClick={handleClose}
-            className="h-9 px-3 text-xs text-white hover:text-[#FFD600] hover:bg-white/10"
+            className="h-9 px-3 text-xs text-white hover:text-ds-pop hover:bg-white/10"
           >
             <Home className="w-5 h-5 mr-2" />
             HOME
@@ -2464,7 +2464,7 @@ export default function BoardGrid({
           {projectData && (
             <>
               <div className="w-px h-6 bg-white/30 mx-2" />
-              <Button asChild variant="ghost" className="h-9 px-3 text-xs text-white hover:text-[#FFD600] hover:bg-white/10">
+              <Button asChild variant="ghost" className="h-9 px-3 text-xs text-white hover:text-ds-pop hover:bg-white/10">
                 <Link href={`/project/${projectData.id}`}>
                   <div className="flex items-center">
                     <Folder className="w-5 h-5 mr-2" />
@@ -2483,7 +2483,7 @@ export default function BoardGrid({
                 <Input
                   value={editedBoardName}
                   onChange={(e) => setEditedBoardName(e.target.value)}
-                  className="h-10 bg-white text-[#0A0A0F] border-2 border-[#FFD600] rounded font-black uppercase tracking-widest focus-visible:ring-0 w-64"
+                  className="h-10 bg-white text-ds-ink border-2 border-ds-pop rounded font-black uppercase tracking-widest focus-visible:ring-0 w-64"
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -2497,7 +2497,7 @@ export default function BoardGrid({
                 <Button
                   size="sm"
                   onClick={handleBoardNameSave}
-                  className="bg-[#FFD600] text-[#0A0A0F] hover:bg-[#FFD600]/80 rounded border-2 border-[color:var(--card-border)] font-bold"
+                  className="bg-ds-pop text-ds-ink hover:bg-[color-mix(in_srgb,var(--ds-pop)_80%,transparent)] rounded border-2 border-[color:var(--card-border)] font-bold"
                 >
                   Save
                 </Button>
@@ -2508,13 +2508,13 @@ export default function BoardGrid({
                     setIsEditingName(false);
                     setEditedBoardName(board.name);
                   }}
-                  className="text-white hover:text-[#FFD600] hover:bg-white/10 rounded border-2 border-transparent font-bold"
+                  className="text-white hover:text-ds-pop hover:bg-white/10 rounded border-2 border-transparent font-bold"
                 >
                   Cancel
                 </Button>
               </div>
             ) : (
-              <h1 className="max-w-[22rem] truncate text-xl font-black uppercase tracking-widest text-white cursor-pointer hover:text-[#FFD600] transition-colors" onClick={handleBoardNameEdit} title={board.name}>
+              <h1 className="max-w-[22rem] truncate text-xl font-black uppercase tracking-widest text-white cursor-pointer hover:text-ds-pop transition-colors" onClick={handleBoardNameEdit} title={board.name}>
                 {board.name}
               </h1>
             )}
@@ -2581,7 +2581,7 @@ export default function BoardGrid({
                 setBulkEditMode(!bulkEditMode);
                 setSelectedBlocks(new Set());
               }}
-              className={`h-9 w-9 p-0 ${bulkEditMode ? 'text-[#FFD600]' : 'text-white/90 hover:text-white hover:bg-white/10'}`}
+              className={`h-9 w-9 p-0 ${bulkEditMode ? 'text-ds-pop' : 'text-white/90 hover:text-white hover:bg-white/10'}`}
               title={bulkEditMode ? "Exit Bulk Edit" : "Bulk Edit"}
             >
               <LayoutGrid className="w-5 h-5" />
@@ -2591,7 +2591,7 @@ export default function BoardGrid({
               variant="ghost"
               size="sm"
               onClick={() => setShowEmotionJourney(!showEmotionJourney)}
-              className={`h-9 w-9 p-0 ${showEmotionJourney ? 'text-[#FFD600]' : 'text-white/90 hover:text-white hover:bg-white/10'}`}
+              className={`h-9 w-9 p-0 ${showEmotionJourney ? 'text-ds-pop' : 'text-white/90 hover:text-white hover:bg-white/10'}`}
               title="Toggle Emotional Journey"
             >
               <TrendingUp className="w-5 h-5" />
@@ -2784,8 +2784,8 @@ export default function BoardGrid({
           <div
             className={`${isDrawerOpen ? "w-72" : "w-16"} flex-shrink-0 shadow-md transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 z-40 h-auto flex flex-col overflow-y-auto`}
             style={{
-              backgroundColor: darkMode ? '#1e1e32' : 'white',
-              borderRight: darkMode ? '2px solid #3a3a5c' : '3px solid #0A0A0F'
+              backgroundColor: 'var(--ds-surface)',
+              borderRight: darkMode ? '2px solid var(--ds-line-strong)' : '3px solid var(--ds-line-strong)'
             }}
           >
             <div className="flex flex-col flex-grow overflow-hidden relative">
@@ -2793,8 +2793,8 @@ export default function BoardGrid({
               <div 
                 className="shadow-sm py-0"
                 style={{
-                  backgroundColor: darkMode ? '#1e1e32' : 'white',
-                  borderBottom: darkMode ? '1px solid #3a3a5c' : '1px solid #e5e7eb'
+                  backgroundColor: 'var(--ds-surface)',
+                  borderBottom: '1px solid var(--ds-line)'
                 }}
               >
                 <div className="h-12 flex items-center justify-end pr-3">
@@ -2802,12 +2802,12 @@ export default function BoardGrid({
                     variant="ghost"
                     size="sm"
                     onClick={toggleSidebar}
-                    className={`w-7 h-7 rounded bg-white border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_#FFD600] hover:bg-[#FFD600] hover:shadow-none flex items-center justify-center p-0 transition-all ${darkMode ? "border-[#3a3a5c] shadow-[#FFD600]" : ""}`}
+                    className={`w-7 h-7 rounded bg-white border-2 border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--ds-pop)] hover:bg-ds-pop hover:shadow-none flex items-center justify-center p-0 transition-all ${darkMode ? "border-ds-line-strong shadow-ds-pop" : ""}`}
                   >
                     {isDrawerOpen ? (
-                      <ChevronLeft className="w-4 h-4 text-[#0A0A0F] stroke-[3]" />
+                      <ChevronLeft className="w-4 h-4 text-ds-ink stroke-[3]" />
                     ) : (
-                      <ChevronRight className="w-4 h-4 text-[#0A0A0F] stroke-[3]" />
+                      <ChevronRight className="w-4 h-4 text-ds-ink stroke-[3]" />
                     )}
                   </Button>
                 </div>
@@ -2822,10 +2822,10 @@ export default function BoardGrid({
                     border-b-2 border-[color:var(--card-border)]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showContext ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : (darkMode ? "bg-transparent text-white hover:bg-[#FFD600] hover:text-[#0A0A0F]" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]")}
+                    ${showContext ? "bg-ds-pop text-ds-ink font-bold" : (darkMode ? "bg-transparent text-white hover:bg-ds-pop hover:text-ds-ink" : "bg-white text-ds-ink hover:bg-ds-pop")}
                   `}
                 >
-                  <Info className={`w-5 h-5 ${showContext ? "text-[#0A0A0F]" : (darkMode ? "text-white group-hover:text-[#0A0A0F]" : "text-[#0A0A0F]")}`} />
+                  <Info className={`w-5 h-5 ${showContext ? "text-ds-ink" : (darkMode ? "text-white group-hover:text-ds-ink" : "text-ds-ink")}`} />
                   {isDrawerOpen && <span className="text-sm font-semibold uppercase tracking-wide">Context</span>}
                 </Button>
 
@@ -2839,10 +2839,10 @@ export default function BoardGrid({
                     border-b-2 border-[color:var(--card-border)]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showBlocks ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : (darkMode ? "bg-transparent text-white hover:bg-[#FFD600] hover:text-[#0A0A0F]" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]")}
+                    ${showBlocks ? "bg-ds-pop text-ds-ink font-bold" : (darkMode ? "bg-transparent text-white hover:bg-ds-pop hover:text-ds-ink" : "bg-white text-ds-ink hover:bg-ds-pop")}
                   `}
                 >
-                  <LayoutGrid className={`w-5 h-5 ${showBlocks ? "text-[#0A0A0F]" : (darkMode ? "text-white group-hover:text-[#0A0A0F]" : "text-[#0A0A0F]")}`} />
+                  <LayoutGrid className={`w-5 h-5 ${showBlocks ? "text-ds-ink" : (darkMode ? "text-white group-hover:text-ds-ink" : "text-ds-ink")}`} />
                   {isDrawerOpen && (
                     <span className="text-sm font-semibold uppercase tracking-wide">Blocks</span>
                   )}
@@ -2858,10 +2858,10 @@ export default function BoardGrid({
                     border-b-2 border-[color:var(--card-border)]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showComments ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : (darkMode ? "bg-transparent text-white hover:bg-[#FFD600] hover:text-[#0A0A0F]" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]")}
+                    ${showComments ? "bg-ds-pop text-ds-ink font-bold" : (darkMode ? "bg-transparent text-white hover:bg-ds-pop hover:text-ds-ink" : "bg-white text-ds-ink hover:bg-ds-pop")}
                   `}
                 >
-                  <MessageSquare className={`w-5 h-5 ${showComments ? "text-[#0A0A0F]" : (darkMode ? "text-white group-hover:text-[#0A0A0F]" : "text-[#0A0A0F]")}`} />
+                  <MessageSquare className={`w-5 h-5 ${showComments ? "text-ds-ink" : (darkMode ? "text-white group-hover:text-ds-ink" : "text-ds-ink")}`} />
                   {isDrawerOpen && (
                     <span className="text-sm font-semibold uppercase tracking-wide">Comments</span>
                   )}
@@ -2876,10 +2876,10 @@ export default function BoardGrid({
                     border-b-2 border-[color:var(--card-border)]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showDepartments ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : (darkMode ? "bg-transparent text-white hover:bg-[#FFD600] hover:text-[#0A0A0F]" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]")}
+                    ${showDepartments ? "bg-ds-pop text-ds-ink font-bold" : (darkMode ? "bg-transparent text-white hover:bg-ds-pop hover:text-ds-ink" : "bg-white text-ds-ink hover:bg-ds-pop")}
                   `}
                 >
-                  <Filter className={`w-5 h-5 ${showDepartments ? "text-[#0A0A0F]" : (darkMode ? "text-white group-hover:text-[#0A0A0F]" : "text-[#0A0A0F]")}`} />
+                  <Filter className={`w-5 h-5 ${showDepartments ? "text-ds-ink" : (darkMode ? "text-white group-hover:text-ds-ink" : "text-ds-ink")}`} />
                   {isDrawerOpen && (
                     <span className="text-sm font-semibold uppercase tracking-wide">Filters</span>
                   )}
@@ -2895,10 +2895,10 @@ export default function BoardGrid({
                     border-b-2 border-[color:var(--card-border)]
                     group
                     ${!isDrawerOpen ? "justify-center" : "justify-start"}
-                    ${showGoogleSheets ? "bg-[#FFD600] text-[#0A0A0F] font-bold" : (darkMode ? "bg-transparent text-white hover:bg-[#FFD600] hover:text-[#0A0A0F]" : "bg-white text-[#0A0A0F] hover:bg-[#FFD600]")}
+                    ${showGoogleSheets ? "bg-ds-pop text-ds-ink font-bold" : (darkMode ? "bg-transparent text-white hover:bg-ds-pop hover:text-ds-ink" : "bg-white text-ds-ink hover:bg-ds-pop")}
                   `}
                 >
-                  <FileSpreadsheet className={`w-5 h-5 ${showGoogleSheets ? "text-[#0A0A0F]" : (darkMode ? "text-white group-hover:text-[#0A0A0F]" : "text-[#0A0A0F]")}`} />
+                  <FileSpreadsheet className={`w-5 h-5 ${showGoogleSheets ? "text-ds-ink" : (darkMode ? "text-white group-hover:text-ds-ink" : "text-ds-ink")}`} />
                   {isDrawerOpen && (
                     <span className="text-sm font-semibold uppercase tracking-wide">Sheets</span>
                   )}
@@ -2910,28 +2910,28 @@ export default function BoardGrid({
               {isDrawerOpen && (
                 <div 
                   className="flex-1 flex flex-col max-h-[calc(100vh-8.5rem)] overflow-hidden"
-                  style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
+                  style={{ backgroundColor: 'var(--ds-surface)' }}
                 >
                   <div 
                     className={`flex-1 overflow-y-auto ${showContext ? "block" : "hidden"}`}
-                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
+                    style={{ backgroundColor: 'var(--ds-surface)' }}
                   >
                     <div className="p-4 space-y-4">
                       <div>
-                        <label className={`text-xs font-bold uppercase tracking-wide mb-2 block ${darkMode ? "text-white" : "text-[#0A0A0F]"}`}>
+                        <label className={`text-xs font-bold uppercase tracking-wide mb-2 block ${darkMode ? "text-white" : "text-ds-ink"}`}>
                           Blueprint Details
                         </label>
                         <Textarea
                           placeholder="Add key details about this blueprint..."
                           value={blueprintDetails}
                           onChange={(e) => setBlueprintDetails(e.target.value)}
-                          className={`min-h-[150px] resize-none border-2 rounded focus:ring-[#FFD600] ${darkMode ? "bg-[#1e1e32] text-white border-[#3a3a5c] focus:border-[#FFD600]" : "bg-white text-[#0A0A0F] border-[color:var(--card-border)] focus:border-[color:var(--card-border)]"}`}
+                          className={`min-h-[150px] resize-none border-2 rounded focus:ring-ds-pop ${darkMode ? "bg-ds-sunken text-white border-ds-line-strong focus:border-ds-pop" : "bg-white text-ds-ink border-[color:var(--card-border)] focus:border-[color:var(--card-border)]"}`}
                         />
                       </div>
 
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <label className={`text-xs font-bold uppercase tracking-wide block ${darkMode ? "text-white" : "text-[#0A0A0F]"}`}>
+                          <label className={`text-xs font-bold uppercase tracking-wide block ${darkMode ? "text-white" : "text-ds-ink"}`}>
                             Segments
                           </label>
                           <Textarea
@@ -2943,12 +2943,12 @@ export default function BoardGrid({
                                 segments: e.target.value 
                               });
                             }}
-                            className={`min-h-[80px] resize-none border-2 rounded focus:ring-[#FFD600] ${darkMode ? "bg-[#1e1e32] text-white border-[#3a3a5c] focus:border-[#FFD600]" : "bg-white text-[#0A0A0F] border-[color:var(--card-border)] focus:border-[color:var(--card-border)]"}`}
+                            className={`min-h-[80px] resize-none border-2 rounded focus:ring-ds-pop ${darkMode ? "bg-ds-sunken text-white border-ds-line-strong focus:border-ds-pop" : "bg-white text-ds-ink border-[color:var(--card-border)] focus:border-[color:var(--card-border)]"}`}
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <label className={`text-xs font-bold uppercase tracking-wide block ${darkMode ? "text-white" : "text-[#0A0A0F]"}`}>
+                          <label className={`text-xs font-bold uppercase tracking-wide block ${darkMode ? "text-white" : "text-ds-ink"}`}>
                             Other Blueprints
                           </label>
                           <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -2960,16 +2960,16 @@ export default function BoardGrid({
                                   href={`/board/${blueprint.id}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className={`block p-2 text-sm border-2 rounded shadow-[2px_2px_0px_0px] transition-colors ${darkMode ? "bg-[#1e1e32] border-[#3a3a5c] text-white shadow-[#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none" : "bg-white border-[color:var(--card-border)] text-[#0A0A0F] shadow-[color:var(--card-shadow)] hover:bg-[#FFD600]"}`}
+                                  className={`block p-2 text-sm border-2 rounded shadow-[2px_2px_0px_0px] transition-colors ${darkMode ? "bg-ds-sunken border-ds-line-strong text-white shadow-ds-shadow hover:bg-ds-pop hover:text-ds-ink hover:shadow-none" : "bg-white border-[color:var(--card-border)] text-ds-ink shadow-[color:var(--card-shadow)] hover:bg-ds-pop"}`}
                                 >
                                   <div className="flex items-center justify-between">
                                     <span className="truncate font-medium">{blueprint.name || 'Untitled Blueprint'}</span>
-                                    <ExternalLink className={`w-3 h-3 flex-shrink-0 ml-1 ${darkMode ? "text-white" : "text-[#0A0A0F]"}`} />
+                                    <ExternalLink className={`w-3 h-3 flex-shrink-0 ml-1 ${darkMode ? "text-white" : "text-ds-ink"}`} />
                                   </div>
                                 </a>
                               ))}
                             {(!projectBoards || projectBoards.filter(b => b.id !== board.id).length === 0) && (
-                              <div className={`text-sm p-2 border-2 rounded ${darkMode ? "bg-[#1e1e32]/50 border-[#3a3a5c] text-gray-400" : "bg-gray-50 border-[color:var(--card-border)] text-gray-500"}`}>
+                              <div className={`text-sm p-2 border-2 rounded ${darkMode ? "bg-[color-mix(in_srgb,var(--ds-surface-sunken)_50%,transparent)] border-ds-line-strong text-gray-400" : "bg-gray-50 border-[color:var(--card-border)] text-gray-500"}`}>
                                 No other blueprints in this project
                               </div>
                             )}
@@ -2981,7 +2981,7 @@ export default function BoardGrid({
 
                   <div 
                     className={`flex-1 overflow-y-auto ${showBlocks ? "block" : "hidden"}`}
-                    style={{ backgroundColor: darkMode ? '#12121A' : 'white' }}
+                    style={{ backgroundColor: 'var(--ds-surface)' }}
                   >
                     <Droppable droppableId="drawer" type="BLOCK">
                       {(provided) => (
@@ -2999,7 +2999,7 @@ export default function BoardGrid({
 
                   <div
                     className={`flex-1 overflow-y-auto ${showComments ? "block" : "hidden"}`}
-                    style={{ backgroundColor: darkMode ? '#12121A' : 'white' }}
+                    style={{ backgroundColor: 'var(--ds-surface)' }}
                   >
                     <CommentsOverview
                       board={board}
@@ -3013,7 +3013,7 @@ export default function BoardGrid({
                   </div>
                   <div
                     className={`flex-1 overflow-y-auto ${showDepartments ? "block" : "hidden"}`}
-                    style={{ backgroundColor: darkMode ? '#1e1e32' : 'white' }}
+                    style={{ backgroundColor: 'var(--ds-surface)' }}
                   >
                     <DepartmentFilter
                       blocks={board.blocks}
@@ -3026,7 +3026,7 @@ export default function BoardGrid({
                   </div>
                   <div
                     className={`flex-1 overflow-y-auto ${showGoogleSheets ? "block" : "hidden"}`}
-                    style={{ backgroundColor: darkMode ? '#12121A' : 'white' }}
+                    style={{ backgroundColor: 'var(--ds-surface)' }}
                   >
                     <SheetDocumentsManager
                       boardId={Number(id)}
@@ -3253,7 +3253,7 @@ export default function BoardGrid({
                       id={`phase-${phase.id}`} 
                       className="flex-shrink-0 relative">
                       <div className="px-4">
-                        <div className={`mb-4 border-2 rounded p-3 group shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)] ${darkMode ? 'border-[#3a3a5c] bg-[#2a2a4a]' : 'border-[color:var(--card-border)] bg-white shadow-[2px_2px_0px_0px_var(--card-shadow)]'}`}>
+                        <div className={`mb-4 border-2 rounded p-3 group shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)] ${darkMode ? 'border-ds-line-strong bg-ds-sunken' : 'border-[color:var(--card-border)] bg-white shadow-[2px_2px_0px_0px_var(--card-shadow)]'}`}>
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2 flex-1">
                               <button
@@ -3327,7 +3327,7 @@ export default function BoardGrid({
                                 <Button
                                   size="sm"
                                   onClick={() => handleAddColumn(phaseIndex)}
-                                  className={`h-8 px-4 border-2 rounded font-bold uppercase text-xs tracking-wide transition-all hide-in-pdf ${darkMode ? 'bg-[#2a2a4a] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]' : 'bg-white text-[#0A0A0F] border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]'}`}
+                                  className={`h-8 px-4 border-2 rounded font-bold uppercase text-xs tracking-wide transition-all hide-in-pdf ${darkMode ? 'bg-ds-sunken text-white border-ds-line-strong shadow-[2px_2px_0px_0px_var(--ds-shadow)] hover:bg-ds-pop hover:text-ds-ink hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]' : 'bg-white text-ds-ink border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-ds-pop hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]'}`}
                                 >
                                   <Plus className="w-4 h-4 mr-1" />
                                   Step
@@ -3818,7 +3818,7 @@ export default function BoardGrid({
                     <Button
                       size="sm"
                       onClick={handleAddPhase}
-                      className={`h-8 px-4 border-2 rounded font-bold uppercase text-xs tracking-wide transition-all hide-in-pdf ${darkMode ? 'bg-[#2a2a4a] text-white border-[#3a3a5c] shadow-[2px_2px_0px_0px_#3a3a5c] hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]' : 'bg-white text-[#0A0A0F] border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-[#FFD600] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]'}`}
+                      className={`h-8 px-4 border-2 rounded font-bold uppercase text-xs tracking-wide transition-all hide-in-pdf ${darkMode ? 'bg-ds-sunken text-white border-ds-line-strong shadow-[2px_2px_0px_0px_var(--ds-shadow)] hover:bg-ds-pop hover:text-ds-ink hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]' : 'bg-white text-ds-ink border-[color:var(--card-border)] shadow-[2px_2px_0px_0px_var(--card-shadow)] hover:bg-ds-pop hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]'}`}
                     >
                       <Plus className="w-4 h-4 mr-1" />
                       Add Phase
@@ -3994,18 +3994,18 @@ export default function BoardGrid({
       {/* Presentation Mode */}
       {presentationMode && (
         <div className={`fixed inset-0 z-50 flex animate-in slide-in-from-top duration-500 ease-out presentation-mode ${
-          presentationDarkMode ? 'bg-[#0A0A0F]' : 'bg-white'
+          presentationDarkMode ? 'bg-ds-chrome' : 'bg-white'
         }`}>
           {/* Main Presentation Area */}
-          <div className={`flex-1 flex flex-col ${presentationDarkMode ? 'bg-[#0A0A0F]' : 'bg-white'} overflow-hidden`}>
+          <div className={`flex-1 flex flex-col ${presentationDarkMode ? 'bg-ds-chrome' : 'bg-white'} overflow-hidden`}>
             {/* Presentation Header */}
             <div className={`flex items-center justify-between p-4 border-b-2 ${
-              presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333]' : 'bg-white border-[color:var(--card-border)]'
+              presentationDarkMode ? 'bg-ds-chrome border-ds-line-strong' : 'bg-white border-[color:var(--card-border)]'
             }`}>
               {/* Left side - Board name and path */}
               <div className="flex items-center gap-4 max-w-md">
                 <h1 className={`text-xl font-black uppercase tracking-wider truncate ${
-                  presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
+                  presentationDarkMode ? 'text-white' : 'text-ds-ink'
                 }`} title={board.name}>{board.name}</h1>
                 {currentStep && (
                   <div className={`text-xs font-bold uppercase tracking-widest truncate ${
@@ -4020,7 +4020,7 @@ export default function BoardGrid({
               <div className="flex items-center">
                 {/* Step Counter with Border - Smaller size */}
                 <div className={`border-2 rounded-l px-2 py-1 transition-all ${
-                  presentationDarkMode ? 'border-[#333333] bg-[#0A0A0F]' : 'border-[color:var(--card-border)] bg-white'
+                  presentationDarkMode ? 'border-ds-line-strong bg-ds-chrome' : 'border-[color:var(--card-border)] bg-white'
                 }`}>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -4028,7 +4028,7 @@ export default function BoardGrid({
                       variant="ghost" 
                       size="sm"
                       className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 h-auto w-full justify-between rounded ${
-                        presentationDarkMode ? 'text-white hover:text-[#0A0A0F] hover:bg-[#FFD600]' : 'text-[#0A0A0F] hover:bg-[#FFD600]'
+                        presentationDarkMode ? 'text-white hover:text-ds-ink hover:bg-ds-pop' : 'text-ds-ink hover:bg-ds-pop'
                       }`}
                     >
                       Step {currentStepIndex + 1} of {allSteps.length}
@@ -4036,13 +4036,13 @@ export default function BoardGrid({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className={`w-80 p-0 rounded border-2 shadow-[2px_2px_0px_0px] ${
-                    presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] shadow-[#333333]' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
+                    presentationDarkMode ? 'bg-ds-chrome border-ds-line-strong shadow-ds-shadow' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
                   }`} align="start">
                     <div className={`p-3 border-b-2 ${
-                      presentationDarkMode ? 'border-[#333333]' : 'border-[color:var(--card-border)]'
+                      presentationDarkMode ? 'border-ds-line-strong' : 'border-[color:var(--card-border)]'
                     }`}>
                       <h4 className={`font-black uppercase tracking-widest text-xs ${
-                        presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
+                        presentationDarkMode ? 'text-white' : 'text-ds-ink'
                       }`}>Select Step</h4>
                     </div>
                     <ScrollArea className="h-80">
@@ -4051,17 +4051,17 @@ export default function BoardGrid({
                           <button
                             key={index}
                             onClick={() => setCurrentStepIndex(index)}
-                            className={`w-full text-left p-3 rounded border-2 border-transparent hover:border-[#FFD600] transition-all ${
-                              presentationDarkMode ? 'text-gray-300 hover:bg-[#1e1e32]' : 'text-[#0A0A0F] hover:bg-gray-50'
+                            className={`w-full text-left p-3 rounded border-2 border-transparent hover:border-ds-pop transition-all ${
+                              presentationDarkMode ? 'text-gray-300 hover:bg-ds-sunken' : 'text-ds-ink hover:bg-gray-50'
                             } ${
                               index === currentStepIndex ? 
-                                (presentationDarkMode ? 'bg-[#1e1e32] border-[#FFD600]' : 'bg-gray-100 border-[color:var(--card-border)]') : ''
+                                (presentationDarkMode ? 'bg-ds-sunken border-ds-pop' : 'bg-gray-100 border-[color:var(--card-border)]') : ''
                             }`}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex-1 min-w-0">
                                 <div className={`text-sm font-bold truncate ${
-                                  presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
+                                  presentationDarkMode ? 'text-white' : 'text-ds-ink'
                                 }`}>
                                   {step.columnName}
                                 </div>
@@ -4072,7 +4072,7 @@ export default function BoardGrid({
                                 </div>
                               </div>
                               <div className={`text-xs font-black ml-2 ${
-                                presentationDarkMode ? 'text-[#FFD600]' : 'text-[#0A0A0F]'
+                                presentationDarkMode ? 'text-ds-pop' : 'text-ds-ink'
                               }`}>
                                 {index + 1}
                               </div>
@@ -4092,8 +4092,8 @@ export default function BoardGrid({
                   size="sm"
                   className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)]' 
-                      : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600]'
+                      ? 'border-ds-line-strong bg-ds-chrome text-white hover:bg-ds-pop hover:text-ds-ink hover:border-[color:var(--card-border)]' 
+                      : 'border-[color:var(--card-border)] bg-white text-ds-ink hover:bg-ds-pop'
                   }`}
                   title={presentationViewMode === 'compact' ? "Switch to Large View" : "Switch to Compact View"}
                 >
@@ -4109,8 +4109,8 @@ export default function BoardGrid({
                   size="sm"
                   className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)]' 
-                      : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600]'
+                      ? 'border-ds-line-strong bg-ds-chrome text-white hover:bg-ds-pop hover:text-ds-ink hover:border-[color:var(--card-border)]' 
+                      : 'border-[color:var(--card-border)] bg-white text-ds-ink hover:bg-ds-pop'
                   }`}
                   title={presentationDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
                 >
@@ -4127,8 +4127,8 @@ export default function BoardGrid({
                   disabled={currentStepIndex === 0}
                   className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)] disabled:opacity-30 disabled:text-gray-600' 
-                      : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600] disabled:opacity-30 disabled:text-gray-300'
+                      ? 'border-ds-line-strong bg-ds-chrome text-white hover:bg-ds-pop hover:text-ds-ink hover:border-[color:var(--card-border)] disabled:opacity-30 disabled:text-gray-600' 
+                      : 'border-[color:var(--card-border)] bg-white text-ds-ink hover:bg-ds-pop disabled:opacity-30 disabled:text-gray-300'
                   }`}
                 >
                   <SkipBack className="w-4 h-4" />
@@ -4140,8 +4140,8 @@ export default function BoardGrid({
                   disabled={currentStepIndex === allSteps.length - 1}
                   className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)] disabled:opacity-30 disabled:text-gray-600' 
-                      : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600] disabled:opacity-30 disabled:text-gray-300'
+                      ? 'border-ds-line-strong bg-ds-chrome text-white hover:bg-ds-pop hover:text-ds-ink hover:border-[color:var(--card-border)] disabled:opacity-30 disabled:text-gray-600' 
+                      : 'border-[color:var(--card-border)] bg-white text-ds-ink hover:bg-ds-pop disabled:opacity-30 disabled:text-gray-300'
                   }`}
                 >
                   <SkipForward className="w-4 h-4" />
@@ -4155,8 +4155,8 @@ export default function BoardGrid({
                       size="sm"
                       className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                         presentationDarkMode 
-                          ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)]' 
-                          : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600]'
+                          ? 'border-ds-line-strong bg-ds-chrome text-white hover:bg-ds-pop hover:text-ds-ink hover:border-[color:var(--card-border)]' 
+                          : 'border-[color:var(--card-border)] bg-white text-ds-ink hover:bg-ds-pop'
                       }`}
                       title="Export Presentation"
                     >
@@ -4164,13 +4164,13 @@ export default function BoardGrid({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className={`w-56 p-0 rounded border-2 shadow-[2px_2px_0px_0px] ${
-                    presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] shadow-[#333333]' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
+                    presentationDarkMode ? 'bg-ds-chrome border-ds-line-strong shadow-ds-shadow' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
                   }`} align="end">
-                    <DropdownMenuItem onClick={exportPresentationToPDF} className={`flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest cursor-pointer rounded ${presentationDarkMode ? 'text-white focus:bg-[#FFD600] focus:text-[#0A0A0F]' : 'text-[#0A0A0F] focus:bg-[#FFD600] focus:text-[#0A0A0F]'}`}>
+                    <DropdownMenuItem onClick={exportPresentationToPDF} className={`flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest cursor-pointer rounded ${presentationDarkMode ? 'text-white focus:bg-ds-pop focus:text-ds-ink' : 'text-ds-ink focus:bg-ds-pop focus:text-ds-ink'}`}>
                       <FileType className="h-4 w-4" />
                       Export to PDF
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={exportPresentationToSlides} className={`flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest cursor-pointer rounded ${presentationDarkMode ? 'text-white focus:bg-[#FFD600] focus:text-[#0A0A0F]' : 'text-[#0A0A0F] focus:bg-[#FFD600] focus:text-[#0A0A0F]'}`}>
+                    <DropdownMenuItem onClick={exportPresentationToSlides} className={`flex items-center gap-2 p-2 text-xs font-bold uppercase tracking-widest cursor-pointer rounded ${presentationDarkMode ? 'text-white focus:bg-ds-pop focus:text-ds-ink' : 'text-ds-ink focus:bg-ds-pop focus:text-ds-ink'}`}>
                       <Presentation className="h-4 w-4" />
                       Export to Slides
                     </DropdownMenuItem>
@@ -4182,8 +4182,8 @@ export default function BoardGrid({
                   onClick={exportNotesToText}
                   className={`h-9 w-9 p-0 rounded-none border-2 border-l-0 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-[#FFD600] hover:text-[#0A0A0F] hover:border-[color:var(--card-border)]' 
-                      : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-[#FFD600]'
+                      ? 'border-ds-line-strong bg-ds-chrome text-white hover:bg-ds-pop hover:text-ds-ink hover:border-[color:var(--card-border)]' 
+                      : 'border-[color:var(--card-border)] bg-white text-ds-ink hover:bg-ds-pop'
                   }`}
                   title="Export Notes as Text"
                 >
@@ -4196,8 +4196,8 @@ export default function BoardGrid({
                   onClick={exitPresentationMode}
                   className={`h-9 w-9 p-0 rounded-none rounded-r border-2 border-l-0 transition-all ${
                     presentationDarkMode 
-                      ? 'border-[#333333] bg-[#0A0A0F] text-white hover:bg-red-500 hover:text-white hover:border-red-500' 
-                      : 'border-[color:var(--card-border)] bg-white text-[#0A0A0F] hover:bg-red-500 hover:text-white hover:border-red-500'
+                      ? 'border-ds-line-strong bg-ds-chrome text-white hover:bg-red-500 hover:text-white hover:border-red-500' 
+                      : 'border-[color:var(--card-border)] bg-white text-ds-ink hover:bg-red-500 hover:text-white hover:border-red-500'
                   }`}
                 >
                   <X className="w-4 h-4" />
@@ -4211,10 +4211,10 @@ export default function BoardGrid({
               {!currentStep && (
                 <div className="flex-1 flex items-center justify-center">
                   <div className={`text-center p-12 border-4 border-dashed rounded ${
-                    presentationDarkMode ? 'border-[#333333] text-gray-400' : 'border-gray-300 text-gray-500'
+                    presentationDarkMode ? 'border-ds-line-strong text-gray-400' : 'border-gray-300 text-gray-500'
                   }`}>
                     <Fullscreen className={`w-20 h-20 mx-auto mb-6 ${
-                      presentationDarkMode ? 'text-[#333333]' : 'text-gray-300'
+                      presentationDarkMode ? 'text-ds-ink-soft' : 'text-gray-300'
                     }`} />
                     <h2 className="font-black uppercase tracking-widest text-xl mb-2">No Steps Available</h2>
                     <p className="font-bold uppercase tracking-widest text-xs">Add phases and columns to your board to start presenting</p>
@@ -4229,7 +4229,7 @@ export default function BoardGrid({
               }`}>
                 {/* Step Image - Primary image from column, fallback to first block image */}
                 <div className={`rounded border-2 shadow-[4px_4px_0px_0px] transition-all ${presentationViewMode === 'large' ? 'h-[75vh] w-full max-w-5xl mx-auto' : 'h-96'} flex items-center justify-center mb-10 ${
-                  presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] shadow-[#333333]' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
+                  presentationDarkMode ? 'bg-ds-chrome border-ds-line-strong shadow-ds-shadow' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
                 }`}>
                   {currentStep.columnImage ? (
                     <img 
@@ -4254,7 +4254,7 @@ export default function BoardGrid({
                         presentationDarkMode ? 'text-gray-400' : 'text-gray-500'
                       }`}>
                         <Fullscreen className={`w-16 h-16 mx-auto mb-4 ${
-                          presentationDarkMode ? 'text-[#333333]' : 'text-gray-300'
+                          presentationDarkMode ? 'text-ds-ink-soft' : 'text-gray-300'
                         }`} />
                         <p className="font-black uppercase tracking-widest text-xs">No visual content</p>
                       </div>
@@ -4265,9 +4265,9 @@ export default function BoardGrid({
                 {/* Step Details */}
                 <div className="space-y-6 max-w-5xl mx-auto">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-3 bg-[#FFD600]" />
+                    <div className="h-12 w-3 bg-ds-pop" />
                     <h2 className={`text-4xl font-black uppercase tracking-tighter ${
-                      presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
+                      presentationDarkMode ? 'text-white' : 'text-ds-ink'
                     } truncate`} title={currentStep.columnName}>
                       {currentStep.columnName}
                     </h2>
@@ -4283,7 +4283,7 @@ export default function BoardGrid({
                         <div 
                           key={block.id} 
                           className={`border-2 rounded p-6 shadow-[2px_2px_0px_0px] transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[3px_3px_0px_0px] ${
-                            presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] shadow-[#333333]' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
+                            presentationDarkMode ? 'bg-ds-chrome border-ds-line-strong shadow-ds-shadow' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
                           }`}
                           style={{ 
                             borderLeftWidth: '12px',
@@ -4308,11 +4308,11 @@ export default function BoardGrid({
                           <div className="flex flex-col gap-4">
                             <div className="flex items-center justify-between">
                               <div className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 ${
-                                presentationDarkMode ? 'bg-[#333333] text-white' : 'bg-[#0A0A0F] text-white'
+                                presentationDarkMode ? 'bg-ds-sunken text-white' : 'bg-ds-chrome text-white'
                               }`}>
                                 {layerType?.label || block.type}
                               </div>
-                              <div className={presentationDarkMode ? "text-white" : "text-[#0A0A0F]"}>
+                              <div className={presentationDarkMode ? "text-white" : "text-ds-ink"}>
                                 {block.emoji ? (
                                   <span className="text-2xl">{block.emoji}</span>
                                 ) : (
@@ -4324,7 +4324,7 @@ export default function BoardGrid({
                               <div className="flex-1">
                                 {block.content && (
                                   <div className={`text-lg font-bold leading-tight whitespace-pre-wrap ${
-                                    presentationDarkMode ? 'text-gray-200' : 'text-[#0A0A0F]'
+                                    presentationDarkMode ? 'text-gray-200' : 'text-ds-ink'
                                   }`}>
                                     {block.content}
                                   </div>
@@ -4334,7 +4334,7 @@ export default function BoardGrid({
                                 {Array.isArray(block.attachments) && block.attachments.filter(att => att.type !== 'image').length > 0 && (
                                   <div className="mt-4 space-y-2">
                                     {block.attachments.filter(att => att.type !== 'image').map((attachment, attIndex) => (
-                                      <div key={attIndex} className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#FFD600]">
+                                      <div key={attIndex} className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-ds-pop">
                                         {attachment.type === 'video' && <Play className="w-4 h-4 fill-current" />}
                                         {attachment.type === 'link' && <ExternalLink className="w-4 h-4" />}
                                         <span>{attachment.type} attachment</span>
@@ -4351,7 +4351,7 @@ export default function BoardGrid({
                                   .filter(att => att.type === 'image')
                                   .map((attachment, attIndex) => (
                                     <div key={attIndex} className={`aspect-square rounded border-2 overflow-hidden ${
-                                      presentationDarkMode ? 'border-[#333333]' : 'border-[color:var(--card-border)]'
+                                      presentationDarkMode ? 'border-ds-line-strong' : 'border-[color:var(--card-border)]'
                                     }`}>
                                       <img 
                                         src={attachment.url}
@@ -4381,13 +4381,13 @@ export default function BoardGrid({
           
           {/* Right Sidebar - Notes and Add Block */}
           <div className={`${presentationViewMode === 'large' ? 'w-80' : 'w-80'} border-l-2 flex flex-col ${
-            presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333]' : 'bg-gray-50 border-[color:var(--card-border)]'
+            presentationDarkMode ? 'bg-ds-chrome border-ds-line-strong' : 'bg-gray-50 border-[color:var(--card-border)]'
           }`}>
             <div className={`p-4 border-b-2 ${
-              presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333]' : 'bg-white border-[color:var(--card-border)]'
+              presentationDarkMode ? 'bg-ds-chrome border-ds-line-strong' : 'bg-white border-[color:var(--card-border)]'
             }`}>
               <h3 className={`font-black uppercase tracking-widest text-xs ${
-                presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
+                presentationDarkMode ? 'text-white' : 'text-ds-ink'
               }`}>Presentation Notes</h3>
             </div>
             <div className={`flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 presentation-scrollbar ${
@@ -4398,13 +4398,13 @@ export default function BoardGrid({
                 onChange={(e) => setPresentationNotes(e.target.value)}
                 placeholder="Add your notes for this presentation..."
                 className={`w-full h-48 resize-none border-2 rounded p-3 font-bold ${
-                  presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] text-white placeholder-gray-600 focus:border-[#FFD600]' : 'bg-white border-[color:var(--card-border)] text-[#0A0A0F] placeholder-gray-400 focus:border-[#FFD600]'
+                  presentationDarkMode ? 'bg-ds-chrome border-ds-line-strong text-white placeholder-gray-600 focus:border-ds-pop' : 'bg-white border-[color:var(--card-border)] text-ds-ink placeholder-gray-400 focus:border-ds-pop'
                 }`}
               />
               
               {/* Add New Block Section */}
               <div className={`border-t-2 pt-6 mt-4 ${
-                presentationDarkMode ? 'border-[#333333]' : 'border-[color:var(--card-border)]'
+                presentationDarkMode ? 'border-ds-line-strong' : 'border-[color:var(--card-border)]'
               }`}>
                 <h4 className={`font-black uppercase tracking-widest text-[10px] mb-4 ${
                   presentationDarkMode ? 'text-gray-400' : 'text-gray-500'
@@ -4415,8 +4415,8 @@ export default function BoardGrid({
                     onClick={() => setAddBlockPopoverOpen(true)}
                     className={`w-full font-black uppercase tracking-widest text-xs rounded border-2 shadow-[2px_2px_0px_0px] transition-all hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] ${
                       presentationDarkMode 
-                        ? 'bg-white text-[#0A0A0F] border-[#333333] shadow-[#333333] hover:bg-[#FFD600]' 
-                        : 'bg-white text-[#0A0A0F] border-[color:var(--card-border)] shadow-[color:var(--card-shadow)] hover:bg-[#FFD600]'
+                        ? 'bg-white text-ds-ink border-ds-line-strong shadow-ds-shadow hover:bg-ds-pop' 
+                        : 'bg-white text-ds-ink border-[color:var(--card-border)] shadow-[color:var(--card-shadow)] hover:bg-ds-pop'
                     }`}
                     variant="outline"
                   >
@@ -4428,7 +4428,7 @@ export default function BoardGrid({
                     {/* Block Type Selection with Searchable Dropdown */}
                     <div>
                       <label className={`text-[10px] font-black uppercase tracking-widest block mb-2 ${
-                        presentationDarkMode ? 'text-white' : 'text-[#0A0A0F]'
+                        presentationDarkMode ? 'text-white' : 'text-ds-ink'
                       }`}>Block Type</label>
                       <Popover open={blockTypeDropdownOpen} onOpenChange={setBlockTypeDropdownOpen}>
                         <PopoverTrigger asChild>
@@ -4438,8 +4438,8 @@ export default function BoardGrid({
                             aria-expanded={blockTypeDropdownOpen}
                             className={`w-full justify-between rounded border-2 font-bold ${
                               presentationDarkMode 
-                                ? 'bg-[#0A0A0F] border-[#333333] text-white hover:bg-[#1e1e32]' 
-                                : 'bg-white border-[color:var(--card-border)] text-[#0A0A0F] hover:bg-gray-50'
+                                ? 'bg-ds-chrome border-ds-line-strong text-white hover:bg-ds-sunken' 
+                                : 'bg-white border-[color:var(--card-border)] text-ds-ink hover:bg-gray-50'
                             }`}
                           >
                             {selectedBlockType ? (
@@ -4463,9 +4463,9 @@ export default function BoardGrid({
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className={`w-[280px] p-0 rounded border-2 shadow-[2px_2px_0px_0px] ${
-                          presentationDarkMode ? 'bg-[#0A0A0F] border-[#333333] shadow-[#333333]' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
+                          presentationDarkMode ? 'bg-ds-chrome border-ds-line-strong shadow-ds-shadow' : 'bg-white border-[color:var(--card-border)] shadow-[color:var(--card-shadow)]'
                         }`}>
-                          <Command className={presentationDarkMode ? 'bg-[#0A0A0F]' : ''}>
+                          <Command className={presentationDarkMode ? 'bg-ds-chrome' : ''}>
                             <CommandInput placeholder="Search block types..." className={
                               presentationDarkMode ? 'text-gray-200 placeholder-gray-400' : ''
                             } />
@@ -4484,7 +4484,7 @@ export default function BoardGrid({
                                         setBlockTypeDropdownOpen(false);
                                       }}
                                       className={`flex items-center gap-2 ${
-                                        presentationDarkMode ? 'text-gray-200 hover:bg-[#1e1e32]' : ''
+                                        presentationDarkMode ? 'text-gray-200 hover:bg-ds-sunken' : ''
                                       }`}
                                     >
                                       <IconComponent className="w-4 h-4" />

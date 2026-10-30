@@ -217,43 +217,43 @@
 }
 
 .block-content:hover::-webkit-scrollbar-thumb {
-  background: #8b5cf6;
+  background: var(--ds-reef-blue);
 }
 
 /* Custom horizontal scrollbar for board container */
 .board-scrollbar {
   scrollbar-width: thick !important;
-  scrollbar-color: #8b5cf6 #e2e8f0 !important;
+  scrollbar-color: var(--ds-reef-blue) var(--ds-line) !important;
   overflow-x: scroll !important;
   position: relative;
 }
 
 .board-scrollbar::-webkit-scrollbar {
   height: 20px !important;
-  background: #e2e8f0 !important;
+  background: var(--ds-line) !important;
 }
 
 .board-scrollbar::-webkit-scrollbar-track {
-  background: #e2e8f0 !important;
+  background: var(--ds-line) !important;
   border-radius: 0;
   border-top: 2px solid #cbd5e1;
 }
 
 .board-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #8b5cf6, #7c3aed) !important;
+  background: linear-gradient(90deg, var(--ds-reef-blue), var(--ds-accent)) !important;
   border-radius: 6px;
-  border: 2px solid #e2e8f0 !important;
+  border: 2px solid var(--ds-line) !important;
   min-width: 80px;
   box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .board-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(90deg, #7c3aed, #6d28d9) !important;
+  background: linear-gradient(90deg, var(--ds-accent), var(--ds-ink)) !important;
   box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .board-scrollbar::-webkit-scrollbar-thumb:active {
-  background: #6d28d9 !important;
+  background: var(--ds-accent) !important;
 }
 
 /* Board container */
@@ -265,14 +265,14 @@
 @-moz-document url-prefix() {
   .board-scrollbar {
     scrollbar-width: thick;
-    scrollbar-color: #8b5cf6 #e2e8f0;
+    scrollbar-color: var(--ds-reef-blue) var(--ds-line);
   }
 }
 
 /* Presentation Mode Scrollbars */
 .presentation-scrollbar {
   scrollbar-width: thin !important;
-  scrollbar-color: #9ca3af transparent !important;
+  scrollbar-color: var(--ds-ink-faint) transparent !important;
 }
 
 .presentation-scrollbar::-webkit-scrollbar {
@@ -287,29 +287,29 @@
 }
 
 .presentation-scrollbar::-webkit-scrollbar-thumb {
-  background: #9ca3af !important;
+  background: var(--ds-ink-faint) !important;
   border-radius: 4px;
   border: 2px solid transparent !important;
   background-clip: content-box !important;
 }
 
 .presentation-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #6b7280 !important;
+  background: var(--ds-ink-muted) !important;
   background-clip: content-box !important;
 }
 
 /* Dark mode scrollbars for presentation */
 .presentation-scrollbar.dark {
-  scrollbar-color: #6b7280 transparent !important;
+  scrollbar-color: var(--ds-ink-muted) transparent !important;
 }
 
 .presentation-scrollbar.dark::-webkit-scrollbar-thumb {
-  background: #6b7280 !important;
+  background: var(--ds-ink-muted) !important;
   background-clip: content-box !important;
 }
 
 .presentation-scrollbar.dark::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af !important;
+  background: var(--ds-ink-faint) !important;
   background-clip: content-box !important;
 }
 
@@ -362,10 +362,10 @@
 /* Intro.js custom styling - Clean, modern design with branding */
 .introjs-tooltip {
   background: white !important;
-  color: #1f2937 !important;
+  color: var(--ds-ink) !important;
   border-radius: var(--radius) !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-  border: 1px solid #e5e7eb !important;
+  border: 1px solid var(--ds-line) !important;
   max-width: 340px !important;
   min-width: 280px !important;
   padding: 0 !important;
@@ -481,7 +481,7 @@
 /* Button styling - outlined white boxes with dark text */
 .introjs-button {
   background: rgba(255, 255, 255, 0.9) !important;
-  color: #1f2937 !important;
+  color: var(--ds-ink) !important;
   border: 1px solid rgba(255, 255, 255, 0.8) !important;
   border-radius: var(--radius) !important;
   font-weight: 500 !important;
@@ -505,7 +505,7 @@
 
 .introjs-skipbutton {
   background: rgba(255, 255, 255, 0.7) !important;
-  color: #6b7280 !important;
+  color: var(--ds-ink-muted) !important;
   border: 1px solid rgba(255, 255, 255, 0.6) !important;
   font-size: 11px !important;
   padding: 6px 12px !important;
@@ -533,7 +533,7 @@
 }
 
 .introjs-progressbar {
-  background: #e5e7eb !important;
+  background: var(--ds-line) !important;
   height: 3px !important;
   border-radius: 3px !important;
   margin: 0 20px 16px 20px !important;
@@ -545,104 +545,96 @@
   border-radius: var(--radius) !important;
 }
 
-/* Dark Mode Styles for Board */
+/* Dark mode (night dive): patches for Tailwind grey/white classes still in use */
 .dark {
   color-scheme: dark;
 }
 
 .dark body {
-  background-color: #0A0A0F !important;
-  color: #FFFFFF !important;
+  background-color: var(--ds-page) !important;
+  color: var(--ds-ink) !important;
 }
 
 .dark .bauhaus-halftone-bg {
-  background-color: #0A0A0F !important;
-  background-image: radial-gradient(rgba(255, 214, 0, 0.15) 1px, transparent 1px) !important;
+  background-color: var(--ds-page) !important;
+  background-image: radial-gradient(var(--ds-page-dots) 1px, transparent 1px) !important;
 }
 
 .dark.bauhaus-halftone-bg {
-  background-color: #0A0A0F !important;
-  background-image: radial-gradient(rgba(255, 214, 0, 0.15) 1px, transparent 1px) !important;
+  background-color: var(--ds-page) !important;
+  background-image: radial-gradient(var(--ds-page-dots) 1px, transparent 1px) !important;
 }
 
 .dark .bg-white {
-  background-color: #12121A !important;
+  background-color: var(--ds-surface) !important;
 }
 
 .dark .text-gray-500,
 .dark .text-gray-600,
 .dark .text-gray-700,
 .dark .text-gray-400 {
-  color: #D1D5DB !important;
-}
-
-.dark .text-\[\#0A0A0F\] {
-  color: #FFFFFF !important;
+  color: var(--ds-ink-soft) !important;
 }
 
 .dark .bauhaus-card {
-  background-color: #12121A !important;
-  border-color: #333333 !important;
-  color: #FFFFFF !important;
-  box-shadow: 4px 4px 0px 0px #333333 !important;
+  background-color: var(--ds-surface) !important;
+  border-color: var(--ds-line-strong) !important;
+  color: var(--ds-ink) !important;
+  box-shadow: 4px 4px 0px 0px var(--ds-shadow) !important;
 }
 
 .dark .text-\[9px\] {
-  color: #FFFFFF !important;
+  color: var(--ds-ink) !important;
 }
 
 .dark .text-\[10px\] {
-  color: #FFFFFF !important;
-}
-
-.dark .text-center.text-\[\#0A0A0F\] {
-  color: #FFFFFF !important;
+  color: var(--ds-ink) !important;
 }
 
 .dark header.bg-gray-50 {
-  background-color: #1e1e32 !important;
-  border-color: #3a3a5c !important;
+  background-color: var(--ds-surface-sunken) !important;
+  border-color: var(--ds-line) !important;
 }
 
 .dark .hover\:bg-gray-100:hover {
-  background-color: #3a3a5c !important;
+  background-color: var(--ds-surface-hover) !important;
 }
 
 /* Dark Mode - Text colors */
 .dark .text-black {
-  color: #e5e5e5 !important;
+  color: var(--ds-ink) !important;
 }
 
 .dark .font-semibold.text-gray-700,
 .dark h2.text-gray-700 {
-  color: #c0c0d8 !important;
+  color: var(--ds-ink-soft) !important;
 }
 
 .dark .text-gray-900 {
-  color: #e5e5e5 !important;
+  color: var(--ds-ink) !important;
 }
 
 /* Dark Mode - Sidebar / Drawer */
 .dark .border-r.border-gray-300 {
-  background-color: #1e1e32 !important;
-  border-color: #3a3a5c !important;
+  background-color: var(--ds-surface-sunken) !important;
+  border-color: var(--ds-line) !important;
 }
 
 /* Dark Mode - Dropdowns and Popovers */
 .dark [data-radix-popper-content-wrapper]>div,
 .dark [role="menu"],
 .dark .bg-popover {
-  background-color: #252542 !important;
-  border-color: #3a3a5c !important;
-  color: #e5e5e5 !important;
+  background-color: var(--ds-surface) !important;
+  border-color: var(--ds-line) !important;
+  color: var(--ds-ink) !important;
 }
 
 .dark [role="menuitem"] {
-  color: #e5e5e5 !important;
+  color: var(--ds-ink) !important;
 }
 
 .dark [role="menuitem"]:hover {
-  background-color: #3a3a5c !important;
+  background-color: var(--ds-surface-hover) !important;
 }
 
 /* Emotion Journey - always light mode, exempt from dark mode overrides */
@@ -657,7 +649,7 @@
 
 .dark .emotion-journey-light .bg-gray-50,
 .dark .emotion-journey-light .bg-gray-100 {
-  background-color: #f9fafb !important;
+  background-color: #F6F2EC !important;
 }
 
 .dark .emotion-journey-light .text-gray-500,
@@ -669,7 +661,7 @@
 
 .dark .emotion-journey-light .border-gray-200,
 .dark .emotion-journey-light .border-gray-300 {
-  border-color: #e5e7eb !important;
+  border-color: #E4DDD3 !important;
 }
 /* New cards settle into place. A card dropped from the palette starts as a
    tile-sized window in the middle of the column, right where the tile landed,

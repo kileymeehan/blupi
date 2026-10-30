@@ -129,7 +129,7 @@ export function CustomScrollbar({ scrollContainer, darkMode = false }: CustomScr
   const scrollbarElement = (
     <div
       className={`fixed bottom-0 left-0 right-0 h-4 border-t backdrop-blur-sm ${
-        darkMode ? 'bg-[#1a1a2e]/80 border-white/10' : 'bg-white/80 border-gray-200'
+        darkMode ? 'bg-[color-mix(in_srgb,var(--ds-surface)_80%,transparent)] border-white/10' : 'bg-white/80 border-gray-200'
       }`}
       style={{ zIndex: 99999 }}
       onMouseEnter={() => setIsHovered(true)}

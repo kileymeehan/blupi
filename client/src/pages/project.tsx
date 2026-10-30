@@ -266,7 +266,7 @@ export default function Project() {
         rightContent={
           <div className="flex items-center gap-2">
             <ColorPicker
-              color={project?.color || '#4F46E5'}
+              color={project?.color || '#2E6A8E'}
               onChange={(color) => updateProjectMutation.mutateAsync({ color })}
             />
             <StatusSelector
@@ -290,9 +290,9 @@ export default function Project() {
       <main className="max-w-[1440px] mx-auto px-6 py-6">
         {/* Project Title */}
         <div className="mb-8">
-          <h1 className="text-5xl font-black text-[#0A0A0F] mb-2 uppercase tracking-tighter" style={{ fontFamily: 'Montserrat, sans-serif' }}>{project?.name || 'Loading...'}</h1>
+          <h1 className="text-5xl font-black text-ds-ink mb-2 uppercase tracking-tighter" style={{ fontFamily: 'Montserrat, sans-serif' }}>{project?.name || 'Loading...'}</h1>
           {project?.description && (
-            <p className="text-lg font-bold text-[#0A0A0F] uppercase tracking-wide">{project.description}</p>
+            <p className="text-lg font-bold text-ds-ink uppercase tracking-wide">{project.description}</p>
           )}
         </div>
 
@@ -313,9 +313,9 @@ export default function Project() {
             {/* Project Description Section */}
             <section className="bauhaus-card p-6">
               <div className="flex items-center gap-2 mb-4">
-                <FileText className="h-5 w-5 text-[#1976D2]" />
-                <h2 className="text-xl font-black uppercase tracking-widest text-[#0A0A0F]">Project Description</h2>
-                <span className={`ml-auto text-xs ${overviewStatus === 'error' ? 'text-[#E53935]' : 'text-gray-400'}`} aria-live="polite">
+                <FileText className="h-5 w-5 text-ds-accent" />
+                <h2 className="text-xl font-black uppercase tracking-widest text-ds-ink">Project Description</h2>
+                <span className={`ml-auto text-xs ${overviewStatus === 'error' ? 'text-ds-danger' : 'text-gray-400'}`} aria-live="polite">
                   {overviewStatus === 'saving' ? 'Saving…' : overviewStatus === 'saved' ? 'Saved' : overviewStatus === 'error' ? "Couldn't save. Keep this page open and try again." : ''}
                 </span>
               </div>
@@ -325,14 +325,14 @@ export default function Project() {
                 onChange={(e) => setProjectDescription(e.target.value)}
                 onBlur={() => saveOverview(projectDescription)}
                 maxLength={20000}
-                className="min-h-[120px] resize-none border border-gray-200 rounded text-[15px] leading-relaxed text-[#0A0A0F] placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[#1976D2]"
+                className="min-h-[120px] resize-none border border-gray-200 rounded text-[15px] leading-relaxed text-ds-ink placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-ds-accent"
               />
             </section>
 
             {/* Blueprints Section */}
             <section className="bauhaus-card p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-black uppercase tracking-widest text-[#0A0A0F]">Blueprints</h2>
+                <h2 className="text-xl font-black uppercase tracking-widest text-ds-ink">Blueprints</h2>
                 <Button onClick={() => setCreateBlueprintOpen(true)} className="bauhaus-btn h-10 px-6">
                   <Plus className="mr-1.5 h-3.5 w-3.5" />
                   Create New Blueprint
@@ -356,20 +356,20 @@ export default function Project() {
                   <tr
                     key={board.id}
                     onClick={() => navigate(`/board/${board.id}`)}
-                    className="group cursor-pointer border-b border-gray-100 last:border-0 hover:bg-[#FFD600]/10 transition-colors"
+                    className="group cursor-pointer border-b border-gray-100 last:border-0 hover:bg-[color-mix(in_srgb,var(--ds-pop)_10%,transparent)] transition-colors"
                   >
                     <td className="py-3 pl-3 pr-4">
                       <div className="flex items-center gap-3 min-w-0">
                         <span
                           className="h-2.5 w-2.5 rounded-sm flex-shrink-0"
-                          style={{ backgroundColor: project?.color || '#1976D2' }}
+                          style={{ backgroundColor: project?.color || '#2E6A8E' }}
                         />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 min-w-0">
                             <Link
                               href={`/board/${board.id}`}
                               onClick={(e) => e.stopPropagation()}
-                              className="truncate font-bold text-[#0A0A0F] group-hover:underline underline-offset-2"
+                              className="truncate font-bold text-ds-ink group-hover:underline underline-offset-2"
                             >
                               {board.name}
                             </Link>
@@ -400,7 +400,7 @@ export default function Project() {
                     <td className="py-3 pr-1 text-right" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-[#0A0A0F] hover:bg-black/5" aria-label={`Actions for ${board.name}`}>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-ds-ink hover:bg-black/5" aria-label={`Actions for ${board.name}`}>
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -520,8 +520,8 @@ export default function Project() {
             {/* Documents & Links Section */}
             <section className="bauhaus-card p-6">
               <div className="flex items-center justify-between gap-2 mb-4">
-                <h2 className="flex items-center gap-2 text-base font-black uppercase tracking-widest text-[#0A0A0F] min-w-0">
-                  <LinkIcon className="h-4 w-4 text-[#1976D2] flex-shrink-0" />
+                <h2 className="flex items-center gap-2 text-base font-black uppercase tracking-widest text-ds-ink min-w-0">
+                  <LinkIcon className="h-4 w-4 text-ds-accent flex-shrink-0" />
                   Documents & Links
                 </h2>
                 {!showAddLinkForm && (
@@ -530,7 +530,7 @@ export default function Project() {
                     onClick={() => setShowAddLinkForm(true)}
                     title="Add a link"
                     aria-label="Add link"
-                    className="h-8 w-8 p-0 flex-shrink-0 text-[#0A0A0F] hover:bg-black/5"
+                    className="h-8 w-8 p-0 flex-shrink-0 text-ds-ink hover:bg-black/5"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -550,19 +550,19 @@ export default function Project() {
                         className="flex flex-1 min-w-0 items-center justify-between gap-2 py-2.5 group"
                       >
                         <div className="min-w-0">
-                          <div className="text-sm font-bold text-[#0A0A0F] truncate group-hover:underline underline-offset-2">{doc.title}</div>
+                          <div className="text-sm font-bold text-ds-ink truncate group-hover:underline underline-offset-2">{doc.title}</div>
                           <div className="text-xs text-gray-500">
                             {doc.type === 'google_drive' ? 'Google Drive' : 'External link'}
                           </div>
                         </div>
-                        <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-gray-300 group-hover:text-[#0A0A0F]" />
+                        <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-gray-300 group-hover:text-ds-ink" />
                       </a>
                       <Button
                         variant="ghost"
                         onClick={() => deleteDocumentMutation.mutate(doc.id)}
                         disabled={deleteDocumentMutation.isPending}
                         aria-label={`Remove ${doc.title}`}
-                        className="h-7 w-7 p-0 flex-shrink-0 text-gray-300 opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 hover:text-[#E53935] hover:bg-red-50"
+                        className="h-7 w-7 p-0 flex-shrink-0 text-gray-300 opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 hover:text-ds-danger hover:bg-red-50"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -583,13 +583,13 @@ export default function Project() {
                     placeholder="Title"
                     value={newDocumentTitle}
                     onChange={(e) => setNewDocumentTitle(e.target.value)}
-                    className="h-9 border border-gray-200 rounded text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[#1976D2]"
+                    className="h-9 border border-gray-200 rounded text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-ds-accent"
                   />
                   <Input
                     placeholder="URL"
                     value={newDocumentUrl}
                     onChange={(e) => setNewDocumentUrl(e.target.value)}
-                    className="h-9 border border-gray-200 rounded text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[#1976D2]"
+                    className="h-9 border border-gray-200 rounded text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-ds-accent"
                   />
                   <div className="flex gap-2">
                     <Button
